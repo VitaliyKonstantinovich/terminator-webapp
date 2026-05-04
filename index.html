@@ -7,7 +7,7 @@
   <meta name="description" content="Telegram Mini App — управление ИИ-ассистентом Терминатор">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,66 +16,52 @@
 
     <!-- ═══ SCREEN 1 — START ═══ -->
     <div id="screen-start" class="screen active">
-      <div class="screen-frame">
-        <img src="assets/terminator_woman.webp" alt="" class="screen-bg" draggable="false">
-        <div class="hero-fade"></div>
-        <div class="start-ui">
-          <h1 class="logo"><span class="t-metal">TER</span><span class="t-neon">MINA</span><span class="t-metal">TOR</span></h1>
-          <p class="start-sub">Твой ИИ-ассистент для любых задач</p>
-          <button class="btn-start" id="btn-start" type="button">▶&ensp;Старт</button>
-        </div>
+      <div class="frame">
+        <img src="assets/terminator_woman.webp" alt="" class="bg" draggable="false">
+        <!-- Only the START button — text is on the image -->
+        <button class="zone" id="btn-start"
+          style="bottom:3%; left:50%; transform:translateX(-50%); width:180px; height:48px;">
+        </button>
       </div>
     </div>
 
-    <!-- ═══ SCREEN 2 — ВЫБОР РЕЖИМА ═══ -->
+    <!-- ═══ SCREEN 2 — MENU ═══ -->
     <div id="screen-menu" class="screen">
-      <div class="screen-frame">
-        <img src="assets/bg_menu.webp" alt="" class="screen-bg" draggable="false">
-        <div class="overlay-ui menu-ui">
-          <h2 class="ui-title">Привет, Терминатор на связи!</h2>
-          <p class="ui-sub">Выбери раздел:</p>
-          <div class="menu-btns">
-            <button class="menu-btn" id="btn-personal" type="button">
-              <span class="mb-icon">👤</span><span class="mb-text">Личное</span><span class="mb-arrow">›</span>
-            </button>
-            <button class="menu-btn" id="btn-work" type="button">
-              <span class="mb-icon">💼</span><span class="mb-text">Рабочее</span><span class="mb-arrow">›</span>
-            </button>
-            <button class="menu-btn" id="btn-other" type="button">
-              <span class="mb-icon">🧩</span><span class="mb-text">Прочее</span><span class="mb-arrow">›</span>
-            </button>
-          </div>
-        </div>
+      <div class="frame">
+        <img src="assets/bg_menu.webp" alt="" class="bg" draggable="false">
+        <!-- 3 buttons over image buttons -->
+        <button class="zone" id="btn-personal"
+          style="top:42%; left:50%; transform:translateX(-50%); width:300px; height:52px;">
+        </button>
+        <button class="zone" id="btn-work"
+          style="top:54.5%; left:50%; transform:translateX(-50%); width:300px; height:52px;">
+        </button>
+        <button class="zone" id="btn-other"
+          style="top:66.5%; left:50%; transform:translateX(-50%); width:300px; height:52px;">
+        </button>
       </div>
     </div>
 
-    <!-- ═══ SCREEN 3 — ЛИЧНОЕ ═══ -->
+    <!-- ═══ SCREEN 3 — PERSONAL ═══ -->
     <div id="screen-personal" class="screen">
-      <div class="screen-frame">
-        <img src="assets/bg_personal.webp" alt="" class="screen-bg" draggable="false">
-        <div class="overlay-ui personal-ui">
-          <h2 class="ui-title">👤&ensp;Личное</h2>
-          <p class="ui-sub">Выбери ИИ для ручной работы<br>через ПК Терминатора:</p>
-          <div class="brain-grid">
-            <button class="brain-card" data-brain="chatgpt" type="button">
-              <div class="bc-icon"><img src="assets/icons/chatgpt.png" alt=""></div>
-              <div class="bc-name">ChatGPT</div>
-            </button>
-            <button class="brain-card" data-brain="gemini" type="button">
-              <div class="bc-icon"><img src="assets/icons/gemini.png" alt=""></div>
-              <div class="bc-name">Gemini</div>
-            </button>
-            <button class="brain-card" data-brain="deepseek" type="button">
-              <div class="bc-icon"><img src="assets/icons/deepseek.png" alt=""></div>
-              <div class="bc-name">DeepSeek</div>
-            </button>
-            <button class="brain-card" data-brain="qwen" type="button">
-              <div class="bc-icon"><img src="assets/icons/qwen.png" alt=""></div>
-              <div class="bc-name">Qwen</div>
-            </button>
-          </div>
-          <button class="btn-back" id="btn-back" type="button">←&ensp;Назад</button>
-        </div>
+      <div class="frame">
+        <img src="assets/bg_personal.webp" alt="" class="bg" draggable="false">
+        <!-- 4 model cards + back -->
+        <button class="zone" data-brain="chatgpt"
+          style="top:34%; left:28%; width:20%; height:20%;">
+        </button>
+        <button class="zone" data-brain="gemini"
+          style="top:34%; left:52%; width:20%; height:20%;">
+        </button>
+        <button class="zone" data-brain="deepseek"
+          style="top:57%; left:28%; width:20%; height:20%;">
+        </button>
+        <button class="zone" data-brain="qwen"
+          style="top:57%; left:52%; width:20%; height:20%;">
+        </button>
+        <button class="zone" id="btn-back"
+          style="top:80%; left:50%; transform:translateX(-50%); width:300px; height:46px;">
+        </button>
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════
-   TERMINATOR WEBAPP — Image-based + Real Buttons
+   TERMINATOR WEBAPP — Clean overlay buttons
    ══════════════════════════════════════════════════ */
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -7,315 +7,73 @@
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Inter', sans-serif;
   background: #060a14;
   color: #e8edf5;
-  -webkit-font-smoothing: antialiased;
 }
 
-button {
-  font-family: inherit;
-  border: none;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-  outline: none;
-}
+button { font-family: inherit; border: none; background: none; color: inherit; cursor: pointer; outline: none; }
 
-/* ══════════════════════════════════════════════════
-   SCREEN SYSTEM
-   ══════════════════════════════════════════════════ */
-
+/* ─── App & Screens ────────────────────────────── */
 .app { width: 100%; height: 100%; position: relative; overflow: hidden; }
 
 .screen {
   position: absolute; inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.45s ease, transform 0.45s ease;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
   transform: scale(0.97);
 }
 .screen.active { opacity: 1; pointer-events: auto; transform: scale(1); }
 .screen.exit-left  { opacity: 0; transform: translateX(-50px) scale(0.96); }
 .screen.exit-right { opacity: 0; transform: translateX(50px) scale(0.96); }
 
-/* ─── Screen frame: locks to 16:9, centers ─────── */
-.screen-frame {
-  position: absolute; inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.screen-bg {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center center;
-  z-index: 0;
-}
-
-/* ══════════════════════════════════════════════════
-   SCREEN 1 — START (Hero image + overlay UI)
-   ══════════════════════════════════════════════════ */
-
-.hero-fade {
-  position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to bottom,
-    transparent 0%,
-    transparent 35%,
-    rgba(6,10,20,0.45) 55%,
-    rgba(6,10,20,0.8) 75%,
-    rgba(6,10,20,1) 100%
-  );
-}
-
-.start-ui {
-  position: absolute; inset: 0; z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  padding-bottom: min(6vh, 48px);
-  gap: 12px;
-}
-
-/* Logo */
-.logo {
-  font-family: 'Orbitron', sans-serif;
-  font-size: clamp(36px, 5.5vw, 64px);
-  font-weight: 900;
-  letter-spacing: 6px;
-  line-height: 1;
-  user-select: none;
-}
-.t-metal {
-  color: #c8d0dc;
-  text-shadow: 0 0 10px rgba(200,210,230,0.25), 0 2px 6px rgba(0,0,0,0.5);
-}
-.t-neon {
-  color: #ef4444;
-  text-shadow: 0 0 20px rgba(239,68,68,0.6), 0 0 50px rgba(239,68,68,0.25), 0 0 100px rgba(239,68,68,0.12);
-  animation: neon-pulse 3s ease-in-out infinite;
-}
-@keyframes neon-pulse {
-  0%,100% { text-shadow: 0 0 20px rgba(239,68,68,0.6), 0 0 50px rgba(239,68,68,0.25); }
-  50%     { text-shadow: 0 0 30px rgba(239,68,68,0.8), 0 0 70px rgba(239,68,68,0.4), 0 0 120px rgba(239,68,68,0.15); }
-}
-
-.start-sub {
-  font-size: 15px;
-  color: rgba(180,195,220,0.8);
-  letter-spacing: 1px;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-}
-
-.btn-start {
-  margin-top: 14px;
-  padding: 13px 48px;
-  font-size: 17px; font-weight: 700;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: #e8edf5;
-  background: rgba(239,68,68,0.12);
-  border: 1px solid rgba(239,68,68,0.4);
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-.btn-start:hover {
-  background: rgba(239,68,68,0.22);
-  border-color: rgba(239,68,68,0.65);
-  box-shadow: 0 0 28px rgba(239,68,68,0.2), inset 0 0 20px rgba(239,68,68,0.05);
-  transform: translateY(-2px);
-}
-.btn-start:active { transform: translateY(0) scale(0.97); }
-
-/* ══════════════════════════════════════════════════
-   OVERLAY UI — shared layout for screens 2 & 3
-   Positioned center, covers the text/buttons on the background image
-   ══════════════════════════════════════════════════ */
-
-.overlay-ui {
-  position: absolute; z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* Vertical centering, slight upward offset */
+/* ─── Frame: aspect-ratio locked container ─────── */
+.frame {
+  position: absolute;
+  /* Center in viewport, maintain 16:9 */
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: min(480px, 86vw);
-  gap: 6px;
+  /* Fill viewport but keep aspect ratio */
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
 }
 
-.ui-title {
-  font-size: clamp(18px, 2.2vw, 26px);
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  text-shadow: 0 0 20px rgba(59,130,246,0.4);
-  text-align: center;
-  /* Opaque bg to cover image text */
-  background: rgba(6,10,20,0.85);
-  padding: 10px 28px;
-  border-radius: 8px;
+.bg {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: fill; /* fills the 16:9 frame exactly */
+  user-select: none;
+  pointer-events: none;
 }
 
-.ui-sub {
-  font-size: 14px;
-  color: rgba(148,180,220,0.75);
-  text-align: center;
-  letter-spacing: 0.5px;
-  line-height: 1.5;
-  background: rgba(6,10,20,0.8);
-  padding: 6px 20px;
-  border-radius: 6px;
-  margin-bottom: 10px;
+/* ─── Click zones — transparent, over image buttons ─ */
+.zone {
+  position: absolute;
+  z-index: 10;
+  border-radius: 10px;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+  /* Fully transparent — image buttons show through */
+  background: transparent;
+  /* Uncomment to debug positions: */
+  /* background: rgba(255, 0, 0, 0.2); border: 2px solid red; */
 }
 
-/* ══════════════════════════════════════════════════
-   SCREEN 2 — MENU BUTTONS
-   Styled to match the reference mockup exactly
-   ══════════════════════════════════════════════════ */
-
-.menu-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
+.zone:hover {
+  background: rgba(80, 160, 255, 0.08);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.12);
 }
 
-.menu-btn {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 16px 22px;
-  /* Solid opaque background — covers image button underneath */
-  background: rgba(8,16,40,0.92);
-  border: 1.5px solid rgba(59,130,246,0.35);
-  border-radius: 50px; /* pill shape like the mockup */
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: #e0e8f4;
-  transition: all 0.3s ease;
+.zone:active {
+  background: rgba(80, 160, 255, 0.15);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
 }
 
-.menu-btn:hover {
-  background: rgba(15,30,65,0.95);
-  border-color: rgba(59,130,246,0.6);
-  box-shadow: 0 0 20px rgba(59,130,246,0.15), inset 0 0 16px rgba(59,130,246,0.04);
-  transform: translateX(5px);
-}
-.menu-btn:active { transform: translateX(2px) scale(0.98); }
-
-.mb-icon {
-  font-size: 20px;
-  width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(59,130,246,0.1);
-  border: 1px solid rgba(59,130,246,0.2);
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.mb-text { flex: 1; }
-
-.mb-arrow {
-  font-size: 22px; font-weight: 300;
-  color: rgba(100,140,200,0.5);
-  transition: color 0.3s, transform 0.3s;
-}
-.menu-btn:hover .mb-arrow { color: #3b82f6; transform: translateX(4px); }
-
-/* ══════════════════════════════════════════════════
-   SCREEN 3 — BRAIN CARDS
-   ══════════════════════════════════════════════════ */
-
-.brain-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  width: 100%;
-}
-
-.brain-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 24px 14px 18px;
-  /* Solid opaque — covers image cards */
-  background: rgba(8,16,40,0.92);
-  border: 1.5px solid rgba(59,130,246,0.3);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.brain-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(59,130,246,0.6);
-  box-shadow: 0 0 24px rgba(59,130,246,0.12), 0 10px 30px rgba(0,0,0,0.3);
-}
-.brain-card:active { transform: translateY(-1px) scale(0.97); }
-
-.bc-icon {
-  width: 52px; height: 52px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 14px;
-  background: rgba(59,130,246,0.08);
-  border: 1px solid rgba(59,130,246,0.12);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-.brain-card:hover .bc-icon {
-  transform: scale(1.1);
-  box-shadow: 0 0 16px rgba(59,130,246,0.15);
-}
-.bc-icon img { width: 38px; height: 38px; object-fit: contain; }
-
-.bc-name {
-  font-size: 14px; font-weight: 700;
-  letter-spacing: 1px;
-}
-
-/* Per-brain accent on hover */
-.brain-card[data-brain="chatgpt"]:hover  { border-color: #10a37f; box-shadow: 0 0 20px rgba(16,163,127,0.15), 0 8px 28px rgba(0,0,0,0.3); }
-.brain-card[data-brain="gemini"]:hover   { border-color: #4285f4; box-shadow: 0 0 20px rgba(66,133,244,0.15), 0 8px 28px rgba(0,0,0,0.3); }
-.brain-card[data-brain="deepseek"]:hover { border-color: #4D6BFE; box-shadow: 0 0 20px rgba(77,107,254,0.15), 0 8px 28px rgba(0,0,0,0.3); }
-.brain-card[data-brain="qwen"]:hover     { border-color: #7C3AED; box-shadow: 0 0 20px rgba(124,58,237,0.15), 0 8px 28px rgba(0,0,0,0.3); }
-
-/* Back button */
-.btn-back {
-  width: 100%;
-  padding: 14px;
-  margin-top: 4px;
-  font-size: 15px; font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(160,185,220,0.8);
-  background: rgba(8,16,40,0.92);
-  border: 1.5px solid rgba(59,130,246,0.25);
-  border-radius: 14px;
-  transition: all 0.3s ease;
-}
-.btn-back:hover {
-  background: rgba(15,30,65,0.95);
-  color: #e0e8f4;
-  border-color: rgba(59,130,246,0.5);
-  box-shadow: 0 0 16px rgba(59,130,246,0.1);
-}
-.btn-back:active { transform: scale(0.98); }
-
-/* ══════════════════════════════════════════════════
-   TOAST
-   ══════════════════════════════════════════════════ */
-
+/* ─── Toast ────────────────────────────────────── */
 .toast {
   position: fixed;
   bottom: 36px; left: 50%;
   transform: translateX(-50%) translateY(20px);
-  background: rgba(8,16,35,0.95);
+  background: rgba(8, 16, 35, 0.95);
   backdrop-filter: blur(20px);
   color: #e8edf5;
   padding: 16px 28px;
@@ -323,25 +81,19 @@ button {
   font-size: 14px; font-weight: 600;
   line-height: 1.5;
   text-align: center;
-  border: 1px solid rgba(59,130,246,0.3);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
   z-index: 200;
   opacity: 0;
   transition: all 0.35s ease;
   max-width: 420px;
 }
-.toast.visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
+.toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ══════════════════════════════════════════════════
-   STATUS OVERLAY
-   ══════════════════════════════════════════════════ */
-
+/* ─── Status overlay ───────────────────────────── */
 .status-overlay {
   position: fixed; inset: 0;
-  background: rgba(6,10,20,0.92);
+  background: rgba(6, 10, 20, 0.92);
   backdrop-filter: blur(10px);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -353,31 +105,10 @@ button {
 
 .spinner {
   width: 48px; height: 48px;
-  border: 3px solid rgba(59,130,246,0.15);
+  border: 3px solid rgba(59, 130, 246, 0.15);
   border-top-color: #3b82f6;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.status-text { font-size: 16px; color: rgba(148,180,220,0.7); text-align: center; }
-
-/* ══════════════════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════════════════ */
-
-@media (max-height: 700px) {
-  .overlay-ui { gap: 4px; }
-  .ui-title { font-size: 18px; padding: 8px 20px; }
-  .menu-btn { padding: 13px 18px; font-size: 14px; }
-  .brain-card { padding: 18px 10px 14px; }
-  .bc-icon { width: 42px; height: 42px; }
-  .bc-icon img { width: 30px; height: 30px; }
-  .start-ui { padding-bottom: 24px; }
-}
-
-@media (max-width: 480px) {
-  .overlay-ui { width: 94vw; }
-  .brain-grid { gap: 8px; }
-  .logo { letter-spacing: 3px; }
-}
+.status-text { font-size: 16px; color: rgba(148, 180, 220, 0.7); text-align: center; }
