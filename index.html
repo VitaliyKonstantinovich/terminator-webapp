@@ -27,57 +27,23 @@
     </div>
 
     <!-- ═══ Screen 2: Main Menu ═══ -->
-    <div id="screen-menu" class="screen menu-screen">
-      <div class="menu-header">
-        <h2 class="menu-greeting">Привет, Терминатор на связи! <img src="assets/terminator_skull.png" alt="T-800" class="greeting-skull"></h2>
-        <p class="menu-subtitle">Выбери раздел:</p>
-      </div>
-      <div class="menu-cards">
-        <div class="menu-card" id="card-personal">
-          <div class="card-icon">👤</div>
-          <span>Личное</span>
-          <span class="card-arrow">›</span>
-        </div>
-        <div class="menu-card" id="card-work">
-          <div class="card-icon">💼</div>
-          <span>Рабочее</span>
-          <span class="card-arrow">›</span>
-        </div>
-        <div class="menu-card" id="card-other">
-          <div class="card-icon">🧩</div>
-          <span>Прочее</span>
-          <span class="card-arrow">›</span>
-        </div>
-      </div>
+    <div id="screen-menu" class="screen img-screen">
+      <img src="assets/bg_menu.webp" alt="Меню" class="screen-bg">
+      <!-- Невидимые кликабельные зоны поверх кнопок на картинке -->
+      <div class="click-zone" id="card-personal" style="top:40%; left:50%; transform:translateX(-50%); width:34%; height:11%;"></div>
+      <div class="click-zone" id="card-work"     style="top:54%; left:50%; transform:translateX(-50%); width:34%; height:11%;"></div>
+      <div class="click-zone" id="card-other"    style="top:68%; left:50%; transform:translateX(-50%); width:34%; height:11%;"></div>
     </div>
 
     <!-- ═══ Screen 3: Personal ═══ -->
-    <div id="screen-personal" class="screen personal-screen">
-      <div class="personal-header">
-        <h2 class="personal-title">👤 Личное</h2>
-        <p class="personal-subtitle">Выбери ИИ для ручной работы<br>через ПК Терминатора:</p>
-      </div>
-      <div class="brain-grid">
-        <div class="brain-card" data-brain="chatgpt">
-          <div class="brain-icon"><img src="assets/icons/chatgpt.png" alt="ChatGPT"></div>
-          <div class="brain-name">ChatGPT</div>
-        </div>
-        <div class="brain-card" data-brain="gemini">
-          <div class="brain-icon"><img src="assets/icons/gemini.png" alt="Gemini"></div>
-          <div class="brain-name">Gemini</div>
-        </div>
-        <div class="brain-card" data-brain="deepseek">
-          <div class="brain-icon"><img src="assets/icons/deepseek.png" alt="DeepSeek"></div>
-          <div class="brain-name">DeepSeek</div>
-        </div>
-        <div class="brain-card" data-brain="qwen">
-          <div class="brain-icon"><img src="assets/icons/qwen.png" alt="Qwen"></div>
-          <div class="brain-name">Qwen</div>
-        </div>
-      </div>
-      <button class="btn-back" id="btn-back-personal">
-        <span>🔙</span> Назад
-      </button>
+    <div id="screen-personal" class="screen img-screen">
+      <img src="assets/bg_personal.webp" alt="Личное" class="screen-bg">
+      <!-- Невидимые кликабельные зоны поверх карточек на картинке -->
+      <div class="click-zone" id="brain-chatgpt" data-brain="chatgpt" style="top:32%; left:30%; transform:translateX(-50%); width:20%; height:22%;"></div>
+      <div class="click-zone" id="brain-gemini"  data-brain="gemini"  style="top:32%; left:70%; transform:translateX(-50%); width:20%; height:22%;"></div>
+      <div class="click-zone" id="brain-deepseek" data-brain="deepseek" style="top:56%; left:30%; transform:translateX(-50%); width:20%; height:22%;"></div>
+      <div class="click-zone" id="brain-qwen"    data-brain="qwen"    style="top:56%; left:70%; transform:translateX(-50%); width:20%; height:22%;"></div>
+      <div class="click-zone" id="btn-back-personal" style="top:82%; left:50%; transform:translateX(-50%); width:40%; height:8%;"></div>
     </div>
 
   </div>

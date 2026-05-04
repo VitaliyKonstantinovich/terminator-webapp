@@ -11,8 +11,8 @@ const App = {
     if (this.tg) {
       this.tg.ready();
       this.tg.expand();
-      this.tg.setHeaderColor('#0a0e1a');
-      this.tg.setBackgroundColor('#0a0e1a');
+      this.tg.setHeaderColor('#070a12');
+      this.tg.setBackgroundColor('#070a12');
     }
 
     this.bindEvents();
@@ -25,7 +25,7 @@ const App = {
       this.showScreen('menu');
     });
 
-    // Main menu cards
+    // Main menu — click zones on image
     document.getElementById('card-personal').addEventListener('click', () => {
       this.showScreen('personal');
     });
@@ -38,15 +38,15 @@ const App = {
       this.showToast('🧩 Раздел "Прочее" в разработке');
     });
 
-    // Personal brain cards
-    document.querySelectorAll('.brain-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const brain = card.dataset.brain;
+    // Personal — brain click zones on image
+    document.querySelectorAll('[data-brain]').forEach(zone => {
+      zone.addEventListener('click', () => {
+        const brain = zone.dataset.brain;
         this.selectBrain(brain);
       });
     });
 
-    // Back buttons
+    // Back button
     document.getElementById('btn-back-personal').addEventListener('click', () => {
       this.showScreen('menu');
     });
@@ -145,7 +145,6 @@ const App = {
   },
 
   showToast(message) {
-    // Simple toast notification
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
 
@@ -157,14 +156,14 @@ const App = {
       bottom: 32px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
-      background: rgba(30, 41, 59, 0.95);
+      background: rgba(10, 20, 50, 0.95);
       backdrop-filter: blur(20px);
       color: #f1f5f9;
       padding: 14px 24px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
-      border: 1px solid rgba(148, 163, 184, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
       z-index: 200;
       opacity: 0;
       transition: all 0.3s ease;
