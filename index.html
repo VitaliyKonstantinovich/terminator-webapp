@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Терминатор — ИИ-ассистент</title>
+  <meta name="description" content="Telegram Mini App — управление ИИ-ассистентом Терминатор">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ═══ Screen 1: Start ═══ -->
+    <div id="screen-start" class="screen start-screen active">
+      <div class="hero-image-wrapper">
+        <img src="assets/terminator_woman.webp" alt="Терминатор" id="robot-img">
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="start-content">
+        <h1 class="start-title">ТЕРМИНАТОР</h1>
+        <p class="start-subtitle">Твой ИИ-ассистент<br>для любых задач</p>
+        <button class="btn-primary" id="btn-start">
+          <span class="btn-icon">▶</span> Старт
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ Screen 2: Main Menu ═══ -->
+    <div id="screen-menu" class="screen menu-screen">
+      <div class="menu-header">
+        <h2 class="menu-greeting">Привет, Терминатор на связи! <img src="assets/terminator_skull.png" alt="T-800" class="greeting-skull"></h2>
+        <p class="menu-subtitle">Выбери раздел:</p>
+      </div>
+      <div class="menu-cards">
+        <div class="menu-card" id="card-personal">
+          <div class="card-icon">👤</div>
+          <span>Личное</span>
+          <span class="card-arrow">›</span>
+        </div>
+        <div class="menu-card" id="card-work">
+          <div class="card-icon">💼</div>
+          <span>Рабочее</span>
+          <span class="card-arrow">›</span>
+        </div>
+        <div class="menu-card" id="card-other">
+          <div class="card-icon">🧩</div>
+          <span>Прочее</span>
+          <span class="card-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Screen 3: Personal ═══ -->
+    <div id="screen-personal" class="screen personal-screen">
+      <div class="personal-header">
+        <h2 class="personal-title">👤 Личное</h2>
+        <p class="personal-subtitle">Выбери ИИ для ручной работы<br>через ПК Терминатора:</p>
+      </div>
+      <div class="brain-grid">
+        <div class="brain-card" data-brain="chatgpt">
+          <div class="brain-icon"><img src="assets/icons/chatgpt.png" alt="ChatGPT"></div>
+          <div class="brain-name">ChatGPT</div>
+        </div>
+        <div class="brain-card" data-brain="gemini">
+          <div class="brain-icon"><img src="assets/icons/gemini.png" alt="Gemini"></div>
+          <div class="brain-name">Gemini</div>
+        </div>
+        <div class="brain-card" data-brain="deepseek">
+          <div class="brain-icon"><img src="assets/icons/deepseek.png" alt="DeepSeek"></div>
+          <div class="brain-name">DeepSeek</div>
+        </div>
+        <div class="brain-card" data-brain="qwen">
+          <div class="brain-icon"><img src="assets/icons/qwen.png" alt="Qwen"></div>
+          <div class="brain-name">Qwen</div>
+        </div>
+      </div>
+      <button class="btn-back" id="btn-back-personal">
+        <span>🔙</span> Назад
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Status overlay -->
+  <div id="status-overlay" class="status-overlay">
+    <div class="spinner"></div>
+    <div id="status-text" class="status-text">Подключение...</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

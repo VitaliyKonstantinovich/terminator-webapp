@@ -1,0 +1,479 @@
+:root {
+  /* ─── Samsung One UI Colors ─── */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: rgba(30, 41, 59, 0.65);
+  --bg-card-hover: rgba(51, 65, 85, 0.75);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.35);
+  --accent-hover: #2563eb;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #22c55e;
+  --warning: #f59e0b;
+
+  /* Brain colors */
+  --chatgpt-color: #10a37f;
+  --gemini-color: #4285f4;
+  --deepseek-color: #4D6BFE;
+  --qwen-color: #7C3AED;
+
+  /* Samsung One UI radii */
+  --radius: 20px;
+  --radius-sm: 14px;
+  --radius-lg: 28px;
+  --radius-icon: 22px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Screen Container ─────────────────────────── */
+.app {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+
+.screen.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.screen.exit-left {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+
+.screen.exit-right {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+/* ─── Screen 1: Start ─────────────────────────── */
+.start-screen {
+  background: var(--bg-primary);
+  padding: 0;
+  justify-content: flex-end;
+}
+
+.hero-image-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hero-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 14, 26, 0) 0%,
+    rgba(10, 14, 26, 0.3) 40%,
+    rgba(10, 14, 26, 0.85) 70%,
+    rgba(10, 14, 26, 1) 100%
+  );
+}
+
+.start-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px 48px;
+  width: 100%;
+}
+
+.start-title {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  text-shadow: 0 0 40px rgba(59, 130, 246, 0.4),
+               0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.start-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 36px;
+  text-align: center;
+  line-height: 1.6;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Buttons (Samsung One UI style) ──────────── */
+.btn-primary {
+  width: 100%;
+  max-width: 320px;
+  padding: 18px 32px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px var(--accent-glow),
+              0 1px 3px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 32px var(--accent-glow);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+/* ─── Screen 2: Main Menu (Terminator theme) ──── */
+.menu-screen {
+  background:
+    /* Subtle red scan line */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(220, 38, 38, 0.015) 3px,
+      rgba(220, 38, 38, 0.015) 4px
+    ),
+    /* Subtle grid pattern */
+    linear-gradient(90deg, rgba(220, 38, 38, 0.02) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(220, 38, 38, 0.02) 1px, transparent 1px),
+    /* Red accent glow top center */
+    radial-gradient(ellipse at 50% 0%, rgba(220, 38, 38, 0.08) 0%, transparent 60%),
+    /* Base gradient */
+    linear-gradient(180deg, #0c1020 0%, #0a0e1a 50%, #0f172a 100%);
+  background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+  justify-content: flex-start;
+  padding-top: 60px;
+}
+
+.menu-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.menu-greeting {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.greeting-skull {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(220, 38, 38, 0.4);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.3);
+  vertical-align: middle;
+  animation: pulse-red 3s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 12px rgba(220, 38, 38, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.6), 0 0 40px rgba(220, 38, 38, 0.15); }
+}
+
+.menu-greeting .emoji {
+  font-size: 28px;
+}
+
+.menu-subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.menu-cards {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-card {
+  width: 100%;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.menu-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateX(4px);
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.menu-card:active {
+  transform: translateX(2px) scale(0.98);
+}
+
+.menu-card .card-icon {
+  font-size: 26px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-icon);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.menu-card .card-arrow {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 22px;
+  font-weight: 300;
+}
+
+/* ─── Screen 3: Personal (Samsung One UI) ─────── */
+.personal-screen {
+  background: linear-gradient(180deg, var(--bg-primary) 0%, #0f172a 100%);
+  justify-content: flex-start;
+  padding-top: 60px;
+}
+
+.personal-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.personal-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.personal-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.brain-grid {
+  width: 100%;
+  max-width: 380px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.brain-card {
+  padding: 28px 16px 20px;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.brain-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--brain-color, var(--accent));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              0 0 0 1px var(--brain-color, transparent);
+}
+
+.brain-card:active {
+  transform: translateY(-1px) scale(0.97);
+}
+
+.brain-card .brain-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-icon);
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.brain-card:hover .brain-icon {
+  transform: scale(1.08);
+}
+
+.brain-card .brain-icon img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.brain-card .brain-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.brain-card[data-brain="chatgpt"] { --brain-color: var(--chatgpt-color); }
+.brain-card[data-brain="gemini"] { --brain-color: var(--gemini-color); }
+.brain-card[data-brain="deepseek"] { --brain-color: var(--deepseek-color); }
+.brain-card[data-brain="qwen"] { --brain-color: var(--qwen-color); }
+
+.brain-card[data-brain="chatgpt"]:hover { border-color: var(--chatgpt-color); box-shadow: 0 8px 32px rgba(16, 163, 127, 0.2); }
+.brain-card[data-brain="gemini"]:hover { border-color: var(--gemini-color); box-shadow: 0 8px 32px rgba(66, 133, 244, 0.2); }
+.brain-card[data-brain="deepseek"]:hover { border-color: var(--deepseek-color); box-shadow: 0 8px 32px rgba(77, 107, 254, 0.2); }
+.brain-card[data-brain="qwen"]:hover { border-color: var(--qwen-color); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.2); }
+
+.btn-back {
+  width: 100%;
+  max-width: 380px;
+  padding: 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-back:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* ─── Loading/Status overlay ───────────────────── */
+.status-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.status-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ─── Responsive ───────────────────────────────── */
+@media (max-height: 600px) {
+  .start-content { padding-bottom: 24px; }
+  .start-title { font-size: 28px; letter-spacing: 4px; }
+  .start-subtitle { margin-bottom: 24px; }
+  .menu-screen, .personal-screen { padding-top: 32px; }
+}
+
+@media (min-width: 768px) {
+  .hero-image-wrapper img {
+    object-position: center center;
+  }
+}
