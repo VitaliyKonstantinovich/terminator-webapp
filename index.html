@@ -7,55 +7,105 @@
   <meta name="description" content="Telegram Mini App — управление ИИ-ассистентом Терминатор">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app">
+  <div class="app" id="app">
 
-    <!-- ═══ Screen 1: Start ═══ -->
+    <!-- ═══════════════════════════════════════════
+         SCREEN 1 — START
+         ═══════════════════════════════════════════ -->
     <div id="screen-start" class="screen active">
-      <div class="screen-wrapper">
-        <img src="assets/terminator_woman.webp" alt="Терминатор" class="screen-bg">
-        <div class="click-zone" id="btn-start"
-             style="top:84%; left:38%; width:24%; height:9%;"></div>
+      <!-- Hero background image -->
+      <div class="hero-bg">
+        <img src="assets/terminator_woman.webp" alt="Terminator MINA" draggable="false">
+        <div class="hero-overlay"></div>
+      </div>
+
+      <!-- Content over hero -->
+      <div class="start-content">
+        <h1 class="logo" id="logo">
+          <span class="logo-ter">TER</span><span class="logo-mina">MINA</span><span class="logo-tor">TOR</span>
+        </h1>
+        <p class="start-subtitle">Твой ИИ-ассистент для любых задач</p>
+        <button class="btn-start" id="btn-start" type="button">
+          <span class="btn-start-icon">▶</span>
+          <span>Старт</span>
+        </button>
       </div>
     </div>
 
-    <!-- ═══ Screen 2: Main Menu ═══ -->
+    <!-- ═══════════════════════════════════════════
+         SCREEN 2 — ВЫБОР РЕЖИМА
+         ═══════════════════════════════════════════ -->
     <div id="screen-menu" class="screen">
-      <div class="screen-wrapper">
-        <img src="assets/bg_menu.webp" alt="Меню" class="screen-bg">
-        <div class="click-zone" id="card-personal"
-             style="top:41%; left:36%; width:28%; height:9%;"></div>
-        <div class="click-zone" id="card-work"
-             style="top:53%; left:36%; width:28%; height:9%;"></div>
-        <div class="click-zone" id="card-other"
-             style="top:65%; left:36%; width:28%; height:9%;"></div>
+      <div class="screen-inner">
+        <div class="screen-header">
+          <h2 class="screen-title">Привет, Терминатор на связи!</h2>
+          <p class="screen-subtitle">Выбери раздел:</p>
+        </div>
+
+        <div class="menu-buttons">
+          <button class="menu-btn" id="btn-personal" type="button">
+            <span class="menu-btn-icon">👤</span>
+            <span class="menu-btn-label">Личное</span>
+            <span class="menu-btn-arrow">›</span>
+          </button>
+          <button class="menu-btn" id="btn-work" type="button">
+            <span class="menu-btn-icon">💼</span>
+            <span class="menu-btn-label">Рабочее</span>
+            <span class="menu-btn-arrow">›</span>
+          </button>
+          <button class="menu-btn" id="btn-other" type="button">
+            <span class="menu-btn-icon">🧩</span>
+            <span class="menu-btn-label">Прочее</span>
+            <span class="menu-btn-arrow">›</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- ═══ Screen 3: Personal ═══ -->
+    <!-- ═══════════════════════════════════════════
+         SCREEN 3 — ВЫБОР МОДЕЛИ / ЛИЧНОЕ
+         ═══════════════════════════════════════════ -->
     <div id="screen-personal" class="screen">
-      <div class="screen-wrapper">
-        <img src="assets/bg_personal.webp" alt="Личное" class="screen-bg">
-        <div class="click-zone" id="brain-chatgpt" data-brain="chatgpt"
-             style="top:36%; left:27%; width:21%; height:20%;"></div>
-        <div class="click-zone" id="brain-gemini" data-brain="gemini"
-             style="top:36%; left:52%; width:21%; height:20%;"></div>
-        <div class="click-zone" id="brain-deepseek" data-brain="deepseek"
-             style="top:58%; left:27%; width:21%; height:20%;"></div>
-        <div class="click-zone" id="brain-qwen" data-brain="qwen"
-             style="top:58%; left:52%; width:21%; height:20%;"></div>
-        <div class="click-zone" id="btn-back-personal"
-             style="top:80%; left:30%; width:40%; height:7%;"></div>
+      <div class="screen-inner">
+        <div class="screen-header">
+          <h2 class="screen-title">👤 Личное</h2>
+          <p class="screen-subtitle">Выбери ИИ для ручной работы<br>через ПК Терминатора:</p>
+        </div>
+
+        <div class="brain-grid">
+          <button class="brain-card" data-brain="chatgpt" type="button">
+            <div class="brain-icon"><img src="assets/icons/chatgpt.png" alt="ChatGPT"></div>
+            <div class="brain-name">ChatGPT</div>
+          </button>
+          <button class="brain-card" data-brain="gemini" type="button">
+            <div class="brain-icon"><img src="assets/icons/gemini.png" alt="Gemini"></div>
+            <div class="brain-name">Gemini</div>
+          </button>
+          <button class="brain-card" data-brain="deepseek" type="button">
+            <div class="brain-icon"><img src="assets/icons/deepseek.png" alt="DeepSeek"></div>
+            <div class="brain-name">DeepSeek</div>
+          </button>
+          <button class="brain-card" data-brain="qwen" type="button">
+            <div class="brain-icon"><img src="assets/icons/qwen.png" alt="Qwen"></div>
+            <div class="brain-name">Qwen</div>
+          </button>
+        </div>
+
+        <button class="btn-back" id="btn-back" type="button">
+          <span>←</span>
+          <span>Назад</span>
+        </button>
       </div>
     </div>
 
   </div>
 
-  <!-- Status overlay -->
+  <!-- ═══ Status overlay ═══ -->
   <div id="status-overlay" class="status-overlay">
     <div class="spinner"></div>
     <div id="status-text" class="status-text">Подключение...</div>
