@@ -12,100 +12,76 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app" id="app">
+  <div class="app">
 
-    <!-- ═══════════════════════════════════════════
-         SCREEN 1 — START
-         ═══════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 1 — START ═══ -->
     <div id="screen-start" class="screen active">
-      <!-- Hero background image -->
-      <div class="hero-bg">
-        <img src="assets/terminator_woman.webp" alt="Terminator MINA" draggable="false">
-        <div class="hero-overlay"></div>
-      </div>
-
-      <!-- Content over hero -->
-      <div class="start-content">
-        <h1 class="logo" id="logo">
-          <span class="logo-ter">TER</span><span class="logo-mina">MINA</span><span class="logo-tor">TOR</span>
-        </h1>
-        <p class="start-subtitle">Твой ИИ-ассистент для любых задач</p>
-        <button class="btn-start" id="btn-start" type="button">
-          <span class="btn-start-icon">▶</span>
-          <span>Старт</span>
-        </button>
+      <div class="screen-frame">
+        <img src="assets/terminator_woman.webp" alt="" class="screen-bg" draggable="false">
+        <div class="hero-fade"></div>
+        <div class="start-ui">
+          <h1 class="logo"><span class="t-metal">TER</span><span class="t-neon">MINA</span><span class="t-metal">TOR</span></h1>
+          <p class="start-sub">Твой ИИ-ассистент для любых задач</p>
+          <button class="btn-start" id="btn-start" type="button">▶&ensp;Старт</button>
+        </div>
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════
-         SCREEN 2 — ВЫБОР РЕЖИМА
-         ═══════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 2 — ВЫБОР РЕЖИМА ═══ -->
     <div id="screen-menu" class="screen">
-      <div class="screen-inner">
-        <div class="screen-header">
-          <h2 class="screen-title">Привет, Терминатор на связи!</h2>
-          <p class="screen-subtitle">Выбери раздел:</p>
-        </div>
-
-        <div class="menu-buttons">
-          <button class="menu-btn" id="btn-personal" type="button">
-            <span class="menu-btn-icon">👤</span>
-            <span class="menu-btn-label">Личное</span>
-            <span class="menu-btn-arrow">›</span>
-          </button>
-          <button class="menu-btn" id="btn-work" type="button">
-            <span class="menu-btn-icon">💼</span>
-            <span class="menu-btn-label">Рабочее</span>
-            <span class="menu-btn-arrow">›</span>
-          </button>
-          <button class="menu-btn" id="btn-other" type="button">
-            <span class="menu-btn-icon">🧩</span>
-            <span class="menu-btn-label">Прочее</span>
-            <span class="menu-btn-arrow">›</span>
-          </button>
+      <div class="screen-frame">
+        <img src="assets/bg_menu.webp" alt="" class="screen-bg" draggable="false">
+        <div class="overlay-ui menu-ui">
+          <h2 class="ui-title">Привет, Терминатор на связи!</h2>
+          <p class="ui-sub">Выбери раздел:</p>
+          <div class="menu-btns">
+            <button class="menu-btn" id="btn-personal" type="button">
+              <span class="mb-icon">👤</span><span class="mb-text">Личное</span><span class="mb-arrow">›</span>
+            </button>
+            <button class="menu-btn" id="btn-work" type="button">
+              <span class="mb-icon">💼</span><span class="mb-text">Рабочее</span><span class="mb-arrow">›</span>
+            </button>
+            <button class="menu-btn" id="btn-other" type="button">
+              <span class="mb-icon">🧩</span><span class="mb-text">Прочее</span><span class="mb-arrow">›</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════
-         SCREEN 3 — ВЫБОР МОДЕЛИ / ЛИЧНОЕ
-         ═══════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 3 — ЛИЧНОЕ ═══ -->
     <div id="screen-personal" class="screen">
-      <div class="screen-inner">
-        <div class="screen-header">
-          <h2 class="screen-title">👤 Личное</h2>
-          <p class="screen-subtitle">Выбери ИИ для ручной работы<br>через ПК Терминатора:</p>
+      <div class="screen-frame">
+        <img src="assets/bg_personal.webp" alt="" class="screen-bg" draggable="false">
+        <div class="overlay-ui personal-ui">
+          <h2 class="ui-title">👤&ensp;Личное</h2>
+          <p class="ui-sub">Выбери ИИ для ручной работы<br>через ПК Терминатора:</p>
+          <div class="brain-grid">
+            <button class="brain-card" data-brain="chatgpt" type="button">
+              <div class="bc-icon"><img src="assets/icons/chatgpt.png" alt=""></div>
+              <div class="bc-name">ChatGPT</div>
+            </button>
+            <button class="brain-card" data-brain="gemini" type="button">
+              <div class="bc-icon"><img src="assets/icons/gemini.png" alt=""></div>
+              <div class="bc-name">Gemini</div>
+            </button>
+            <button class="brain-card" data-brain="deepseek" type="button">
+              <div class="bc-icon"><img src="assets/icons/deepseek.png" alt=""></div>
+              <div class="bc-name">DeepSeek</div>
+            </button>
+            <button class="brain-card" data-brain="qwen" type="button">
+              <div class="bc-icon"><img src="assets/icons/qwen.png" alt=""></div>
+              <div class="bc-name">Qwen</div>
+            </button>
+          </div>
+          <button class="btn-back" id="btn-back" type="button">←&ensp;Назад</button>
         </div>
-
-        <div class="brain-grid">
-          <button class="brain-card" data-brain="chatgpt" type="button">
-            <div class="brain-icon"><img src="assets/icons/chatgpt.png" alt="ChatGPT"></div>
-            <div class="brain-name">ChatGPT</div>
-          </button>
-          <button class="brain-card" data-brain="gemini" type="button">
-            <div class="brain-icon"><img src="assets/icons/gemini.png" alt="Gemini"></div>
-            <div class="brain-name">Gemini</div>
-          </button>
-          <button class="brain-card" data-brain="deepseek" type="button">
-            <div class="brain-icon"><img src="assets/icons/deepseek.png" alt="DeepSeek"></div>
-            <div class="brain-name">DeepSeek</div>
-          </button>
-          <button class="brain-card" data-brain="qwen" type="button">
-            <div class="brain-icon"><img src="assets/icons/qwen.png" alt="Qwen"></div>
-            <div class="brain-name">Qwen</div>
-          </button>
-        </div>
-
-        <button class="btn-back" id="btn-back" type="button">
-          <span>←</span>
-          <span>Назад</span>
-        </button>
       </div>
     </div>
 
   </div>
 
-  <!-- ═══ Status overlay ═══ -->
+  <!-- Status overlay -->
   <div id="status-overlay" class="status-overlay">
     <div class="spinner"></div>
     <div id="status-text" class="status-text">Подключение...</div>
