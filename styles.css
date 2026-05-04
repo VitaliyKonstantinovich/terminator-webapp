@@ -1,24 +1,20 @@
 :root {
-  --bg-primary: #070a12;
+  --bg: #070a12;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
   color: #f1f5f9;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Screen Container ─────────────────────────── */
+/* ─── App & Screen ─────────────────────────────── */
 .app {
   width: 100%;
   height: 100%;
@@ -30,9 +26,9 @@ html, body {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: var(--bg);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease, transform 0.4s ease;
@@ -55,95 +51,43 @@ html, body {
   transform: translateX(40px);
 }
 
-/* ─── Screen 1: Start ─────────────────────────── */
-.start-screen {
-  background: #070a12;
-  padding: 0;
-  justify-content: flex-end;
-}
-
-.hero-image-wrapper {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #070a12;
-}
-
-.hero-image-wrapper img {
+/* ─── Screen wrapper (aspect-ratio lock to image) ─ */
+.screen-wrapper {
+  position: relative;
+  /* Fill the viewport but keep 16:9 aspect ratio */
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center center;
-}
-
-.start-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 24px 36px;
-  width: 100%;
-}
-
-.btn-start-overlay {
-  width: 200px;
-  padding: 14px 32px;
-  background: transparent;
-  color: transparent;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.btn-start-overlay:hover {
-  background: rgba(220, 38, 38, 0.15);
-  box-shadow: 0 0 30px rgba(220, 38, 38, 0.3);
-}
-
-.btn-start-overlay:active {
-  transform: scale(0.95);
-}
-
-.btn-start-overlay .btn-icon {
-  color: transparent;
-}
-
-/* ─── Image-based screens (Menu & Personal) ───── */
-.img-screen {
-  background: #070a12;
-  padding: 0;
+  max-width: calc(100vh * 16 / 9);
+  max-height: calc(100vw * 9 / 16);
+  margin: auto;
 }
 
 .screen-bg {
-  position: absolute;
-  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center center;
+  object-fit: fill; /* stretch to fill the wrapper which is already 16:9 */
 }
 
-/* Invisible clickable zones over image buttons */
+/* ─── Click zones ──────────────────────────────── */
 .click-zone {
   position: absolute;
   cursor: pointer;
   z-index: 10;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  /* Debug: uncomment to see zones */
+  /* background: rgba(255, 0, 0, 0.25); */
+  /* border: 2px solid red; */
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .click-zone:hover {
-  background: rgba(59, 130, 246, 0.1);
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+  background: rgba(100, 180, 255, 0.08);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.12);
 }
 
 .click-zone:active {
-  background: rgba(59, 130, 246, 0.2);
-  transform: scale(0.97);
+  background: rgba(100, 180, 255, 0.15);
 }
 
 /* ─── Loading/Status overlay ───────────────────── */
@@ -185,11 +129,4 @@ html, body {
   font-size: 16px;
   color: #94a3b8;
   text-align: center;
-}
-
-@media (min-width: 768px) {
-  .hero-image-wrapper img,
-  .screen-bg {
-    object-position: center center;
-  }
 }

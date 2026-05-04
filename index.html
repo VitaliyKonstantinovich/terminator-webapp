@@ -15,35 +15,42 @@
   <div class="app">
 
     <!-- ═══ Screen 1: Start ═══ -->
-    <div id="screen-start" class="screen start-screen active">
-      <div class="hero-image-wrapper">
-        <img src="assets/terminator_woman.webp" alt="Терминатор" id="robot-img">
-      </div>
-      <div class="start-content">
-        <button class="btn-start-overlay" id="btn-start">
-          <span class="btn-icon">▶</span> СТАРТ
-        </button>
+    <div id="screen-start" class="screen active">
+      <div class="screen-wrapper">
+        <img src="assets/terminator_woman.webp" alt="Терминатор" class="screen-bg">
+        <div class="click-zone" id="btn-start"
+             style="top:84%; left:38%; width:24%; height:9%;"></div>
       </div>
     </div>
 
     <!-- ═══ Screen 2: Main Menu ═══ -->
-    <div id="screen-menu" class="screen img-screen">
-      <img src="assets/bg_menu.webp" alt="Меню" class="screen-bg">
-      <!-- Невидимые кликабельные зоны поверх кнопок на картинке -->
-      <div class="click-zone" id="card-personal" style="top:40%; left:50%; transform:translateX(-50%); width:34%; height:11%;"></div>
-      <div class="click-zone" id="card-work"     style="top:54%; left:50%; transform:translateX(-50%); width:34%; height:11%;"></div>
-      <div class="click-zone" id="card-other"    style="top:68%; left:50%; transform:translateX(-50%); width:34%; height:11%;"></div>
+    <div id="screen-menu" class="screen">
+      <div class="screen-wrapper">
+        <img src="assets/bg_menu.webp" alt="Меню" class="screen-bg">
+        <div class="click-zone" id="card-personal"
+             style="top:41%; left:36%; width:28%; height:9%;"></div>
+        <div class="click-zone" id="card-work"
+             style="top:53%; left:36%; width:28%; height:9%;"></div>
+        <div class="click-zone" id="card-other"
+             style="top:65%; left:36%; width:28%; height:9%;"></div>
+      </div>
     </div>
 
     <!-- ═══ Screen 3: Personal ═══ -->
-    <div id="screen-personal" class="screen img-screen">
-      <img src="assets/bg_personal.webp" alt="Личное" class="screen-bg">
-      <!-- Невидимые кликабельные зоны поверх карточек на картинке -->
-      <div class="click-zone" id="brain-chatgpt" data-brain="chatgpt" style="top:32%; left:30%; transform:translateX(-50%); width:20%; height:22%;"></div>
-      <div class="click-zone" id="brain-gemini"  data-brain="gemini"  style="top:32%; left:70%; transform:translateX(-50%); width:20%; height:22%;"></div>
-      <div class="click-zone" id="brain-deepseek" data-brain="deepseek" style="top:56%; left:30%; transform:translateX(-50%); width:20%; height:22%;"></div>
-      <div class="click-zone" id="brain-qwen"    data-brain="qwen"    style="top:56%; left:70%; transform:translateX(-50%); width:20%; height:22%;"></div>
-      <div class="click-zone" id="btn-back-personal" style="top:82%; left:50%; transform:translateX(-50%); width:40%; height:8%;"></div>
+    <div id="screen-personal" class="screen">
+      <div class="screen-wrapper">
+        <img src="assets/bg_personal.webp" alt="Личное" class="screen-bg">
+        <div class="click-zone" id="brain-chatgpt" data-brain="chatgpt"
+             style="top:36%; left:27%; width:21%; height:20%;"></div>
+        <div class="click-zone" id="brain-gemini" data-brain="gemini"
+             style="top:36%; left:52%; width:21%; height:20%;"></div>
+        <div class="click-zone" id="brain-deepseek" data-brain="deepseek"
+             style="top:58%; left:27%; width:21%; height:20%;"></div>
+        <div class="click-zone" id="brain-qwen" data-brain="qwen"
+             style="top:58%; left:52%; width:21%; height:20%;"></div>
+        <div class="click-zone" id="btn-back-personal"
+             style="top:80%; left:30%; width:40%; height:7%;"></div>
+      </div>
     </div>
 
   </div>
