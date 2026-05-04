@@ -176,9 +176,11 @@ html, body {
   font-size: 16px;
 }
 
-/* ─── Screen 2: Main Menu ─────────────────────── */
+/* ─── Screen 2: Main Menu (Sci-Fi) ────────────── */
 .menu-screen {
-  background: url('assets/bg_menu.webp') center center / cover no-repeat #070a12;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(30, 64, 175, 0.12) 0%, transparent 60%),
+    linear-gradient(180deg, #060a18 0%, #0a0e1a 50%, #080c1a 100%);
   justify-content: flex-start;
   padding-top: 60px;
 }
@@ -190,13 +192,16 @@ html, body {
 
 .menu-greeting {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .greeting-skull {
@@ -204,15 +209,15 @@ html, body {
   height: 36px;
   object-fit: cover;
   border-radius: 50%;
-  border: 2px solid rgba(220, 38, 38, 0.4);
-  box-shadow: 0 0 12px rgba(220, 38, 38, 0.3);
+  border: 2px solid rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
   vertical-align: middle;
-  animation: pulse-red 3s ease-in-out infinite;
+  animation: pulse-blue 3s ease-in-out infinite;
 }
 
-@keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 12px rgba(220, 38, 38, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.6), 0 0 40px rgba(220, 38, 38, 0.15); }
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(59, 130, 246, 0.6), 0 0 48px rgba(59, 130, 246, 0.15); }
 }
 
 .menu-greeting .emoji {
@@ -221,40 +226,55 @@ html, body {
 
 .menu-subtitle {
   font-size: 15px;
-  color: var(--text-secondary);
+  color: rgba(148, 180, 220, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 .menu-cards {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .menu-card {
   width: 100%;
-  padding: 20px 24px;
-  background: var(--bg-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: 18px 24px;
+  background: rgba(10, 20, 50, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 16px;
   color: var(--text-primary);
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+
+.menu-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .menu-card:hover {
-  background: var(--bg-card-hover);
+  background: rgba(20, 40, 80, 0.7);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.2), inset 0 0 24px rgba(59, 130, 246, 0.05);
   transform: translateX(4px);
-  border-color: rgba(59, 130, 246, 0.25);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .menu-card:active {
@@ -262,50 +282,56 @@ html, body {
 }
 
 .menu-card .card-icon {
-  font-size: 26px;
-  width: 48px;
-  height: 48px;
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-icon);
-  background: rgba(59, 130, 246, 0.1);
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .menu-card .card-arrow {
   margin-left: auto;
-  color: var(--text-muted);
+  color: rgba(59, 130, 246, 0.6);
   font-size: 22px;
-  font-weight: 300;
+  font-weight: 400;
 }
 
-/* ─── Screen 3: Personal ──────────────────────── */
+/* ─── Screen 3: Personal (Sci-Fi) ─────────────── */
 .personal-screen {
-  background: url('assets/bg_personal.webp') center center / cover no-repeat #070a12;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(30, 64, 175, 0.10) 0%, transparent 60%),
+    linear-gradient(180deg, #060a18 0%, #0a0e1a 50%, #080c1a 100%);
   justify-content: flex-start;
-  padding-top: 60px;
+  padding-top: 50px;
 }
 
 .personal-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .personal-title {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .personal-subtitle {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: rgba(148, 180, 220, 0.7);
   line-height: 1.5;
 }
 
 .brain-grid {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
@@ -313,26 +339,35 @@ html, body {
 }
 
 .brain-card {
-  padding: 28px 16px 20px;
-  background: var(--bg-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: 24px 16px 18px;
+  background: rgba(10, 20, 50, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   text-align: center;
+  position: relative;
+}
+
+.brain-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .brain-card:hover {
   transform: translateY(-4px);
-  border-color: var(--brain-color, var(--accent));
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-              0 0 0 1px var(--brain-color, transparent);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.15), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .brain-card:active {
@@ -340,13 +375,14 @@ html, body {
 }
 
 .brain-card .brain-icon {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-icon);
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.15);
   overflow: hidden;
   transition: transform 0.3s ease;
 }
@@ -356,16 +392,16 @@ html, body {
 }
 
 .brain-card .brain-icon img {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  border-radius: var(--radius-sm);
 }
 
 .brain-card .brain-name {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: 1px;
 }
 
 .brain-card[data-brain="chatgpt"] { --brain-color: var(--chatgpt-color); }
@@ -373,33 +409,36 @@ html, body {
 .brain-card[data-brain="deepseek"] { --brain-color: var(--deepseek-color); }
 .brain-card[data-brain="qwen"] { --brain-color: var(--qwen-color); }
 
-.brain-card[data-brain="chatgpt"]:hover { border-color: var(--chatgpt-color); box-shadow: 0 8px 32px rgba(16, 163, 127, 0.2); }
-.brain-card[data-brain="gemini"]:hover { border-color: var(--gemini-color); box-shadow: 0 8px 32px rgba(66, 133, 244, 0.2); }
-.brain-card[data-brain="deepseek"]:hover { border-color: var(--deepseek-color); box-shadow: 0 8px 32px rgba(77, 107, 254, 0.2); }
-.brain-card[data-brain="qwen"]:hover { border-color: var(--qwen-color); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.2); }
+.brain-card[data-brain="chatgpt"]:hover { border-color: var(--chatgpt-color); box-shadow: 0 0 24px rgba(16, 163, 127, 0.15), 0 8px 32px rgba(0,0,0,0.3); }
+.brain-card[data-brain="gemini"]:hover { border-color: var(--gemini-color); box-shadow: 0 0 24px rgba(66, 133, 244, 0.15), 0 8px 32px rgba(0,0,0,0.3); }
+.brain-card[data-brain="deepseek"]:hover { border-color: var(--deepseek-color); box-shadow: 0 0 24px rgba(77, 107, 254, 0.15), 0 8px 32px rgba(0,0,0,0.3); }
+.brain-card[data-brain="qwen"]:hover { border-color: var(--qwen-color); box-shadow: 0 0 24px rgba(124, 58, 237, 0.15), 0 8px 32px rgba(0,0,0,0.3); }
 
 .btn-back {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   padding: 16px;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: rgba(10, 20, 50, 0.5);
+  color: rgba(148, 180, 220, 0.8);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 12px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn-back:hover {
-  background: var(--bg-card);
+  background: rgba(20, 40, 80, 0.6);
   color: var(--text-primary);
-  border-color: rgba(148, 163, 184, 0.25);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
 }
 
 /* ─── Loading/Status overlay ───────────────────── */
