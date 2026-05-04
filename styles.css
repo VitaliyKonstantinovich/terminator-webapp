@@ -176,25 +176,9 @@ html, body {
   font-size: 16px;
 }
 
-/* ─── Screen 2: Main Menu (Terminator theme) ──── */
+/* ─── Screen 2: Main Menu ─────────────────────── */
 .menu-screen {
-  background:
-    /* Subtle red scan line */
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(220, 38, 38, 0.015) 3px,
-      rgba(220, 38, 38, 0.015) 4px
-    ),
-    /* Subtle grid pattern */
-    linear-gradient(90deg, rgba(220, 38, 38, 0.02) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(220, 38, 38, 0.02) 1px, transparent 1px),
-    /* Red accent glow top center */
-    radial-gradient(ellipse at 50% 0%, rgba(220, 38, 38, 0.08) 0%, transparent 60%),
-    /* Base gradient */
-    linear-gradient(180deg, #0c1020 0%, #0a0e1a 50%, #0f172a 100%);
-  background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+  background: url('assets/bg_menu.webp') center center / cover no-repeat #070a12;
   justify-content: flex-start;
   padding-top: 60px;
 }
@@ -295,9 +279,9 @@ html, body {
   font-weight: 300;
 }
 
-/* ─── Screen 3: Personal (Samsung One UI) ─────── */
+/* ─── Screen 3: Personal ──────────────────────── */
 .personal-screen {
-  background: linear-gradient(180deg, var(--bg-primary) 0%, #0f172a 100%);
+  background: url('assets/bg_personal.webp') center center / cover no-repeat #070a12;
   justify-content: flex-start;
   padding-top: 60px;
 }
