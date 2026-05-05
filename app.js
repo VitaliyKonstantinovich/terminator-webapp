@@ -25,6 +25,104 @@ const MODELS = {
   }
 };
 
+const WEBAPP_TRANSPORT_MODE = 'auto'; // telegram | direct | auto
+const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
+const DIRECT_BRIDGE_NAMES = [
+  'TerminatorCommandBridge',
+  'TerminatorDirectBridge',
+  'MinaCommandBridge'
+];
+
+function normalizeTransportMode(mode) {
+  const normalized = String(mode || '').trim().toLowerCase();
+  return WEBAPP_TRANSPORT_MODES.has(normalized) ? normalized : WEBAPP_TRANSPORT_MODE;
+}
+
+function getWebAppTransportMode() {
+  const queryMode = new URLSearchParams(window.location.search).get('transport');
+  return normalizeTransportMode(window.WEBAPP_TRANSPORT_MODE || queryMode || WEBAPP_TRANSPORT_MODE);
+}
+
+function getTelegramTransport() {
+  const tg = window.Telegram?.WebApp || null;
+  return tg?.sendData ? tg : null;
+}
+
+function getDirectTransport() {
+  for (const name of DIRECT_BRIDGE_NAMES) {
+    const bridge = window[name];
+    if (!bridge) continue;
+
+    if (typeof bridge === 'function') {
+      return bridge;
+    }
+
+    if (typeof bridge.sendTerminatorAction === 'function') {
+      return bridge.sendTerminatorAction.bind(bridge);
+    }
+
+    if (typeof bridge.send === 'function') {
+      return bridge.send.bind(bridge);
+    }
+  }
+
+  return null;
+}
+
+async function sendTerminatorAction(payload) {
+  const mode = getWebAppTransportMode();
+  const tg = getTelegramTransport();
+
+  if ((mode === 'telegram' || mode === 'auto') && tg) {
+    try {
+      tg.sendData(JSON.stringify(payload));
+      return { ok: true, transport: 'telegram', message: 'Команда отправлена в Telegram' };
+    } catch (error) {
+      console.error('[MinaWebApp] Telegram sendData failed', error);
+      return { ok: false, transport: 'telegram', message: 'Не удалось отправить команду в Telegram' };
+    }
+  }
+
+  if (mode === 'telegram') {
+    return {
+      ok: false,
+      transport: 'telegram',
+      reason: 'telegram_unavailable',
+      message: 'Команда доступна при запуске из Telegram'
+    };
+  }
+
+  const directTransport = getDirectTransport();
+  if (!directTransport) {
+    console.log('[MinaWebApp] direct transport not configured', payload);
+    return {
+      ok: false,
+      transport: 'direct',
+      reason: 'direct_unconfigured',
+      message: 'Прямое управление ещё не подключено'
+    };
+  }
+
+  try {
+    const response = await directTransport(payload);
+    if (response?.ok === false) {
+      return {
+        ok: false,
+        transport: 'direct',
+        reason: response.reason || 'direct_rejected',
+        message: response.message || 'Не удалось отправить прямую команду'
+      };
+    }
+
+    return { ok: true, transport: 'direct', message: 'Команда отправлена напрямую' };
+  } catch (error) {
+    console.error('[MinaWebApp] Direct transport failed', error);
+    return { ok: false, transport: 'direct', message: 'Не удалось отправить прямую команду' };
+  }
+}
+
+window.sendTerminatorAction = sendTerminatorAction;
+
 const App = {
   current: 'start',
   selectedModel: 'chatgpt',
@@ -209,7 +307,7 @@ const App = {
     }
   },
 
-  sendPersonalAction(action, payload = {}) {
+  async sendPersonalAction(action, payload = {}) {
     const brain = payload.brain || this.selectedModel;
     const data = {
       ...payload,
@@ -219,23 +317,10 @@ const App = {
       source: 'mina_webapp',
       version: 1
     };
-    const tg = this.tg || window.Telegram?.WebApp || null;
 
-    if (!tg?.sendData) {
-      console.log('[MinaWebApp] personal_action', data);
-      this.toast('Команда доступна при запуске из Telegram');
-      return false;
-    }
-
-    try {
-      tg.sendData(JSON.stringify(data));
-      this.toast('Команда отправлена в Telegram');
-      return true;
-    } catch (error) {
-      console.error('[MinaWebApp] sendData failed', error);
-      this.toast('Не удалось отправить команду в Telegram');
-      return false;
-    }
+    const result = await sendTerminatorAction(data);
+    this.toast(result.message);
+    return result.ok;
   },
 
   toast(message, duration = 2600) {
