@@ -93,16 +93,22 @@ const App = {
 
     document.getElementById('btn-start').addEventListener('click', () => this.go('menu'));
     document.getElementById('btn-open-model').addEventListener('click', () => {
-      this.toast(`Открытие ${this.model.name} будет подключено на следующем этапе.`);
+      this.sendPersonalAction('open_brain', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-anydesk').addEventListener('click', () => {
+      this.sendPersonalAction('ensure_anydesk', { brain: this.selectedModel });
     });
     document.getElementById('btn-check-window').addEventListener('click', () => {
-      this.toast('Проверка окна будет подключена на следующем этапе.');
+      this.sendPersonalAction('verify_brain', { brain: this.selectedModel });
     });
     document.getElementById('btn-open-anydesk').addEventListener('click', () => {
-      this.toast('AnyDesk будет подключён на следующем этапе.');
+      this.sendPersonalAction('ensure_anydesk', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-finished').addEventListener('click', () => {
+      this.sendPersonalAction('done', { brain: this.selectedModel });
     });
     document.getElementById('btn-minimize').addEventListener('click', () => {
-      this.toast('Окно свёрнуто');
+      this.sendPersonalAction('minimize_brain', { brain: this.selectedModel });
     });
     document.getElementById('btn-end-session').addEventListener('click', () => {
       this.closeOrFallback('start');
@@ -200,6 +206,35 @@ const App = {
       this.tg.BackButton.hide();
     } else {
       this.tg.BackButton.show();
+    }
+  },
+
+  sendPersonalAction(action, payload = {}) {
+    const brain = payload.brain || this.selectedModel;
+    const data = {
+      ...payload,
+      type: 'personal_action',
+      action,
+      brain,
+      source: 'mina_webapp',
+      version: 1
+    };
+    const tg = this.tg || window.Telegram?.WebApp || null;
+
+    if (!tg?.sendData) {
+      console.log('[MinaWebApp] personal_action', data);
+      this.toast('Команда доступна при запуске из Telegram');
+      return false;
+    }
+
+    try {
+      tg.sendData(JSON.stringify(data));
+      this.toast('Команда отправлена в Telegram');
+      return true;
+    } catch (error) {
+      console.error('[MinaWebApp] sendData failed', error);
+      this.toast('Не удалось отправить команду в Telegram');
+      return false;
     }
   },
 
