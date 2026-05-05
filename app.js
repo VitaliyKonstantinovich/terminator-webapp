@@ -1,61 +1,258 @@
-/**
- * Terminator WebApp — Screen Controller
- */
+const MODELS = {
+  chatgpt: {
+    name: 'ChatGPT',
+    short: 'GPT',
+    profile: 'ChatGPT Profile',
+    iconClass: 'model-icon--chatgpt'
+  },
+  gemini: {
+    name: 'Gemini',
+    short: 'GM',
+    profile: 'Gemini Profile',
+    iconClass: 'model-icon--gemini'
+  },
+  deepseek: {
+    name: 'DeepSeek',
+    short: 'DS',
+    profile: 'DeepSeek Profile',
+    iconClass: 'model-icon--deepseek'
+  },
+  qwen: {
+    name: 'Qwen',
+    short: 'Q',
+    profile: 'Qwen Profile',
+    iconClass: 'model-icon--qwen'
+  }
+};
+
 const App = {
-  current: null,
-  tg: window.Telegram?.WebApp || null,
+  current: 'start',
+  selectedModel: 'chatgpt',
+  toastTimer: null,
+  tg: null,
+  order: ['start', 'menu', 'personal', 'brain', 'remote', 'complete'],
 
   init() {
-    if (this.tg) { this.tg.ready(); this.tg.expand(); this.tg.setHeaderColor('#060a14'); this.tg.setBackgroundColor('#060a14'); }
-    this.bind();
-    this.go('start');
+    this.tg = window.Telegram?.WebApp || null;
+    this.initTelegram();
+    this.bindEvents();
+    this.renderBrain();
+    this.go('start', { immediate: true });
+    this.retryTelegramInit();
   },
 
-  bind() {
-    document.getElementById('btn-start').addEventListener('click', () => this.go('menu'));
-    document.getElementById('btn-personal').addEventListener('click', () => this.go('personal'));
-    document.getElementById('btn-work').addEventListener('click', () => this.toast('💼 Раздел «Рабочее» в разработке'));
-    document.getElementById('btn-other').addEventListener('click', () => this.toast('🧩 Раздел «Прочее» в разработке'));
-    document.getElementById('btn-back').addEventListener('click', () => this.go('menu'));
+  initTelegram() {
+    if (!this.tg) return;
 
-    document.querySelectorAll('[data-brain]').forEach(z => {
-      z.addEventListener('click', () => {
-        const n = { chatgpt:'ChatGPT', gemini:'Gemini', deepseek:'DeepSeek', qwen:'Qwen' };
-        this.toast(`🧠 Выбран ${n[z.dataset.brain]}.\nПодключение будет добавлено на следующем этапе.`);
-        if (this.tg) try { this.tg.sendData(JSON.stringify({ action:'personal_brain', brain: z.dataset.brain })); } catch(e){}
-      });
-    });
+    this.tg.ready();
+    this.tg.expand();
+    this.tg.setHeaderColor('#020710');
+    this.tg.setBackgroundColor('#020710');
 
-    if (this.tg) {
-      this.tg.BackButton.onClick(() => {
-        if (this.current === 'personal') this.go('menu');
-        else if (this.current === 'menu') this.go('start');
-        else this.tg.close();
-      });
+    if (this.tg.BackButton) {
+      this.tg.BackButton.onClick(() => this.handleBack());
     }
   },
 
-  go(name) {
-    const order = ['start','menu','personal'];
-    const fwd = order.indexOf(name) > order.indexOf(this.current);
-    document.querySelectorAll('.screen.active').forEach(s => {
-      s.classList.remove('active');
-      s.classList.add(fwd ? 'exit-left' : 'exit-right');
-      setTimeout(() => s.classList.remove('exit-left','exit-right'), 500);
-    });
-    const t = document.getElementById('screen-' + name);
-    if (t) setTimeout(() => t.classList.add('active'), 60);
-    this.current = name;
-    if (this.tg) name === 'start' ? this.tg.BackButton.hide() : this.tg.BackButton.show();
+  retryTelegramInit() {
+    if (this.tg) return;
+
+    window.setTimeout(() => {
+      if (this.tg || !window.Telegram?.WebApp) return;
+      this.tg = window.Telegram.WebApp;
+      this.initTelegram();
+      this.updateTelegramControls();
+    }, 500);
   },
 
-  toast(msg, dur = 3000) {
-    document.querySelectorAll('.toast').forEach(t => t.remove());
-    const el = document.createElement('div');
-    el.className = 'toast'; el.textContent = msg;
-    document.body.appendChild(el);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
-    setTimeout(() => { el.classList.remove('visible'); setTimeout(() => el.remove(), 350); }, dur);
+  bindEvents() {
+    document.addEventListener('click', (event) => {
+      const navButton = event.target.closest('[data-nav]');
+      if (navButton) {
+        this.go(navButton.dataset.nav);
+        return;
+      }
+
+      const closeButton = event.target.closest('[data-close]');
+      if (closeButton) {
+        this.closeOrFallback();
+        return;
+      }
+
+      const toastButton = event.target.closest('[data-toast]');
+      if (toastButton) {
+        this.toast(toastButton.dataset.toast);
+        return;
+      }
+
+      const modelButton = event.target.closest('[data-model]');
+      if (modelButton) {
+        this.selectModel(modelButton.dataset.model);
+      }
+    });
+
+    document.getElementById('btn-start').addEventListener('click', () => this.go('menu'));
+    document.getElementById('btn-open-model').addEventListener('click', () => {
+      this.sendPersonalAction('open_brain', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-anydesk').addEventListener('click', () => {
+      this.sendPersonalAction('ensure_anydesk', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-check-window').addEventListener('click', () => {
+      this.sendPersonalAction('verify_brain', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-open-anydesk').addEventListener('click', () => {
+      this.sendPersonalAction('ensure_anydesk', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-finished').addEventListener('click', () => {
+      this.sendPersonalAction('done', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-minimize').addEventListener('click', () => {
+      this.sendPersonalAction('minimize_brain', { brain: this.selectedModel });
+    });
+    document.getElementById('btn-end-session').addEventListener('click', () => {
+      this.closeOrFallback('start');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') this.closeOrFallback();
+      if (event.key === 'Backspace' && !this.isTypingTarget(event.target)) this.handleBack();
+    });
+  },
+
+  get model() {
+    return MODELS[this.selectedModel] || MODELS.chatgpt;
+  },
+
+  selectModel(key) {
+    if (!MODELS[key]) return;
+    this.selectedModel = key;
+    this.renderBrain();
+    this.updateModelButtons();
+    this.go('brain');
+  },
+
+  renderBrain() {
+    const model = this.model;
+    const brainIcon = document.getElementById('brain-icon');
+
+    document.getElementById('brain-title').textContent = model.name;
+    document.getElementById('brain-subtitle').textContent = 'Подключение к официальному окну через ПК Терминатора';
+    document.getElementById('open-model-label').textContent = `Открыть ${model.name}`;
+    document.getElementById('brain-profile').textContent = model.profile;
+
+    brainIcon.textContent = model.short;
+    brainIcon.className = `brain-mark model-icon ${model.iconClass}`;
+  },
+
+  updateModelButtons() {
+    document.querySelectorAll('[data-model]').forEach((button) => {
+      button.classList.toggle('command-button--active', button.dataset.model === this.selectedModel);
+    });
+  },
+
+  go(name, options = {}) {
+    const target = document.getElementById(`screen-${name}`);
+    if (!target) return;
+
+    this.current = name;
+
+    document.querySelectorAll('.screen.active').forEach((screen) => {
+      if (screen !== target) screen.classList.remove('active');
+    });
+
+    if (options.immediate) {
+      target.classList.add('active');
+    } else {
+      window.requestAnimationFrame(() => target.classList.add('active'));
+    }
+
+    document.body.dataset.screen = name;
+    this.updateTelegramControls();
+  },
+
+  handleBack() {
+    const backMap = {
+      start: null,
+      menu: 'start',
+      personal: 'menu',
+      brain: 'personal',
+      remote: 'brain',
+      complete: 'remote'
+    };
+
+    const next = backMap[this.current];
+    if (next) this.go(next);
+  },
+
+  closeOrFallback(fallback) {
+    if (this.tg?.close) {
+      this.tg.close();
+      return;
+    }
+
+    if (fallback) {
+      this.go(fallback);
+      return;
+    }
+
+    this.go(this.current === 'menu' ? 'start' : 'menu');
+  },
+
+  updateTelegramControls() {
+    if (!this.tg?.BackButton) return;
+
+    if (this.current === 'start') {
+      this.tg.BackButton.hide();
+    } else {
+      this.tg.BackButton.show();
+    }
+  },
+
+  sendPersonalAction(action, payload = {}) {
+    const brain = payload.brain || this.selectedModel;
+    const data = {
+      ...payload,
+      type: 'personal_action',
+      action,
+      brain,
+      source: 'mina_webapp',
+      version: 1
+    };
+    const tg = this.tg || window.Telegram?.WebApp || null;
+
+    if (!tg?.sendData) {
+      console.log('[MinaWebApp] personal_action', data);
+      this.toast('Команда доступна при запуске из Telegram');
+      return false;
+    }
+
+    try {
+      tg.sendData(JSON.stringify(data));
+      this.toast('Команда отправлена в Telegram');
+      return true;
+    } catch (error) {
+      console.error('[MinaWebApp] sendData failed', error);
+      this.toast('Не удалось отправить команду в Telegram');
+      return false;
+    }
+  },
+
+  toast(message, duration = 2600) {
+    const toast = document.getElementById('toast');
+    window.clearTimeout(this.toastTimer);
+
+    toast.textContent = message;
+    toast.classList.add('visible');
+
+    this.toastTimer = window.setTimeout(() => {
+      toast.classList.remove('visible');
+    }, duration);
+  },
+
+  isTypingTarget(target) {
+    if (!target) return false;
+    return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
   }
 };
 

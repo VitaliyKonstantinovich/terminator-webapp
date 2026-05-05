@@ -2,76 +2,277 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Терминатор — ИИ-ассистент</title>
-  <meta name="description" content="Telegram Mini App — управление ИИ-ассистентом Терминатор">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>TERMINATOR MINA UI</title>
+  <meta name="description" content="Telegram Mini App Терминатор — Mina UI">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js" async></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app">
+  <main id="app" class="app" aria-live="polite">
+    <section id="screen-start" class="screen screen--start active" data-screen="start">
+      <div class="start-image" aria-hidden="true"></div>
+      <div class="start-vignette" aria-hidden="true"></div>
+      <header class="start-brand">
+        <span>MINA</span>
+        <small>UI</small>
+      </header>
 
-    <!-- ═══ SCREEN 1 — START ═══ -->
-    <div id="screen-start" class="screen active">
-      <div class="frame">
-        <img src="assets/terminator_woman.webp" alt="" class="bg" draggable="false">
-        <!-- Only the START button — text is on the image -->
-        <button class="zone" id="btn-start"
-          style="bottom:3%; left:50%; transform:translateX(-50%); width:180px; height:48px;">
+      <div class="start-content">
+        <p class="eyebrow eyebrow--red">MINA UI</p>
+        <h1 class="brand-title">TER<span>MINA</span>TOR</h1>
+        <p class="start-subtitle">Твой ИИ-ассистент для любых задач</p>
+        <button id="btn-start" class="mina-button mina-button--red mina-button--hero" type="button">
+          <span class="button-icon">▶</span>
+          <span class="button-label">Старт</span>
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- ═══ SCREEN 2 — MENU ═══ -->
-    <div id="screen-menu" class="screen">
-      <div class="frame">
-        <img src="assets/bg_menu.webp" alt="" class="bg" draggable="false">
-        <!-- 3 buttons over image buttons -->
-        <button class="zone" id="btn-personal"
-          style="top:42%; left:50%; transform:translateX(-50%); width:300px; height:52px;">
-        </button>
-        <button class="zone" id="btn-work"
-          style="top:54.5%; left:50%; transform:translateX(-50%); width:300px; height:52px;">
-        </button>
-        <button class="zone" id="btn-other"
-          style="top:66.5%; left:50%; transform:translateX(-50%); width:300px; height:52px;">
-        </button>
+    <section id="screen-menu" class="screen screen--blue" data-screen="menu">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell command-shell--menu">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="start" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading">
+            <h2>Привет, Терминатор на связи!</h2>
+            <p>Выбери раздел:</p>
+          </div>
+
+          <div class="command-stack">
+            <button id="btn-personal" class="command-button" type="button" data-nav="personal">
+              <span class="button-icon button-icon--user">👤</span>
+              <span class="button-label">Личное</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-work" class="command-button" type="button" data-toast="Раздел в разработке">
+              <span class="button-icon">💼</span>
+              <span class="button-label">Рабочее</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-other" class="command-button" type="button" data-toast="Раздел в разработке">
+              <span class="button-icon">🧩</span>
+              <span class="button-label">Прочее</span>
+              <span class="button-arrow">›</span>
+            </button>
+          </div>
+
+          <p class="status-pill status-pill--success">Система готова • подключение стабильно</p>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <!-- ═══ SCREEN 3 — PERSONAL ═══ -->
-    <div id="screen-personal" class="screen">
-      <div class="frame">
-        <img src="assets/bg_personal.webp" alt="" class="bg" draggable="false">
-        <!-- 4 model cards + back -->
-        <button class="zone" data-brain="chatgpt"
-          style="top:34%; left:28%; width:20%; height:20%;">
-        </button>
-        <button class="zone" data-brain="gemini"
-          style="top:34%; left:52%; width:20%; height:20%;">
-        </button>
-        <button class="zone" data-brain="deepseek"
-          style="top:57%; left:28%; width:20%; height:20%;">
-        </button>
-        <button class="zone" data-brain="qwen"
-          style="top:57%; left:52%; width:20%; height:20%;">
-        </button>
-        <button class="zone" id="btn-back"
-          style="top:80%; left:50%; transform:translateX(-50%); width:300px; height:46px;">
-        </button>
+    <section id="screen-personal" class="screen screen--blue" data-screen="personal">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="menu" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading">
+            <h2>Личное</h2>
+            <p>Выбери ИИ для ручной работы через ПК Терминатора</p>
+          </div>
+
+          <div class="command-stack model-stack" aria-label="Выбор модели">
+            <button class="command-button command-button--model command-button--active" type="button" data-model="chatgpt">
+              <span class="button-icon model-icon model-icon--chatgpt">GPT</span>
+              <span class="button-label">ChatGPT</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button class="command-button command-button--model" type="button" data-model="gemini">
+              <span class="button-icon model-icon model-icon--gemini">GM</span>
+              <span class="button-label">Gemini</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button class="command-button command-button--model" type="button" data-model="deepseek">
+              <span class="button-icon model-icon model-icon--deepseek">DS</span>
+              <span class="button-label">DeepSeek</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button class="command-button command-button--model command-button--violet" type="button" data-model="qwen">
+              <span class="button-icon model-icon model-icon--qwen">Q</span>
+              <span class="button-label">Qwen</span>
+              <span class="button-arrow">›</span>
+            </button>
+          </div>
+        </article>
       </div>
-    </div>
+    </section>
 
-  </div>
+    <section id="screen-brain" class="screen screen--blue" data-screen="brain">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell command-shell--brain">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="personal" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
 
-  <!-- Status overlay -->
-  <div id="status-overlay" class="status-overlay">
-    <div class="spinner"></div>
-    <div id="status-text" class="status-text">Подключение...</div>
-  </div>
+          <div class="screen-heading screen-heading--compact">
+            <span id="brain-icon" class="brain-mark model-icon model-icon--chatgpt">GPT</span>
+            <h2 id="brain-title">ChatGPT</h2>
+            <p id="brain-subtitle">Подключение к официальному окну через ПК Терминатора</p>
+          </div>
+
+          <div class="info-card status-card">
+            <div>
+              <span class="info-label">Статус подключения</span>
+              <strong>Готов к запуску</strong>
+            </div>
+            <span class="online-dot" aria-hidden="true"></span>
+          </div>
+
+          <div class="command-stack command-stack--tight">
+            <button id="btn-open-model" class="command-button command-button--primary" type="button">
+              <span class="button-icon">↗</span>
+              <span id="open-model-label" class="button-label">Открыть ChatGPT</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-anydesk" class="command-button" type="button" data-nav="remote">
+              <span class="button-icon">AD</span>
+              <span class="button-label">Подключиться через AnyDesk</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-check-window" class="command-button" type="button">
+              <span class="button-icon">OK</span>
+              <span class="button-label">Проверить окно</span>
+              <span class="button-arrow">›</span>
+            </button>
+          </div>
+
+          <div class="info-card info-card--list">
+            <p><span>ПК:</span><strong>Terminator-PC</strong></p>
+            <p><span>Профиль:</span><strong id="brain-profile">ChatGPT Profile</strong></p>
+            <p><span>Доступ:</span><strong class="success-text">активен</strong></p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-remote" class="screen screen--blue" data-screen="remote">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="brain" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading">
+            <h2>Удалённая сессия готова</h2>
+            <p>Подключись к ПК Терминатора и работай в официальном окне выбранного сервиса</p>
+          </div>
+
+          <div class="info-card info-card--success info-card--list">
+            <p><span>Статус:</span><strong>готово к подключению</strong></p>
+            <p><span>Режим:</span><strong>ручная работа</strong></p>
+            <p><span>Доступ:</span><strong>через AnyDesk</strong></p>
+            <p><span>Правило:</span><strong>после завершения нажми «Я закончил»</strong></p>
+          </div>
+
+          <div class="command-stack">
+            <button id="btn-open-anydesk" class="command-button command-button--primary" type="button">
+              <span class="button-icon">AD</span>
+              <span class="button-label">Открыть через AnyDesk</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-finished" class="command-button command-button--success" type="button" data-nav="complete">
+              <span class="button-icon">OK</span>
+              <span class="button-label">Я закончил</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-minimize" class="command-button" type="button">
+              <span class="button-icon">MIN</span>
+              <span class="button-label">Свернуть окно</span>
+              <span class="button-arrow">›</span>
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-complete" class="screen screen--blue" data-screen="complete">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="remote" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading">
+            <h2>Работа завершена</h2>
+            <p>Сессия завершена успешно</p>
+          </div>
+
+          <div class="info-card info-card--success complete-card">
+            <span class="success-orb" aria-hidden="true">✓</span>
+            <strong>Удалённая работа завершена. Что делаем дальше?</strong>
+          </div>
+
+          <div class="command-stack">
+            <button class="command-button" type="button" data-nav="personal">
+              <span class="button-icon">ID</span>
+              <span class="button-label">Вернуться в Личное</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button class="command-button" type="button" data-nav="menu">
+              <span class="button-icon">HM</span>
+              <span class="button-label">Главное меню</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-end-session" class="command-button command-button--danger" type="button">
+              <span class="button-icon">!</span>
+              <span class="button-label">Завершить сессию</span>
+              <span class="button-arrow">›</span>
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="app.js"></script>
 </body>
