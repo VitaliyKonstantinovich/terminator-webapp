@@ -32,6 +32,9 @@ const DIRECT_BRIDGE_NAMES = [
   'TerminatorDirectBridge',
   'MinaCommandBridge'
 ];
+const DIRECT_STATUS_POLL_INTERVAL_MS = 1500;
+const DIRECT_STATUS_POLL_TIMEOUT_MS = 60000;
+const DIRECT_FINAL_STATUSES = new Set(['completed', 'failed', 'manual_required']);
 
 function normalizeTransportMode(mode) {
   const normalized = String(mode || '').trim().toLowerCase();
@@ -54,19 +57,32 @@ function getDirectTransport() {
     if (!bridge) continue;
 
     if (typeof bridge === 'function') {
-      return bridge;
+      return { send: bridge, getStatus: null };
     }
 
+    let send = null;
     if (typeof bridge.sendTerminatorAction === 'function') {
-      return bridge.sendTerminatorAction.bind(bridge);
+      send = bridge.sendTerminatorAction.bind(bridge);
+    } else if (typeof bridge.send === 'function') {
+      send = bridge.send.bind(bridge);
     }
 
-    if (typeof bridge.send === 'function') {
-      return bridge.send.bind(bridge);
-    }
+    if (!send) continue;
+
+    const getStatus = bridge.getCommandStatus || bridge.getStatus || bridge.status;
+    return {
+      send,
+      getStatus: typeof getStatus === 'function' ? getStatus.bind(bridge) : null
+    };
   }
 
   return null;
+}
+
+async function getDirectCommandStatus(commandId) {
+  const directTransport = getDirectTransport();
+  if (!directTransport?.getStatus) return null;
+  return directTransport.getStatus(commandId);
 }
 
 async function sendTerminatorAction(payload) {
@@ -104,7 +120,7 @@ async function sendTerminatorAction(payload) {
   }
 
   try {
-    const response = await directTransport(payload);
+    const response = await directTransport.send(payload);
     if (response?.ok === false) {
       return {
         ok: false,
@@ -114,7 +130,15 @@ async function sendTerminatorAction(payload) {
       };
     }
 
-    return { ok: true, transport: 'direct', message: 'Команда отправлена напрямую' };
+    const commandId = response?.command_id || response?.commandId || response?.id || null;
+    return {
+      ok: true,
+      transport: 'direct',
+      commandId,
+      canTrackStatus: !!directTransport.getStatus,
+      status: response?.status || (commandId ? 'queued' : null),
+      message: commandId ? 'Команда отправлена' : 'Команда отправлена напрямую'
+    };
   } catch (error) {
     console.error('[MinaWebApp] Direct transport failed', error);
     return { ok: false, transport: 'direct', message: 'Не удалось отправить прямую команду' };
@@ -127,6 +151,7 @@ const App = {
   current: 'start',
   selectedModel: 'chatgpt',
   toastTimer: null,
+  commandPollTimer: null,
   tg: null,
   order: ['start', 'menu', 'personal', 'brain', 'remote', 'complete'],
 
@@ -320,7 +345,54 @@ const App = {
 
     const result = await sendTerminatorAction(data);
     this.toast(result.message);
+
+    if (result.ok && result.transport === 'direct' && result.commandId && result.canTrackStatus) {
+      this.watchDirectCommand(result.commandId);
+    }
+
     return result.ok;
+  },
+
+  watchDirectCommand(commandId) {
+    this.stopDirectCommandPolling();
+
+    const startedAt = Date.now();
+    const poll = async () => {
+      try {
+        const status = await getDirectCommandStatus(commandId);
+
+        if (status?.status && DIRECT_FINAL_STATUSES.has(status.status)) {
+          this.commandPollTimer = null;
+          this.toast(this.formatDirectCommandStatus(status));
+          return;
+        }
+      } catch (error) {
+        console.error('[MinaWebApp] Direct status polling failed', error);
+      }
+
+      if (Date.now() - startedAt > DIRECT_STATUS_POLL_TIMEOUT_MS) {
+        this.commandPollTimer = null;
+        this.toast('Статус команды не получен');
+        return;
+      }
+
+      this.commandPollTimer = window.setTimeout(poll, DIRECT_STATUS_POLL_INTERVAL_MS);
+    };
+
+    this.commandPollTimer = window.setTimeout(poll, DIRECT_STATUS_POLL_INTERVAL_MS);
+  },
+
+  stopDirectCommandPolling() {
+    if (!this.commandPollTimer) return;
+    window.clearTimeout(this.commandPollTimer);
+    this.commandPollTimer = null;
+  },
+
+  formatDirectCommandStatus(status) {
+    if (status.status === 'completed') return 'Команда выполнена';
+    if (status.status === 'manual_required') return 'Требуется ручная проверка';
+    if (status.status === 'failed') return 'Команда не выполнена';
+    return 'Статус команды обновлён';
   },
 
   toast(message, duration = 2600) {
