@@ -25,10 +25,277 @@ const MODELS = {
   }
 };
 
+const WEBAPP_TRANSPORT_MODE = 'auto'; // telegram | direct | auto
+const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
+const DIRECT_BRIDGE_NAMES = [
+  'TerminatorCommandBridge',
+  'TerminatorDirectBridge',
+  'MinaCommandBridge'
+];
+const DIRECT_STATUS_POLL_INTERVAL_MS = 1500;
+const DIRECT_STATUS_POLL_TIMEOUT_MS = 60000;
+const DIRECT_FINAL_STATUSES = new Set(['completed', 'failed', 'manual_required']);
+const DIRECT_SESSION_STORAGE_KEY = 'mina_direct_owner_session';
+const DIRECT_SESSION_EXPIRY_SKEW_MS = 5000;
+
+function normalizeTransportMode(mode) {
+  const normalized = String(mode || '').trim().toLowerCase();
+  return WEBAPP_TRANSPORT_MODES.has(normalized) ? normalized : WEBAPP_TRANSPORT_MODE;
+}
+
+function getWebAppTransportMode() {
+  const queryMode = new URLSearchParams(window.location.search).get('transport');
+  return normalizeTransportMode(window.WEBAPP_TRANSPORT_MODE || queryMode || WEBAPP_TRANSPORT_MODE);
+}
+
+function getTelegramTransport() {
+  const tg = window.Telegram?.WebApp || null;
+  return tg?.sendData ? tg : null;
+}
+
+function getDirectTransport() {
+  for (const name of DIRECT_BRIDGE_NAMES) {
+    const bridge = window[name];
+    if (!bridge) continue;
+
+    if (typeof bridge === 'function') {
+      return { send: bridge, getStatus: null };
+    }
+
+    let send = null;
+    if (typeof bridge.sendTerminatorAction === 'function') {
+      send = bridge.sendTerminatorAction.bind(bridge);
+    } else if (typeof bridge.send === 'function') {
+      send = bridge.send.bind(bridge);
+    }
+
+    if (!send) continue;
+
+    const getStatus = bridge.getCommandStatus || bridge.getStatus || bridge.status;
+    return {
+      send,
+      getStatus: typeof getStatus === 'function' ? getStatus.bind(bridge) : null
+    };
+  }
+
+  return createConfiguredDirectBridge();
+}
+
+async function getDirectCommandStatus(commandId) {
+  const directTransport = getDirectTransport();
+  if (!directTransport?.getStatus) return null;
+  return directTransport.getStatus(commandId);
+}
+
+function createConfiguredDirectBridge() {
+  const config = getDirectBridgeConfig();
+  if (!config?.baseUrl) return null;
+
+  const baseUrl = config.baseUrl.replace(/\/+$/, '');
+
+  return {
+    async send(payload) {
+      const token = await getOwnerSessionToken(baseUrl);
+      if (!token) {
+        return { ok: false, reason: 'owner_auth_cancelled', message: 'Авторизация владельца отменена' };
+      }
+
+      return directBridgeRequest(baseUrl, '/commands', {
+        method: 'POST',
+        token,
+        body: payload
+      });
+    },
+
+    async getStatus(commandId) {
+      const token = getStoredOwnerSession(baseUrl)?.token;
+      if (!token) return null;
+
+      return directBridgeRequest(baseUrl, `/commands/${encodeURIComponent(commandId)}/status`, {
+        method: 'GET',
+        token
+      });
+    }
+  };
+}
+
+function getDirectBridgeConfig() {
+  const query = new URLSearchParams(window.location.search);
+  const config = window.MINA_DIRECT_BRIDGE || window.MINA_DIRECT_BRIDGE_CONFIG || {};
+  const baseUrl = window.MINA_DIRECT_BRIDGE_URL || config.baseUrl || config.bridgeUrl || query.get('direct_bridge');
+
+  return {
+    baseUrl: String(baseUrl || '').trim()
+  };
+}
+
+async function getOwnerSessionToken(baseUrl) {
+  const stored = getStoredOwnerSession(baseUrl);
+  if (stored?.token) return stored.token;
+
+  const secret = await requestOwnerSecret();
+  if (!secret) return null;
+
+  const session = await directBridgeRequest(baseUrl, '/owner/session', {
+    method: 'POST',
+    body: { secret },
+    skipAuth: true
+  });
+
+  const token = session?.session_token || session?.token;
+  if (!token) throw new Error('Owner session token missing');
+
+  storeOwnerSession(baseUrl, {
+    token,
+    expiresAt: session.expires_at || new Date(Date.now() + Number(session.expires_in || 0) * 1000).toISOString()
+  });
+
+  return token;
+}
+
+async function requestOwnerSecret() {
+  if (typeof window.requestTerminatorOwnerSecret === 'function') {
+    return window.requestTerminatorOwnerSecret();
+  }
+
+  if (typeof window.prompt === 'function') {
+    return window.prompt('Введите код владельца для прямого управления') || '';
+  }
+
+  return '';
+}
+
+function getStoredOwnerSession(baseUrl) {
+  try {
+    const raw = window.sessionStorage?.getItem(DIRECT_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+
+    const session = JSON.parse(raw);
+    if (session.baseUrl !== baseUrl) return null;
+    if (!session.token || Date.parse(session.expiresAt) - DIRECT_SESSION_EXPIRY_SKEW_MS <= Date.now()) {
+      clearStoredOwnerSession();
+      return null;
+    }
+
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function storeOwnerSession(baseUrl, session) {
+  try {
+    window.sessionStorage?.setItem(DIRECT_SESSION_STORAGE_KEY, JSON.stringify({
+      baseUrl,
+      token: session.token,
+      expiresAt: session.expiresAt
+    }));
+  } catch {
+    // Session storage is optional. If unavailable, the user will be asked again.
+  }
+}
+
+function clearStoredOwnerSession() {
+  try {
+    window.sessionStorage?.removeItem(DIRECT_SESSION_STORAGE_KEY);
+  } catch {}
+}
+
+async function directBridgeRequest(baseUrl, route, options = {}) {
+  const headers = { 'content-type': 'application/json' };
+  if (options.token && !options.skipAuth) {
+    headers.authorization = `Bearer ${options.token}`;
+  }
+
+  const response = await fetch(`${baseUrl}${route}`, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body)
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (response.status === 401) {
+    clearStoredOwnerSession();
+  }
+
+  if (!response.ok || data?.ok === false) {
+    const error = new Error(data?.message || data?.error || `HTTP_${response.status}`);
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
+async function sendTerminatorAction(payload) {
+  const mode = getWebAppTransportMode();
+  const tg = getTelegramTransport();
+
+  if ((mode === 'telegram' || mode === 'auto') && tg) {
+    try {
+      tg.sendData(JSON.stringify(payload));
+      return { ok: true, transport: 'telegram', message: 'Команда отправлена в Telegram' };
+    } catch (error) {
+      console.error('[MinaWebApp] Telegram sendData failed', error);
+      return { ok: false, transport: 'telegram', message: 'Не удалось отправить команду в Telegram' };
+    }
+  }
+
+  if (mode === 'telegram') {
+    return {
+      ok: false,
+      transport: 'telegram',
+      reason: 'telegram_unavailable',
+      message: 'Команда доступна при запуске из Telegram'
+    };
+  }
+
+  const directTransport = getDirectTransport();
+  if (!directTransport) {
+    console.log('[MinaWebApp] direct transport not configured', payload);
+    return {
+      ok: false,
+      transport: 'direct',
+      reason: 'direct_unconfigured',
+      message: 'Прямое управление ещё не подключено'
+    };
+  }
+
+  try {
+    const response = await directTransport.send(payload);
+    if (response?.ok === false) {
+      return {
+        ok: false,
+        transport: 'direct',
+        reason: response.reason || 'direct_rejected',
+        message: response.message || 'Не удалось отправить прямую команду'
+      };
+    }
+
+    const commandId = response?.command_id || response?.commandId || response?.id || null;
+    return {
+      ok: true,
+      transport: 'direct',
+      commandId,
+      canTrackStatus: !!directTransport.getStatus,
+      status: response?.status || (commandId ? 'queued' : null),
+      message: commandId ? 'Команда отправлена' : 'Команда отправлена напрямую'
+    };
+  } catch (error) {
+    console.error('[MinaWebApp] Direct transport failed', error);
+    return { ok: false, transport: 'direct', message: 'Не удалось отправить прямую команду' };
+  }
+}
+
+window.sendTerminatorAction = sendTerminatorAction;
+
 const App = {
   current: 'start',
   selectedModel: 'chatgpt',
   toastTimer: null,
+  commandPollTimer: null,
   tg: null,
   order: ['start', 'menu', 'personal', 'brain', 'remote', 'complete'],
 
@@ -209,7 +476,7 @@ const App = {
     }
   },
 
-  sendPersonalAction(action, payload = {}) {
+  async sendPersonalAction(action, payload = {}) {
     const brain = payload.brain || this.selectedModel;
     const data = {
       ...payload,
@@ -219,23 +486,57 @@ const App = {
       source: 'mina_webapp',
       version: 1
     };
-    const tg = this.tg || window.Telegram?.WebApp || null;
 
-    if (!tg?.sendData) {
-      console.log('[MinaWebApp] personal_action', data);
-      this.toast('Команда доступна при запуске из Telegram');
-      return false;
+    const result = await sendTerminatorAction(data);
+    this.toast(result.message);
+
+    if (result.ok && result.transport === 'direct' && result.commandId && result.canTrackStatus) {
+      this.watchDirectCommand(result.commandId);
     }
 
-    try {
-      tg.sendData(JSON.stringify(data));
-      this.toast('Команда отправлена в Telegram');
-      return true;
-    } catch (error) {
-      console.error('[MinaWebApp] sendData failed', error);
-      this.toast('Не удалось отправить команду в Telegram');
-      return false;
-    }
+    return result.ok;
+  },
+
+  watchDirectCommand(commandId) {
+    this.stopDirectCommandPolling();
+
+    const startedAt = Date.now();
+    const poll = async () => {
+      try {
+        const status = await getDirectCommandStatus(commandId);
+
+        if (status?.status && DIRECT_FINAL_STATUSES.has(status.status)) {
+          this.commandPollTimer = null;
+          this.toast(this.formatDirectCommandStatus(status));
+          return;
+        }
+      } catch (error) {
+        console.error('[MinaWebApp] Direct status polling failed', error);
+      }
+
+      if (Date.now() - startedAt > DIRECT_STATUS_POLL_TIMEOUT_MS) {
+        this.commandPollTimer = null;
+        this.toast('Статус команды не получен');
+        return;
+      }
+
+      this.commandPollTimer = window.setTimeout(poll, DIRECT_STATUS_POLL_INTERVAL_MS);
+    };
+
+    this.commandPollTimer = window.setTimeout(poll, DIRECT_STATUS_POLL_INTERVAL_MS);
+  },
+
+  stopDirectCommandPolling() {
+    if (!this.commandPollTimer) return;
+    window.clearTimeout(this.commandPollTimer);
+    this.commandPollTimer = null;
+  },
+
+  formatDirectCommandStatus(status) {
+    if (status.status === 'completed') return 'Команда выполнена';
+    if (status.status === 'manual_required') return 'Требуется ручная проверка';
+    if (status.status === 'failed') return 'Команда не выполнена';
+    return 'Статус команды обновлён';
   },
 
   toast(message, duration = 2600) {
