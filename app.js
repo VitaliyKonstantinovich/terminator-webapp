@@ -42,6 +42,7 @@ const DIRECT_SESSION_BRIDGE_KEY = 'minaOwnerSessionBridgeUrl';
 const DIRECT_SESSION_EXPIRY_SKEW_MS = 5000;
 const DIRECT_SESSION_FALLBACK_TTL_MS = 6 * 60 * 60 * 1000;
 const OWNER_SESSION_EXPIRED_MESSAGE = 'Сессия владельца истекла. Войдите снова.';
+const OWNER_SESSION_REQUIRED_MESSAGE = 'Доступ владельца не активен. Нажмите Старт и войдите снова.';
 
 function normalizeTransportMode(mode) {
   const normalized = String(mode || '').trim().toLowerCase();
@@ -113,29 +114,14 @@ function createConfiguredDirectBridge() {
     async send(payload) {
       const token = await ensureOwnerSession(baseUrl);
       if (!token) {
-        return { ok: false, reason: 'owner_auth_cancelled', message: 'Авторизация владельца отменена' };
+        return { ok: false, reason: 'owner_session_required', message: OWNER_SESSION_REQUIRED_MESSAGE };
       }
 
-      try {
-        return await directBridgeRequest(baseUrl, '/commands', {
-          method: 'POST',
-          token,
-          body: payload
-        });
-      } catch (error) {
-        if (error.status !== 401) throw error;
-
-        const renewedToken = await ensureOwnerSession(baseUrl, { forceRefresh: true });
-        if (!renewedToken) {
-          return { ok: false, reason: 'owner_auth_cancelled', message: 'Авторизация владельца отменена' };
-        }
-
-        return directBridgeRequest(baseUrl, '/commands', {
-          method: 'POST',
-          token: renewedToken,
-          body: payload
-        });
-      }
+      return directBridgeRequest(baseUrl, '/commands', {
+        method: 'POST',
+        token,
+        body: payload
+      });
     },
 
     async getStatus(commandId) {
@@ -165,6 +151,8 @@ async function ensureOwnerSession(baseUrl, options = {}) {
     const stored = getStoredOwnerSession(baseUrl);
     if (stored?.token) return stored.token;
   }
+
+  if (!options.interactive) return null;
 
   clearStoredOwnerSession();
   return createOwnerSession(baseUrl);
@@ -705,7 +693,7 @@ const App = {
     if (!isConfiguredDirectModeActive()) return true;
 
     try {
-      const token = await ensureOwnerSession(getConfiguredDirectBridgeBaseUrl());
+      const token = await ensureOwnerSession(getConfiguredDirectBridgeBaseUrl(), { interactive: true });
       if (token) return true;
 
       this.toast('Авторизация владельца отменена');
