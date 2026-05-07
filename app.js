@@ -48,6 +48,7 @@ const DIRECT_SESSION_EXPIRY_SKEW_MS = 5000;
 const DIRECT_SESSION_FALLBACK_TTL_MS = 6 * 60 * 60 * 1000;
 const OWNER_SESSION_EXPIRED_MESSAGE = 'Сессия владельца истекла. Войдите снова.';
 const OWNER_SESSION_REQUIRED_MESSAGE = 'Доступ владельца не активен. Нажмите Старт и войдите снова.';
+const ANYDESK_INSTALL_URL = 'https://play.google.com/store/apps/details?id=com.anydesk.anydeskandroid';
 
 function normalizeTransportMode(mode) {
   const normalized = String(mode || '').trim().toLowerCase();
@@ -584,6 +585,13 @@ const App = {
   commandPollTimer: null,
   tg: null,
   order: ['start', 'menu', 'personal', 'brain', 'remote', 'complete'],
+  anydesk: {
+    id: '',
+    status: 'не проверен',
+    deepLink: '',
+    checked: false,
+    error: ''
+  },
 
   init() {
     window.MinaApp = this;
@@ -591,6 +599,7 @@ const App = {
     this.initTelegram();
     this.bindEvents();
     this.renderBrain();
+    this.renderAnyDeskAccess();
     this.go('start', { immediate: true });
     this.retryTelegramInit();
   },
@@ -658,7 +667,13 @@ const App = {
       this.sendPersonalAction('verify_brain', { brain: this.selectedModel });
     });
     document.getElementById('btn-open-anydesk').addEventListener('click', () => {
-      this.sendPersonalAction('ensure_anydesk', { brain: this.selectedModel });
+      this.openAnyDeskApp();
+    });
+    document.getElementById('btn-copy-anydesk').addEventListener('click', () => {
+      this.copyAnyDeskId();
+    });
+    document.getElementById('btn-copy-anydesk-fallback').addEventListener('click', () => {
+      this.copyAnyDeskId();
     });
     document.getElementById('btn-finished').addEventListener('click', () => {
       this.sendPersonalAction('done', { brain: this.selectedModel });
@@ -783,6 +798,8 @@ const App = {
 
   async sendPersonalAction(action, payload = {}) {
     const brain = payload.brain || this.selectedModel;
+    if (action === 'ensure_anydesk') this.setAnyDeskPending();
+
     const data = {
       ...payload,
       type: 'personal_action',
@@ -796,13 +813,13 @@ const App = {
     this.toast(result.message);
 
     if (result.ok && result.transport === 'direct' && result.commandId && result.canTrackStatus) {
-      this.watchDirectCommand(result.commandId);
+      this.watchDirectCommand(result.commandId, { action });
     }
 
     return result.ok;
   },
 
-  watchDirectCommand(commandId) {
+  watchDirectCommand(commandId, context = {}) {
     this.stopDirectCommandPolling();
 
     const startedAt = Date.now();
@@ -812,6 +829,7 @@ const App = {
 
         if (status?.status && DIRECT_FINAL_STATUSES.has(status.status)) {
           this.commandPollTimer = null;
+          this.handleDirectCommandStatus(status, context);
           this.toast(this.formatDirectCommandStatus(status));
           return;
         }
@@ -835,6 +853,137 @@ const App = {
     if (!this.commandPollTimer) return;
     window.clearTimeout(this.commandPollTimer);
     this.commandPollTimer = null;
+  },
+
+  handleDirectCommandStatus(status, context = {}) {
+    if (context.action === 'ensure_anydesk' || status?.action === 'ensure_anydesk') {
+      this.setAnyDeskResult(status);
+    }
+  },
+
+  setAnyDeskPending() {
+    this.anydesk = {
+      id: '',
+      status: 'проверяется',
+      deepLink: '',
+      checked: true,
+      error: ''
+    };
+    this.renderAnyDeskAccess();
+  },
+
+  setAnyDeskResult(status) {
+    const details = this.extractAnyDeskDetails(status);
+    this.anydesk = {
+      id: details.id,
+      status: details.status,
+      deepLink: details.deepLink,
+      checked: true,
+      error: details.id ? '' : 'AnyDesk ID не найден. Проверь AnyDesk на ПК Терминатора.'
+    };
+
+    this.renderAnyDeskAccess();
+    if (!details.id) this.toast(this.anydesk.error, 4200);
+  },
+
+  extractAnyDeskDetails(status) {
+    const result = status?.result || {};
+    const errorDetail = status?.error?.detail || {};
+    const detail = result.anydesk || errorDetail.anydesk || result || errorDetail;
+    const id = this.normalizeAnyDeskId(
+      result.anydeskId
+      || result.anydesk_id
+      || detail.anydeskId
+      || detail.anydesk_id
+      || detail.id
+    );
+    const deepLink = result.deepLink
+      || result.anydeskUrl
+      || detail.deepLink
+      || detail.anydeskUrl
+      || detail.url
+      || (id ? `anydesk:${id}` : '');
+    const statusText = result.anydeskStatus
+      || detail.anydeskStatus
+      || detail.statusText
+      || (status?.status === 'completed' ? 'активен' : 'недоступен');
+
+    return {
+      id,
+      deepLink: id ? deepLink : '',
+      status: statusText
+    };
+  },
+
+  normalizeAnyDeskId(value) {
+    const match = String(value || '').match(/\b\d{6,12}\b/);
+    return match ? match[0] : '';
+  },
+
+  renderAnyDeskAccess() {
+    const statusEl = document.getElementById('anydesk-status');
+    const idEl = document.getElementById('anydesk-id');
+    const fallbackIdEl = document.getElementById('anydesk-fallback-id');
+    const installLink = document.getElementById('anydesk-install-link');
+
+    const id = this.anydesk.id || '';
+    const idText = id || (this.anydesk.status === 'проверяется' ? 'ожидание' : (this.anydesk.checked ? 'не найден' : 'не получен'));
+    if (statusEl) statusEl.textContent = this.anydesk.status || 'не проверен';
+    if (idEl) idEl.textContent = idText;
+    if (fallbackIdEl) fallbackIdEl.textContent = idText;
+    if (installLink) installLink.href = ANYDESK_INSTALL_URL;
+  },
+
+  openAnyDeskApp() {
+    const id = this.normalizeAnyDeskId(this.anydesk.id);
+    if (!id) {
+      this.toast('AnyDesk ID не найден. Проверь AnyDesk на ПК Терминатора.', 4200);
+      return;
+    }
+
+    const deepLink = this.anydesk.deepLink || `anydesk:${id}`;
+    window.location.href = deepLink;
+    window.setTimeout(() => {
+      this.showAnyDeskFallback();
+      this.toast('Если AnyDesk не открылся, установи AnyDesk и введи ID вручную.', 5200);
+    }, 1800);
+  },
+
+  async copyAnyDeskId() {
+    const id = this.normalizeAnyDeskId(this.anydesk.id);
+    if (!id) {
+      this.toast('AnyDesk ID не найден. Проверь AnyDesk на ПК Терминатора.', 4200);
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(id);
+      } else {
+        this.copyTextFallback(id);
+      }
+      this.toast('AnyDesk ID скопирован');
+    } catch {
+      this.copyTextFallback(id);
+      this.toast('AnyDesk ID скопирован');
+    }
+  },
+
+  copyTextFallback(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+  },
+
+  showAnyDeskFallback() {
+    const fallback = document.getElementById('anydesk-fallback');
+    if (fallback) fallback.hidden = false;
   },
 
   formatDirectCommandStatus(status) {

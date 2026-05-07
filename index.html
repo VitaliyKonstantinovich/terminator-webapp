@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260507-4">
+  <link rel="stylesheet" href="styles.css?v=20260507-6">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -198,16 +198,32 @@
           </div>
 
           <div class="info-card info-card--success info-card--list">
-            <p><span>Статус:</span><strong>готово к подключению</strong></p>
+            <p><span>Статус:</span><strong id="anydesk-status">ожидание AnyDesk</strong></p>
+            <p><span>AnyDesk ID:</span><strong id="anydesk-id">не получен</strong></p>
             <p><span>Режим:</span><strong>ручная работа</strong></p>
             <p><span>Доступ:</span><strong>через AnyDesk</strong></p>
             <p><span>Правило:</span><strong>после завершения нажми «Я закончил»</strong></p>
           </div>
 
+          <div id="anydesk-fallback" class="anydesk-fallback" hidden>
+            <strong>Если AnyDesk не открылся:</strong>
+            <span>1. Установи AnyDesk из Google Play.</span>
+            <span>2. Введи ID вручную: <b id="anydesk-fallback-id">не получен</b></span>
+            <div class="anydesk-fallback-actions">
+              <a id="anydesk-install-link" class="anydesk-inline-action" href="https://play.google.com/store/apps/details?id=com.anydesk.anydeskandroid" target="_blank" rel="noopener noreferrer">Установить AnyDesk</a>
+              <button id="btn-copy-anydesk-fallback" class="anydesk-inline-action" type="button">Скопировать ID</button>
+            </div>
+          </div>
+
           <div class="command-stack">
             <button id="btn-open-anydesk" class="command-button command-button--primary" type="button">
               <span class="button-icon">AD</span>
-              <span class="button-label">Открыть через AnyDesk</span>
+              <span class="button-label">Открыть AnyDesk</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-copy-anydesk" class="command-button" type="button">
+              <span class="button-icon">ID</span>
+              <span class="button-label">Скопировать ID</span>
               <span class="button-arrow">›</span>
             </button>
             <button id="btn-finished" class="command-button command-button--success" type="button" data-nav="complete">
@@ -274,6 +290,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260507-4"></script>
+  <script src="app.js?v=20260507-6"></script>
 </body>
 </html>
