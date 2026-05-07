@@ -580,8 +580,9 @@ const App = {
       }
     });
 
-    document.getElementById('btn-start').addEventListener('click', async () => {
-      if (await this.prepareOwnerSession()) this.go('menu');
+    document.getElementById('btn-start').addEventListener('click', () => {
+      this.go('menu');
+      this.prepareOwnerSession();
     });
     document.getElementById('btn-open-model').addEventListener('click', () => {
       this.sendPersonalAction('open_brain', { brain: this.selectedModel });
