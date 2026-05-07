@@ -33,8 +33,12 @@ const DIRECT_BRIDGE_NAMES = [
   'MinaCommandBridge'
 ];
 const DIRECT_STATUS_POLL_INTERVAL_MS = 1500;
-const DIRECT_STATUS_POLL_TIMEOUT_MS = 60000;
+const DIRECT_STATUS_POLL_TIMEOUT_MS = 240000;
+const DIRECT_REQUEST_TIMEOUT_MS = 30000;
+const DIRECT_REQUEST_RETRY_ATTEMPTS = 3;
+const DIRECT_REQUEST_RETRY_BASE_DELAY_MS = 700;
 const DIRECT_FINAL_STATUSES = new Set(['completed', 'failed', 'manual_required']);
+const DIRECT_RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const DIRECT_SESSION_LEGACY_STORAGE_KEY = 'mina_direct_owner_session';
 const DIRECT_SESSION_TOKEN_KEY = 'minaOwnerSessionToken';
 const DIRECT_SESSION_EXPIRES_KEY = 'minaOwnerSessionExpiresAt';
@@ -117,10 +121,16 @@ function createConfiguredDirectBridge() {
         return { ok: false, reason: 'owner_session_required', message: OWNER_SESSION_REQUIRED_MESSAGE };
       }
 
+      const commandPayload = {
+        ...payload,
+        client_command_id: payload.client_command_id || createClientCommandId()
+      };
+
       return directBridgeRequest(baseUrl, '/commands', {
         method: 'POST',
         token,
-        body: payload
+        body: commandPayload,
+        idempotent: true
       });
     },
 
@@ -405,16 +415,47 @@ function showOwnerLoginModal() {
 }
 
 async function directBridgeRequest(baseUrl, route, options = {}) {
+  const attempts = shouldRetryDirectRequest(options)
+    ? DIRECT_REQUEST_RETRY_ATTEMPTS
+    : 1;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await directBridgeRequestOnce(baseUrl, route, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !isRetryableDirectError(error)) break;
+      await delay(Math.min(DIRECT_REQUEST_RETRY_BASE_DELAY_MS * attempt, 3000));
+    }
+  }
+
+  throw lastError;
+}
+
+async function directBridgeRequestOnce(baseUrl, route, options = {}) {
   const headers = { 'content-type': 'application/json' };
   if (options.token && !options.skipAuth) {
     headers.authorization = `Bearer ${options.token}`;
   }
 
-  const response = await fetch(`${baseUrl}${route}`, {
-    method: options.method || 'GET',
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body)
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${route}`, {
+      method: options.method || 'GET',
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: controller.signal
+    });
+  } catch (error) {
+    error.retryable = true;
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
@@ -427,10 +468,41 @@ async function directBridgeRequest(baseUrl, route, options = {}) {
     const error = new Error(data?.message || data?.error || `HTTP_${response.status}`);
     error.status = response.status;
     error.data = data;
+    error.retryable = DIRECT_RETRYABLE_HTTP_STATUSES.has(response.status);
     throw error;
   }
 
   return data;
+}
+
+function shouldRetryDirectRequest(options) {
+  const method = String(options.method || 'GET').toUpperCase();
+  if (method === 'GET') return true;
+  if (options.skipAuth) return true;
+  return options.idempotent === true;
+}
+
+function isRetryableDirectError(error) {
+  if (error?.status === 401 || error?.status === 403) return false;
+  if (error?.retryable === true) return true;
+  if (error?.status) return DIRECT_RETRYABLE_HTTP_STATUSES.has(error.status);
+
+  const name = String(error?.name || '');
+  const message = String(error?.message || '').toLowerCase();
+  return name === 'AbortError'
+    || message.includes('fetch')
+    || message.includes('network')
+    || message.includes('timeout')
+    || message.includes('aborted');
+}
+
+function createClientCommandId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 async function sendTerminatorAction(payload) {
