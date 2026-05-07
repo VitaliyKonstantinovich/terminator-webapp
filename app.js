@@ -27,6 +27,7 @@ const MODELS = {
 
 const WEBAPP_TRANSPORT_MODE = 'auto'; // telegram | direct | auto
 const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
+const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
   'TerminatorDirectBridge',
@@ -149,7 +150,11 @@ function createConfiguredDirectBridge() {
 function getDirectBridgeConfig() {
   const query = new URLSearchParams(window.location.search);
   const config = window.MINA_DIRECT_BRIDGE || window.MINA_DIRECT_BRIDGE_CONFIG || {};
-  const baseUrl = window.MINA_DIRECT_BRIDGE_URL || config.baseUrl || config.bridgeUrl || query.get('direct_bridge');
+  const baseUrl = window.MINA_DIRECT_BRIDGE_URL
+    || config.baseUrl
+    || config.bridgeUrl
+    || query.get('direct_bridge')
+    || DEFAULT_DIRECT_BRIDGE_URL;
 
   return {
     baseUrl: String(baseUrl || '').trim()
