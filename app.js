@@ -35,8 +35,13 @@ const DIRECT_BRIDGE_NAMES = [
 const DIRECT_STATUS_POLL_INTERVAL_MS = 1500;
 const DIRECT_STATUS_POLL_TIMEOUT_MS = 60000;
 const DIRECT_FINAL_STATUSES = new Set(['completed', 'failed', 'manual_required']);
-const DIRECT_SESSION_STORAGE_KEY = 'mina_direct_owner_session';
+const DIRECT_SESSION_LEGACY_STORAGE_KEY = 'mina_direct_owner_session';
+const DIRECT_SESSION_TOKEN_KEY = 'minaOwnerSessionToken';
+const DIRECT_SESSION_EXPIRES_KEY = 'minaOwnerSessionExpiresAt';
+const DIRECT_SESSION_BRIDGE_KEY = 'minaOwnerSessionBridgeUrl';
 const DIRECT_SESSION_EXPIRY_SKEW_MS = 5000;
+const DIRECT_SESSION_FALLBACK_TTL_MS = 6 * 60 * 60 * 1000;
+const OWNER_SESSION_EXPIRED_MESSAGE = 'Сессия владельца истекла. Войдите снова.';
 
 function normalizeTransportMode(mode) {
   const normalized = String(mode || '').trim().toLowerCase();
@@ -81,6 +86,19 @@ function getDirectTransport() {
   return createConfiguredDirectBridge();
 }
 
+function getConfiguredDirectBridgeBaseUrl() {
+  const config = getDirectBridgeConfig();
+  return config?.baseUrl ? config.baseUrl.replace(/\/+$/, '') : '';
+}
+
+function isConfiguredDirectModeActive() {
+  const mode = getWebAppTransportMode();
+  if (mode === 'telegram') return false;
+  if (!getConfiguredDirectBridgeBaseUrl()) return false;
+  if (mode === 'direct') return true;
+  return !getTelegramTransport();
+}
+
 async function getDirectCommandStatus(commandId) {
   const directTransport = getDirectTransport();
   if (!directTransport?.getStatus) return null;
@@ -88,23 +106,36 @@ async function getDirectCommandStatus(commandId) {
 }
 
 function createConfiguredDirectBridge() {
-  const config = getDirectBridgeConfig();
-  if (!config?.baseUrl) return null;
-
-  const baseUrl = config.baseUrl.replace(/\/+$/, '');
+  const baseUrl = getConfiguredDirectBridgeBaseUrl();
+  if (!baseUrl) return null;
 
   return {
     async send(payload) {
-      const token = await getOwnerSessionToken(baseUrl);
+      const token = await ensureOwnerSession(baseUrl);
       if (!token) {
         return { ok: false, reason: 'owner_auth_cancelled', message: 'Авторизация владельца отменена' };
       }
 
-      return directBridgeRequest(baseUrl, '/commands', {
-        method: 'POST',
-        token,
-        body: payload
-      });
+      try {
+        return await directBridgeRequest(baseUrl, '/commands', {
+          method: 'POST',
+          token,
+          body: payload
+        });
+      } catch (error) {
+        if (error.status !== 401) throw error;
+
+        const renewedToken = await ensureOwnerSession(baseUrl, { forceRefresh: true });
+        if (!renewedToken) {
+          return { ok: false, reason: 'owner_auth_cancelled', message: 'Авторизация владельца отменена' };
+        }
+
+        return directBridgeRequest(baseUrl, '/commands', {
+          method: 'POST',
+          token: renewedToken,
+          body: payload
+        });
+      }
     },
 
     async getStatus(commandId) {
@@ -129,6 +160,22 @@ function getDirectBridgeConfig() {
   };
 }
 
+async function ensureOwnerSession(baseUrl, options = {}) {
+  if (!options.forceRefresh) {
+    const stored = getStoredOwnerSession(baseUrl);
+    if (stored?.token) return stored.token;
+  }
+
+  clearStoredOwnerSession();
+  return createOwnerSession(baseUrl);
+}
+
+async function createOwnerSession(baseUrl) {
+  const token = await getOwnerSessionToken(baseUrl);
+  if (token) showAppToast('Доступ владельца активен');
+  return token;
+}
+
 async function getOwnerSessionToken(baseUrl) {
   const stored = getStoredOwnerSession(baseUrl);
   if (stored?.token) return stored.token;
@@ -147,7 +194,7 @@ async function getOwnerSessionToken(baseUrl) {
 
   storeOwnerSession(baseUrl, {
     token,
-    expiresAt: session.expires_at || new Date(Date.now() + Number(session.expires_in || 0) * 1000).toISOString()
+    expiresAt: resolveOwnerSessionExpiresAt(session)
   });
 
   return token;
@@ -158,26 +205,51 @@ async function requestOwnerSecret() {
     return window.requestTerminatorOwnerSecret();
   }
 
-  if (typeof window.prompt === 'function') {
-    return window.prompt('Введите код владельца для прямого управления') || '';
+  return showOwnerLoginModal();
+}
+
+function resolveOwnerSessionExpiresAt(session) {
+  const explicitExpiresAt = session?.expires_at || session?.expiresAt;
+  if (explicitExpiresAt && !Number.isNaN(Date.parse(explicitExpiresAt))) {
+    return new Date(Date.parse(explicitExpiresAt)).toISOString();
   }
 
-  return '';
+  const ttlSeconds = Number(session?.expires_in ?? session?.expiresIn ?? session?.ttl);
+  const ttlMs = Number.isFinite(ttlSeconds) && ttlSeconds > 0
+    ? ttlSeconds * 1000
+    : DIRECT_SESSION_FALLBACK_TTL_MS;
+
+  return new Date(Date.now() + ttlMs).toISOString();
 }
 
 function getStoredOwnerSession(baseUrl) {
   try {
-    const raw = window.sessionStorage?.getItem(DIRECT_SESSION_STORAGE_KEY);
-    if (!raw) return null;
+    const token = window.sessionStorage?.getItem(DIRECT_SESSION_TOKEN_KEY);
+    const expiresAt = window.sessionStorage?.getItem(DIRECT_SESSION_EXPIRES_KEY);
+    const sessionBaseUrl = window.sessionStorage?.getItem(DIRECT_SESSION_BRIDGE_KEY);
 
-    const session = JSON.parse(raw);
-    if (session.baseUrl !== baseUrl) return null;
-    if (!session.token || Date.parse(session.expiresAt) - DIRECT_SESSION_EXPIRY_SKEW_MS <= Date.now()) {
+    if (token || expiresAt || sessionBaseUrl) {
+      if (sessionBaseUrl !== baseUrl) return null;
+      if (!token || !expiresAt || Date.parse(expiresAt) - DIRECT_SESSION_EXPIRY_SKEW_MS <= Date.now()) {
+        clearStoredOwnerSession();
+        return null;
+      }
+
+      return { baseUrl, token, expiresAt };
+    }
+
+    const legacyRaw = window.sessionStorage?.getItem(DIRECT_SESSION_LEGACY_STORAGE_KEY);
+    if (!legacyRaw) return null;
+
+    const legacySession = JSON.parse(legacyRaw);
+    if (legacySession.baseUrl !== baseUrl) return null;
+    if (!legacySession.token || Date.parse(legacySession.expiresAt) - DIRECT_SESSION_EXPIRY_SKEW_MS <= Date.now()) {
       clearStoredOwnerSession();
       return null;
     }
 
-    return session;
+    storeOwnerSession(baseUrl, legacySession);
+    return legacySession;
   } catch {
     return null;
   }
@@ -185,11 +257,10 @@ function getStoredOwnerSession(baseUrl) {
 
 function storeOwnerSession(baseUrl, session) {
   try {
-    window.sessionStorage?.setItem(DIRECT_SESSION_STORAGE_KEY, JSON.stringify({
-      baseUrl,
-      token: session.token,
-      expiresAt: session.expiresAt
-    }));
+    window.sessionStorage?.setItem(DIRECT_SESSION_TOKEN_KEY, session.token);
+    window.sessionStorage?.setItem(DIRECT_SESSION_EXPIRES_KEY, session.expiresAt);
+    window.sessionStorage?.setItem(DIRECT_SESSION_BRIDGE_KEY, baseUrl);
+    window.sessionStorage?.removeItem(DIRECT_SESSION_LEGACY_STORAGE_KEY);
   } catch {
     // Session storage is optional. If unavailable, the user will be asked again.
   }
@@ -197,8 +268,152 @@ function storeOwnerSession(baseUrl, session) {
 
 function clearStoredOwnerSession() {
   try {
-    window.sessionStorage?.removeItem(DIRECT_SESSION_STORAGE_KEY);
+    window.sessionStorage?.removeItem(DIRECT_SESSION_TOKEN_KEY);
+    window.sessionStorage?.removeItem(DIRECT_SESSION_EXPIRES_KEY);
+    window.sessionStorage?.removeItem(DIRECT_SESSION_BRIDGE_KEY);
+    window.sessionStorage?.removeItem(DIRECT_SESSION_LEGACY_STORAGE_KEY);
   } catch {}
+}
+
+function logoutOwnerSession() {
+  clearStoredOwnerSession();
+  showAppToast('Сессия владельца завершена');
+}
+
+function showOwnerSessionExpired() {
+  clearStoredOwnerSession();
+  showAppToast(OWNER_SESSION_EXPIRED_MESSAGE, 3600);
+}
+
+function showAppToast(message, duration = 2600) {
+  if (!message) return;
+  if (window.MinaApp?.toast) {
+    window.MinaApp.toast(message, duration);
+    return;
+  }
+
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+
+  window.clearTimeout(showAppToast.timer);
+  toast.textContent = message;
+  toast.classList.add('visible');
+  showAppToast.timer = window.setTimeout(() => {
+    toast.classList.remove('visible');
+  }, duration);
+}
+
+function showOwnerLoginModal() {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('owner-session-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'owner-session-modal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'owner-session-title');
+    overlay.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'z-index:9999',
+      'display:grid',
+      'place-items:center',
+      'background:rgba(0,8,18,.78)',
+      'backdrop-filter:blur(6px)'
+    ].join(';');
+
+    const panel = document.createElement('form');
+    panel.style.cssText = [
+      'width:min(420px,calc(100vw - 40px))',
+      'padding:24px',
+      'border:1px solid rgba(62,181,255,.82)',
+      'background:linear-gradient(180deg,rgba(2,16,34,.96),rgba(0,6,16,.98))',
+      'box-shadow:0 0 34px rgba(0,132,255,.45), inset 0 0 28px rgba(0,132,255,.14)',
+      'color:#eaf7ff',
+      'font:inherit'
+    ].join(';');
+
+    const title = document.createElement('h2');
+    title.id = 'owner-session-title';
+    title.textContent = 'Доступ владельца';
+    title.style.cssText = 'margin:0 0 10px;font-size:24px;letter-spacing:0;color:#ffffff';
+
+    const text = document.createElement('p');
+    text.textContent = 'Введите пароль Мины для управления Терминатором';
+    text.style.cssText = 'margin:0 0 18px;color:#9ec9ff;line-height:1.45';
+
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.autocomplete = 'current-password';
+    input.required = true;
+    input.style.cssText = [
+      'width:100%',
+      'box-sizing:border-box',
+      'height:48px',
+      'padding:0 14px',
+      'border:1px solid rgba(62,181,255,.68)',
+      'background:rgba(0,20,42,.78)',
+      'color:#ffffff',
+      'outline:none',
+      'font:inherit'
+    ].join(';');
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:12px;justify-content:flex-end;margin-top:18px';
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Отмена';
+    cancel.style.cssText = [
+      'min-width:104px',
+      'height:42px',
+      'border:1px solid rgba(144,186,224,.42)',
+      'background:rgba(7,22,42,.72)',
+      'color:#cfe8ff',
+      'font:inherit',
+      'cursor:pointer'
+    ].join(';');
+
+    const submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.textContent = 'Войти';
+    submit.style.cssText = [
+      'min-width:104px',
+      'height:42px',
+      'border:1px solid rgba(80,220,255,.95)',
+      'background:linear-gradient(180deg,rgba(0,122,255,.9),rgba(0,64,150,.92))',
+      'color:#ffffff',
+      'font:inherit',
+      'cursor:pointer',
+      'box-shadow:0 0 18px rgba(0,140,255,.55)'
+    ].join(';');
+
+    const finish = (value) => {
+      const secret = value || '';
+      input.value = '';
+      overlay.remove();
+      document.removeEventListener('keydown', handleKeydown);
+      resolve(secret);
+    };
+
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') finish('');
+    };
+
+    cancel.addEventListener('click', () => finish(''));
+    panel.addEventListener('submit', (event) => {
+      event.preventDefault();
+      finish(input.value);
+    });
+    document.addEventListener('keydown', handleKeydown);
+
+    actions.append(cancel, submit);
+    panel.append(title, text, input, actions);
+    overlay.append(panel);
+    document.body.append(overlay);
+    window.setTimeout(() => input.focus(), 0);
+  });
 }
 
 async function directBridgeRequest(baseUrl, route, options = {}) {
@@ -216,12 +431,13 @@ async function directBridgeRequest(baseUrl, route, options = {}) {
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
 
-  if (response.status === 401) {
-    clearStoredOwnerSession();
+  if (response.status === 401 && !options.skipAuth) {
+    showOwnerSessionExpired();
   }
 
   if (!response.ok || data?.ok === false) {
     const error = new Error(data?.message || data?.error || `HTTP_${response.status}`);
+    error.status = response.status;
     error.data = data;
     throw error;
   }
@@ -285,11 +501,16 @@ async function sendTerminatorAction(payload) {
     };
   } catch (error) {
     console.error('[MinaWebApp] Direct transport failed', error);
-    return { ok: false, transport: 'direct', message: 'Не удалось отправить прямую команду' };
+    return {
+      ok: false,
+      transport: 'direct',
+      message: error.status === 401 ? OWNER_SESSION_EXPIRED_MESSAGE : 'Не удалось отправить прямую команду'
+    };
   }
 }
 
 window.sendTerminatorAction = sendTerminatorAction;
+window.logoutOwnerSession = logoutOwnerSession;
 
 const App = {
   current: 'start',
@@ -300,6 +521,7 @@ const App = {
   order: ['start', 'menu', 'personal', 'brain', 'remote', 'complete'],
 
   init() {
+    window.MinaApp = this;
     this.tg = window.Telegram?.WebApp || null;
     this.initTelegram();
     this.bindEvents();
@@ -358,7 +580,9 @@ const App = {
       }
     });
 
-    document.getElementById('btn-start').addEventListener('click', () => this.go('menu'));
+    document.getElementById('btn-start').addEventListener('click', async () => {
+      if (await this.prepareOwnerSession()) this.go('menu');
+    });
     document.getElementById('btn-open-model').addEventListener('click', () => {
       this.sendPersonalAction('open_brain', { brain: this.selectedModel });
     });
@@ -473,6 +697,22 @@ const App = {
       this.tg.BackButton.hide();
     } else {
       this.tg.BackButton.show();
+    }
+  },
+
+  async prepareOwnerSession() {
+    if (!isConfiguredDirectModeActive()) return true;
+
+    try {
+      const token = await ensureOwnerSession(getConfiguredDirectBridgeBaseUrl());
+      if (token) return true;
+
+      this.toast('Авторизация владельца отменена');
+      return false;
+    } catch (error) {
+      console.error('[MinaWebApp] Owner session failed', error);
+      this.toast('Не удалось активировать доступ владельца');
+      return false;
     }
   },
 
