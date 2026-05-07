@@ -568,9 +568,8 @@ const App = {
       }
     });
 
-    document.getElementById('btn-start').addEventListener('click', () => {
-      this.go('menu');
-      this.prepareOwnerSession();
+    document.getElementById('btn-start').addEventListener('click', async () => {
+      if (await this.prepareOwnerSession()) this.go('menu');
     });
     document.getElementById('btn-open-model').addEventListener('click', () => {
       this.sendPersonalAction('open_brain', { brain: this.selectedModel });
@@ -700,7 +699,7 @@ const App = {
       return false;
     } catch (error) {
       console.error('[MinaWebApp] Owner session failed', error);
-      this.toast('Не удалось активировать доступ владельца');
+      this.toast(error.status === 401 ? 'Пароль владельца не принят' : 'Не удалось активировать доступ владельца');
       return false;
     }
   },
