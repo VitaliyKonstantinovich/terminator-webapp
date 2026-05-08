@@ -58,7 +58,7 @@
               <span class="button-label">Личное</span>
               <span class="button-arrow">›</span>
             </button>
-            <button id="btn-work" class="command-button" type="button" data-toast="Раздел в разработке">
+            <button id="btn-work" class="command-button" type="button" data-nav="work">
               <span class="button-icon">💼</span>
               <span class="button-label">Рабочее</span>
               <span class="button-arrow">›</span>
@@ -71,6 +71,319 @@
           </div>
 
           <p class="status-pill status-pill--success">Система готова • подключение стабильно</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-work" class="screen screen--blue screen--work" data-screen="work">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner screen-inner--work">
+        <article class="command-shell command-shell--work">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="menu" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading work-heading">
+            <h2>Рабочее</h2>
+            <p>Центр управления задачами</p>
+          </div>
+
+          <form id="work-task-form" class="work-form">
+            <label class="work-field work-field--wide">
+              <span>Что нужно сделать?</span>
+              <textarea id="work-task-input" rows="4" placeholder="Опиши задачу для Терминатора"></textarea>
+            </label>
+
+            <div class="work-grid">
+              <label class="work-field">
+                <span>Проект</span>
+                <select id="work-project-select"></select>
+              </label>
+              <label class="work-field">
+                <span>Режим</span>
+                <select id="work-mode-select"></select>
+              </label>
+              <label class="work-field">
+                <span>Качество</span>
+                <select id="work-quality-select"></select>
+              </label>
+            </div>
+
+            <button id="work-create-task" class="command-button command-button--primary work-create-button" type="submit">
+              <span class="button-icon">+</span>
+              <span class="button-label">Создать задачу</span>
+              <span class="button-arrow">›</span>
+            </button>
+          </form>
+
+          <div class="work-shortcuts" aria-label="Рабочие действия">
+            <button type="button" data-work-shortcut="tasks">Мои задачи</button>
+            <button type="button" data-work-shortcut="verify">Проверить результат</button>
+            <button type="button" data-work-shortcut="research">Исследовать</button>
+            <button type="button" data-work-shortcut="council">Совет мозгов</button>
+          </div>
+
+          <section id="work-preview" class="work-panel" hidden>
+            <h3>Я понял задачу так:</h3>
+            <dl id="work-preview-details" class="work-details"></dl>
+            <div class="work-actions">
+              <button type="button" data-work-preview="confirm">Подтвердить</button>
+              <button type="button" data-work-preview="edit">Изменить</button>
+              <button type="button" data-work-preview="expert">Экспертный режим</button>
+              <button type="button" data-work-preview="cancel">Отмена</button>
+            </div>
+          </section>
+
+          <section id="work-task-card" class="work-panel work-task-card" hidden>
+            <div class="work-card-head">
+              <div>
+                <span id="work-task-id-label" class="work-task-id">task_id не создан</span>
+                <h3 id="work-task-title">Задача</h3>
+              </div>
+              <span id="work-task-status" class="work-status">created</span>
+            </div>
+
+            <div id="work-task-simple" class="work-task-simple"></div>
+
+            <div class="work-actions work-actions--card">
+              <button type="button" data-work-action="prepare_task">Подготовить ТЗ</button>
+              <button type="button" data-work-action="brain_council">Совет мозгов</button>
+              <button type="button" data-work-action="assign_codex">Отдать Codex</button>
+              <button type="button" data-work-action="check_result">Проверить результат</button>
+              <button type="button" data-work-action="research">Исследовать</button>
+              <button type="button" data-work-action="save_memory">Сохранить в память</button>
+              <button type="button" data-work-action="accept">Принять</button>
+              <button type="button" data-work-action="needs_fix">Вернуть на доработку</button>
+              <button type="button" data-work-action="toggle_expert">Экспертный вид</button>
+            </div>
+
+            <section id="workspace-window" class="workspace-window" aria-label="Рабочее окно">
+              <header class="workspace-top">
+                <div>
+                  <span class="workspace-kicker">Рабочее окно</span>
+                  <h3 id="workspace-title">Задача</h3>
+                  <p id="workspace-project">Проект: Терминатор</p>
+                </div>
+                <div class="workspace-status-grid">
+                  <span id="workspace-status" class="workspace-chip workspace-chip--green">Создана</span>
+                  <span id="workspace-timer" class="workspace-chip">Ожидание отчёта: 00:00:00</span>
+                  <span id="workspace-executor" class="workspace-chip">Исполнитель: не назначен</span>
+                  <span id="workspace-risk" class="workspace-chip workspace-chip--yellow">Риск: средний</span>
+                </div>
+              </header>
+
+              <div class="workspace-layout">
+                <aside class="workspace-left" aria-label="Список задач">
+                  <div class="workspace-panel">
+                    <div class="workspace-panel-head">
+                      <strong>Активные задачи</strong>
+                      <span id="workspace-active-count">0</span>
+                    </div>
+                    <div id="workspace-task-list" class="workspace-task-list"></div>
+                  </div>
+                  <div class="workspace-panel workspace-states">
+                    <div><span>Ждут отчёта</span><b id="workspace-waiting-count">0</b></div>
+                    <div><span>Требуют проверки</span><b id="workspace-check-count">0</b></div>
+                    <div><span>Риски</span><b id="workspace-risk-count">0</b></div>
+                  </div>
+                </aside>
+
+                <section class="workspace-center" aria-label="История задачи">
+                  <div class="workspace-summary">
+                    <article>
+                      <span>Цель</span>
+                      <p id="workspace-goal">не задано</p>
+                    </article>
+                    <article>
+                      <span>Критерии готовности</span>
+                      <ul id="workspace-readiness"></ul>
+                    </article>
+                    <article>
+                      <span>Следующий шаг</span>
+                      <p id="workspace-next-step">не задано</p>
+                    </article>
+                  </div>
+
+                  <div class="workspace-history-head">
+                    <h4>История задачи</h4>
+                    <div id="workspace-history-filters" class="workspace-history-filters">
+                      <button type="button" class="active" data-history-filter="all">Все</button>
+                    </div>
+                  </div>
+                  <div id="workspace-history" class="workspace-history" aria-live="polite"></div>
+
+                  <div id="workspace-approval-panel" class="workspace-approval" hidden>
+                    <strong>Подтверждение действия</strong>
+                    <p>Это потенциально опасное действие. В v1 действие не выполняется автоматически. Требуется Approval Center.</p>
+                    <div class="work-actions">
+                      <button type="button" data-approval-action="plan">Подготовить план</button>
+                      <button type="button" data-approval-action="cancel">Отмена</button>
+                    </div>
+                  </div>
+
+                  <div id="workspace-privacy-guard" class="workspace-approval" hidden>
+                    <strong>Подтверждение действия</strong>
+                    <p>Возможны секреты в пакете. Проверьте текст перед отправкой во внешний ИИ.</p>
+                    <div class="work-actions">
+                      <button type="button" data-privacy-action="copy_anyway">Копировать всё равно</button>
+                      <button type="button" data-privacy-action="review">Вернуться и проверить</button>
+                      <button type="button" data-privacy-action="cancel">Отмена</button>
+                    </div>
+                  </div>
+                </section>
+
+                <aside class="workspace-right" aria-label="Материалы задачи">
+                  <nav class="workspace-tabs" aria-label="Вкладки рабочего окна">
+                    <button type="button" class="active" data-workspace-tab="files">Файлы</button>
+                    <button type="button" data-workspace-tab="artifacts">Артефакты</button>
+                    <button type="button" data-workspace-tab="check">Проверка</button>
+                    <button type="button" data-workspace-tab="memory">Память</button>
+                  </nav>
+
+                  <section id="workspace-tab-files" class="workspace-tab-panel">
+                    <div id="workspace-file-drop" class="workspace-dropzone">
+                      <strong>Файлы задачи</strong>
+                      <p>Перетащите файлы сюда или нажмите + Файлы. В v1 сохраняется только metadata.</p>
+                    </div>
+                    <input id="workspace-file-input" type="file" multiple hidden>
+                    <div id="workspace-files-list" class="workspace-list"></div>
+                  </section>
+
+                  <section id="workspace-tab-artifacts" class="workspace-tab-panel" hidden>
+                    <div class="workspace-panel-head">
+                      <strong>Артефакты</strong>
+                      <button type="button" data-workspace-action="build_context_pack">Сформировать пакет для Codex</button>
+                    </div>
+                    <div id="workspace-artifacts-list" class="workspace-list"></div>
+                    <label id="workspace-context-preview-wrap" class="work-field workspace-context-preview" hidden>
+                      <span>Пакет для Codex</span>
+                      <textarea id="workspace-context-preview" readonly></textarea>
+                      <button type="button" data-workspace-action="copy_context_pack">Скопировать в буфер</button>
+                    </label>
+                  </section>
+
+                  <section id="workspace-tab-check" class="workspace-tab-panel" hidden>
+                  </section>
+
+                  <section id="workspace-tab-memory" class="workspace-tab-panel" hidden>
+                    <div class="workspace-panel-head">
+                      <strong>Память</strong>
+                      <span id="workspace-memory-status">ожидает данных</span>
+                    </div>
+                    <div id="workspace-memory-preview" class="workspace-memory-preview"></div>
+                    <div class="work-actions">
+                      <button type="button" data-workspace-action="save_memory_preview">Сохранить локально</button>
+                      <button type="button" data-workspace-action="edit_memory_preview">Изменить</button>
+                      <button type="button" data-workspace-action="skip_memory_preview">Не сохранять</button>
+                    </div>
+                  </section>
+                </aside>
+              </div>
+
+              <footer class="workspace-console" aria-label="Рабочая консоль">
+                <button type="button" class="workspace-file-button" data-workspace-action="add_files">+ Файлы</button>
+                <label class="workspace-mode">
+                  <span>Режим</span>
+                  <select id="workspace-message-mode">
+                    <option value="clarification">Уточнение</option>
+                    <option value="command">Команда</option>
+                    <option value="codex">Для Codex</option>
+                    <option value="report">Отчёт</option>
+                    <option value="research">Research</option>
+                    <option value="decision">Решение</option>
+                  </select>
+                </label>
+                <textarea id="workspace-message-input" placeholder="Напишите сообщение, уточнение или вставьте отчёт..."></textarea>
+                <button type="button" class="workspace-send" data-workspace-action="send_message">Отправить</button>
+                <div class="workspace-quick-actions">
+                  <button type="button" data-workspace-action="build_context_pack">Скопировать пакет</button>
+                  <button type="button" data-workspace-action="mark_sent">Отметить как отправлено</button>
+                  <button type="button" data-workspace-action="insert_report">Вставить отчёт</button>
+                  <button type="button" data-workspace-action="open_verifier">Проверить результат</button>
+                </div>
+              </footer>
+            </section>
+
+            <div id="work-safe-output" class="work-safe-output" hidden></div>
+
+            <section id="work-verifier-panel" class="work-panel verifier-panel" hidden>
+              <div class="verifier-header">
+                <div>
+                  <h3>Проверка результата</h3>
+                  <p>Verifier v1 проверяет отчет, evidence и риски без запуска опасных действий.</p>
+                </div>
+                <span id="verifier-current-verdict" class="verifier-verdict verifier-verdict--empty">не проверено</span>
+              </div>
+
+              <label class="work-field verifier-field">
+                <span>Отчет исполнителя</span>
+                <textarea id="verifier-report-input" placeholder="Вставьте отчет Codex / Antigravity / другой ветки."></textarea>
+              </label>
+
+              <div class="verifier-grid">
+                <label class="work-field verifier-field">
+                  <span>Evidence / архив</span>
+                  <textarea id="verifier-evidence-input" placeholder="Укажите путь к архиву, evidence, скринам или кратко опишите приложенные артефакты."></textarea>
+                </label>
+                <label class="work-field verifier-field">
+                  <span>Что нужно было сделать</span>
+                  <textarea id="verifier-expected-input"></textarea>
+                </label>
+              </div>
+
+              <label class="work-field verifier-field">
+                <span>Что основной ветке проверить первым</span>
+                <textarea id="verifier-first-check-input"></textarea>
+              </label>
+
+              <div class="verifier-section">
+                <h4>Checklist</h4>
+                <div id="verifier-checklist" class="verifier-checklist"></div>
+              </div>
+
+              <div class="verifier-section">
+                <h4>Риски</h4>
+                <div class="verifier-grid verifier-grid--risks">
+                  <label class="work-field verifier-field">
+                    <span>Что не проверено</span>
+                    <textarea id="verifier-not-checked-input"></textarea>
+                  </label>
+                  <label class="work-field verifier-field">
+                    <span>Что требует ручной проверки</span>
+                    <textarea id="verifier-manual-input"></textarea>
+                  </label>
+                  <label class="work-field verifier-field">
+                    <span>Что может сломаться</span>
+                    <textarea id="verifier-break-risk-input"></textarea>
+                  </label>
+                </div>
+                <p id="verifier-risk-note" class="verifier-risk-note" hidden></p>
+              </div>
+
+              <div class="work-actions verifier-actions">
+                <button type="button" data-verifier-action="build">Сформировать вердикт</button>
+                <button type="button" data-verifier-action="close">Закрыть проверку</button>
+              </div>
+
+              <div id="verifier-result-panel" class="verifier-result" hidden>
+                <strong id="verifier-result-title">Вердикт</strong>
+                <p id="verifier-result-description"></p>
+                <label id="verifier-return-block" class="work-field verifier-field" hidden>
+                  <span>Что вернуть исполнителю</span>
+                  <textarea id="verifier-return-text" readonly></textarea>
+                </label>
+              </div>
+            </section>
+
+            <div id="work-expert-view" class="work-expert" hidden></div>
+          </section>
         </article>
       </div>
     </section>
