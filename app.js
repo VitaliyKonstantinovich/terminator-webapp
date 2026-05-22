@@ -341,9 +341,9 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Phase 2 Full Runtime Sync',
   date: '2026-05-22',
-  status: 'не закрыт: Cloudflare upload обрывается',
+  status: 'закрыт live: TaskStore ready',
   previous: 'Phase 2 Local Runtime + Storage закрыт локально',
-  next: 'закрыть TaskStore deploy, затем Phase 3 ResearchOps + BrainOps'
+  next: 'Phase 3 ResearchOps + BrainOps Runtime'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -361,10 +361,10 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 13, name: 'Memory Runtime V1 на D', status: 'закрыт' },
   { id: 14, name: 'Restore Points + Storage Diagnostics', status: 'закрыт' },
   { id: 15, name: 'Phase 2 Local Runtime Acceptance', status: 'закрыт локально' },
-  { id: 16, name: 'Bridge TaskStore + EventLog backend', status: 'реализован локально, deploy не прошёл' },
-  { id: 17, name: 'WebApp TaskStore sync binding', status: 'реализован локально' },
-  { id: 18, name: 'Local Agent task status sync', status: 'реализован локально' },
-  { id: 19, name: 'Phase 2 Full Runtime Live Acceptance', status: 'не закрыт' }
+  { id: 16, name: 'Bridge TaskStore + EventLog backend', status: 'закрыт live' },
+  { id: 17, name: 'WebApp TaskStore sync binding', status: 'закрыт live' },
+  { id: 18, name: 'Local Agent task status sync', status: 'закрыт' },
+  { id: 19, name: 'Phase 2 Full Runtime Live Acceptance', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -730,6 +730,36 @@ function showOwnerLoginModal() {
       'font:inherit'
     ].join(';');
 
+    const revealLabel = document.createElement('label');
+    revealLabel.style.cssText = [
+      'display:flex',
+      'align-items:center',
+      'gap:10px',
+      'margin-top:12px',
+      'color:#cfe8ff',
+      'font-size:14px',
+      'line-height:1.3',
+      'user-select:none',
+      'cursor:pointer'
+    ].join(';');
+
+    const reveal = document.createElement('input');
+    reveal.type = 'checkbox';
+    reveal.style.cssText = [
+      'width:18px',
+      'height:18px',
+      'accent-color:#38d8ff',
+      'cursor:pointer'
+    ].join(';');
+
+    const revealText = document.createElement('span');
+    revealText.textContent = 'Показать пароль';
+    reveal.addEventListener('change', () => {
+      input.type = reveal.checked ? 'text' : 'password';
+      input.focus();
+    });
+    revealLabel.append(reveal, revealText);
+
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:12px;justify-content:flex-end;margin-top:18px';
 
@@ -780,7 +810,7 @@ function showOwnerLoginModal() {
     document.addEventListener('keydown', handleKeydown);
 
     actions.append(cancel, submit);
-    panel.append(title, text, input, actions);
+    panel.append(title, text, input, revealLabel, actions);
     overlay.append(panel);
     document.body.append(overlay);
     window.setTimeout(() => input.focus(), 0);
@@ -1281,8 +1311,8 @@ const App = {
       this.workspaceVoiceTranscript = voiceTranscript.value;
     });
 
-    document.getElementById('btn-start').addEventListener('click', async () => {
-      if (await this.prepareOwnerSession()) this.go('menu');
+    document.getElementById('btn-start').addEventListener('click', () => {
+      this.go('menu');
     });
     document.getElementById('work-task-form')?.addEventListener('submit', (event) => {
       event.preventDefault();
