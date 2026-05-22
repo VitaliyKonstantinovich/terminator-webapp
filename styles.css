@@ -3932,6 +3932,11 @@ button:not(:disabled) {
   }
 }
 
+.screen:not(.active),
+.screen:not(.active) * {
+  pointer-events: none !important;
+}
+
 /* Final active navigation override. It intentionally comes after the mockup image-map
    rules so the live product never exposes the old Personal/Other mockup labels. */
 #screen-menu .command-stack {
@@ -3957,6 +3962,20 @@ button:not(:disabled) {
     0 0 28px rgba(0, 153, 255, 0.38);
   color: #f4fbff;
   text-align: left;
+  clip-path: polygon(3.4% 0, 96.6% 0, 100% 22%, 100% 78%, 96.6% 100%, 3.4% 100%, 0 78%, 0 22%);
+}
+
+#screen-menu .command-button::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  display: block;
+  border: 1px solid rgba(137, 239, 255, 0.28);
+  background:
+    linear-gradient(90deg, transparent 0 14%, rgba(98, 221, 255, 0.12) 14.2% 15%, transparent 15.3% 84.7%, rgba(98, 221, 255, 0.12) 85% 85.8%, transparent 86%),
+    linear-gradient(180deg, rgba(126, 235, 255, 0.12), transparent 34%, transparent 66%, rgba(126, 235, 255, 0.1));
+  clip-path: polygon(3.2% 0, 96.8% 0, 100% 21%, 100% 79%, 96.8% 100%, 3.2% 100%, 0 79%, 0 21%);
+  pointer-events: none;
 }
 
 #screen-menu .command-button > * {
@@ -4009,18 +4028,22 @@ button:not(:disabled) {
 }
 
 #screen-menu .command-button:active {
-  transform: scale(0.992);
+  transform: none;
+  filter: brightness(1.08);
 }
 
-#btn-start {
-  cursor: pointer;
-}
-
-#screen-start.active {
-  cursor: pointer;
+#screen-menu .icon-button {
+  clip-path: polygon(24% 0, 76% 0, 100% 24%, 100% 76%, 76% 100%, 24% 100%, 0 76%, 0 24%);
 }
 
 #screen-start #btn-start {
+  cursor: pointer;
   pointer-events: auto;
   z-index: 3;
+  clip-path: polygon(4.6% 0, 95.4% 0, 100% 27%, 100% 73%, 95.4% 100%, 4.6% 100%, 0 73%, 0 27%);
+  outline-offset: 8px;
+}
+
+#screen-start #btn-start:focus-visible {
+  outline: 2px solid rgba(255, 126, 136, 0.88);
 }
