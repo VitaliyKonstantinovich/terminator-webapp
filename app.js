@@ -378,6 +378,11 @@ const DIRECT_REQUEST_RETRY_ATTEMPTS = 3;
 const DIRECT_REQUEST_RETRY_BASE_DELAY_MS = 700;
 const DIRECT_FINAL_STATUSES = new Set(['completed', 'failed', 'manual_required']);
 const DIRECT_RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const DIRECT_BRIDGE_FRAME_PATH = '/bridge-frame';
+const DIRECT_BRIDGE_FRAME_READY_TIMEOUT_MS = 12000;
+const DIRECT_BRIDGE_FRAME_SOURCE = 'mina-bridge-frame';
+const DIRECT_BRIDGE_RPC_SOURCE = 'mina-webapp-bridge-rpc';
+const directBridgeFrameTransports = new Map();
 const TASK_STORE_SYNC_DEBOUNCE_MS = 1800;
 const TASK_STORE_SYNC_MAX_TASKS = 100;
 const DIRECT_SESSION_LEGACY_STORAGE_KEY = 'mina_direct_owner_session';
@@ -853,10 +858,12 @@ async function directBridgeRequest(baseUrl, route, options = {}) {
 }
 
 async function directBridgeRequestOnce(baseUrl, route, options = {}) {
-  const headers = { 'content-type': 'application/json' };
-  if (options.token && !options.skipAuth) {
-    headers.authorization = `Bearer ${options.token}`;
+  if (shouldUseDirectBridgeFrame(baseUrl, options)) {
+    const frameResponse = await directBridgeFrameRequest(baseUrl, route, options);
+    return parseDirectBridgeResponse(frameResponse, options);
   }
+
+  const headers = buildDirectBridgeHeaders(options);
 
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS);
@@ -867,6 +874,9 @@ async function directBridgeRequestOnce(baseUrl, route, options = {}) {
       method: options.method || 'GET',
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      cache: 'no-store',
+      credentials: 'omit',
+      mode: 'cors',
       signal: controller.signal
     });
   } catch (error) {
@@ -876,7 +886,158 @@ async function directBridgeRequestOnce(baseUrl, route, options = {}) {
     window.clearTimeout(timeout);
   }
 
-  const text = await response.text();
+  return parseDirectBridgeResponse({
+    status: response.status,
+    ok: response.ok,
+    text: await response.text()
+  }, options);
+}
+
+function buildDirectBridgeHeaders(options = {}, requestId = createClientCommandId()) {
+  const headers = { 'content-type': 'application/json' };
+  headers['x-request-id'] = requestId;
+  if (options.token && !options.skipAuth) {
+    headers.authorization = `Bearer ${options.token}`;
+  }
+  return headers;
+}
+
+function shouldUseDirectBridgeFrame(baseUrl, options = {}) {
+  if (options.frameTransport === false) return false;
+  if (!baseUrl || !window.location?.origin) return false;
+  try {
+    const url = new URL(baseUrl);
+    return window.location.protocol === 'https:' && url.protocol === 'https:' && url.hostname.endsWith('.workers.dev');
+  } catch {
+    return false;
+  }
+}
+
+async function directBridgeFrameRequest(baseUrl, route, options = {}) {
+  const transport = await getDirectBridgeFrameTransport(baseUrl);
+  const requestId = createClientCommandId();
+  const timeoutMs = options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS;
+
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      transport.pending.delete(requestId);
+      const error = new Error('Bridge frame request timed out.');
+      error.retryable = true;
+      reject(error);
+    }, timeoutMs + 1000);
+
+    transport.pending.set(requestId, {
+      resolve: (value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      reject: (error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      }
+    });
+
+    transport.frame.contentWindow.postMessage({
+      source: DIRECT_BRIDGE_RPC_SOURCE,
+      requestId,
+      method: options.method || 'GET',
+      route,
+      headers: buildDirectBridgeHeaders(options, requestId),
+      body: options.body,
+      timeoutMs
+    }, transport.targetOrigin);
+  });
+}
+
+async function getDirectBridgeFrameTransport(baseUrl) {
+  const targetOrigin = new URL(baseUrl).origin;
+  const existing = directBridgeFrameTransports.get(targetOrigin);
+  if (existing) {
+    await existing.ready;
+    return existing;
+  }
+
+  const frame = document.createElement('iframe');
+  frame.src = `${targetOrigin}${DIRECT_BRIDGE_FRAME_PATH}?v=1`;
+  frame.title = 'Mina Direct Bridge';
+  frame.hidden = true;
+  frame.tabIndex = -1;
+  frame.setAttribute('aria-hidden', 'true');
+  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+  frame.style.cssText = 'display:none;width:0;height:0;border:0;position:absolute;left:-9999px;';
+
+  const transport = {
+    frame,
+    targetOrigin,
+    pending: new Map(),
+    ready: null
+  };
+
+  transport.ready = new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      cleanupDirectBridgeFrameTransport(targetOrigin);
+      reject(new Error('Bridge frame did not become ready.'));
+    }, DIRECT_BRIDGE_FRAME_READY_TIMEOUT_MS);
+
+    const handleMessage = (event) => {
+      if (event.origin !== targetOrigin) return;
+      const message = event.data || {};
+      if (message.source !== DIRECT_BRIDGE_FRAME_SOURCE) return;
+
+      if (message.type === 'ready') {
+        window.clearTimeout(timer);
+        transport.handleMessage = handleMessage;
+        resolve();
+        return;
+      }
+
+      if (message.type === 'response' && message.requestId) {
+        const pending = transport.pending.get(message.requestId);
+        if (!pending) return;
+        transport.pending.delete(message.requestId);
+        if (message.ok) {
+          pending.resolve({
+            status: message.status,
+            ok: message.status >= 200 && message.status < 300,
+            text: message.text || ''
+          });
+        } else {
+          const error = new Error(message.message || message.errorName || 'Bridge frame request failed.');
+          error.retryable = true;
+          pending.reject(error);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    frame.addEventListener('error', () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('message', handleMessage);
+      cleanupDirectBridgeFrameTransport(targetOrigin);
+      reject(new Error('Bridge frame failed to load.'));
+    }, { once: true });
+  });
+
+  directBridgeFrameTransports.set(targetOrigin, transport);
+  document.body.append(frame);
+  await transport.ready;
+  return transport;
+}
+
+function cleanupDirectBridgeFrameTransport(targetOrigin) {
+  const transport = directBridgeFrameTransports.get(targetOrigin);
+  if (!transport) return;
+  if (transport.handleMessage) {
+    window.removeEventListener('message', transport.handleMessage);
+  }
+  transport.pending.forEach((pending) => pending.reject(new Error('Bridge frame transport closed.')));
+  transport.pending.clear();
+  transport.frame.remove();
+  directBridgeFrameTransports.delete(targetOrigin);
+}
+
+function parseDirectBridgeResponse(response, options = {}) {
+  const text = response.text || '';
   const data = text ? JSON.parse(text) : null;
 
   if (response.status === 401 && !options.skipAuth) {

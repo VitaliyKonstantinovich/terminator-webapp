@@ -48,6 +48,10 @@ export default {
         agent_id: request.headers.get("x-agent-id") || url.searchParams.get("agent_id") || null,
       });
 
+      if (url.pathname === "/bridge-frame" && request.method === "GET") {
+        return bridgeFrameResponse(env);
+      }
+
       if (url.pathname === "/health" && request.method === "GET") {
         await getCommandQueue(env);
         const taskStore = await getTaskStoreHealth(env);
@@ -62,64 +66,64 @@ export default {
       }
 
       if (url.pathname === "/owner/session" && request.method === "POST") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         return await createOwnerSession(request, env, origin, requestId, startedAt);
       }
 
       if (url.pathname === "/commands" && request.method === "POST") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await createCommand(request, env, origin, requestId, startedAt);
       }
 
       if (url.pathname === "/tasks" && request.method === "GET") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await listTasks(request, env, origin, requestId, startedAt);
       }
 
       if (url.pathname === "/tasks" && request.method === "POST") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await upsertTask(request, env, origin, requestId, startedAt);
       }
 
       const taskMatch = url.pathname.match(/^\/tasks\/([^/]+)$/);
       if (taskMatch && request.method === "GET") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await getTask(taskMatch[1], env, origin, requestId, startedAt);
       }
 
       if (taskMatch && (request.method === "PATCH" || request.method === "PUT")) {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await upsertTask(request, env, origin, requestId, startedAt, taskMatch[1]);
       }
 
       const taskEventsMatch = url.pathname.match(/^\/tasks\/([^/]+)\/events$/);
       if (taskEventsMatch && request.method === "GET") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await listTaskEvents(taskEventsMatch[1], env, origin, requestId, startedAt);
       }
 
       if (taskEventsMatch && request.method === "POST") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await appendTaskEvent(taskEventsMatch[1], request, env, origin, requestId, startedAt);
       }
 
       const taskChildMatch = url.pathname.match(/^\/tasks\/([^/]+)\/(artifacts|files|approvals|memory)$/);
       if (taskChildMatch && request.method === "POST") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await appendTaskChild(taskChildMatch[1], taskChildMatch[2], request, env, origin, requestId, startedAt);
       }
 
       const statusMatch = url.pathname.match(/^\/commands\/([^/]+)\/status$/);
       if (statusMatch && request.method === "GET") {
-        await assertAllowedOrigin(origin, env);
+        await assertAllowedOrigin(origin, env, request);
         await assertOwnerSessionAuthorized(request, env);
         return await getCommandStatus(statusMatch[1], env, origin, requestId, startedAt);
       }
@@ -1202,10 +1206,15 @@ async function readJson(request) {
   }
 }
 
-async function assertAllowedOrigin(origin, env) {
+async function assertAllowedOrigin(origin, env, request = null) {
   const allowedOrigin = env.ALLOWED_ORIGIN;
   if (!allowedOrigin || allowedOrigin === "<set_later>") {
     throw new BridgeError(503, "ALLOWED_ORIGIN_NOT_CONFIGURED", "Set ALLOWED_ORIGIN before enabling Direct Mode.");
+  }
+
+  if (request?.headers?.get("x-bridge-frame") === "1") {
+    const requestOrigin = new URL(request.url).origin;
+    if (!origin || origin === requestOrigin) return;
   }
 
   if (origin && origin !== allowedOrigin) {
@@ -1369,6 +1378,129 @@ function tracedJson(data, status, origin, env, requestId, startedAt, error = nul
     status,
     headers: responseHeaders(origin, env, requestId),
   });
+}
+
+function bridgeFrameResponse(env) {
+  const allowedOrigins = getFrameAllowedOrigins(env);
+  const frameAncestors = allowedOrigins.length
+    ? allowedOrigins.join(" ")
+    : "'none'";
+  const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <title>Mina Bridge Frame</title>
+</head>
+<body>
+<script>
+(() => {
+  const SOURCE_IN = "mina-webapp-bridge-rpc";
+  const SOURCE_OUT = "mina-bridge-frame";
+  const ALLOWED_ORIGINS = new Set(${JSON.stringify(allowedOrigins)});
+  const ALLOWED_HEADERS = new Set(["authorization", "content-type", "x-owner-session", "x-request-id"]);
+
+  function send(event, payload) {
+    if (!event.source || !event.origin) return;
+    event.source.postMessage({ source: SOURCE_OUT, ...payload }, event.origin);
+  }
+
+  function safeRoute(route) {
+    const value = String(route || "");
+    if (!value.startsWith("/") || value.startsWith("//")) return "";
+    return value;
+  }
+
+  function safeMethod(method) {
+    const value = String(method || "GET").toUpperCase();
+    return ["GET", "POST", "PATCH", "PUT"].includes(value) ? value : "GET";
+  }
+
+  function safeHeaders(input) {
+    const headers = new Headers();
+    Object.entries(input || {}).forEach(([key, value]) => {
+      const name = String(key || "").toLowerCase();
+      if (ALLOWED_HEADERS.has(name) && value !== undefined && value !== null) {
+        headers.set(name, String(value));
+      }
+    });
+    headers.set("x-bridge-frame", "1");
+    return headers;
+  }
+
+  window.addEventListener("message", async (event) => {
+    if (!ALLOWED_ORIGINS.has(event.origin)) return;
+    const message = event.data || {};
+    if (message.source !== SOURCE_IN || !message.requestId) return;
+
+    const route = safeRoute(message.route);
+    if (!route) {
+      send(event, { type: "response", requestId: message.requestId, ok: false, status: 400, text: "{\"ok\":false,\"error\":\"INVALID_ROUTE\"}" });
+      return;
+    }
+
+    const method = safeMethod(message.method);
+    const headers = safeHeaders(message.headers);
+    const hasBody = message.body !== undefined && method !== "GET";
+    if (hasBody && !headers.has("content-type")) headers.set("content-type", "application/json");
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), Math.max(1000, Math.min(Number(message.timeoutMs) || 30000, 60000)));
+
+    try {
+      const response = await fetch(route, {
+        method,
+        headers,
+        body: hasBody ? JSON.stringify(message.body) : undefined,
+        cache: "no-store",
+        credentials: "omit",
+        signal: controller.signal
+      });
+      const text = await response.text();
+      send(event, { type: "response", requestId: message.requestId, ok: true, status: response.status, text });
+    } catch (error) {
+      send(event, {
+        type: "response",
+        requestId: message.requestId,
+        ok: false,
+        status: 0,
+        errorName: error?.name || "BridgeFrameError",
+        message: error?.message || "Bridge frame request failed."
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  });
+
+  window.parent.postMessage({ source: SOURCE_OUT, type: "ready" }, "*");
+})();
+</script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "content-security-policy": `default-src 'none'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors ${frameAncestors}; base-uri 'none'; form-action 'none'`,
+      "referrer-policy": "no-referrer",
+    },
+  });
+}
+
+function getFrameAllowedOrigins(env) {
+  const origins = new Set();
+  const add = (value) => {
+    const origin = String(value || "").trim().replace(/\/+$/, "");
+    if (origin && origin !== "<set_later>") origins.add(origin);
+  };
+  add(env.ALLOWED_ORIGIN);
+  String(env.ALLOWED_FRAME_ORIGINS || "")
+    .split(",")
+    .map((item) => item.trim())
+    .forEach(add);
+  return Array.from(origins);
 }
 
 function queueJson(data, status = 200) {
