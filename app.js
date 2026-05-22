@@ -25,6 +25,47 @@ const MODELS = {
   }
 };
 
+const BRAIN_ROLES = [
+  {
+    id: 'chatgpt_strategy',
+    brain: 'ChatGPT',
+    short: 'GPT',
+    role: 'Стратег',
+    mission: 'Принять железобетонное решение, удерживая качество, риски и цель владельца.',
+    focus: 'синтез, приоритеты, финальное решение',
+    artifact_title: 'Ответ ChatGPT / Стратег'
+  },
+  {
+    id: 'gemini_analysis',
+    brain: 'Gemini',
+    short: 'GM',
+    role: 'Аналитик длинного контекста',
+    mission: 'Разобрать большой контекст, найти зависимости, пропуски и скрытые условия.',
+    focus: 'контекст, документы, полнота, длинные цепочки',
+    artifact_title: 'Ответ Gemini / Аналитик'
+  },
+  {
+    id: 'deepseek_critic',
+    brain: 'DeepSeek',
+    short: 'DS',
+    role: 'Критик / red team / код',
+    mission: 'Найти слабые места, технические риски, противоречия и плохие решения.',
+    focus: 'критика, код, баги, безопасность, проверка',
+    artifact_title: 'Ответ DeepSeek / Критик'
+  },
+  {
+    id: 'qwen_alternative',
+    brain: 'Qwen',
+    short: 'Q',
+    role: 'Альтернативный взгляд',
+    mission: 'Дать независимую альтернативу, fallback-идею и нестандартный путь.',
+    focus: 'альтернатива, упрощение, второй план',
+    artifact_title: 'Ответ Qwen / Альтернатива'
+  }
+];
+
+const BRAIN_ROLE_BY_ID = Object.fromEntries(BRAIN_ROLES.map((role) => [role.id, role]));
+
 const WORK_PROJECTS = [
   {
     id: 'terminator',
@@ -90,9 +131,125 @@ const WORK_STATUSES = [
 
 const WORK_STORAGE_KEY = 'mina_work_tasks_v1';
 const WORK_COUNTER_KEY = 'mina_work_task_counter_v1';
+const SYSTEM_DIAGNOSTICS_STORAGE_KEY = 'mina_system_diagnostics_v1';
+const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
+const WORK_RUNTIME_DB_VERSION = 3;
+const WORK_RUNTIME_META_KEY = 'runtime_meta';
+const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
 const WORK_PROJECT_BY_ID = Object.fromEntries(WORK_PROJECTS.map((project) => [project.id, project]));
 const WORK_MODE_BY_ID = Object.fromEntries(WORK_MODES.map((mode) => [mode.id, mode]));
 const WORK_QUALITY_BY_ID = Object.fromEntries(WORK_QUALITY_LEVELS.map((quality) => [quality.id, quality]));
+
+const TASK_RUNTIME_STORES = {
+  META: 'meta',
+  PROJECTS: 'projects',
+  TASKS: 'tasks',
+  EVENTS: 'events',
+  MESSAGES: 'messages',
+  ARTIFACTS: 'artifacts',
+  FILES: 'files',
+  APPROVALS: 'approvals',
+  MEMORY: 'memory',
+  DEVICES: 'devices',
+  DEVICE_CAPABILITIES: 'device_capabilities',
+  DEVICE_EVENTS: 'device_events',
+  DIAGNOSTICS: 'diagnostics'
+};
+
+const DEFAULT_PROJECT_TYPE = 'custom';
+const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
+const DIAGNOSTIC_MANUAL_REVIEW_STALE_MS = 24 * 60 * 60 * 1000;
+const DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS = 6000;
+const TASK_STORAGE_SCHEMA_VERSION = 1;
+const FILE_HASH_MAX_BYTES = 50 * 1024 * 1024;
+const TASK_STORAGE_SUBFOLDERS = ['files', 'evidence', 'artifacts', 'reports', 'logs', 'previews', 'restore_points'];
+const RAW_FILE_STORAGE_PATTERN = /(?:data:[^"'\\\s]+;base64,|;base64,)/i;
+const TASK_STORAGE_FOLDER_LABELS = {
+  files: 'Файлы',
+  evidence: 'Evidence',
+  artifacts: 'Артефакты',
+  reports: 'Отчёты',
+  logs: 'Логи',
+  previews: 'Preview',
+  restore_points: 'Restore points'
+};
+
+const DEVICE_TYPES = {
+  windows_pc: 'ПК Windows',
+  local_agent: 'Local Agent',
+  android_phone: 'Android телефон',
+  mission_display: 'Экран штаба',
+  smart_home_hub: 'Умный дом',
+  usb_bus: 'USB устройства',
+  network_allowlist: 'Сетевые устройства'
+};
+
+const DEVICE_TRUST_LEVELS = {
+  unknown: 'неизвестно',
+  paired: 'известное',
+  trusted: 'доверенное',
+  owner_device: 'устройство владельца',
+  system_device: 'системное',
+  restricted: 'ограничено',
+  blocked: 'заблокировано'
+};
+
+const DEVICE_STATUSES = {
+  unknown: 'не проверено',
+  discovered: 'обнаружено',
+  pending_trust: 'ждёт доверия',
+  trusted: 'доверено',
+  connected: 'на связи',
+  degraded: 'ограничено',
+  offline: 'не подключено',
+  blocked: 'заблокировано',
+  archived: 'в архиве',
+  not_configured: 'не настроено'
+};
+
+const DEVICE_RISK_LEVELS = {
+  safe: 'безопасно',
+  review: 'нужна проверка',
+  approval_required: 'требуется подтверждение',
+  dangerous: 'опасно',
+  blocked: 'заблокировано'
+};
+
+const VOICE_STATES = {
+  idle: 'готово',
+  listening: 'слушаю',
+  transcribing: 'обрабатываю',
+  preview_waiting: 'нужно подтверждение',
+  approval_required: 'требуется подтверждение',
+  completed: 'выполнено',
+  cancelled: 'отменено',
+  failed: 'ошибка',
+  permission_denied: 'микрофон недоступен',
+  browser_not_supported: 'не поддерживается'
+};
+
+const VOICE_INTENT_LABELS = {
+  create_task: 'Создать задачу',
+  add_note: 'Добавить уточнение',
+  open_workspace: 'Открыть Рабочее',
+  open_mission_control: 'Открыть Центр управления',
+  open_system: 'Открыть Систему',
+  create_context_pack: 'Сформировать пакет для Codex',
+  mark_sent_to_executor: 'Отметить пакет отправленным',
+  open_verifier: 'Открыть проверку',
+  show_memory_preview: 'Показать память',
+  dangerous_command: 'Опасная команда',
+  unknown: 'Не распознано'
+};
+
+const VOICE_CONFIDENCE_LABELS = {
+  high: 'высокая',
+  medium: 'средняя',
+  low: 'низкая',
+  manual: 'ручная'
+};
+
+const VOICE_DANGEROUS_PATTERN = /\b(?:удали|delete|remove|деплой|deploy|push|main|force|\.env|secret|token|api\s*key|network|vpn|proxy|firewall|defender|route|hosts|format|wipe|reset|kill|password|cookie|session|cloudflare)\b/i;
 
 const VERIFIER_CHECKLIST = [
   { id: 'matches_task', label: 'отчет соответствует задаче', critical: false },
@@ -108,7 +265,9 @@ const VERIFIER_CHECKLIST = [
   { id: 'no_mojibake', label: 'нет кракозябр в русском тексте', critical: false },
   { id: 'no_click_zone_only', label: 'UI/код не использует click-zone-only подход', critical: false },
   { id: 'result_archive_path', label: 'есть архив или путь к результату', critical: true },
-  { id: 'first_check', label: 'есть что проверить первым', critical: true }
+  { id: 'first_check', label: 'есть что проверить первым', critical: true },
+  { id: 'acceptance_decision_ready', label: 'понятно принять или вернуть на доработку', critical: true },
+  { id: 'memory_ready', label: 'понятно, что сохранять в память', critical: false }
 ];
 
 const VERIFIER_VERDICTS = {
@@ -131,17 +290,65 @@ const WORK_FILE_ROLES = [
 ];
 
 const WORK_FILE_ROLE_BY_ID = Object.fromEntries(WORK_FILE_ROLES.map((role) => [role.id, role]));
-const WORKSPACE_TABS = new Set(['files', 'artifacts', 'check', 'memory']);
+const WORKSPACE_TABS = new Set(['files', 'artifacts', 'council', 'check', 'memory']);
 const TEXT_PREVIEW_EXTENSIONS = new Set(['txt', 'md', 'json', 'log', 'js', 'ts', 'py', 'html', 'css', 'yaml', 'yml', 'xml', 'sql', 'mjs', 'cjs']);
 const IMAGE_PREVIEW_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif']);
 const ARCHIVE_EXTENSIONS = new Set(['zip', '7z', 'rar']);
 const MEDIA_EXTENSIONS = new Set(['mp4', 'mov', 'mkv', 'webm', 'mp3', 'wav', 'm4a']);
-const PRIVACY_GUARD_PATTERN = /\.env|API_KEY|TOKEN|SECRET|PASSWORD|Bearer|sk-|AIza|ghp_|webhook|cookie|session/i;
+const PRIVACY_GUARD_RULES = [
+  { id: 'env_file', label: '.env / env mention', severity: 'review', pattern: /\.env(?:\.local|\.production)?/i },
+  { id: 'api_key', label: 'API key marker', severity: 'danger', pattern: /\b[A-Z0-9_]*(?:API[_-]?KEY|OPENAI[_-]?KEY|GEMINI[_-]?KEY|DEEPSEEK[_-]?KEY|QWEN[_-]?KEY)\b/i },
+  { id: 'token', label: 'token marker', severity: 'danger', pattern: /\b(?:TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|BOT_TOKEN|PRIVATE_TOKEN)\b/i },
+  { id: 'secret', label: 'secret marker', severity: 'danger', pattern: /\b(?:SECRET|CLIENT_SECRET|WEBHOOK_SECRET)\b/i },
+  { id: 'password', label: 'password marker', severity: 'danger', pattern: /\b(?:PASSWORD|PASSWD|PWD)\b/i },
+  { id: 'bearer', label: 'Bearer token', severity: 'danger', pattern: /Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}/i },
+  { id: 'openai_like', label: 'sk-like key', severity: 'danger', pattern: /\bsk-[A-Za-z0-9_-]{10,}\b/i },
+  { id: 'google_like', label: 'AIza-like key', severity: 'danger', pattern: /\bAIza[A-Za-z0-9_-]{10,}\b/i },
+  { id: 'github_pat', label: 'GitHub token', severity: 'danger', pattern: /\bgh[pousr]_[A-Za-z0-9_]{10,}\b/i },
+  { id: 'webhook', label: 'webhook URL/secret', severity: 'review', pattern: /\bwebhook\b|https?:\/\/[^\s]+webhook[^\s]*/i },
+  { id: 'cookie_session', label: 'cookie/session marker', severity: 'danger', pattern: /\b(?:cookie|session|sessionid|connect.sid)\b/i },
+  { id: 'private_key', label: 'private key block', severity: 'danger', pattern: /BEGIN\s+(?:RSA\s+|OPENSSH\s+|EC\s+)?PRIVATE\s+KEY/i }
+];
 const DANGEROUS_COMMAND_PATTERN = /деплой|удали|delete|remove|\.env|secret|api key|network|vpn|proxy|cloudflare|push|main/i;
+
+const APPROVAL_STATUSES = {
+  manual_required: 'требует решения',
+  pending: 'ожидает',
+  plan_prepared: 'план подготовлен',
+  denied: 'отклонено',
+  cancelled: 'отменено',
+  expired: 'истекло'
+};
+
+const APPROVAL_RISK_LEVELS = {
+  review: 'нужна проверка',
+  approval_required: 'требуется подтверждение',
+  dangerous: 'опасно',
+  blocked: 'заблокировано'
+};
 
 const WEBAPP_TRANSPORT_MODE = 'auto'; // telegram | direct | auto
 const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
+const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
+const TERMINATOR_LAST_CHECKPOINT = {
+  name: 'BrainOps / Council UI-Assisted Foundation',
+  date: '2026-05-21',
+  status: 'закрыт локально',
+  previous: 'System Extensions: Device Mesh + Mina Voice Hooks',
+  next: 'Phase 1 QA Max + Live Acceptance'
+};
+const TERMINATOR_PHASE_STEPS = [
+  { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
+  { id: 2, name: 'Workspace Production Binding', status: 'закрыт' },
+  { id: 3, name: 'Mission Control + System Basic', status: 'закрыт' },
+  { id: 4, name: 'Diagnost / Self-Healing Basic', status: 'закрыт' },
+  { id: 5, name: 'Verifier / Privacy / Evidence V2', status: 'закрыт' },
+  { id: 6, name: 'Files + Storage Foundation на D', status: 'закрыт' },
+  { id: 7, name: 'System Extensions: Device Mesh + Mina Voice Hooks', status: 'закрыт' },
+  { id: 8, name: 'BrainOps / Council UI-Assisted Foundation', status: 'закрыт' },
+  { id: 9, name: 'Phase 1 QA Max + Live Acceptance', status: 'не закрыт' }
+];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
   'TerminatorDirectBridge',
@@ -692,21 +899,136 @@ async function sendTerminatorAction(payload) {
 window.sendTerminatorAction = sendTerminatorAction;
 window.logoutOwnerSession = logoutOwnerSession;
 
+function indexedDbRequest(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB request failed'));
+  });
+}
+
+function indexedDbTransactionDone(transaction) {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error || new Error('IndexedDB transaction failed'));
+    transaction.onabort = () => reject(transaction.error || new Error('IndexedDB transaction aborted'));
+  });
+}
+
+function openTaskRuntimeDatabase() {
+  if (!window.indexedDB) return Promise.resolve(null);
+
+  return new Promise((resolve, reject) => {
+    const request = window.indexedDB.open(WORK_RUNTIME_DB_NAME, WORK_RUNTIME_DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.META)) {
+        db.createObjectStore(TASK_RUNTIME_STORES.META, { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.PROJECTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.PROJECTS, { keyPath: 'project_id' });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('updated_at', 'updated_at', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.TASKS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.TASKS, { keyPath: 'task_id' });
+        store.createIndex('project_id', 'project_id', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('updated_at', 'updated_at', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.EVENTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.EVENTS, { keyPath: 'event_id' });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('project_id', 'project_id', { unique: false });
+        store.createIndex('created_at', 'created_at', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.MESSAGES)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.MESSAGES, { keyPath: 'message_id' });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('created_at', 'created_at', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.ARTIFACTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.ARTIFACTS, { keyPath: 'artifact_id' });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.FILES)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.FILES, { keyPath: 'file_id' });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('role', 'role', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.APPROVALS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.APPROVALS, { keyPath: 'approval_id' });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.MEMORY)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.MEMORY, { keyPath: 'memory_id' });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.DEVICES)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.DEVICES, { keyPath: 'device_id' });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('trust_level', 'trust_level', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.DEVICE_CAPABILITIES)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.DEVICE_CAPABILITIES, { keyPath: 'capability_id' });
+        store.createIndex('device_id', 'device_id', { unique: false });
+        store.createIndex('risk_level', 'risk_level', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.DEVICE_EVENTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.DEVICE_EVENTS, { keyPath: 'event_id' });
+        store.createIndex('device_id', 'device_id', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('created_at', 'created_at', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.DIAGNOSTICS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.DIAGNOSTICS, { keyPath: 'diagnostic_id' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
+  });
+}
+
 const App = {
   current: 'start',
   selectedModel: 'chatgpt',
+  taskRuntimeDb: null,
+  taskRuntimeReady: false,
+  taskRuntimeFallback: false,
+  workProjects: [],
   workTasks: [],
+  systemDevices: [],
+  approvalRecords: [],
+  systemDiagnostics: [],
+  activeDeviceId: '',
+  activeApprovalId: '',
+  activeDiagnosticId: '',
+  diagnosticRunning: false,
   activeWorkTaskId: '',
   workPreview: null,
   workExpertOpen: false,
   workspaceActiveTab: 'files',
   workspacePendingCopyText: '',
+  workspaceVoiceState: 'idle',
+  workspaceVoiceTranscript: '',
+  workspaceVoicePreview: null,
+  workspaceVoiceRecognition: null,
+  workspaceVoiceSupported: false,
+  workspaceVoiceOpen: false,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
+  runtimeSavePromise: null,
   toastTimer: null,
   commandPollTimer: null,
   tg: null,
-  order: ['start', 'menu', 'work', 'personal', 'brain', 'remote', 'complete'],
+  order: ['start', 'menu', 'work', 'mission', 'system', 'personal', 'brain', 'remote', 'complete'],
   anydesk: {
     id: '',
     status: 'не проверен',
@@ -715,15 +1037,24 @@ const App = {
     error: ''
   },
 
-  init() {
+  async init() {
     window.MinaApp = this;
     this.tg = window.Telegram?.WebApp || null;
     this.initTelegram();
     this.bindEvents();
-    this.loadWorkTasks();
+    this.initVoiceSupport();
+    await this.initTaskRuntime();
+    await this.loadWorkProjects();
+    await this.loadWorkTasks();
+    await this.loadSystemDevices();
+    await this.loadApprovalRecords();
+    await this.loadSystemDiagnostics();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
+    this.renderProjectRuntimePanel();
     this.renderWorkTaskCard();
+    this.renderMissionControl();
+    this.renderSystemStatus();
     this.renderBrain();
     this.renderAnyDeskAccess();
     this.startWorkspaceTimer();
@@ -811,6 +1142,12 @@ const App = {
         return;
       }
 
+      const voiceActionButton = event.target.closest('[data-voice-action]');
+      if (voiceActionButton) {
+        this.handleVoiceAction(voiceActionButton.dataset.voiceAction);
+        return;
+      }
+
       const fileActionButton = event.target.closest('[data-file-action]');
       if (fileActionButton) {
         this.handleWorkspaceFileAction(fileActionButton.dataset.fileAction, fileActionButton.dataset.fileId);
@@ -838,6 +1175,36 @@ const App = {
       const workShortcutButton = event.target.closest('[data-work-shortcut]');
       if (workShortcutButton) {
         this.handleWorkShortcut(workShortcutButton.dataset.workShortcut);
+        return;
+      }
+
+      const projectActionButton = event.target.closest('[data-project-action]');
+      if (projectActionButton) {
+        this.handleProjectAction(projectActionButton.dataset.projectAction);
+        return;
+      }
+
+      const missionActionButton = event.target.closest('[data-mission-action]');
+      if (missionActionButton) {
+        this.handleMissionAction(missionActionButton.dataset.missionAction, missionActionButton);
+        return;
+      }
+
+      const deviceActionButton = event.target.closest('[data-device-action]');
+      if (deviceActionButton) {
+        this.handleDeviceAction(deviceActionButton.dataset.deviceAction, deviceActionButton);
+        return;
+      }
+
+      const approvalCenterButton = event.target.closest('[data-approval-center-action]');
+      if (approvalCenterButton) {
+        this.handleApprovalCenterAction(approvalCenterButton.dataset.approvalCenterAction, approvalCenterButton);
+        return;
+      }
+
+      const diagnostButton = event.target.closest('[data-diagnost-action]');
+      if (diagnostButton) {
+        this.handleDiagnostAction(diagnostButton.dataset.diagnostAction, diagnostButton);
       }
     });
 
@@ -846,6 +1213,20 @@ const App = {
       if (roleSelect) {
         this.updateWorkspaceFileRole(roleSelect.dataset.fileRole, roleSelect.value);
       }
+
+      const voiceTranscript = event.target.closest('#workspace-voice-transcript');
+      if (voiceTranscript) {
+        this.workspaceVoiceTranscript = voiceTranscript.value;
+        this.workspaceVoicePreview = this.buildVoiceIntentPreview(this.workspaceVoiceTranscript);
+        this.workspaceVoiceState = 'preview_waiting';
+        this.renderVoicePanel();
+      }
+    });
+
+    document.addEventListener('input', (event) => {
+      const voiceTranscript = event.target.closest('#workspace-voice-transcript');
+      if (!voiceTranscript) return;
+      this.workspaceVoiceTranscript = voiceTranscript.value;
     });
 
     document.getElementById('btn-start').addEventListener('click', async () => {
@@ -912,6 +1293,43 @@ const App = {
     }
   },
 
+  initVoiceSupport() {
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.workspaceVoiceSupported = Boolean(Recognition);
+    if (!Recognition) {
+      this.workspaceVoiceState = 'browser_not_supported';
+      return;
+    }
+    const recognition = new Recognition();
+    recognition.lang = 'ru-RU';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.onstart = () => {
+      this.workspaceVoiceState = 'listening';
+      this.renderVoicePanel();
+    };
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results || [])
+        .map((result) => result?.[0]?.transcript || '')
+        .join(' ')
+        .trim();
+      this.workspaceVoiceTranscript = transcript;
+      this.workspaceVoicePreview = this.buildVoiceIntentPreview(transcript);
+      this.workspaceVoiceState = 'preview_waiting';
+      this.renderVoicePanel();
+    };
+    recognition.onerror = (event) => {
+      this.workspaceVoiceState = event.error === 'not-allowed' ? 'permission_denied' : 'failed';
+      this.renderVoicePanel();
+      this.toast(event.error === 'not-allowed' ? 'Микрофон недоступен' : 'Голос не распознан');
+    };
+    recognition.onend = () => {
+      if (this.workspaceVoiceState === 'listening') this.workspaceVoiceState = 'idle';
+      this.renderVoicePanel();
+    };
+    this.workspaceVoiceRecognition = recognition;
+  },
+
   startWorkspaceTimer() {
     if (this.workspaceTimer) return;
     this.workspaceTimer = window.setInterval(() => this.updateWorkspaceTimer(), 1000);
@@ -965,6 +1383,8 @@ const App = {
     }
 
     document.body.dataset.screen = name;
+    if (name === 'mission') this.renderMissionControl();
+    if (name === 'system') this.renderSystemStatus();
     this.updateTelegramControls();
   },
 
@@ -973,6 +1393,8 @@ const App = {
       start: null,
       menu: 'start',
       work: 'menu',
+      mission: 'menu',
+      system: 'menu',
       personal: 'menu',
       brain: 'personal',
       remote: 'brain',
@@ -1007,10 +1429,176 @@ const App = {
     }
   },
 
+  async initTaskRuntime() {
+    try {
+      this.taskRuntimeDb = await openTaskRuntimeDatabase();
+      this.taskRuntimeReady = !!this.taskRuntimeDb;
+      this.taskRuntimeFallback = !this.taskRuntimeReady;
+      if (this.taskRuntimeReady) {
+        await this.seedRuntimeProjects();
+        await this.migrateLegacyWorkTasks();
+        await this.saveRuntimeMeta({
+          key: WORK_RUNTIME_META_KEY,
+          version: WORK_RUNTIME_DB_VERSION,
+          updated_at: new Date().toISOString(),
+          runtime: 'indexeddb'
+        });
+      }
+    } catch (error) {
+      console.warn('[MinaWebApp] Task Runtime IndexedDB fallback', error);
+      this.taskRuntimeDb = null;
+      this.taskRuntimeReady = false;
+      this.taskRuntimeFallback = true;
+    }
+  },
+
+  async seedRuntimeProjects() {
+    if (!this.taskRuntimeDb) return;
+    const existing = await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.PROJECTS);
+    const existingIds = new Set(existing.map((project) => project.project_id));
+    const now = new Date().toISOString();
+    const presets = WORK_PROJECTS
+      .filter((project) => !existingIds.has(project.id))
+      .map((project) => ({
+        project_id: project.id,
+        name: project.name,
+        short_description: project.short_description,
+        type: project.id,
+        status: 'active',
+        archived: false,
+        preset: true,
+        goal: project.short_description,
+        created_at: now,
+        updated_at: now
+      }));
+    if (presets.length) await this.putRuntimeRecords(TASK_RUNTIME_STORES.PROJECTS, presets);
+  },
+
+  async migrateLegacyWorkTasks() {
+    if (!this.taskRuntimeDb) return;
+    const migration = await this.getRuntimeRecord(TASK_RUNTIME_STORES.META, WORK_RUNTIME_MIGRATION_KEY);
+    if (migration?.done) return;
+
+    let legacyTasks = [];
+    try {
+      const raw = window.localStorage?.getItem(WORK_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      legacyTasks = Array.isArray(parsed) ? parsed.filter((task) => task?.task_id).map((task) => this.normalizeWorkTask(task)) : [];
+    } catch {
+      legacyTasks = [];
+    }
+
+    if (legacyTasks.length) await this.putRuntimeRecords(TASK_RUNTIME_STORES.TASKS, legacyTasks);
+    await this.saveRuntimeMeta({
+      key: WORK_RUNTIME_MIGRATION_KEY,
+      done: true,
+      migrated_count: legacyTasks.length,
+      migrated_at: new Date().toISOString()
+    });
+  },
+
+  async getRuntimeRecord(storeName, key) {
+    if (!this.taskRuntimeDb) return null;
+    const transaction = this.taskRuntimeDb.transaction(storeName, 'readonly');
+    return indexedDbRequest(transaction.objectStore(storeName).get(key));
+  },
+
+  async getAllRuntimeRecords(storeName) {
+    if (!this.taskRuntimeDb) return [];
+    const transaction = this.taskRuntimeDb.transaction(storeName, 'readonly');
+    return indexedDbRequest(transaction.objectStore(storeName).getAll());
+  },
+
+  async putRuntimeRecords(storeName, records) {
+    if (!this.taskRuntimeDb || !records?.length) return;
+    const transaction = this.taskRuntimeDb.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+    records.forEach((record) => store.put(record));
+    await indexedDbTransactionDone(transaction);
+  },
+
+  async putRuntimeRecord(storeName, record) {
+    if (!this.taskRuntimeDb || !record) return;
+    await this.putRuntimeRecords(storeName, [record]);
+  },
+
+  async replaceRuntimeStoreRecords(storeName, records) {
+    if (!this.taskRuntimeDb) return;
+    const transaction = this.taskRuntimeDb.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+    store.clear();
+    (records || []).forEach((record) => store.put(record));
+    await indexedDbTransactionDone(transaction);
+  },
+
+  async saveRuntimeMeta(record) {
+    await this.putRuntimeRecord(TASK_RUNTIME_STORES.META, record);
+  },
+
+  async loadWorkProjects() {
+    if (this.taskRuntimeDb) {
+      const projects = await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.PROJECTS);
+      this.workProjects = projects.length ? projects.map((project) => this.normalizeWorkProject(project)) : this.defaultRuntimeProjects();
+      return;
+    }
+
+    this.workProjects = this.defaultRuntimeProjects();
+  },
+
+  defaultRuntimeProjects() {
+    const now = new Date().toISOString();
+    return WORK_PROJECTS.map((project) => ({
+      project_id: project.id,
+      name: project.name,
+      short_description: project.short_description,
+      type: project.id,
+      status: 'active',
+      archived: false,
+      preset: true,
+      goal: project.short_description,
+      created_at: now,
+      updated_at: now
+    }));
+  },
+
+  normalizeWorkProject(project) {
+    const now = new Date().toISOString();
+    return {
+      project_id: project.project_id || project.id || this.generateWorkspaceId('PROJECT'),
+      name: project.name || 'Новый проект',
+      short_description: project.short_description || project.goal || 'проект Терминатора',
+      type: project.type || DEFAULT_PROJECT_TYPE,
+      status: project.status || (project.archived ? 'archived' : 'active'),
+      archived: Boolean(project.archived || project.status === 'archived'),
+      preset: Boolean(project.preset),
+      goal: project.goal || project.short_description || '',
+      created_at: project.created_at || now,
+      updated_at: project.updated_at || now
+    };
+  },
+
+  activeWorkProjects() {
+    return (this.workProjects || [])
+      .filter((project) => !project.archived && project.status !== 'archived')
+      .sort((a, b) => Number(Boolean(b.preset)) - Number(Boolean(a.preset)) || a.name.localeCompare(b.name, 'ru'));
+  },
+
+  projectById(projectId) {
+    return (this.workProjects || []).find((project) => project.project_id === projectId)
+      || this.defaultRuntimeProjects().find((project) => project.project_id === projectId)
+      || null;
+  },
+
   renderWorkFormOptions() {
-    this.fillSelect('work-project-select', WORK_PROJECTS, 'terminator');
+    const currentProject = document.getElementById('work-project-select')?.value || 'terminator';
+    const selectedProject = this.activeWorkProjects().some((project) => project.project_id === currentProject) ? currentProject : 'terminator';
+    this.fillSelect('work-project-select', this.activeWorkProjects().map((project) => ({ id: project.project_id, name: project.name })), selectedProject);
     this.fillSelect('work-mode-select', WORK_MODES, 'auto');
     this.fillSelect('work-quality-select', WORK_QUALITY_LEVELS, 'auto');
+    this.fillSelect('work-project-type-select', [
+      { id: DEFAULT_PROJECT_TYPE, name: 'Обычный проект' },
+      ...WORK_PROJECTS.map((project) => ({ id: project.id, name: project.name }))
+    ], DEFAULT_PROJECT_TYPE);
   },
 
   fillSelect(id, options, selectedId) {
@@ -1018,15 +1606,1907 @@ const App = {
     if (!select) return;
 
     select.innerHTML = options
-      .map((item) => `<option value="${item.id}"${item.id === selectedId ? ' selected' : ''}>${item.name}</option>`)
+      .map((item) => `<option value="${this.escapeHtml(item.id)}"${item.id === selectedId ? ' selected' : ''}>${this.escapeHtml(item.name)}</option>`)
       .join('');
   },
 
-  loadWorkTasks() {
+  renderProjectRuntimePanel() {
+    const count = document.getElementById('runtime-project-count');
+    const storage = document.getElementById('runtime-storage-status');
+    const activeProjects = this.activeWorkProjects();
+    if (count) {
+      const archived = (this.workProjects || []).filter((project) => project.archived || project.status === 'archived').length;
+      count.textContent = `${activeProjects.length} активных проектов${archived ? `, ${archived} в архиве` : ''}`;
+    }
+    if (storage) {
+      storage.textContent = this.taskRuntimeReady ? 'IndexedDB: активен' : 'IndexedDB: fallback localStorage';
+    }
+  },
+
+  async handleProjectAction(action) {
+    let selectedProjectId = '';
+    if (action === 'create') {
+      selectedProjectId = await this.createRuntimeProjectFromForm();
+    } else if (action === 'rename') {
+      selectedProjectId = await this.renameSelectedRuntimeProject();
+    } else if (action === 'archive') {
+      await this.archiveSelectedRuntimeProject();
+    }
+    this.renderWorkFormOptions();
+    if (selectedProjectId) {
+      const select = document.getElementById('work-project-select');
+      if (select) select.value = selectedProjectId;
+    }
+    this.renderProjectRuntimePanel();
+    this.renderMissionControl();
+    this.renderSystemStatus();
+  },
+
+  async createRuntimeProjectFromForm() {
+    const nameInput = document.getElementById('work-project-name-input');
+    const goalInput = document.getElementById('work-project-goal-input');
+    const type = document.getElementById('work-project-type-select')?.value || DEFAULT_PROJECT_TYPE;
+    const name = String(nameInput?.value || '').trim();
+    const goal = String(goalInput?.value || '').trim();
+
+    if (!name) {
+      this.toast('Укажи название проекта');
+      nameInput?.focus();
+      return '';
+    }
+
+    const now = new Date().toISOString();
+    const project = {
+      project_id: this.generateWorkspaceId('PROJECT'),
+      name,
+      type,
+      short_description: goal || 'пользовательский проект Терминатора',
+      goal,
+      status: 'active',
+      archived: false,
+      preset: false,
+      created_at: now,
+      updated_at: now
+    };
+    this.workProjects.push(project);
+    await this.saveRuntimeProject(project);
+    if (nameInput) nameInput.value = '';
+    if (goalInput) goalInput.value = '';
+    this.toast('Проект создан');
+    return project.project_id;
+  },
+
+  async renameSelectedRuntimeProject() {
+    const projectId = document.getElementById('work-project-select')?.value || '';
+    const nameInput = document.getElementById('work-project-name-input');
+    const name = String(nameInput?.value || '').trim();
+    const project = this.projectById(projectId);
+    if (!project) {
+      this.toast('Проект не найден');
+      return '';
+    }
+    if (!name) {
+      this.toast('Укажи новое название');
+      nameInput?.focus();
+      return '';
+    }
+    project.name = name;
+    project.updated_at = new Date().toISOString();
+    await this.saveRuntimeProject(project);
+    if (nameInput) nameInput.value = '';
+    this.toast('Проект переименован');
+    return project.project_id;
+  },
+
+  async archiveSelectedRuntimeProject() {
+    const projectId = document.getElementById('work-project-select')?.value || '';
+    const project = this.projectById(projectId);
+    if (!project) {
+      this.toast('Проект не найден');
+      return;
+    }
+    if (project.preset) {
+      this.toast('Preset-проект нельзя архивировать в этом слое');
+      return;
+    }
+    project.archived = true;
+    project.status = 'archived';
+    project.updated_at = new Date().toISOString();
+    await this.saveRuntimeProject(project);
+    this.toast('Проект отправлен в архив');
+  },
+
+  async saveRuntimeProject(project) {
+    const normalized = this.normalizeWorkProject(project);
+    const index = this.workProjects.findIndex((item) => item.project_id === normalized.project_id);
+    if (index >= 0) this.workProjects[index] = normalized;
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.PROJECTS, normalized);
+  },
+
+  renderMissionControl() {
+    const host = document.getElementById('mission-summary');
+    if (!host) return;
+    const tasks = this.workTasks || [];
+    const projects = this.activeWorkProjects();
+    const waiting = tasks.filter((task) => task.status === 'waiting_executor_report').length;
+    const verifying = tasks.filter((task) => this.taskNeedsVerification(task)).length;
+    const approvals = this.pendingApprovalRecords().length;
+    const risks = tasks.filter((task) => this.workspaceRiskLevel(task) !== 'низкий').length;
+    const active = tasks.filter((task) => !['accepted', 'saved', 'cancelled', 'rejected', 'failed'].includes(task.status)).length;
+    const cards = [
+      ['Проекты', projects.length, 'активные проекты'],
+      ['Активные задачи', active, 'в работе или ожидании'],
+      ['Ждут отчёт', waiting, 'ожидание исполнителя'],
+      ['Проверка', verifying, 'требуют Verifier'],
+      ['Approval', approvals, 'требуют решения'],
+      ['Риски', risks, 'не низкий риск']
+    ];
+    host.innerHTML = cards.map(([title, value, note]) => `
+      <article class="mission-card">
+        <span>${this.escapeHtml(title)}</span>
+        <strong>${this.escapeHtml(value)}</strong>
+        <p>${this.escapeHtml(note)}</p>
+      </article>
+    `).join('');
+    this.renderMissionProjectOverview(projects, tasks);
+    this.renderMissionRiskRadar(tasks);
+    this.renderMissionRuntimeHealth(tasks);
+    this.renderMissionNextStep(tasks, projects);
+    this.renderMissionTaskQueues(tasks);
+    this.renderMissionEventFeed(tasks);
+  },
+
+  renderMissionProjectOverview(projects, tasks) {
+    const host = document.getElementById('mission-project-overview');
+    if (!host) return;
+    const activeProjects = projects.filter((project) => project.status !== 'archived');
+    host.innerHTML = activeProjects.slice(0, 6).map((project) => {
+      const projectTasks = tasks.filter((task) => task.project_id === project.project_id);
+      const activeCount = projectTasks.filter((task) => !['accepted', 'saved', 'cancelled', 'rejected', 'failed'].includes(task.status)).length;
+      const waitingCount = projectTasks.filter((task) => task.status === 'waiting_executor_report').length;
+      const approvalCount = projectTasks.filter((task) => this.taskRequiresApproval(task)).length;
+      return `
+        <article class="mission-project-card">
+          <div>
+            <strong>${this.escapeHtml(project.name)}</strong>
+            <p>${this.escapeHtml(project.goal || project.short_description || 'цель не задана')}</p>
+          </div>
+          <dl>
+            <div><dt>активно</dt><dd>${activeCount}</dd></div>
+            <div><dt>отчёт</dt><dd>${waitingCount}</dd></div>
+            <div><dt>approval</dt><dd>${approvalCount}</dd></div>
+          </dl>
+        </article>
+      `;
+    }).join('') || '<p class="mission-empty">Активных проектов пока нет.</p>';
+  },
+
+  renderMissionRiskRadar(tasks) {
+    const host = document.getElementById('mission-risk-radar');
+    if (!host) return;
+    const highRiskTasks = tasks.filter((task) => this.workspaceRiskLevel(task) === 'высокий');
+    const mediumRiskTasks = tasks.filter((task) => this.workspaceRiskLevel(task) === 'средний');
+    const pendingApprovals = tasks.filter((task) => this.taskRequiresApproval(task));
+    const blockedAcceptance = tasks.filter((task) => !['accepted', 'saved', 'cancelled', 'rejected', 'failed'].includes(task.status) && !this.acceptanceGateStatus(task).ready);
+    const noEvidence = tasks.filter((task) => task.verifier_result && !this.verifierEvidenceGate(task).ok);
+    const rows = [
+      ['Высокий риск', String(highRiskTasks.length), highRiskTasks[0]?.title || 'критичных задач нет'],
+      ['Средний риск', String(mediumRiskTasks.length), mediumRiskTasks[0]?.title || 'средних рисков нет'],
+      ['Ждут approval', String(pendingApprovals.length), pendingApprovals[0]?.title || 'очередь approval пуста'],
+      ['Gates не закрыты', String(blockedAcceptance.length), blockedAcceptance[0]?.title || 'активные gates чистые'],
+      ['Нет evidence', String(noEvidence.length), noEvidence[0]?.title || 'evidence gaps не найдены']
+    ];
+    host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  renderMissionRuntimeHealth(tasks) {
+    const host = document.getElementById('mission-runtime-health');
+    if (!host) return;
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const rows = [
+      ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
+      ['Direct Mode', direct.status, direct.note],
+      ['Local Agent', agent.status, agent.note],
+      ['Storage', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs, архивы и evidence backups на D'],
+      ['Checkpoint', 'шаг 5', `${TERMINATOR_LAST_CHECKPOINT.previous} закрыт; текущий слой: ${TERMINATOR_LAST_CHECKPOINT.name}`]
+    ];
+    host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  renderMissionNextStep(tasks, projects) {
+    const host = document.getElementById('mission-next-step');
+    if (!host) return;
+    const waiting = tasks.filter((task) => task.status === 'waiting_executor_report');
+    const verification = tasks.filter((task) => this.taskNeedsVerification(task));
+    const approval = tasks.filter((task) => this.taskRequiresApproval(task));
+    const draft = tasks.filter((task) => ['created', 'context_ready', 'ready_for_executor'].includes(task.status));
+    let title = 'Создать первую задачу';
+    let body = 'Task Runtime готов. Следующий шаг — создать задачу в Рабочем окне.';
+    let action = 'open_work';
+    let taskId = '';
+
+    if (approval.length) {
+      const task = approval[0];
+      title = 'Решить Approval';
+      body = `${task.title}: есть действие, которое нельзя выполнять автоматически.`;
+      action = 'open_task';
+      taskId = task.task_id;
+    } else if (verification.length) {
+      const task = verification[0];
+      title = 'Проверить результат';
+      body = `${task.title}: отчёт или результат ждёт Verifier.`;
+      action = 'open_task';
+      taskId = task.task_id;
+    } else if (waiting.length) {
+      const task = waiting[0];
+      title = 'Ожидаем отчёт исполнителя';
+      body = `${task.title}: таймер ожидания активен.`;
+      action = 'open_task';
+      taskId = task.task_id;
+    } else if (draft.length) {
+      const task = draft[0];
+      title = 'Подготовить задачу к исполнителю';
+      body = `${task.title}: сформируй пакет или добавь контекст.`;
+      action = 'open_task';
+      taskId = task.task_id;
+    } else if (projects.length) {
+      title = 'Runtime чистый';
+      body = 'Активных задач нет. Можно открыть Рабочее и создать следующий управляемый процесс.';
+    }
+
+    host.innerHTML = `
+      <h3>${this.escapeHtml(title)}</h3>
+      <p>${this.escapeHtml(body)}</p>
+      <button type="button" data-mission-action="${this.escapeHtml(action)}"${taskId ? ` data-task-id="${this.escapeHtml(taskId)}"` : ''}>
+        Открыть
+      </button>
+    `;
+  },
+
+  renderMissionTaskQueues(tasks) {
+    const host = document.getElementById('mission-task-queues');
+    if (!host) return;
+    const lanes = [
+      {
+        id: 'active',
+        title: 'Активные',
+        tasks: tasks.filter((task) => ['created', 'context_ready', 'planning', 'ready_for_executor', 'assigned'].includes(task.status))
+      },
+      {
+        id: 'waiting',
+        title: 'Ждут отчёт',
+        tasks: tasks.filter((task) => task.status === 'waiting_executor_report')
+      },
+      {
+        id: 'check',
+        title: 'Проверка',
+        tasks: tasks.filter((task) => this.taskNeedsVerification(task))
+      },
+      {
+        id: 'approval',
+        title: 'Approval',
+        tasks: tasks.filter((task) => this.taskRequiresApproval(task))
+      }
+    ];
+    host.innerHTML = lanes.map((lane) => `
+      <section class="mission-lane">
+        <div class="mission-lane-head">
+          <strong>${this.escapeHtml(lane.title)}</strong>
+          <span>${lane.tasks.length}</span>
+        </div>
+        <div class="mission-lane-list">
+          ${lane.tasks.slice(0, 5).map((task) => this.renderMissionTaskButton(task)).join('') || '<p class="mission-empty">Нет задач</p>'}
+        </div>
+      </section>
+    `).join('');
+  },
+
+  renderMissionTaskButton(task) {
+    const risk = this.workspaceRiskLevel(task);
+    return `
+      <button type="button" class="mission-task-button" data-mission-action="open_task" data-task-id="${this.escapeHtml(task.task_id)}">
+        <span>${this.escapeHtml(task.title || 'Задача')}</span>
+        <small>${this.escapeHtml(this.statusName(task.status))} · риск: ${this.escapeHtml(risk)}</small>
+      </button>
+    `;
+  },
+
+  renderMissionEventFeed(tasks) {
+    const host = document.getElementById('mission-event-feed');
+    if (!host) return;
+    const events = tasks.flatMap((task) => this.collectMissionEvents(task))
+      .sort((a, b) => new Date(b.time || b.created_at || 0) - new Date(a.time || a.created_at || 0))
+      .slice(0, 8);
+    host.innerHTML = events.map((event) => `
+      <article class="mission-event">
+        <time>${this.escapeHtml(this.formatTaskTime(event.time || event.created_at))}</time>
+        <strong>${this.escapeHtml(event.title)}</strong>
+        <p>${this.escapeHtml(event.text)}</p>
+      </article>
+    `).join('') || '<p class="mission-empty">События появятся после задач, отчётов и решений.</p>';
+  },
+
+  collectMissionEvents(task) {
+    const events = [];
+    const add = (time, title, text) => {
+      events.push({
+        time: time || task.updated_at || task.created_at,
+        title,
+        text: `${task.title || task.task_id}: ${text}`
+      });
+    };
+    if (Array.isArray(task.events) && task.events.length) {
+      task.events.forEach((event) => add(event.created_at, this.workspaceMessageLabel(event.type), event.text || 'событие'));
+      return events;
+    }
+    add(task.created_at, 'Задача создана', this.statusName(task.status));
+    (task.messages || []).forEach((message) => add(message.created_at, this.workspaceMessageLabel(message.type), message.text || 'событие'));
+    (task.artifacts || []).forEach((artifact) => add(artifact.created_at, 'Артефакт', artifact.title || artifact.type));
+    (task.approval_requests || []).forEach((approval) => add(approval.created_at, 'Approval', approval.command || approval.status || 'требуется решение'));
+    if (task.verifier_result) add(task.verified_at || task.updated_at, 'Проверка', task.verifier_result);
+    if (task.memory_preview?.status && task.memory_preview.status !== 'draft') add(task.updated_at, 'Память', task.memory_preview.status);
+    return events;
+  },
+
+  handleMissionAction(action, button) {
+    if (action === 'open_work') {
+      this.go('work');
+      return;
+    }
+    if (action === 'open_task') {
+      const taskId = button?.dataset?.taskId || '';
+      if (!taskId) {
+        this.go('work');
+        return;
+      }
+      this.activeWorkTaskId = taskId;
+      this.workspaceActiveTab = this.taskNeedsVerification(this.getActiveWorkTask()) ? 'check' : 'artifacts';
+      this.renderWorkTaskCard();
+      this.go('work');
+    }
+  },
+
+  taskNeedsVerification(task) {
+    if (!task) return false;
+    if (['PASS', 'PASS_WITH_RISKS', 'NEEDS_FIX', 'REJECT'].includes(task.verifier_result)) return false;
+    return ['executor_report_received', 'verifying', 'manual_required'].includes(task.status)
+      || task.verifier_result === 'MANUAL_REVIEW';
+  },
+
+  taskRequiresApproval(task) {
+    if (!task) return false;
+    return task.status === 'manual_required'
+      || (task.approval_requests || []).some((approval) => ['manual_required', 'pending'].includes(approval.status));
+  },
+
+  pendingApprovalRecords() {
+    return (this.approvalRecords || []).filter((approval) => ['manual_required', 'pending'].includes(approval.status));
+  },
+
+  async loadSystemDiagnostics() {
     try {
-      const raw = window.localStorage?.getItem(WORK_STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      this.workTasks = Array.isArray(parsed) ? parsed.filter((task) => task?.task_id).map((task) => this.normalizeWorkTask(task)) : [];
+      const stored = this.taskRuntimeDb
+        ? await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.DIAGNOSTICS)
+        : JSON.parse(window.localStorage?.getItem(SYSTEM_DIAGNOSTICS_STORAGE_KEY) || '[]');
+      this.systemDiagnostics = Array.isArray(stored)
+        ? stored.map((run) => this.normalizeDiagnosticRun(run)).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 20)
+        : [];
+      this.activeDiagnosticId = this.systemDiagnostics[0]?.diagnostic_id || '';
+    } catch {
+      this.systemDiagnostics = [];
+      this.activeDiagnosticId = '';
+    }
+  },
+
+  normalizeDiagnosticRun(run) {
+    const now = new Date().toISOString();
+    const checks = Array.isArray(run.checks) ? run.checks.map((check) => ({
+      check_id: check.check_id || this.generateWorkspaceId('CHECK'),
+      name: check.name || 'Проверка',
+      status: check.status || 'manual_check',
+      severity: check.severity || 'review',
+      note: check.note || '',
+      safe_action: check.safe_action || '',
+      created_at: check.created_at || run.created_at || now
+    })) : [];
+    const suggestions = Array.isArray(run.suggestions) ? run.suggestions.map((suggestion) => ({
+      suggestion_id: suggestion.suggestion_id || this.generateWorkspaceId('SUGGEST'),
+      title: suggestion.title || 'Предложение',
+      risk_level: suggestion.risk_level || 'review',
+      action: suggestion.action || '',
+      text: suggestion.text || ''
+    })) : [];
+    return {
+      diagnostic_id: run.diagnostic_id || this.generateWorkspaceId('DIAG'),
+      status: run.status || this.diagnosticOverallStatus(checks),
+      created_at: run.created_at || now,
+      updated_at: run.updated_at || run.created_at || now,
+      checks,
+      suggestions,
+      summary: run.summary || ''
+    };
+  },
+
+  diagnosticOverallStatus(checks) {
+    if ((checks || []).some((check) => ['fail', 'blocked'].includes(check.status) || ['dangerous', 'blocked'].includes(check.severity))) return 'danger';
+    if ((checks || []).some((check) => ['review', 'manual_check'].includes(check.status) || ['review', 'approval_required'].includes(check.severity))) return 'review';
+    return 'ok';
+  },
+
+  async saveSystemDiagnostic(run) {
+    const normalized = this.normalizeDiagnosticRun(run);
+    const index = this.systemDiagnostics.findIndex((item) => item.diagnostic_id === normalized.diagnostic_id);
+    if (index >= 0) this.systemDiagnostics[index] = normalized;
+    else this.systemDiagnostics.unshift(normalized);
+    this.systemDiagnostics = this.systemDiagnostics
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, 20);
+    this.activeDiagnosticId = normalized.diagnostic_id;
+    try {
+      window.localStorage?.setItem(SYSTEM_DIAGNOSTICS_STORAGE_KEY, JSON.stringify(this.systemDiagnostics.slice(0, 10)));
+    } catch {}
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.DIAGNOSTICS, normalized);
+    return normalized;
+  },
+
+  diagnosticCheck(name, status, severity, note, safeAction = '') {
+    return {
+      check_id: this.generateWorkspaceId('CHECK'),
+      name,
+      status,
+      severity,
+      note,
+      safe_action: safeAction,
+      created_at: new Date().toISOString()
+    };
+  },
+
+  async runSystemDiagnostics() {
+    if (this.diagnosticRunning) return;
+    this.diagnosticRunning = true;
+    this.renderSystemDiagnostics();
+    try {
+      const checks = [];
+      const suggestions = [];
+      const direct = this.directModeStatusSnapshot();
+      const agent = this.localAgentStatusSnapshot();
+      const tasks = this.workTasks || [];
+      const now = Date.now();
+      const activeTaskExists = !this.activeWorkTaskId || tasks.some((task) => task.task_id === this.activeWorkTaskId);
+      const activeDeviceExists = !this.activeDeviceId || this.systemDevices.some((device) => device.device_id === this.activeDeviceId);
+
+      checks.push(this.diagnosticCheck(
+        'Runtime задач',
+        this.taskRuntimeReady ? 'pass' : 'review',
+        this.taskRuntimeReady ? 'safe' : 'review',
+        this.taskRuntimeReady ? 'IndexedDB активен, localStorage mirror остаётся fallback.' : 'IndexedDB недоступен, работает fallback. Требуется ручная проверка браузера.'
+      ));
+
+      const taskEventGaps = tasks.filter((task) => (task.messages?.length || task.artifacts?.length || task.audit_log?.length) && !(task.events?.length));
+      checks.push(this.diagnosticCheck(
+        'Журнал событий задач',
+        taskEventGaps.length ? 'review' : 'pass',
+        taskEventGaps.length ? 'review' : 'safe',
+        taskEventGaps.length ? `${taskEventGaps.length} задач имеют старый формат без task.events.` : 'Task events доступны для активных задач.'
+      ));
+
+      const directHealth = await this.probeDirectBridgeHealth();
+      checks.push(directHealth);
+
+      checks.push(this.diagnosticCheck(
+        'Local Agent',
+        agent.status === 'на связи' || agent.status === 'connected' ? 'pass' : 'manual_check',
+        'review',
+        `${agent.note}. Browser-side Diagnost не опрашивает процессы Windows без Local Agent runtime.`
+      ));
+
+      checks.push(this.diagnosticCheck(
+        'Storage D',
+        'manual_check',
+        'review',
+        `${TERMINATOR_STORAGE_ROOT} является рабочим storage root. Browser не проверяет свободное место и папки без Local Agent storage.`
+      ));
+
+      const storageManifestGaps = tasks.filter((task) => !task.storage_manifest?.task_path || !Array.isArray(task.storage_manifest?.folders) || task.storage_manifest.folders.length < TASK_STORAGE_SUBFOLDERS.length);
+      checks.push(this.diagnosticCheck(
+        'Task storage manifest',
+        storageManifestGaps.length ? 'review' : 'pass',
+        storageManifestGaps.length ? 'review' : 'safe',
+        storageManifestGaps.length ? `${storageManifestGaps.length} задач без полного storage manifest.` : `Storage manifest есть у ${tasks.length} задач.`
+      ));
+
+      const rawFilePolicyBroken = tasks.some((task) => (task.files || []).some((file) => file.raw_file_saved || file.base64 || file.dataUrl || file.content));
+      checks.push(this.diagnosticCheck(
+        'File persistence policy',
+        rawFilePolicyBroken ? 'blocked' : 'pass',
+        rawFilePolicyBroken ? 'blocked' : 'safe',
+        rawFilePolicyBroken ? 'Найден raw/base64/content в file metadata. Это запрещено.' : 'File metadata не содержит raw/base64/content.'
+      ));
+
+      const hashPending = tasks.flatMap((task) => task.files || []).filter((file) => file.hash_status && file.hash_status !== 'calculated_session').length;
+      checks.push(this.diagnosticCheck(
+        'File hash policy',
+        hashPending ? 'manual_check' : 'pass',
+        hashPending ? 'review' : 'safe',
+        hashPending ? `${hashPending} файлов ждут hash через Local Agent или ручную проверку.` : 'Для session-safe файлов hash рассчитан.'
+      ));
+
+      const staleWaiting = tasks.filter((task) => task.status === 'waiting_executor_report' && task.timer_started_at && now - new Date(task.timer_started_at).getTime() > DIAGNOSTIC_WAITING_REPORT_STALE_MS);
+      checks.push(this.diagnosticCheck(
+        'Зависшие ожидания отчёта',
+        staleWaiting.length ? 'review' : 'pass',
+        staleWaiting.length ? 'review' : 'safe',
+        staleWaiting.length ? `${staleWaiting.length} задач ждут отчёт дольше 2 часов.` : 'Зависших ожиданий отчёта не найдено.'
+      ));
+
+      const staleManual = tasks.filter((task) => task.status === 'manual_required' && now - new Date(task.updated_at || task.created_at || 0).getTime() > DIAGNOSTIC_MANUAL_REVIEW_STALE_MS);
+      checks.push(this.diagnosticCheck(
+        'Старые ручные решения',
+        staleManual.length ? 'review' : 'pass',
+        staleManual.length ? 'review' : 'safe',
+        staleManual.length ? `${staleManual.length} задач требуют ручного решения больше суток.` : 'Старых manual_required задач не найдено.'
+      ));
+
+      const pendingApprovals = this.pendingApprovalRecords();
+      checks.push(this.diagnosticCheck(
+        'Approval-очередь',
+        pendingApprovals.length ? 'review' : 'pass',
+        pendingApprovals.length ? 'approval_required' : 'safe',
+        pendingApprovals.length ? `${pendingApprovals.length} approval-запросов ждут владельца.` : 'Approval-очередь пуста.'
+      ));
+
+      const requiredDevices = ['device_terminator_pc', 'device_local_agent', 'device_owner_phone', 'device_mission_display', 'device_home_assistant'];
+      const missingDevices = requiredDevices.filter((id) => !this.systemDevices.some((device) => device.device_id === id));
+      const devicesWithoutCapabilities = this.systemDevices.filter((device) => !(device.capabilities || []).length);
+      checks.push(this.diagnosticCheck(
+        'Device Mesh foundation',
+        missingDevices.length || devicesWithoutCapabilities.length ? 'review' : 'pass',
+        missingDevices.length || devicesWithoutCapabilities.length ? 'review' : 'safe',
+        missingDevices.length
+          ? `Не хватает устройств: ${missingDevices.join(', ')}.`
+          : `Device Registry содержит ${this.systemDevices.length} устройств, trust/risk/capability модель доступна.`
+      ));
+
+      checks.push(this.diagnosticCheck(
+        'Mina Voice hook',
+        this.workspaceVoiceSupported || document.getElementById('workspace-voice-panel') ? 'pass' : 'review',
+        'safe',
+        this.workspaceVoiceSupported ? 'Push-to-talk доступен через Browser Speech API.' : 'Speech API недоступен, но manual transcript preview работает без AI API.'
+      ));
+
+      checks.push(this.diagnosticCheck(
+        'Активный выбор',
+        activeTaskExists && activeDeviceExists ? 'pass' : 'review',
+        activeTaskExists && activeDeviceExists ? 'safe' : 'review',
+        activeTaskExists && activeDeviceExists ? 'Активные task/device pointers валидны.' : 'Найден stale active task/device pointer.',
+        activeTaskExists && activeDeviceExists ? '' : 'clear_stale_selection'
+      ));
+
+      const bodyText = document.body?.innerText || '';
+      const hasVisibleMojibake = /(?:\u0420\u045E|\u0420\u045F|\u0420 \u0420\u00B0|\u0420\u045F\u0421\u0402)/.test(bodyText);
+      checks.push(this.diagnosticCheck(
+        'Проверка кракозябр',
+        hasVisibleMojibake ? 'review' : 'pass',
+        hasVisibleMojibake ? 'review' : 'safe',
+        hasVisibleMojibake ? 'В видимом UI найдены признаки mojibake.' : 'Видимых признаков mojibake не найдено.'
+      ));
+
+      const localStorageText = this.localStorageSnapshotText();
+      checks.push(this.diagnosticCheck(
+        'Raw/base64 guard',
+        RAW_FILE_STORAGE_PATTERN.test(localStorageText) ? 'review' : 'pass',
+        RAW_FILE_STORAGE_PATTERN.test(localStorageText) ? 'review' : 'safe',
+        RAW_FILE_STORAGE_PATTERN.test(localStorageText) ? 'localStorage содержит признаки raw/base64 данных.' : 'Raw/base64 file data в localStorage не обнаружены.'
+      ));
+
+      const personalButtonVisible = Array.from(document.querySelectorAll('#screen-menu .command-button')).some((button) => button.innerText.includes('Личное'));
+      checks.push(this.diagnosticCheck(
+        'Legacy в активном UI',
+        personalButtonVisible ? 'review' : 'pass',
+        personalButtonVisible ? 'review' : 'safe',
+        personalButtonVisible ? '`Личное` найдено в активном меню.' : '`Личное` скрыто из активного меню.'
+      ));
+
+      checks.push(this.diagnosticCheck(
+        'Лишние окна Windows',
+        'manual_check',
+        'review',
+        'Browser-side Diagnost не видит окна Windows. После Windows app/tray этот check должен перейти в Local Agent/desktop companion.'
+      ));
+
+      if (!this.taskRuntimeReady) suggestions.push(this.diagnosticSuggestion('Проверить браузерный storage', 'review', 'manual_review', 'IndexedDB в fallback. Проверьте разрешения/режим браузера перед QA Max.'));
+      if (storageManifestGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить storage manifests', 'safe', 'refresh_runtime', 'Безопасно открыть задачи и пересобрать planned storage paths.'));
+      if (missingDevices.length || devicesWithoutCapabilities.length) suggestions.push(this.diagnosticSuggestion('Обновить Device Registry', 'safe', 'refresh_runtime', 'Безопасно перечитать локальный реестр устройств и default passports.'));
+      if (taskEventGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить старые задачи при открытии', 'safe', 'refresh_runtime', 'Безопасно перечитать runtime state и пересобрать панели.'));
+      if (!activeTaskExists || !activeDeviceExists) suggestions.push(this.diagnosticSuggestion('Очистить stale selection', 'safe', 'clear_stale_selection', 'Сбросить несуществующий active task/device pointer.'));
+      if (pendingApprovals.length) suggestions.push(this.diagnosticSuggestion('Разобрать Approval queue', 'approval_required', 'open_approval_center', 'Опасные действия не выполнять, только принять решение владельца.'));
+      if (staleWaiting.length || staleManual.length) suggestions.push(this.diagnosticSuggestion('Подготовить recovery plan', 'review', 'create_recovery_plan', 'Сформировать план восстановления без выполнения команд.'));
+      suggestions.push(this.diagnosticSuggestion('Обновить runtime панели', 'safe', 'refresh_runtime', 'Безопасно перечитать локальное состояние и перерисовать Mission/System.'));
+
+      const run = await this.saveSystemDiagnostic({
+        diagnostic_id: this.generateWorkspaceId('DIAG'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        checks,
+        suggestions,
+        summary: this.diagnosticSummaryText(checks)
+      });
+      this.toast(`Диагностика: ${this.diagnosticStatusName(run.status)}`);
+    } finally {
+      this.diagnosticRunning = false;
+      this.renderSystemStatus();
+    }
+  },
+
+  diagnosticSuggestion(title, riskLevel, action, text) {
+    return {
+      suggestion_id: this.generateWorkspaceId('SUGGEST'),
+      title,
+      risk_level: riskLevel,
+      action,
+      text
+    };
+  },
+
+  diagnosticSummaryText(checks) {
+    const danger = checks.filter((check) => ['dangerous', 'blocked'].includes(check.severity) || ['fail', 'blocked'].includes(check.status)).length;
+    const review = checks.filter((check) => ['review', 'approval_required'].includes(check.severity) || ['review', 'manual_check'].includes(check.status)).length;
+    const pass = checks.filter((check) => check.status === 'pass').length;
+    return `${pass} pass, ${review} review/manual, ${danger} danger`;
+  },
+
+  diagnosticStatusName(status) {
+    const names = {
+      ok: 'OK',
+      review: 'требует проверки',
+      danger: 'есть риск'
+    };
+    return names[status] || status || 'не запускалась';
+  },
+
+  async probeDirectBridgeHealth() {
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    if (!baseUrl) {
+      return this.diagnosticCheck('Direct Bridge health', 'manual_check', 'review', 'Direct Bridge URL не задан.');
+    }
+    let host = baseUrl;
+    try { host = new URL(baseUrl).host; } catch {}
+    try {
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS);
+      const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      window.clearTimeout(timer);
+      if (!response.ok) {
+        return this.diagnosticCheck('Direct Bridge health', 'review', 'review', `${host} вернул HTTP ${response.status}. Deploy/config не менялись.`);
+      }
+      let storage = '';
+      try {
+        const data = await response.clone().json();
+        storage = data?.storage ? ` storage=${data.storage}` : '';
+      } catch {}
+      return this.diagnosticCheck('Direct Bridge health', 'pass', 'safe', `${host} отвечает 200 OK.${storage}`);
+    } catch (error) {
+      return this.diagnosticCheck('Direct Bridge health', 'manual_check', 'review', `${host}: health read-only check не завершился (${error?.name || 'fetch_error'}).`);
+    }
+  },
+
+  async handleDiagnostAction(action, button) {
+    if (action === 'run') {
+      await this.runSystemDiagnostics();
+      return;
+    }
+    if (action === 'refresh_runtime') {
+      await this.loadWorkProjects();
+      await this.loadWorkTasks();
+      await this.loadSystemDevices();
+      await this.loadApprovalRecords();
+      await this.loadSystemDiagnostics();
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      this.toast('Runtime панели обновлены');
+      return;
+    }
+    if (action === 'clear_stale_selection') {
+      if (this.activeWorkTaskId && !this.workTasks.some((task) => task.task_id === this.activeWorkTaskId)) {
+        this.activeWorkTaskId = this.workTasks[0]?.task_id || '';
+      }
+      if (this.activeDeviceId && !this.systemDevices.some((device) => device.device_id === this.activeDeviceId)) {
+        this.activeDeviceId = this.systemDevices[0]?.device_id || '';
+      }
+      if (this.activeApprovalId && !this.approvalRecords.some((approval) => approval.approval_id === this.activeApprovalId)) {
+        this.activeApprovalId = this.pendingApprovalRecords()[0]?.approval_id || this.approvalRecords[0]?.approval_id || '';
+      }
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      this.toast('Stale selections очищены');
+      return;
+    }
+    if (action === 'open_approval_center') {
+      this.go('system');
+      this.toast('Approval Center открыт');
+      return;
+    }
+    if (action === 'create_recovery_plan') {
+      const approval = this.createApprovalRecord({
+        source: 'diagnost',
+        action_type: 'recovery_plan',
+        action: 'Подготовить recovery plan',
+        command: 'Diagnost recovery plan',
+        title: 'Diagnost recovery plan',
+        reason: 'Диагност обнаружил состояние, требующее плана восстановления. Выполнение команд не запускается.',
+        risk_level: 'review',
+        impact: 'Будет создан только Approval-запрос/план. Автоматических действий нет.',
+        rollback_note: 'Выполнение не запускалось; rollback не требуется.'
+      });
+      await this.saveApprovalRecord(approval);
+      this.toast('Recovery plan создан как Approval');
+      return;
+    }
+  },
+
+  directModeStatusSnapshot() {
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    const active = isConfiguredDirectModeActive();
+    let host = 'bridge url не задан';
+    try {
+      host = baseUrl ? new URL(baseUrl).host : host;
+    } catch {
+      host = 'bridge url требует проверки';
+    }
+    const session = baseUrl ? getStoredOwnerSession(baseUrl) : null;
+    if (!baseUrl) return { status: 'не настроен', note: 'Direct Bridge URL не найден в WebApp config' };
+    if (!active) return { status: 'не активен', note: `${host}; transport сейчас не direct` };
+    if (session?.token) return { status: 'сессия активна', note: `${host}; токен не показывается` };
+    return { status: 'ожидает вход', note: `${host}; owner session понадобится при отправке команды` };
+  },
+
+  localAgentStatusSnapshot() {
+    const agent = (this.systemDevices || []).find((device) => device.type === 'local_agent');
+    if (!agent) return { status: 'не найден', note: 'Local Agent отсутствует в Device Registry' };
+    const status = DEVICE_STATUSES[agent.status] || agent.status || 'не проверено';
+    const trust = DEVICE_TRUST_LEVELS[agent.trust_level] || agent.trust_level || 'неизвестно';
+    return {
+      status,
+      note: `${agent.name}: ${trust}; ${agent.notes || 'runtime не опрашивался в этом слое'}`
+    };
+  },
+
+  renderSystemStatus() {
+    const host = document.getElementById('system-summary');
+    if (!host) return;
+    const tasks = this.workTasks || [];
+    const projects = this.activeWorkProjects();
+    const approvals = this.pendingApprovalRecords().length;
+    const trustedDevices = this.systemDevices.filter((device) => ['trusted', 'owner_device', 'system_device'].includes(device.trust_level)).length;
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const cards = [
+      ['Task Runtime', this.taskRuntimeReady ? 'IndexedDB' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный fallback localStorage'],
+      ['Approval', approvals, 'опасные действия не выполняются автоматически'],
+      ['Устройства', this.systemDevices.length, `${trustedDevices} доверенных или системных`],
+      ['Mina Voice', this.workspaceVoiceSupported ? 'push-to-talk' : 'manual preview', 'без фонового прослушивания и без AI API'],
+      ['Storage root', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs и evidence на D'],
+      ['Direct Bridge', direct.status, direct.note],
+      ['Local Agent', agent.status, agent.note]
+    ];
+    host.innerHTML = cards.map(([title, value, note]) => `
+      <article class="mission-card">
+        <span>${this.escapeHtml(title)}</span>
+        <strong>${this.escapeHtml(value)}</strong>
+        <p>${this.escapeHtml(note)}</p>
+      </article>
+    `).join('');
+    this.renderSystemDiagnostics();
+    this.renderSystemStoragePolicy();
+    this.renderSystemLastCheckpoint();
+    this.renderSystemLegacyWarnings();
+    this.renderApprovalCenter();
+    this.renderSystemDevicePreview();
+    this.renderSystemVoiceHooks();
+  },
+
+  renderSystemDiagnostics() {
+    const host = document.getElementById('system-diagnostics');
+    if (!host) return;
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const latest = this.systemDiagnostics[0] || null;
+    const rows = [
+      ['Runtime storage', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? 'IndexedDB доступен' : 'Используется localStorage fallback'],
+      ['Event log', 'OK', 'Workspace events сохраняются в task state и IndexedDB events store'],
+      ['Task model', 'OK', 'Voice-ready и device-ready поля есть в новых задачах'],
+      ['Device Registry', this.systemDevices.length ? 'OK' : 'нет данных', `${this.systemDevices.length} устройств в локальном реестре`],
+      ['Device Mesh policy', 'OK', 'только паспорта, trust/risk/capabilities; реальные adapter-команды не запускаются'],
+      ['Mina Voice hook', this.workspaceVoiceSupported ? 'OK' : 'fallback', this.workspaceVoiceSupported ? 'push-to-talk доступен' : 'manual transcript preview доступен'],
+      ['Main navigation', 'OK', '`Личное` скрыто из активного меню'],
+      ['Direct Bridge', direct.status, `${direct.note}; deploy/config не менялись`],
+      ['Local Agent', agent.status, `${agent.note}; runtime на ПК не менялся`],
+      ['AI API', 'Disabled', 'Runtime-вызовы AI API не добавлялись']
+    ];
+    host.innerHTML = `
+      <section class="diagnost-console">
+        <div class="diagnost-actions">
+          <button type="button" data-diagnost-action="run" ${this.diagnosticRunning ? 'disabled' : ''}>${this.diagnosticRunning ? 'Проверяю...' : 'Запустить диагностику'}</button>
+          <button type="button" data-diagnost-action="refresh_runtime">Обновить панели</button>
+          <button type="button" data-diagnost-action="clear_stale_selection">Очистить stale state</button>
+        </div>
+        <div class="diagnost-status">
+          <strong>${this.escapeHtml(latest ? this.diagnosticStatusName(latest.status) : 'не запускалась')}</strong>
+          <span>${this.escapeHtml(latest ? this.formatTaskTime(latest.created_at) : 'последнего прогона нет')}</span>
+          <p>${this.escapeHtml(latest?.summary || 'Диагност готов к read-only проверке runtime, bridge health, approvals, storage policy и UI state.')}</p>
+        </div>
+      </section>
+      <section class="diagnost-grid">
+        <div>
+          <div class="diagnost-subtitle">Базовое состояние</div>
+          ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+        </div>
+        <div>
+          <div class="diagnost-subtitle">Последний прогон</div>
+          ${latest ? this.renderDiagnosticRun(latest) : '<p class="mission-empty">Запусти диагностику, чтобы увидеть checks и предложения восстановления.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderDiagnosticRun(run) {
+    const checks = run.checks || [];
+    const suggestions = run.suggestions || [];
+    return `
+      <div class="diagnost-run">
+        ${checks.map((check) => `
+          <article class="diagnost-check diagnost-check--${this.escapeHtml(check.status)}">
+            <div>
+              <strong>${this.escapeHtml(check.name)}</strong>
+              <p>${this.escapeHtml(check.note)}</p>
+            </div>
+            <span>${this.escapeHtml(check.status)}</span>
+          </article>
+        `).join('')}
+        <div class="diagnost-subtitle">Предложения восстановления</div>
+        ${suggestions.map((suggestion) => `
+          <article class="diagnost-suggestion">
+            <div>
+              <strong>${this.escapeHtml(suggestion.title)}</strong>
+              <p>${this.escapeHtml(suggestion.text)}</p>
+              <small>${this.escapeHtml(suggestion.risk_level)}</small>
+            </div>
+            ${suggestion.action ? `<button type="button" data-diagnost-action="${this.escapeHtml(suggestion.action)}">${this.escapeHtml(this.diagnosticActionName(suggestion.action))}</button>` : ''}
+          </article>
+        `).join('') || '<p class="mission-empty">Предложений нет.</p>'}
+      </div>
+    `;
+  },
+
+  diagnosticActionName(action) {
+    const names = {
+      refresh_runtime: 'Обновить',
+      clear_stale_selection: 'Очистить',
+      open_approval_center: 'Открыть',
+      create_recovery_plan: 'Создать план',
+      manual_review: 'Ручная проверка'
+    };
+    return names[action] || 'Открыть';
+  },
+
+  renderSystemStoragePolicy() {
+    const host = document.getElementById('system-storage-policy');
+    if (!host) return;
+    const taskCount = (this.workTasks || []).length;
+    const fileCount = (this.workTasks || []).reduce((sum, task) => sum + (task.files || []).length, 0);
+    const rows = [
+      ['Активный код', 'C:', 'в проектной папке остаются source и лёгкие docs/evidence'],
+      ['Архивы Codex', 'D:', `${TERMINATOR_STORAGE_ROOT}\\codex_outputs`],
+      ['Evidence backups', 'D:', `${TERMINATOR_STORAGE_ROOT}\\evidence_backups`],
+      ['Task files', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\files`],
+      ['Task evidence', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\evidence`],
+      ['Task artifacts/reports', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\artifacts / reports`],
+      ['Runtime manifests', `${taskCount} задач`, `${fileCount} file metadata records; raw/base64 не хранится`],
+      ['Secrets', 'запрещено', 'не писать в docs/evidence/logs']
+    ];
+    host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  renderSystemLastCheckpoint() {
+    const host = document.getElementById('system-last-checkpoint');
+    if (!host) return;
+    const rows = [
+      ['Текущий checkpoint', TERMINATOR_LAST_CHECKPOINT.name, `${TERMINATOR_LAST_CHECKPOINT.date}; ${TERMINATOR_LAST_CHECKPOINT.status}`],
+      ['Предыдущий слой', 'закрыт', TERMINATOR_LAST_CHECKPOINT.previous],
+      ['Следующий слой', 'не закрыт', TERMINATOR_LAST_CHECKPOINT.next],
+      ...TERMINATOR_PHASE_STEPS.map((step) => [`Шаг ${step.id}`, step.status, step.name])
+    ];
+    host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  renderSystemLegacyWarnings() {
+    const host = document.getElementById('system-legacy-warnings');
+    if (!host) return;
+    const rows = [
+      ['Личное', 'hidden legacy', 'скрыто из активного меню; физический cleanup позже отдельным блоком'],
+      ['n8n / Telegram', 'legacy', 'не является Phase 1 core path и не восстанавливается здесь'],
+      ['Amvera workflows', 'legacy debt', 'не участвуют в Direct Mode / Рабочем как основном пути'],
+      ['PM2 brain workers', 'legacy audit later', 'не строим новые функции на этом слое'],
+      ['Personal handlers', 'не удалять', 'оставлены для rollback до отдельного cleanup checkpoint']
+    ];
+    host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  renderSystemDevicePreview() {
+    const host = document.getElementById('system-device-preview');
+    if (!host) return;
+    const devices = this.systemDevices || [];
+    const active = this.getActiveDevice();
+    if (!devices.length || !active) {
+      host.innerHTML = '<p class="mission-empty">Device Registry пока пуст.</p>';
+      return;
+    }
+    host.innerHTML = `
+      <section class="device-hub">
+        <div class="device-list" aria-label="Список устройств">
+          ${devices.map((device) => this.renderDeviceCard(device)).join('')}
+        </div>
+        <div class="device-passport" aria-label="Паспорт устройства">
+          ${this.renderDevicePassport(active)}
+        </div>
+      </section>
+    `;
+  },
+
+  renderDeviceCard(device) {
+    const isActive = device.device_id === this.activeDeviceId;
+    return `
+      <button type="button" class="device-card ${isActive ? 'active' : ''}" data-device-action="select" data-device-id="${this.escapeHtml(device.device_id)}">
+        <span>${this.escapeHtml(DEVICE_TYPES[device.type] || device.type)}</span>
+        <strong>${this.escapeHtml(device.name)}</strong>
+        <small>${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)} · ${this.escapeHtml(DEVICE_TRUST_LEVELS[device.trust_level] || device.trust_level)}</small>
+      </button>
+    `;
+  },
+
+  renderDevicePassport(device) {
+    const capabilities = device.capabilities || [];
+    const events = (device.events || []).slice().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 6);
+    return `
+      <div class="device-passport-head">
+        <div>
+          <span>Паспорт устройства</span>
+          <h3>${this.escapeHtml(device.name)}</h3>
+          <p>${this.escapeHtml(device.notes || 'не задано')}</p>
+        </div>
+        <strong>${this.escapeHtml(DEVICE_RISK_LEVELS[device.risk_level] || device.risk_level)}</strong>
+      </div>
+      <dl class="device-passport-grid">
+        <div><dt>device_id</dt><dd>${this.escapeHtml(device.device_id)}</dd></div>
+        <div><dt>тип</dt><dd>${this.escapeHtml(DEVICE_TYPES[device.type] || device.type)}</dd></div>
+        <div><dt>подключение</dt><dd>${this.escapeHtml(device.connection_type)}</dd></div>
+        <div><dt>статус</dt><dd>${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)}</dd></div>
+        <div><dt>trust</dt><dd>${this.escapeHtml(DEVICE_TRUST_LEVELS[device.trust_level] || device.trust_level)}</dd></div>
+        <div><dt>last seen</dt><dd>${this.escapeHtml(device.last_seen ? this.formatTaskTime(device.last_seen) : 'не проверялось')}</dd></div>
+        <div><dt>fingerprint</dt><dd>${this.escapeHtml(device.fingerprint || 'не задано')}</dd></div>
+        <div><dt>owner confirmed</dt><dd>${device.owner_confirmed ? 'да' : 'нет'}</dd></div>
+      </dl>
+      <div class="device-actions">
+        <button type="button" data-device-action="check" data-device-id="${this.escapeHtml(device.device_id)}">Проверить</button>
+        <button type="button" data-device-action="trust" data-device-id="${this.escapeHtml(device.device_id)}">Доверять</button>
+        <button type="button" data-device-action="restrict" data-device-id="${this.escapeHtml(device.device_id)}">Ограничить</button>
+      </div>
+      <section class="device-section">
+        <h4>Возможности</h4>
+        <div class="capability-grid">
+          ${capabilities.map((capability) => this.renderDeviceCapability(capability, device)).join('') || '<p class="mission-empty">Возможности не заданы.</p>'}
+        </div>
+      </section>
+      <section class="device-section">
+        <h4>События</h4>
+        <div class="device-timeline">
+          ${events.map((event) => `
+            <article>
+              <time>${this.escapeHtml(this.formatTaskTime(event.created_at))}</time>
+              <strong>${this.escapeHtml(event.type)}</strong>
+              <p>${this.escapeHtml(event.text)}</p>
+            </article>
+          `).join('') || '<p class="mission-empty">События появятся после действий с устройством.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderDeviceCapability(capability, device) {
+    return `
+      <article class="capability-card">
+        <strong>${this.escapeHtml(capability.name)}</strong>
+        <p>${this.escapeHtml(capability.description)}</p>
+        <span>${this.escapeHtml(DEVICE_RISK_LEVELS[capability.risk_level] || capability.risk_level)}${capability.requires_approval ? ' · approval' : ''}</span>
+        ${capability.requires_approval ? `<button type="button" data-device-action="request_capability_approval" data-device-id="${this.escapeHtml(device.device_id)}" data-capability-id="${this.escapeHtml(capability.capability_id)}">Запросить</button>` : ''}
+      </article>
+    `;
+  },
+
+  renderSystemVoiceHooks() {
+    const host = document.getElementById('system-voice-hooks');
+    if (!host) return;
+    const voiceTasks = (this.workTasks || []).filter((task) => task.input_source === 'voice' || task.voice_event_type);
+    const activeTask = this.getActiveWorkTask();
+    const rows = [
+      ['Режим', 'push-to-talk', 'фонового прослушивания нет'],
+      ['STT', this.workspaceVoiceSupported ? 'доступен' : 'manual fallback', 'Browser Web Speech API, без AI API'],
+      ['Intent Preview', 'включён', 'команда сначала показывается владельцу'],
+      ['Dangerous voice actions', 'blocked', 'опасные слова не выполняются автоматически'],
+      ['Voice events', `${voiceTasks.length} задач`, activeTask ? `активная задача: ${activeTask.task_id}` : 'активная задача не выбрана']
+    ];
+    host.innerHTML = `
+      <div class="voice-system-grid">
+        ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+    `;
+  },
+
+  toggleWorkspaceVoice() {
+    this.workspaceVoiceOpen = true;
+    const panel = document.getElementById('workspace-voice-panel');
+    if (panel) panel.hidden = false;
+    if (!this.workspaceVoiceSupported || !this.workspaceVoiceRecognition) {
+      this.workspaceVoiceState = this.workspaceVoiceSupported ? 'idle' : 'browser_not_supported';
+      this.renderVoicePanel();
+      this.toast('Можно вставить голосовую команду текстом');
+      return;
+    }
+    try {
+      this.workspaceVoiceRecognition.start();
+      this.recordVoiceEvent('voice_listening_started', '', null);
+    } catch {
+      this.workspaceVoiceState = 'failed';
+      this.renderVoicePanel();
+    }
+  },
+
+  renderVoicePanel() {
+    const panel = document.getElementById('workspace-voice-panel');
+    const toggle = document.getElementById('workspace-voice-toggle');
+    if (!panel) return;
+    panel.hidden = !this.workspaceVoiceOpen;
+    if (toggle) {
+      toggle.setAttribute('aria-pressed', this.workspaceVoiceState === 'listening' ? 'true' : 'false');
+      toggle.textContent = this.workspaceVoiceState === 'listening' ? 'Слушаю...' : 'Микрофон';
+    }
+    const state = document.getElementById('workspace-voice-state');
+    const support = document.getElementById('workspace-voice-support');
+    const transcript = document.getElementById('workspace-voice-transcript');
+    const preview = document.getElementById('workspace-voice-preview');
+    if (state) state.textContent = VOICE_STATES[this.workspaceVoiceState] || this.workspaceVoiceState || 'готово';
+    if (support) support.textContent = this.workspaceVoiceSupported
+      ? 'Browser Speech API: доступен, push-to-talk'
+      : 'Browser Speech API: недоступен, работает ручной preview';
+    if (transcript && transcript.value !== this.workspaceVoiceTranscript) transcript.value = this.workspaceVoiceTranscript || '';
+    if (!preview) return;
+    const intent = this.workspaceVoicePreview;
+    if (!intent) {
+      preview.hidden = false;
+      preview.innerHTML = `
+        <p>Голос не выполняет действия напрямую. Сначала будет preview намерения, риск и подтверждение.</p>
+        <div class="voice-actions">
+          <button type="button" data-voice-action="preview_manual">Показать preview</button>
+          <button type="button" data-voice-action="cancel">Закрыть</button>
+        </div>
+      `;
+      return;
+    }
+    preview.hidden = false;
+    preview.innerHTML = `
+      <div class="voice-preview-head">
+        <span>Я понял команду так</span>
+        <strong>${this.escapeHtml(intent.label)}</strong>
+      </div>
+      <dl class="voice-preview-grid">
+        <div><dt>Действие</dt><dd>${this.escapeHtml(intent.label)}</dd></div>
+        <div><dt>Риск</dt><dd>${this.escapeHtml(DEVICE_RISK_LEVELS[intent.risk] || intent.risk)}</dd></div>
+        <div><dt>Уверенность</dt><dd>${this.escapeHtml(VOICE_CONFIDENCE_LABELS[intent.confidence] || intent.confidence)}</dd></div>
+        <div><dt>Проект</dt><dd>${this.escapeHtml(this.projectName(intent.entities.project_id || 'terminator'))}</dd></div>
+        <div><dt>Исполнитель</dt><dd>${this.escapeHtml(intent.entities.executor || 'не задано')}</dd></div>
+        <div><dt>Статус</dt><dd>${this.escapeHtml(intent.status)}</dd></div>
+      </dl>
+      <p>${this.escapeHtml(intent.summary)}</p>
+      <div class="voice-actions">
+        <button type="button" data-voice-action="execute">${intent.risk === 'dangerous' ? 'Подготовить warning' : 'Выполнить'}</button>
+        <button type="button" data-voice-action="edit">Изменить</button>
+        <button type="button" data-voice-action="cancel">Отмена</button>
+      </div>
+    `;
+  },
+
+  handleVoiceAction(action) {
+    if (action === 'preview_manual') {
+      this.workspaceVoicePreview = this.buildVoiceIntentPreview(this.workspaceVoiceTranscript);
+      this.workspaceVoiceState = 'preview_waiting';
+      this.renderVoicePanel();
+      return;
+    }
+    if (action === 'edit') {
+      document.getElementById('workspace-voice-transcript')?.focus();
+      return;
+    }
+    if (action === 'cancel') {
+      this.workspaceVoiceOpen = false;
+      this.workspaceVoiceState = 'cancelled';
+      this.workspaceVoicePreview = null;
+      this.renderVoicePanel();
+      return;
+    }
+    if (action === 'execute') {
+      if (!this.workspaceVoicePreview) this.workspaceVoicePreview = this.buildVoiceIntentPreview(this.workspaceVoiceTranscript);
+      this.executeVoiceIntent(this.workspaceVoicePreview);
+    }
+  },
+
+  buildVoiceIntentPreview(transcript) {
+    const raw = String(transcript || '').trim();
+    const normalized = raw.toLowerCase().replace(/\s+/g, ' ');
+    if (!raw) {
+      return {
+        transcript: '',
+        normalized_text: '',
+        intent: 'unknown',
+        label: VOICE_INTENT_LABELS.unknown,
+        entities: {},
+        confidence: 'low',
+        risk: 'review',
+        status: 'нужно больше данных',
+        summary: 'Команда пустая. Скажите или вставьте текст.'
+      };
+    }
+    if (VOICE_DANGEROUS_PATTERN.test(raw)) {
+      return this.voiceIntent(raw, 'dangerous_command', 'high', 'dangerous', {
+        command: raw
+      }, 'Опасная команда не будет выполнена автоматически. Можно только подготовить предупреждение/approval.');
+    }
+    if (/(создай|создать|новая|новую).{0,24}задач/i.test(raw)) {
+      const request = raw.replace(/^(мина[, ]*)?/i, '').replace(/создай|создать|новая|новую|задачу|задача/gi, '').trim() || raw;
+      const preview = this.buildWorkPreview(request, { project_id: 'terminator', mode: 'auto', quality_level: 'auto' });
+      return this.voiceIntent(raw, 'create_task', 'high', 'safe', {
+        project_id: preview.project_id,
+        mode: preview.mode,
+        quality_level: preview.quality_level,
+        task_text: request
+      }, `Будет создан preview задачи: ${preview.title}`);
+    }
+    if (/(добавь|добавить|запиши|записать).{0,28}(уточнен|уточнён|замет|комментар)|^(уточнение|заметка)/i.test(raw)) {
+      const note = raw.replace(/^(мина[, ]*)?/i, '').replace(/добавь|добавить|запиши|записать|уточнение|уточнённое|уточненное|заметку|заметка|комментарий/gi, '').replace(/^[-—: ]+/, '').trim() || raw;
+      return this.voiceIntent(raw, 'add_note', 'high', 'safe', { note }, 'Уточнение будет добавлено в историю текущей задачи.');
+    }
+    if (/(центр управления|mission|задачи ждут|риски|ожидают отчёт|ожидают отчет)/i.test(raw)) {
+      return this.voiceIntent(raw, 'open_mission_control', 'high', 'safe', {}, 'Будет открыт Центр управления.');
+    }
+    if (/(система|устройства|диагност|статус системы)/i.test(raw)) {
+      return this.voiceIntent(raw, 'open_system', 'high', 'safe', {}, 'Будет открыт экран Система.');
+    }
+    if (/(рабочее|рабочее окно|workspace)/i.test(raw)) {
+      return this.voiceIntent(raw, 'open_workspace', 'high', 'safe', {}, 'Будет открыт экран Рабочее.');
+    }
+    if (/(сформируй|создай|сделай).{0,24}(пакет|context pack|контекст).{0,24}(codex|кодекс)?/i.test(raw)) {
+      return this.voiceIntent(raw, 'create_context_pack', 'medium', 'review', { executor: 'Codex' }, 'Будет подготовлен Context Pack, без автоматической отправки.');
+    }
+    if (/(отметь|пометь).{0,30}(отправил|отправлено|отправлен).{0,20}(codex|кодекс)?/i.test(raw)) {
+      return this.voiceIntent(raw, 'mark_sent_to_executor', 'medium', 'review', { executor: 'Codex' }, 'Пакет будет отмечен как отправленный исполнителю.');
+    }
+    if (/(провер|verifier|верифик)/i.test(raw)) {
+      return this.voiceIntent(raw, 'open_verifier', 'medium', 'review', {}, 'Будет открыта проверка результата.');
+    }
+    if (/(памят|memory|сохрани вывод|что сохранить)/i.test(raw)) {
+      return this.voiceIntent(raw, 'show_memory_preview', 'medium', 'review', {}, 'Будет открыт Memory Preview.');
+    }
+    return this.voiceIntent(raw, 'unknown', 'low', 'review', {}, 'Я не уверена. Проверьте команду вручную.');
+  },
+
+  voiceIntent(transcript, intent, confidence, risk, entities, summary) {
+    return {
+      transcript,
+      normalized_text: transcript.toLowerCase().replace(/\s+/g, ' '),
+      intent,
+      label: VOICE_INTENT_LABELS[intent] || intent,
+      entities: entities || {},
+      confidence,
+      risk,
+      status: risk === 'dangerous' ? 'blocked_preview' : 'preview_waiting',
+      summary
+    };
+  },
+
+  executeVoiceIntent(preview) {
+    const task = this.getActiveWorkTask();
+    if (!preview) return;
+    this.workspaceVoiceState = preview.risk === 'dangerous' ? 'approval_required' : 'completed';
+    if (preview.intent === 'dangerous_command') {
+      if (task) {
+        this.showWorkspaceApproval(task, preview.entities.command || preview.transcript);
+        this.recordVoiceEvent('voice_approval_required', preview.transcript, preview);
+        this.saveWorkTasks();
+        this.renderWorkTaskCard();
+      } else {
+        this.toast('Опасная команда заблокирована');
+      }
+      this.renderVoicePanel();
+      return;
+    }
+    if (preview.intent === 'unknown') {
+      this.workspaceVoiceState = 'failed';
+      this.toast('Команда не распознана');
+      this.renderVoicePanel();
+      return;
+    }
+    if (preview.intent === 'open_workspace') this.go('work');
+    if (preview.intent === 'open_mission_control') this.go('mission');
+    if (preview.intent === 'open_system') this.go('system');
+    if (preview.intent === 'create_task') {
+      this.go('work');
+      const input = document.getElementById('work-task-input');
+      if (input) input.value = preview.entities.task_text || preview.transcript;
+      this.workPreview = this.buildWorkPreview(preview.entities.task_text || preview.transcript, {
+        project_id: preview.entities.project_id || 'terminator',
+        mode: preview.entities.mode || 'auto',
+        quality_level: preview.entities.quality_level || 'auto'
+      });
+      this.workPreview.input_source = 'voice';
+      this.workPreview.original_transcript = preview.transcript;
+      this.renderWorkPreview(false);
+    }
+    if (preview.intent === 'add_note') {
+      if (!task) {
+        this.toast('Сначала выбери задачу');
+      } else {
+        task.input_source = task.input_source || 'keyboard';
+        task.voice_event_type = 'voice_note_added';
+        this.addWorkspaceMessage(task, 'clarification', 'Голос', preview.entities.note || preview.transcript, {
+          input_source: 'voice',
+          original_transcript: this.safeVoiceTranscript(preview.transcript),
+          normalized_text: preview.normalized_text,
+          intent_preview: preview
+        });
+        this.recordVoiceEvent('voice_action_completed', preview.transcript, preview);
+      }
+    }
+    if (preview.intent === 'create_context_pack' && task) this.buildAndShowContextPack(task);
+    if (preview.intent === 'mark_sent_to_executor' && task) this.markContextPackSent(task);
+    if (preview.intent === 'open_verifier' && task) this.openVerifierPanel(task);
+    if (preview.intent === 'show_memory_preview' && task) {
+      task.memory_preview = this.buildWorkspaceMemoryPreview(task, task.memory_preview?.status || 'draft');
+      this.switchWorkspaceTab('memory');
+    }
+    if (['create_context_pack', 'mark_sent_to_executor', 'open_verifier', 'show_memory_preview'].includes(preview.intent) && task) {
+      this.recordVoiceEvent('voice_action_completed', preview.transcript, preview);
+    }
+    this.saveWorkTasks();
+    this.renderWorkTaskCard();
+    this.renderMissionControl();
+    this.renderSystemStatus();
+    this.renderVoicePanel();
+    this.toast('Voice action обработан безопасно');
+  },
+
+  recordVoiceEvent(type, transcript, preview) {
+    const task = this.getActiveWorkTask();
+    if (!task) return null;
+    task.voice_event_type = type;
+    task.intent_preview = preview || task.intent_preview;
+    return this.recordTaskEvent(task, 'voice_command', `${VOICE_INTENT_LABELS[preview?.intent] || 'Голос'}: ${this.safeVoiceTranscript(transcript)}`, {
+      actor: 'Mina Voice',
+      source: 'voice',
+      risk_level: preview?.risk || 'safe'
+    });
+  },
+
+  safeVoiceTranscript(text) {
+    const source = String(text || '');
+    const scan = this.scanPrivacyText(source);
+    if (scan.findings.length) return '[REDACTED: possible secret in voice transcript]';
+    return source;
+  },
+
+  renderSystemRow(name, status, note) {
+    return `
+      <article class="system-row">
+        <div>
+          <strong>${this.escapeHtml(name)}</strong>
+          <p>${this.escapeHtml(note)}</p>
+        </div>
+        <span>${this.escapeHtml(status)}</span>
+      </article>
+    `;
+  },
+
+  async loadApprovalRecords() {
+    const taskApprovals = (this.workTasks || []).flatMap((task) => (task.approval_requests || []).map((approval) => this.normalizeApprovalRecord(approval, task)));
+    try {
+      const stored = this.taskRuntimeDb ? await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.APPROVALS) : [];
+      const byId = new Map();
+      [...stored, ...taskApprovals].forEach((approval) => {
+        const normalized = this.normalizeApprovalRecord(approval);
+        byId.set(normalized.approval_id, normalized);
+      });
+      this.approvalRecords = Array.from(byId.values()).sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+      this.activeApprovalId = this.pendingApprovalRecords()[0]?.approval_id || this.approvalRecords[0]?.approval_id || '';
+    } catch {
+      this.approvalRecords = taskApprovals;
+      this.activeApprovalId = this.pendingApprovalRecords()[0]?.approval_id || this.approvalRecords[0]?.approval_id || '';
+    }
+  },
+
+  normalizeApprovalRecord(approval, task = null) {
+    const now = new Date().toISOString();
+    const command = approval.command || approval.action || approval.title || 'действие';
+    return {
+      approval_id: approval.approval_id || this.generateWorkspaceId('APPROVAL'),
+      task_id: approval.task_id || task?.task_id || '',
+      project_id: approval.project_id || task?.project_id || '',
+      device_id: approval.device_id || '',
+      capability_id: approval.capability_id || '',
+      source: approval.source || (approval.device_id ? 'device_hub' : 'workspace'),
+      action_type: approval.action_type || 'dangerous_command',
+      action: approval.action || command,
+      command,
+      title: approval.title || this.approvalTitle(command),
+      reason: approval.reason || 'Действие требует решения владельца.',
+      risk_level: approval.risk_level || this.classifyApprovalRisk(command),
+      status: approval.status || 'manual_required',
+      requested_by: approval.requested_by || 'user',
+      forbidden_actions: Array.isArray(approval.forbidden_actions) ? approval.forbidden_actions : this.detectForbiddenActions(command),
+      impact: approval.impact || 'В v1 действие не выполняется автоматически.',
+      rollback_note: approval.rollback_note || 'Rollback не требуется, потому что выполнение не запускается.',
+      execution_allowed: false,
+      execution_result: approval.execution_result || 'not_executed',
+      typed_confirmation_required: approval.typed_confirmation_required ?? this.requiresTypedConfirmation(command),
+      owner_decision: approval.owner_decision || '',
+      decision_note: approval.decision_note || '',
+      created_at: approval.created_at || now,
+      updated_at: approval.updated_at || approval.created_at || now,
+      resolved_at: approval.resolved_at || ''
+    };
+  },
+
+  approvalTitle(command) {
+    const normalized = String(command || '').trim();
+    if (!normalized) return 'Подтверждение действия';
+    return normalized.length > 54 ? `${normalized.slice(0, 54)}...` : normalized;
+  },
+
+  classifyApprovalRisk(command) {
+    const text = String(command || '').toLowerCase();
+    if (/force|format|wipe|delete|удали|remove|defender|firewall|vpn|proxy|network|dns|hosts|route|token|secret|\.env|password|cookie|session/.test(text)) {
+      return 'dangerous';
+    }
+    if (/push|main|deploy|cloudflare|adb|screenshot|home assistant|cast|device/.test(text)) {
+      return 'approval_required';
+    }
+    return 'review';
+  },
+
+  detectForbiddenActions(command) {
+    const text = String(command || '').toLowerCase();
+    const rules = [
+      ['delete/remove/удали', /delete|remove|удали/],
+      ['deploy/cloudflare', /deploy|деплой|cloudflare/],
+      ['push/main/force', /push|main|force/],
+      ['.env/secrets/tokens', /\.env|secret|token|api key|password|cookie|session/],
+      ['network/vpn/proxy/firewall', /network|vpn|proxy|firewall|dns|hosts|route/],
+      ['defender/security', /defender|security|антивирус/]
+    ];
+    return rules.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
+  },
+
+  requiresTypedConfirmation(command) {
+    return this.classifyApprovalRisk(command) === 'dangerous';
+  },
+
+  createApprovalRecord(data, task = null) {
+    const record = this.normalizeApprovalRecord(data, task);
+    const index = this.approvalRecords.findIndex((approval) => approval.approval_id === record.approval_id);
+    if (index >= 0) this.approvalRecords[index] = record;
+    else this.approvalRecords.unshift(record);
+    this.activeApprovalId = record.approval_id;
+    if (task) {
+      task.approval_requests = Array.isArray(task.approval_requests) ? task.approval_requests : [];
+      const taskIndex = task.approval_requests.findIndex((approval) => approval.approval_id === record.approval_id);
+      if (taskIndex >= 0) task.approval_requests[taskIndex] = record;
+      else task.approval_requests.push(record);
+      task.approval_required = record.status;
+      if (['manual_required', 'pending'].includes(record.status)) task.status = 'manual_required';
+    }
+    return record;
+  },
+
+  async saveApprovalRecord(record) {
+    const normalized = this.normalizeApprovalRecord(record);
+    const index = this.approvalRecords.findIndex((approval) => approval.approval_id === normalized.approval_id);
+    if (index >= 0) this.approvalRecords[index] = normalized;
+    else this.approvalRecords.unshift(normalized);
+    const task = this.workTasks.find((item) => item.task_id === normalized.task_id);
+    if (task) {
+      task.approval_requests = Array.isArray(task.approval_requests) ? task.approval_requests : [];
+      const taskIndex = task.approval_requests.findIndex((approval) => approval.approval_id === normalized.approval_id);
+      if (taskIndex >= 0) task.approval_requests[taskIndex] = normalized;
+      else task.approval_requests.push(normalized);
+      task.approval_required = normalized.status;
+      task.updated_at = normalized.updated_at;
+      const hasPendingApprovals = task.approval_requests.some((approval) => ['manual_required', 'pending'].includes(approval.status));
+      if (['denied', 'cancelled', 'plan_prepared'].includes(normalized.status) && !hasPendingApprovals) {
+        task.status = task.status === 'manual_required' ? 'context_ready' : task.status;
+      }
+    }
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.APPROVALS, normalized);
+    this.saveWorkTasks();
+  },
+
+  renderApprovalCenter() {
+    const host = document.getElementById('system-approval-center');
+    if (!host) return;
+    const records = this.approvalRecords || [];
+    const pending = this.pendingApprovalRecords();
+    const active = records.find((approval) => approval.approval_id === this.activeApprovalId) || pending[0] || records[0] || null;
+    if (active) this.activeApprovalId = active.approval_id;
+    host.innerHTML = `
+      <section class="approval-center-grid">
+        <div class="approval-queue">
+          <div class="approval-center-head">
+            <strong>Очередь</strong>
+            <span>${pending.length} ждут решения</span>
+          </div>
+          ${records.slice(0, 8).map((approval) => this.renderApprovalQueueItem(approval, active)).join('') || '<p class="mission-empty">Approval-запросов пока нет.</p>'}
+        </div>
+        <div class="approval-detail">
+          ${active ? this.renderApprovalDetail(active) : '<p class="mission-empty">Опасные действия будут попадать сюда перед выполнением.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderApprovalQueueItem(approval, active) {
+    return `
+      <button type="button" class="approval-item ${active?.approval_id === approval.approval_id ? 'active' : ''}" data-approval-center-action="select" data-approval-id="${this.escapeHtml(approval.approval_id)}">
+        <span>${this.escapeHtml(APPROVAL_STATUSES[approval.status] || approval.status)}</span>
+        <strong>${this.escapeHtml(approval.title)}</strong>
+        <small>${this.escapeHtml(APPROVAL_RISK_LEVELS[approval.risk_level] || approval.risk_level)} · ${this.escapeHtml(approval.source)}</small>
+      </button>
+    `;
+  },
+
+  renderApprovalDetail(approval) {
+    const task = this.workTasks.find((item) => item.task_id === approval.task_id);
+    const device = this.systemDevices.find((item) => item.device_id === approval.device_id);
+    return `
+      <div class="approval-detail-head">
+        <div>
+          <span>Подтверждение действия</span>
+          <h3>${this.escapeHtml(approval.title)}</h3>
+          <p>${this.escapeHtml(approval.reason)}</p>
+        </div>
+        <strong>${this.escapeHtml(APPROVAL_RISK_LEVELS[approval.risk_level] || approval.risk_level)}</strong>
+      </div>
+      <dl class="approval-grid">
+        <div><dt>Статус</dt><dd>${this.escapeHtml(APPROVAL_STATUSES[approval.status] || approval.status)}</dd></div>
+        <div><dt>Источник</dt><dd>${this.escapeHtml(approval.source)}</dd></div>
+        <div><dt>Задача</dt><dd>${this.escapeHtml(task?.title || approval.task_id || 'не привязано')}</dd></div>
+        <div><dt>Устройство</dt><dd>${this.escapeHtml(device?.name || approval.device_id || 'не привязано')}</dd></div>
+        <div><dt>Typed confirm</dt><dd>${approval.typed_confirmation_required ? 'требуется позже' : 'не требуется'}</dd></div>
+        <div><dt>Выполнение</dt><dd>${this.escapeHtml(approval.execution_result)}</dd></div>
+      </dl>
+      <section class="approval-warning">
+        <strong>Что заблокировано</strong>
+        <p>${this.escapeHtml(approval.forbidden_actions.length ? approval.forbidden_actions.join('; ') : 'опасных ключевых слов не найдено')}</p>
+      </section>
+      <section class="approval-plan">
+        <strong>Безопасный план</strong>
+        <textarea readonly>${this.escapeHtml(this.buildApprovalPlanText(approval))}</textarea>
+      </section>
+      <div class="approval-actions">
+        <button type="button" data-approval-center-action="plan" data-approval-id="${this.escapeHtml(approval.approval_id)}">Подготовить план</button>
+        <button type="button" data-approval-center-action="deny" data-approval-id="${this.escapeHtml(approval.approval_id)}">Отклонить</button>
+        <button type="button" data-approval-center-action="postpone" data-approval-id="${this.escapeHtml(approval.approval_id)}">Отложить</button>
+      </div>
+    `;
+  },
+
+  buildApprovalPlanText(approval) {
+    return [
+      'Действие не выполнено автоматически.',
+      '',
+      `Запрос: ${approval.command}`,
+      `Риск: ${APPROVAL_RISK_LEVELS[approval.risk_level] || approval.risk_level}`,
+      `Источник: ${approval.source}`,
+      '',
+      'Перед выполнением нужно:',
+      '- проверить цель действия;',
+      '- проверить затрагиваемые файлы/системы;',
+      '- подтвердить отсутствие секретов;',
+      '- подготовить rollback;',
+      '- выполнить только отдельной задачей с явным approval владельца.',
+      '',
+      `Rollback: ${approval.rollback_note}`
+    ].join('\n');
+  },
+
+  async handleApprovalCenterAction(action, button) {
+    const approvalId = button?.dataset?.approvalId || this.activeApprovalId;
+    const approval = this.approvalRecords.find((record) => record.approval_id === approvalId);
+    if (!approval) return;
+    if (action === 'select') {
+      this.activeApprovalId = approval.approval_id;
+      this.renderApprovalCenter();
+      return;
+    }
+    const now = new Date().toISOString();
+    const task = this.workTasks.find((item) => item.task_id === approval.task_id);
+    if (action === 'plan') {
+      approval.status = 'plan_prepared';
+      approval.owner_decision = 'plan_prepared';
+      approval.decision_note = 'Подготовлен безопасный план. Выполнение не запускалось.';
+      approval.resolved_at = now;
+      if (task) {
+        this.addWorkspaceMessage(task, 'approval_event', 'Approval Center', 'Подготовлен безопасный план вместо выполнения опасного действия.');
+        this.createArtifact(task, 'FIX_REQUEST', 'Approval plan', 'Безопасный план для рискованного действия.', this.buildApprovalPlanText(approval), 'approval');
+      }
+      this.toast('Approval plan подготовлен');
+    } else if (action === 'deny') {
+      approval.status = 'denied';
+      approval.owner_decision = 'denied';
+      approval.decision_note = 'Владелец отклонил действие. Выполнение не запускалось.';
+      approval.resolved_at = now;
+      if (task) this.addWorkspaceMessage(task, 'approval_event', 'Approval Center', 'Опасное действие отклонено.');
+      this.toast('Действие отклонено');
+    } else if (action === 'postpone') {
+      approval.status = 'manual_required';
+      approval.owner_decision = 'postponed';
+      approval.decision_note = 'Решение отложено.';
+      this.toast('Approval отложен');
+    }
+    approval.updated_at = now;
+    approval.execution_allowed = false;
+    approval.execution_result = 'not_executed';
+    await this.saveApprovalRecord(approval);
+    this.renderSystemStatus();
+    this.renderWorkTaskCard();
+  },
+
+  async loadSystemDevices() {
+    const defaults = this.defaultSystemDevices();
+    try {
+      if (!this.taskRuntimeDb) {
+        this.systemDevices = defaults;
+        this.activeDeviceId = defaults[0]?.device_id || '';
+        return;
+      }
+      const storedDevices = await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.DEVICES);
+      if (!storedDevices.length) {
+        this.systemDevices = defaults;
+        this.activeDeviceId = defaults[0]?.device_id || '';
+        await this.saveSystemDevices();
+        return;
+      }
+      const capabilities = await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.DEVICE_CAPABILITIES);
+      const events = await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.DEVICE_EVENTS);
+      this.systemDevices = storedDevices.map((device) => {
+        const normalized = this.normalizeDevice(device);
+        const deviceCapabilities = capabilities.filter((capability) => capability.device_id === normalized.device_id);
+        const deviceEvents = events.filter((event) => event.device_id === normalized.device_id);
+        if (deviceCapabilities.length) normalized.capabilities = deviceCapabilities.map((capability) => this.normalizeDeviceCapability(capability, normalized));
+        if (deviceEvents.length) normalized.events = deviceEvents.map((event) => this.normalizeDeviceEvent(event, normalized));
+        return normalized;
+      });
+      const knownDeviceIds = new Set(this.systemDevices.map((device) => device.device_id));
+      const missingDefaults = defaults.filter((device) => !knownDeviceIds.has(device.device_id));
+      if (missingDefaults.length) {
+        this.systemDevices.push(...missingDefaults);
+        await this.saveSystemDevices();
+      }
+      this.activeDeviceId = this.systemDevices.find((device) => device.device_id === this.activeDeviceId)?.device_id
+        || this.systemDevices[0]?.device_id
+        || '';
+    } catch {
+      this.systemDevices = defaults;
+      this.activeDeviceId = defaults[0]?.device_id || '';
+    }
+  },
+
+  defaultSystemDevices() {
+    const now = new Date().toISOString();
+    return [
+      this.normalizeDevice({
+        device_id: 'device_terminator_pc',
+        name: 'ПК Терминатора',
+        type: 'windows_pc',
+        connection_type: 'local_runtime',
+        trust_level: 'system_device',
+        status: 'connected',
+        risk_level: 'safe',
+        owner_confirmed: true,
+        last_seen: now,
+        notes: 'Главная рабочая машина и будущий runtime/storage узел.',
+        capabilities: [
+          ['cap_pc_status', 'read_status', 'Показать состояние runtime', 'safe', false],
+          ['cap_pc_storage', 'storage_policy', 'Показать storage policy', 'safe', false],
+          ['cap_pc_diagnostics', 'safe_diagnostics', 'Безопасные read-only диагностики', 'review', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_local_agent',
+        name: 'Mina Local Agent',
+        type: 'local_agent',
+        connection_type: 'bridge_polling',
+        trust_level: 'system_device',
+        status: 'unknown',
+        risk_level: 'review',
+        owner_confirmed: true,
+        notes: 'Runtime-исполнитель. В этом слое команды агенту не отправляются.',
+        capabilities: [
+          ['cap_agent_health', 'read_status', 'Показать health/status позже', 'safe', false],
+          ['cap_agent_file_meta', 'file_metadata', 'Файловая metadata через Local Agent позже', 'review', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_owner_phone',
+        name: 'Телефон владельца',
+        type: 'android_phone',
+        connection_type: 'adb_usb',
+        trust_level: 'owner_device',
+        status: 'offline',
+        risk_level: 'review',
+        owner_confirmed: false,
+        notes: 'Будущий первый реальный adapter: ADB USB для mobile QA.',
+        capabilities: [
+          ['cap_phone_status', 'read_status', 'Определить подключение телефона позже', 'safe', false],
+          ['cap_phone_open_url', 'open_url', 'Открыть WebApp на телефоне после approval', 'review', true],
+          ['cap_phone_screenshot', 'screenshot', 'Скриншот для evidence после approval', 'approval_required', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_mission_display',
+        name: 'Экран штаба',
+        type: 'mission_display',
+        connection_type: 'chromecast_or_android_tv',
+        trust_level: 'paired',
+        status: 'unknown',
+        risk_level: 'review',
+        owner_confirmed: false,
+        notes: 'Будущий Mission Control display на ТВ или Chromecast.',
+        capabilities: [
+          ['cap_display_status', 'read_status', 'Показать доступность экрана позже', 'safe', false],
+          ['cap_display_cast', 'cast_dashboard', 'Вывести Mission Control после approval', 'review', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_home_assistant',
+        name: 'Home Assistant',
+        type: 'smart_home_hub',
+        connection_type: 'home_assistant',
+        trust_level: 'restricted',
+        status: 'unknown',
+        risk_level: 'approval_required',
+        owner_confirmed: false,
+        notes: 'Будущий read-only smart home hub. Управление домом только через Approval.',
+        capabilities: [
+          ['cap_ha_status', 'read_status', 'Read-only sensors/status позже', 'safe', false],
+          ['cap_ha_scene', 'run_scene', 'Запустить сцену только через Approval', 'approval_required', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_usb_devices',
+        name: 'USB устройства',
+        type: 'usb_bus',
+        connection_type: 'manual_allowlist',
+        trust_level: 'restricted',
+        status: 'not_configured',
+        risk_level: 'review',
+        owner_confirmed: false,
+        notes: 'Будущий adapter для USB/COM. В v1 только паспорт и политика доверия.',
+        capabilities: [
+          ['cap_usb_list', 'read_status', 'Показать trusted USB devices позже', 'safe', false],
+          ['cap_usb_serial', 'usb_serial_readonly', 'Read-only COM telemetry позже', 'review', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_network_allowlist',
+        name: 'Network allowlist',
+        type: 'network_allowlist',
+        connection_type: 'manual_allowlist_only',
+        trust_level: 'restricted',
+        status: 'not_configured',
+        risk_level: 'approval_required',
+        owner_confirmed: false,
+        notes: 'Никакого хаотичного network scan. Только ручной allowlist после approval.',
+        capabilities: [
+          ['cap_network_status', 'read_status', 'Показать allowlisted endpoints позже', 'safe', false],
+          ['cap_network_connect', 'connect_allowlisted_device', 'Подключаться только к owner-approved устройствам', 'approval_required', true]
+        ]
+      })
+    ];
+  },
+
+  normalizeDevice(device) {
+    const now = new Date().toISOString();
+    const normalized = {
+      device_id: device.device_id || this.generateWorkspaceId('DEVICE'),
+      name: device.name || 'Устройство',
+      type: device.type || 'unknown',
+      connection_type: device.connection_type || 'manual',
+      trust_level: device.trust_level || 'unknown',
+      status: device.status || 'unknown',
+      risk_level: device.risk_level || 'review',
+      fingerprint: device.fingerprint || `${device.type || 'device'}:${device.connection_type || 'manual'}:${device.device_id || 'local'}`,
+      capabilities: [],
+      events: [],
+      last_seen: device.last_seen || '',
+      first_seen: device.first_seen || now,
+      owner_confirmed: Boolean(device.owner_confirmed),
+      notes: device.notes || 'не задано',
+      linked_project_ids: Array.isArray(device.linked_project_ids) ? device.linked_project_ids : [],
+      linked_task_ids: Array.isArray(device.linked_task_ids) ? device.linked_task_ids : [],
+      created_at: device.created_at || now,
+      updated_at: device.updated_at || now
+    };
+    const rawCapabilities = Array.isArray(device.capabilities) ? device.capabilities : [];
+    normalized.capabilities = rawCapabilities.map((capability) => {
+      if (Array.isArray(capability)) {
+        return this.normalizeDeviceCapability({
+          capability_id: capability[0],
+          name: capability[1],
+          description: capability[2],
+          risk_level: capability[3],
+          requires_approval: capability[4]
+        }, normalized);
+      }
+      return this.normalizeDeviceCapability(capability, normalized);
+    });
+    normalized.events = Array.isArray(device.events) ? device.events.map((event) => this.normalizeDeviceEvent(event, normalized)) : [];
+    if (!normalized.events.length) {
+      normalized.events.push(this.normalizeDeviceEvent({
+        event_id: this.generateWorkspaceId('DEVENT'),
+        type: 'device_registered',
+        text: 'Устройство добавлено в локальный реестр.',
+        risk_level: 'safe',
+        created_at: normalized.created_at
+      }, normalized));
+    }
+    return normalized;
+  },
+
+  normalizeDeviceCapability(capability, device) {
+    return {
+      capability_id: capability.capability_id || this.generateWorkspaceId('CAP'),
+      device_id: capability.device_id || device.device_id,
+      name: capability.name || 'read_status',
+      description: capability.description || 'не задано',
+      risk_level: capability.risk_level || 'review',
+      requires_approval: Boolean(capability.requires_approval),
+      requires_owner_presence: Boolean(capability.requires_owner_presence),
+      adapter: capability.adapter || device.connection_type || 'manual',
+      available: Boolean(capability.available),
+      last_checked: capability.last_checked || ''
+    };
+  },
+
+  normalizeDeviceEvent(event, device) {
+    return {
+      event_id: event.event_id || this.generateWorkspaceId('DEVENT'),
+      device_id: event.device_id || device.device_id,
+      type: event.type || 'device_event',
+      text: event.text || 'событие',
+      created_at: event.created_at || new Date().toISOString(),
+      actor: event.actor || 'System',
+      risk_level: event.risk_level || 'safe',
+      linked_task_id: event.linked_task_id || '',
+      linked_approval_id: event.linked_approval_id || ''
+    };
+  },
+
+  getActiveDevice() {
+    return this.systemDevices.find((device) => device.device_id === this.activeDeviceId) || this.systemDevices[0] || null;
+  },
+
+  async saveSystemDevices() {
+    if (!this.taskRuntimeDb) return;
+    const devices = this.systemDevices.map((device) => {
+      const normalized = this.normalizeDevice(device);
+      return {
+        ...normalized,
+        capabilities: normalized.capabilities,
+        events: normalized.events
+      };
+    });
+    const capabilities = devices.flatMap((device) => device.capabilities.map((capability) => ({ ...capability, device_id: device.device_id })));
+    const events = devices.flatMap((device) => device.events.map((event) => ({ ...event, device_id: device.device_id })));
+    await this.putRuntimeRecords(TASK_RUNTIME_STORES.DEVICES, devices);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.DEVICE_CAPABILITIES, capabilities);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.DEVICE_EVENTS, events);
+  },
+
+  addDeviceEvent(device, type, text, riskLevel = 'safe') {
+    const event = this.normalizeDeviceEvent({
+      type,
+      text,
+      risk_level: riskLevel,
+      created_at: new Date().toISOString()
+    }, device);
+    device.events = Array.isArray(device.events) ? device.events : [];
+    device.events.push(event);
+    device.updated_at = event.created_at;
+    return event;
+  },
+
+  async handleDeviceAction(action, button) {
+    const deviceId = button?.dataset?.deviceId || this.activeDeviceId;
+    const device = this.systemDevices.find((item) => item.device_id === deviceId);
+    if (!device) return;
+    this.activeDeviceId = device.device_id;
+    if (action === 'select' || action === 'passport') {
+      this.renderSystemDevicePreview();
+      return;
+    }
+    if (action === 'check') {
+      const now = new Date().toISOString();
+      if (device.device_id === 'device_terminator_pc') {
+        device.status = 'connected';
+        device.last_seen = now;
+      }
+      this.addDeviceEvent(device, 'health_check_preview', 'Safe preview: реальные команды и адаптеры не запускались.', 'safe');
+      this.toast('Проверка устройства записана как safe preview');
+    }
+    if (action === 'trust') {
+      device.owner_confirmed = true;
+      device.trust_level = device.device_id === 'device_owner_phone' ? 'owner_device' : 'trusted';
+      device.status = device.status === 'unknown' ? 'pending_trust' : device.status;
+      this.addDeviceEvent(device, 'device_trust_changed', 'Доверие отмечено локально. Реальное подключение не запускалось.', 'review');
+      this.toast('Устройство отмечено доверенным локально');
+    }
+    if (action === 'restrict') {
+      device.trust_level = 'restricted';
+      this.addDeviceEvent(device, 'device_trust_changed', 'Устройство переведено в ограниченный режим.', 'review');
+      this.toast('Устройство ограничено');
+    }
+    if (action === 'request_capability_approval') {
+      const capabilityId = button?.dataset?.capabilityId || '';
+      const capability = (device.capabilities || []).find((item) => item.capability_id === capabilityId);
+      if (!capability) return;
+      const approval = this.createApprovalRecord({
+        device_id: device.device_id,
+        capability_id: capability.capability_id,
+        source: 'device_hub',
+        action_type: 'device_capability',
+        action: capability.name,
+        command: `${device.name}: ${capability.name}`,
+        title: `${device.name}: ${capability.name}`,
+        reason: capability.description,
+        risk_level: capability.risk_level || 'approval_required',
+        impact: 'В v1 создаётся только Approval-запрос. Команда устройству не отправляется.',
+        rollback_note: 'Выполнение не запускалось; rollback не требуется.'
+      });
+      this.addDeviceEvent(device, 'approval_required', `Создан Approval: ${approval.title}`, approval.risk_level);
+      await this.saveApprovalRecord(approval);
+      this.toast('Approval создан, действие не запускалось');
+    }
+    device.updated_at = new Date().toISOString();
+    await this.saveSystemDevices();
+    this.renderSystemStatus();
+  },
+
+  async loadWorkTasks() {
+    try {
+      if (this.taskRuntimeDb) {
+        const tasks = await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.TASKS);
+        const indexedTasks = Array.isArray(tasks) ? tasks.filter((task) => task?.task_id).map((task) => this.normalizeWorkTask(task)) : [];
+        const mirrorTasks = this.readLocalWorkTasks();
+        const merged = this.mergeWorkTaskLists(indexedTasks, mirrorTasks);
+        this.workTasks = merged.tasks;
+        if (merged.changed) {
+          await this.persistRuntimeSnapshot();
+        }
+      } else {
+        this.workTasks = this.readLocalWorkTasks();
+      }
+      this.workTasks.sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
       this.activeWorkTaskId = this.workTasks[0]?.task_id || '';
     } catch {
       this.workTasks = [];
@@ -1034,10 +3514,54 @@ const App = {
     }
   },
 
+  readLocalWorkTasks() {
+    try {
+      const raw = window.localStorage?.getItem(WORK_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((task) => task?.task_id).map((task) => this.normalizeWorkTask(task)) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  mergeWorkTaskLists(primaryTasks, mirrorTasks) {
+    const byId = new Map();
+    let changed = false;
+    const put = (task, source) => {
+      if (!task?.task_id) return;
+      const existing = byId.get(task.task_id);
+      if (!existing) {
+        byId.set(task.task_id, task);
+        if (source === 'mirror') changed = true;
+        return;
+      }
+      const existingTime = this.taskUpdatedTime(existing);
+      const taskTime = this.taskUpdatedTime(task);
+      if (taskTime > existingTime) {
+        byId.set(task.task_id, task);
+        if (source === 'mirror') changed = true;
+      }
+    };
+    (primaryTasks || []).forEach((task) => put(task, 'primary'));
+    (mirrorTasks || []).forEach((task) => put(task, 'mirror'));
+    const tasks = Array.from(byId.values()).sort((a, b) => this.taskUpdatedTime(b) - this.taskUpdatedTime(a));
+    return {
+      tasks,
+      changed: changed || tasks.length !== (primaryTasks || []).length
+    };
+  },
+
+  taskUpdatedTime(task) {
+    const date = new Date(task?.updated_at || task?.created_at || 0);
+    const time = date.getTime();
+    return Number.isNaN(time) ? 0 : time;
+  },
+
   normalizeWorkTask(task) {
     const now = new Date().toISOString();
     task.goal = task.goal || task.user_request || task.title || 'не задано';
     task.messages = Array.isArray(task.messages) ? task.messages : [];
+    task.events = Array.isArray(task.events) ? task.events : [];
     task.files = Array.isArray(task.files) ? task.files : [];
     task.artifacts = Array.isArray(task.artifacts) ? task.artifacts : [];
     task.audit_log = Array.isArray(task.audit_log) ? task.audit_log : [];
@@ -1064,18 +3588,93 @@ const App = {
           linked_file_ids: []
         };
     task.approval_requests = Array.isArray(task.approval_requests) ? task.approval_requests : [];
+    task.brain_council = task.brain_council && typeof task.brain_council === 'object'
+      ? task.brain_council
+      : {
+          status: 'not_started',
+          prompt_packages: [],
+          answers: [],
+          comparison: null,
+          strategist_synthesis: null,
+          integrity_status: 'not_checked',
+          updated_at: ''
+        };
+    task.brain_council.prompt_packages = Array.isArray(task.brain_council.prompt_packages) ? task.brain_council.prompt_packages : [];
+    task.brain_council.answers = Array.isArray(task.brain_council.answers) ? task.brain_council.answers : [];
+    task.project_id = task.project_id || 'terminator';
+    task.input_source = task.input_source || 'keyboard';
+    task.original_transcript = task.original_transcript || '';
+    task.normalized_text = task.normalized_text || task.user_request || task.goal || '';
+    task.intent_preview = task.intent_preview && typeof task.intent_preview === 'object'
+      ? task.intent_preview
+      : {
+          transcript: task.original_transcript || '',
+          intent: 'create_task',
+          entities: {},
+          confidence: 'manual',
+          risk: 'safe',
+          status: 'confirmed'
+        };
+    task.voice_event_type = task.voice_event_type || '';
+    task.device_context = task.device_context && typeof task.device_context === 'object'
+      ? task.device_context
+      : {
+          device_ids: [],
+          required_capabilities: [],
+          device_events: []
+        };
+    task.runtime = task.runtime && typeof task.runtime === 'object'
+      ? task.runtime
+      : {
+          schema_version: 1,
+          source: 'task_runtime_v1',
+          persistence: this.taskRuntimeReady ? 'indexeddb' : 'localStorage_fallback'
+        };
+    this.ensureTaskStorageManifest(task);
     task.timer_started_at = task.timer_started_at || task.executor_state.timer_started_at || '';
     task.timer_stopped_at = task.timer_stopped_at || task.executor_state.timer_stopped_at || '';
     task.updated_at = task.updated_at || now;
     task.created_at = task.created_at || now;
     task.executor = task.executor || task.executor_state.executor || 'не назначен';
-    task.files = task.files.map((file) => ({
-      ...file,
-      role: file.role || 'attachment',
-      status: file.status || 'attached',
-      is_evidence: Boolean(file.is_evidence || file.role === 'evidence'),
-      notes: file.notes || ''
+    task.messages = task.messages.map((message) => ({
+      ...message,
+      message_id: message.message_id || this.generateWorkspaceId('MSG'),
+      task_id: task.task_id,
+      created_at: message.created_at || now,
+      attachments: Array.isArray(message.attachments) ? message.attachments : [],
+      linked_artifacts: Array.isArray(message.linked_artifacts) ? message.linked_artifacts : []
     }));
+    task.events = task.events.map((event) => this.normalizeTaskEvent(event, task));
+    task.artifacts = task.artifacts.map((artifact) => ({
+      ...artifact,
+      artifact_id: artifact.artifact_id || this.generateWorkspaceId('ART'),
+      task_id: task.task_id,
+      project_id: task.project_id,
+      created_at: artifact.created_at || now,
+      linked_file_ids: Array.isArray(artifact.linked_file_ids) ? artifact.linked_file_ids : [],
+      linked_evidence_ids: Array.isArray(artifact.linked_evidence_ids) ? artifact.linked_evidence_ids : [],
+      version: artifact.version || 1,
+      status: artifact.status || 'draft'
+    }));
+    task.approval_requests = task.approval_requests.map((approval) => this.normalizeApprovalRecord(approval, task));
+    task.files = task.files.map((file) => {
+      const normalizedFile = {
+        ...file,
+        file_id: file.file_id || this.generateWorkspaceId('FILE'),
+        task_id: task.task_id,
+        project_id: task.project_id,
+        role: file.role || 'attachment',
+        status: file.status || 'attached',
+        is_evidence: Boolean(file.is_evidence || file.role === 'evidence'),
+        notes: file.notes || '',
+        hash_algorithm: file.hash_algorithm || 'SHA-256',
+        sha256: file.sha256 || '',
+        hash_status: file.hash_status || (file.sha256 ? 'calculated_session' : 'pending_local_agent'),
+        raw_file_saved: false
+      };
+      if (!normalizedFile.storage_ref) this.updateFileStorageRef(task, normalizedFile);
+      return normalizedFile;
+    });
     return task;
   },
 
@@ -1085,6 +3684,132 @@ const App = {
     } catch {
       this.toast('Локальное сохранение недоступно');
     }
+    if (this.taskRuntimeDb) {
+      this.runtimeSavePromise = this.persistRuntimeSnapshot().catch((error) => {
+        console.warn('[MinaWebApp] Task Runtime save failed', error);
+        this.taskRuntimeFallback = true;
+      });
+    }
+    this.renderMissionControl();
+    this.renderSystemStatus();
+  },
+
+  async flushRuntimeSave() {
+    if (this.runtimeSavePromise) await this.runtimeSavePromise;
+  },
+
+  async persistRuntimeSnapshot() {
+    if (!this.taskRuntimeDb) return;
+    const tasks = (this.workTasks || []).map((task) => this.normalizeWorkTask({ ...task }));
+    await this.putRuntimeRecords(TASK_RUNTIME_STORES.TASKS, tasks);
+
+    const messages = tasks.flatMap((task) => (task.messages || []).map((message) => ({ ...message, project_id: task.project_id })));
+    const artifacts = tasks.flatMap((task) => (task.artifacts || []));
+    const files = tasks.flatMap((task) => (task.files || []));
+    const taskApprovals = tasks.flatMap((task) => (task.approval_requests || []).map((approval) => this.normalizeApprovalRecord(approval, task)));
+    const approvalMap = new Map();
+    [...(this.approvalRecords || []), ...taskApprovals].forEach((approval) => {
+      const normalized = this.normalizeApprovalRecord(approval);
+      approvalMap.set(normalized.approval_id, normalized);
+    });
+    const approvals = Array.from(approvalMap.values());
+    this.approvalRecords = approvals.sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+    const memory = tasks
+      .filter((task) => task.memory_preview)
+      .map((task) => ({
+        memory_id: `MEMORY-${task.task_id}`,
+        task_id: task.task_id,
+        project_id: task.project_id,
+        status: task.memory_preview?.status || task.memory_status || 'draft',
+        preview: task.memory_preview,
+        updated_at: task.updated_at || new Date().toISOString()
+      }));
+    const events = tasks.flatMap((task) => this.buildRuntimeEventsFromTask(task));
+
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.MESSAGES, messages);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.ARTIFACTS, artifacts);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.FILES, files);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.APPROVALS, approvals);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.MEMORY, memory);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.EVENTS, events);
+    await this.saveRuntimeMeta({
+      key: WORK_RUNTIME_META_KEY,
+      version: WORK_RUNTIME_DB_VERSION,
+      updated_at: new Date().toISOString(),
+      task_count: tasks.length,
+      project_count: (this.workProjects || []).length,
+      runtime: 'indexeddb'
+    });
+  },
+
+  buildRuntimeEventsFromTask(task) {
+    if (Array.isArray(task.events) && task.events.length) {
+      return task.events.map((event) => this.normalizeTaskEvent(event, task));
+    }
+
+    const audit = (task.audit_log || []).map((text, index) => ({
+      event_id: `${task.task_id}-AUDIT-${index}`,
+      task_id: task.task_id,
+      project_id: task.project_id,
+      type: 'audit',
+      text,
+      actor: 'system',
+      risk_level: 'safe',
+      created_at: task.updated_at || task.created_at
+    }));
+    const messages = (task.messages || []).map((message) => ({
+      event_id: `${task.task_id}-${message.message_id}`,
+      task_id: task.task_id,
+      project_id: task.project_id,
+      type: message.type || 'message',
+      text: message.text || '',
+      actor: message.author || 'workspace',
+      risk_level: message.type === 'approval_event' ? 'approval_required' : 'safe',
+      created_at: message.created_at || task.updated_at
+    }));
+    return [...audit, ...messages];
+  },
+
+  normalizeTaskEvent(event, task) {
+    const now = new Date().toISOString();
+    return {
+      event_id: event.event_id || this.generateWorkspaceId('EVT'),
+      task_id: event.task_id || task?.task_id || '',
+      project_id: event.project_id || task?.project_id || '',
+      type: event.type || 'system_event',
+      text: event.text || '',
+      actor: event.actor || 'workspace',
+      source: event.source || 'workspace',
+      target_id: event.target_id || '',
+      linked_artifact_id: event.linked_artifact_id || '',
+      linked_file_id: event.linked_file_id || '',
+      linked_approval_id: event.linked_approval_id || '',
+      risk_level: event.risk_level || 'safe',
+      created_at: event.created_at || now
+    };
+  },
+
+  recordTaskEvent(task, type, text, options = {}) {
+    if (!task) return null;
+    task.events = Array.isArray(task.events) ? task.events : [];
+    const event = this.normalizeTaskEvent({
+      event_id: options.event_id || this.generateWorkspaceId('EVT'),
+      task_id: task.task_id,
+      project_id: task.project_id,
+      type,
+      text,
+      actor: options.actor || 'workspace',
+      source: options.source || 'workspace',
+      target_id: options.target_id || '',
+      linked_artifact_id: options.linked_artifact_id || '',
+      linked_file_id: options.linked_file_id || '',
+      linked_approval_id: options.linked_approval_id || '',
+      risk_level: options.risk_level || (type === 'approval_event' ? 'approval_required' : 'safe'),
+      created_at: options.created_at || new Date().toISOString()
+    }, task);
+    task.events.push(event);
+    if (!options.skip_touch) task.updated_at = event.created_at;
+    return event;
   },
 
   createWorkPreview() {
@@ -1146,7 +3871,7 @@ const App = {
       mode = selected.mode === 'prepare_task' ? 'prepare_task' : 'analysis';
       quality = 'maximum';
       nextStep = 'Разложить задачу на безопасный минимальный v1';
-      criteria = ['Direct Mode не сломан', 'Personal fallback сохранён', 'нет сетевых изменений'];
+      criteria = ['Direct Mode не сломан', 'legacy Personal не удалён', 'нет сетевых изменений'];
       risks = ['можно задеть стабильный runtime'];
     }
 
@@ -1253,6 +3978,32 @@ const App = {
       title: this.workPreview.title,
       goal: this.workPreview.user_request,
       user_request: this.workPreview.user_request,
+      input_source: this.workPreview.input_source || 'keyboard',
+      original_transcript: this.workPreview.original_transcript || '',
+      normalized_text: this.workPreview.normalized_text || this.workPreview.user_request,
+      intent_preview: {
+        transcript: this.workPreview.original_transcript || '',
+        intent: 'create_task',
+        entities: {
+          project_id: this.workPreview.project_id,
+          mode: this.workPreview.mode,
+          quality_level: this.workPreview.quality_level
+        },
+        confidence: this.workPreview.input_source === 'voice' ? 'high' : 'manual',
+        risk: 'safe',
+        status: 'confirmed'
+      },
+      voice_event_type: this.workPreview.input_source === 'voice' ? 'voice_task_preview_confirmed' : '',
+      device_context: {
+        device_ids: [],
+        required_capabilities: [],
+        device_events: []
+      },
+      runtime: {
+        schema_version: 1,
+        source: 'task_runtime_v1',
+        persistence: this.taskRuntimeReady ? 'indexeddb' : 'localStorage_fallback'
+      },
       mode: this.workPreview.mode,
       quality_level: this.workPreview.quality_level,
       status: 'created',
@@ -1308,11 +4059,28 @@ const App = {
       },
       approval_required: 'ожидает решения владельца',
       approval_requests: [],
+      brain_council: {
+        status: 'not_started',
+        prompt_packages: [],
+        answers: [],
+        comparison: null,
+        strategist_synthesis: null,
+        integrity_status: 'not_checked',
+        updated_at: ''
+      },
       audit_log: []
     };
+    this.ensureTaskStorageManifest(task);
     this.addWorkAudit(task, 'Preview показан пользователю.');
     this.addWorkAudit(task, 'Preview подтвержден.');
     this.addWorkspaceMessage(task, 'system_event', 'Рабочее окно', 'Задача создана. Preview подтверждён владельцем.');
+    if (task.input_source === 'voice') {
+      this.recordTaskEvent(task, 'voice_command', `Задача создана из голосового preview: ${this.safeVoiceTranscript(task.original_transcript)}`, {
+        actor: 'Mina Voice',
+        source: 'voice',
+        risk_level: 'safe'
+      });
+    }
     this.createArtifact(
       task,
       'SPEC',
@@ -1373,6 +4141,9 @@ const App = {
 
   renderWorkSimpleHtml(task) {
     const plan = this.buildShortWorkPlan(task);
+    const gate = this.acceptanceGateStatus(task);
+    const evidenceGate = this.verifierEvidenceGate(task);
+    const qualityGate = this.verifierQualityGate(task);
     return `
       <dl class="work-details">
         <div><dt>Проект</dt><dd>${this.escapeHtml(this.projectName(task.project_id))}</dd></div>
@@ -1381,7 +4152,11 @@ const App = {
         <div><dt>Лучший следующий шаг</dt><dd>${this.escapeHtml(task.next_step)}</dd></div>
         <div><dt>Краткий план</dt><dd>${this.escapeHtml(plan)}</dd></div>
         <div><dt>Проверка</dt><dd>${this.escapeHtml(this.verifierVerdictName(task.verifier_result))}</dd></div>
+        <div><dt>Evidence gate</dt><dd>${this.escapeHtml(evidenceGate.label)}</dd></div>
+        <div><dt>Quality gate</dt><dd>${this.escapeHtml(qualityGate.label)}</dd></div>
+        <div><dt>Приёмка</dt><dd>${this.escapeHtml(gate.label)}</dd></div>
       </dl>
+      ${gate.ready ? '' : `<p class="workspace-gate-note">${this.escapeHtml(gate.reason)}</p>`}
     `;
   },
 
@@ -1393,8 +4168,129 @@ const App = {
     ].join(' ');
   },
 
+  acceptanceGateStatus(task) {
+    const verifierOk = ['PASS', 'PASS_WITH_RISKS'].includes(task.verifier_result);
+    const memoryHandled = ['saved_local', 'skipped', 'не сохранять'].includes(task.memory_preview?.status || task.memory_status);
+    const evidenceGate = this.verifierEvidenceGate(task);
+    const qualityGate = this.verifierQualityGate(task);
+    const pendingApprovals = (task.approval_requests || []).some((approval) => ['manual_required', 'pending'].includes(approval.status));
+
+    if (pendingApprovals) {
+      return { ready: false, label: 'ждёт approval', reason: 'Есть pending approval-запросы. Принятие результата заблокировано.' };
+    }
+    if (!verifierOk) {
+      return { ready: false, label: 'нужен Verifier PASS', reason: 'Для приёмки нужен verdict PASS или PASS_WITH_RISKS.' };
+    }
+    if (!evidenceGate.ok && !(evidenceGate.honestAbsence && task.verifier_result === 'PASS_WITH_RISKS')) {
+      return { ready: false, label: evidenceGate.label, reason: evidenceGate.reason };
+    }
+    if (!qualityGate.ok && task.verifier_result === 'PASS') {
+      return { ready: false, label: qualityGate.label, reason: qualityGate.reason };
+    }
+    if (!memoryHandled) {
+      return { ready: false, label: 'нужно обработать память', reason: 'Перед приёмкой нужно сохранить или осознанно пропустить Memory Preview.' };
+    }
+    return {
+      ready: true,
+      label: task.verifier_result === 'PASS_WITH_RISKS' ? 'можно принять с рисками' : 'можно принять',
+      reason: 'Ключевые gates закрыты.'
+    };
+  },
+
+  verifierEvidenceGate(task, input = null) {
+    const notes = input ? { evidence: input.evidence || '', report: input.report || '' } : this.normalizedVerifierNotes(task || {});
+    const evidenceText = String(notes.evidence || '').trim();
+    const files = Array.isArray(task?.files) ? task.files : [];
+    const artifacts = Array.isArray(task?.artifacts) ? task.artifacts : [];
+    const hasEvidenceFile = files.some((file) => file.is_evidence || ['evidence', 'result_archive', 'verifier_input'].includes(file.role));
+    const hasEvidenceArtifact = artifacts.some((artifact) => (
+      ['RESULT_ARCHIVE', 'SCREENSHOT'].includes(artifact.type)
+      || (artifact.type === 'CHECK_LOG' && artifact.source !== 'privacy_guard')
+    ));
+    const hasEvidencePath = /(?:[A-Z]:\\|\/|\.zip\b|\.7z\b|\.rar\b|\.png\b|\.jpg\b|\.jpeg\b|\.webp\b|\.log\b|evidence|artifact|archive|screenshot|скрин|архив|лог|путь)/i.test(evidenceText);
+    const declaresNoEvidence = /(?:нет|отсутств|не прилож|no)\s+(?:evidence|доказ|архив|скрин)|(?:evidence|архив|скрин|доказ)\s+(?:нет|отсутств|не прилож|no)/i.test(evidenceText);
+    const hasEvidenceDescription = evidenceText.length >= 12 && !declaresNoEvidence && (hasEvidencePath || /(?:приложен|создан|сохранен|сохранён|проверен|attached|provided)/i.test(evidenceText));
+
+    if (hasEvidenceFile || hasEvidenceArtifact || hasEvidenceDescription) {
+      return {
+        ok: true,
+        honestAbsence: false,
+        label: 'evidence есть',
+        reason: 'Есть evidence-файл, проверочный artifact или описанный путь/архив.'
+      };
+    }
+
+    if (declaresNoEvidence) {
+      return {
+        ok: false,
+        honestAbsence: true,
+        label: 'evidence с риском',
+        reason: 'Evidence честно указан как отсутствующий. Чистый PASS запрещён; допустима только приёмка с риском после решения владельца.'
+      };
+    }
+
+    return {
+      ok: false,
+      honestAbsence: false,
+      label: 'нужно evidence',
+      reason: 'Для важной задачи нужен evidence-файл, проверочный artifact, архив, скрин, лог или явное описание приложенного доказательства.'
+    };
+  },
+
+  verifierQualityGate(task, input = null, findings = null) {
+    const notes = input ? {
+      report: input.report || '',
+      evidence: input.evidence || '',
+      first_check: input.first_check || ''
+    } : this.normalizedVerifierNotes(task || {});
+    const checklist = input?.checklist || task?.verifier_checklist || {};
+    const risks = input?.risks || this.normalizedVerifierRisks(task || {});
+    const text = [notes.report, notes.evidence, notes.first_check].join('\n');
+    const hasReport = notes.report.trim().length >= 80;
+    const hasChecks = this.verifierHasCheckSignals(text);
+    const hasFirstCheck = notes.first_check.trim().length >= 8;
+    const hasBlockingFindings = (findings || task?.verifier_gate_findings || []).some((finding) => finding.blocksPass || finding.severity === 'danger');
+    const coreChecklistOk = ['evidence_archive', 'checks_passed', 'no_ai_api', 'no_env_secrets', 'result_archive_path', 'first_check', 'acceptance_decision_ready']
+      .every((id) => Boolean(checklist[id]));
+    const riskTextOk = ![risks.not_checked, risks.manual_review, risks.can_break].some(Boolean) || task?.verifier_result === 'PASS_WITH_RISKS';
+
+    if (hasReport && hasChecks && hasFirstCheck && coreChecklistOk && !hasBlockingFindings && riskTextOk) {
+      return { ok: true, label: 'quality gate закрыт', reason: 'Отчёт, проверки, evidence gate и ключевой checklist согласованы.' };
+    }
+
+    return {
+      ok: false,
+      label: 'quality gate не закрыт',
+      reason: 'Для clean PASS нужны содержательный отчёт, явные проверки, первый шаг проверки, ключевой checklist и отсутствие blocking findings.'
+    };
+  },
+
+  verifierHasCheckSignals(text) {
+    return /(?:node\s+--check|npm\s+test|pytest|pass\b|smoke|syntax|lint|регресс|провер|тест|ручн|desktop|mobile|overflow|скрин|screenshot|verifier|qa)/i.test(String(text || ''));
+  },
+
+  verifierHasChangedFileSignals(text) {
+    return /(?:webapp\/|direct-bridge\/|local-agent\/|runtime\/|docs\/|evidence\/|memory\/|[A-Za-z0-9_-]+\.(?:js|mjs|cjs|html|css|md|json|toml|yml|yaml|ps1|py|ts))/i.test(String(text || ''));
+  },
+
+  verifierHasMojibakeSignals(text) {
+    const pattern = /(?:\u0420[\u045E\u045F\u00A0\u00B0-\u00BF\u0402-\u040F]|\u0421[\u2018\u2019\u0451\u0401\u0402-\u040F])/;
+    return pattern.test(String(text || ''));
+  },
+
+  verifierHasDisallowedAiApiSignals(text) {
+    const source = String(text || '');
+    const mentionsAiApi = /\b(?:openai|api\.openai|gemini\s+api|deepseek\s+api|openrouter|embedding|embeddings|authorization\s*:\s*bearer)\b/i.test(source);
+    if (!mentionsAiApi) return false;
+
+    const safeNegation = /(?:AI API|OpenAI API|Gemini API|DeepSeek API|OpenRouter|embedding|embeddings)\s*[:=-]?\s*(?:не использ|не примен|не подключ|disabled|not used|no runtime calls)|(?:не использ|не примен|не подключ|без)\s.{0,60}(?:AI API|OpenAI|Gemini API|DeepSeek API|OpenRouter|embedding|embeddings)/i.test(source);
+    const explicitUse = /(?:использовал|использовали|применил|подключил|вызвал|runtime call|used|enabled|called|request to|authorization\s*:\s*bearer|sk-[A-Za-z0-9_-]{10,}|AIza[A-Za-z0-9_-]{10,})/i.test(source);
+    return explicitUse && !safeNegation;
+  },
+
   renderWorkspaceWindow(task) {
     if (!task) return;
+    this.ensureTaskStorageManifest(task);
     this.renderWorkspaceTop(task);
     this.renderWorkspaceTaskList();
     this.renderWorkspaceSummary(task);
@@ -1402,7 +4298,9 @@ const App = {
     this.renderWorkspaceTabs();
     this.renderWorkspaceFiles(task);
     this.renderWorkspaceArtifacts(task);
+    this.renderWorkspaceCouncil(task);
     this.renderWorkspaceMemory(task);
+    this.renderVoicePanel();
     this.updateWorkspaceTimer();
   },
 
@@ -1458,7 +4356,8 @@ const App = {
     const host = document.getElementById('workspace-history');
     if (!host) return;
     const messages = Array.isArray(task.messages) ? task.messages : [];
-    const audit = Array.isArray(task.audit_log) ? task.audit_log.slice(-8) : [];
+    const hasRuntimeEvents = Array.isArray(task.events) && task.events.length;
+    const audit = !hasRuntimeEvents && Array.isArray(task.audit_log) ? task.audit_log.slice(-8) : [];
     const auditMessages = audit.map((text, index) => ({
       message_id: `audit-${index}`,
       type: 'system_event',
@@ -1466,7 +4365,18 @@ const App = {
       text,
       created_at: task.updated_at || task.created_at
     }));
-    const combined = [...messages, ...auditMessages]
+    const messageIds = new Set(messages.map((message) => message.message_id));
+    const eventMessages = hasRuntimeEvents ? task.events
+      .filter((event) => event.source !== 'message' || !messageIds.has(event.target_id))
+      .map((event) => ({
+        message_id: event.event_id,
+        type: event.type || 'system_event',
+        author: event.actor || 'Runtime',
+        text: event.text || 'событие',
+        created_at: event.created_at || task.updated_at
+      })) : [];
+    const combined = [...messages, ...eventMessages, ...auditMessages]
+      .filter((message, index, list) => list.findIndex((item) => item.message_id === message.message_id) === index)
       .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
 
     host.innerHTML = combined.length ? combined.map((message) => `
@@ -1498,10 +4408,12 @@ const App = {
   renderWorkspaceFiles(task) {
     const host = document.getElementById('workspace-files-list');
     if (!host) return;
+    this.renderWorkspaceStorageManifest(task);
     const files = Array.isArray(task.files) ? task.files : [];
     host.innerHTML = files.length ? files.map((file) => {
       const runtime = this.workspaceFileRuntime.get(file.file_id) || {};
       const preview = this.renderWorkspaceFilePreview(file, runtime);
+      const storage = this.fileStorageSummary(file);
       const roles = WORK_FILE_ROLES.map((role) => `
         <option value="${this.escapeHtml(role.id)}" ${file.role === role.id ? 'selected' : ''}>${this.escapeHtml(role.name)}</option>
       `).join('');
@@ -1510,6 +4422,7 @@ const App = {
           <div class="workspace-file-main">
             <strong>${this.escapeHtml(file.name)}</strong>
             <span>${this.escapeHtml(file.extension || 'file')} · ${this.escapeHtml(file.human_size || '0 B')} · ${this.escapeHtml(file.status || 'attached')}</span>
+            <span>${this.escapeHtml(storage)}</span>
             ${preview}
           </div>
           <label>
@@ -1528,6 +4441,40 @@ const App = {
     }).join('') : '<p class="workspace-empty">Файлы пока не прикреплены. В v1 после перезагрузки доступны только metadata.</p>';
   },
 
+  renderWorkspaceStorageManifest(task) {
+    const host = document.getElementById('workspace-storage-manifest');
+    if (!host || !task) return;
+    const manifest = this.ensureTaskStorageManifest(task);
+    const summary = this.taskStorageSummary(task);
+    host.innerHTML = `
+      <section class="storage-manifest-card">
+        <div class="workspace-panel-head">
+          <strong>Хранилище задачи</strong>
+          <span>${this.escapeHtml(manifest.status_label || 'metadata-only')}</span>
+        </div>
+        <dl class="storage-manifest-grid">
+          <div><dt>Task path</dt><dd>${this.escapeHtml(manifest.task_path)}</dd></div>
+          <div><dt>Policy</dt><dd>${this.escapeHtml(manifest.raw_file_policy)}</dd></div>
+          <div><dt>Files</dt><dd>${this.escapeHtml(`${summary.files} metadata · ${summary.evidence} evidence · ${summary.hashed} hash`)}</dd></div>
+          <div><dt>Restore points</dt><dd>${this.escapeHtml(String(summary.restore_points))}</dd></div>
+        </dl>
+        <div class="storage-folder-grid">
+          ${manifest.folders.map((folder) => `
+            <article>
+              <span>${this.escapeHtml(folder.label)}</span>
+              <strong>${this.escapeHtml(folder.path)}</strong>
+            </article>
+          `).join('')}
+        </div>
+        <p>В браузере сохраняются только metadata, planned paths и hashes. Реальные файлы на D будет переносить Local Agent в следующем слое после approval.</p>
+        <div class="workspace-file-actions">
+          <button type="button" data-workspace-action="copy_storage_manifest">Скопировать карту</button>
+          <button type="button" data-workspace-action="create_restore_point">Создать restore point</button>
+        </div>
+      </section>
+    `;
+  },
+
   renderWorkspaceFilePreview(file, runtime) {
     if (runtime.previewType === 'image' && runtime.objectUrl) {
       return `<img class="workspace-file-thumb" src="${this.escapeHtml(runtime.objectUrl)}" alt="">`;
@@ -1541,17 +4488,215 @@ const App = {
     return '<p class="workspace-file-note">Файл прикреплён к текущей сессии. Постоянное файловое хранилище будет добавлено позже.</p>';
   },
 
+  ensureTaskStorageManifest(task) {
+    const now = new Date().toISOString();
+    const taskPath = this.taskStoragePath(task.task_id);
+    const existing = task.storage_manifest && typeof task.storage_manifest === 'object' ? task.storage_manifest : {};
+    const manifest = {
+      schema_version: TASK_STORAGE_SCHEMA_VERSION,
+      storage_root: TERMINATOR_STORAGE_ROOT,
+      task_path: taskPath,
+      status: existing.status || 'planned',
+      status_label: 'metadata-only / ждёт Local Agent storage',
+      persistence: 'browser_runtime_metadata',
+      raw_file_policy: 'raw/base64 не хранить в localStorage',
+      local_agent_required: true,
+      created_at: existing.created_at || task.created_at || now,
+      updated_at: now,
+      folders: TASK_STORAGE_SUBFOLDERS.map((folder) => ({
+        id: folder,
+        label: TASK_STORAGE_FOLDER_LABELS[folder] || folder,
+        path: this.taskStoragePath(task.task_id, folder),
+        status: existing.folders?.find?.((item) => item.id === folder)?.status || 'planned'
+      }))
+    };
+    task.storage_manifest = manifest;
+    task.storage_policy = {
+      ...(task.storage_policy || {}),
+      root: TERMINATOR_STORAGE_ROOT,
+      task_path: taskPath,
+      browser_persistence: 'metadata_only',
+      local_agent_storage: 'future_required',
+      raw_files_in_localStorage: false,
+      hash_policy: `browser SHA-256 до ${this.humanFileSize(FILE_HASH_MAX_BYTES)}, дальше Local Agent`
+    };
+    return manifest;
+  },
+
+  taskStoragePath(taskId, folder = '') {
+    const base = `${TERMINATOR_STORAGE_ROOT}\\tasks\\${this.safeStorageSegment(taskId || 'TASK-UNKNOWN')}`;
+    return folder ? `${base}\\${folder}` : base;
+  },
+
+  safeStorageSegment(value) {
+    return String(value || 'item')
+      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_')
+      .replace(/\s+/g, '_')
+      .slice(0, 120);
+  },
+
+  plannedFileStoragePath(task, file) {
+    const folderByRole = {
+      evidence: 'evidence',
+      verifier_input: 'evidence',
+      result_archive: 'reports',
+      executor_package: 'files',
+      memory_candidate: 'artifacts',
+      research_source: 'files',
+      spec: 'files',
+      attachment: 'files'
+    };
+    const folder = folderByRole[file.role] || 'files';
+    const safeName = this.safeStorageSegment(`${file.file_id}_${file.name || 'file'}`);
+    return this.taskStoragePath(task.task_id, folder) + '\\' + safeName;
+  },
+
+  updateFileStorageRef(task, file) {
+    const folder = file.role === 'evidence' || file.role === 'verifier_input'
+      ? 'evidence'
+      : file.role === 'result_archive'
+        ? 'reports'
+        : 'files';
+    file.storage_ref = {
+      root: TERMINATOR_STORAGE_ROOT,
+      task_path: this.taskStoragePath(task.task_id),
+      folder,
+      planned_path: this.plannedFileStoragePath(task, file),
+      persistence: 'metadata_only_browser',
+      raw_file_saved: false,
+      local_agent_required: true,
+      updated_at: new Date().toISOString()
+    };
+    return file.storage_ref;
+  },
+
+  taskStorageSummary(task) {
+    const files = Array.isArray(task.files) ? task.files : [];
+    const artifacts = Array.isArray(task.artifacts) ? task.artifacts : [];
+    return {
+      files: files.length,
+      evidence: files.filter((file) => file.is_evidence).length,
+      hashed: files.filter((file) => file.hash_status === 'calculated_session').length,
+      hash_pending: files.filter((file) => file.hash_status && file.hash_status !== 'calculated_session').length,
+      artifacts: artifacts.length,
+      restore_points: artifacts.filter((artifact) => artifact.type === 'RESTORE_POINT').length
+    };
+  },
+
+  fileStorageSummary(file) {
+    const hash = file.sha256 ? `SHA-256 ${file.sha256.slice(0, 12)}...` : this.hashStatusName(file.hash_status);
+    const path = file.storage_ref?.planned_path || 'planned path не задан';
+    return `${hash} · ${path}`;
+  },
+
+  hashStatusName(status) {
+    const names = {
+      calculated_session: 'hash рассчитан',
+      pending_local_agent: 'hash рассчитает Local Agent',
+      unavailable: 'hash недоступен',
+      skipped_large_file: 'hash позже для большого файла'
+    };
+    return names[status] || 'hash ожидает';
+  },
+
+  localStorageSnapshotText() {
+    try {
+      const parts = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        parts.push(`${key}: ${window.localStorage.getItem(key) || ''}`);
+      }
+      return parts.join('\n');
+    } catch {
+      return '';
+    }
+  },
+
+  buildStorageManifestText(task) {
+    const manifest = this.ensureTaskStorageManifest(task);
+    const summary = this.taskStorageSummary(task);
+    const files = (task.files || []).map((file) => [
+      `- ${file.name}`,
+      `  role: ${this.fileRoleName(file.role)}`,
+      `  size: ${file.human_size}`,
+      `  hash: ${file.sha256 || this.hashStatusName(file.hash_status)}`,
+      `  planned_path: ${file.storage_ref?.planned_path || this.plannedFileStoragePath(task, file)}`,
+      `  raw_file_saved: false`
+    ].join('\n')).join('\n') || '- файлов пока нет';
+    return [
+      '# Storage Manifest',
+      '',
+      `task_id: ${task.task_id}`,
+      `task_path: ${manifest.task_path}`,
+      `policy: ${manifest.raw_file_policy}`,
+      `browser_persistence: ${manifest.persistence}`,
+      `files: ${summary.files}`,
+      `evidence: ${summary.evidence}`,
+      `hashed: ${summary.hashed}`,
+      '',
+      '## Folders',
+      ...manifest.folders.map((folder) => `- ${folder.label}: ${folder.path}`),
+      '',
+      '## Files',
+      files,
+      '',
+      '## Ограничение v1',
+      '- браузер хранит только metadata/hash/planned paths;',
+      '- реальные файлы не пишутся в localStorage;',
+      '- постоянное хранение на D подключается через Local Agent storage в следующем слое.'
+    ].join('\n');
+  },
+
+  copyStorageManifest(task) {
+    const text = this.buildStorageManifestText(task);
+    this.copyWorkspaceText(text);
+    this.addWorkspaceMessage(task, 'system_event', 'Хранилище', 'Storage manifest скопирован.');
+    this.addWorkAudit(task, 'Storage manifest скопирован.');
+  },
+
+  createStorageRestorePoint(task) {
+    const manifestText = this.buildStorageManifestText(task);
+    const content = [
+      '# Restore Point',
+      '',
+      `task_id: ${task.task_id}`,
+      `created_at: ${new Date().toISOString()}`,
+      `status: ${task.status}`,
+      '',
+      '## Storage',
+      manifestText,
+      '',
+      '## Runtime snapshot',
+      `messages: ${(task.messages || []).length}`,
+      `events: ${(task.events || []).length}`,
+      `files: ${(task.files || []).length}`,
+      `artifacts: ${(task.artifacts || []).length}`,
+      '',
+      'Note: это metadata restore point. Raw файлы в браузере не сохранялись.'
+    ].join('\n');
+    const artifact = this.createArtifact(task, 'RESTORE_POINT', 'Restore point задачи', 'Metadata restore point для runtime/storage состояния.', content, 'storage');
+    artifact.status = 'ready';
+    this.addWorkspaceMessage(task, 'system_event', 'Хранилище', 'Создан restore point metadata.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.addWorkAudit(task, 'Создан storage restore point.');
+    this.toast('Restore point создан');
+  },
+
   renderWorkspaceArtifacts(task) {
     const host = document.getElementById('workspace-artifacts-list');
     const previewWrap = document.getElementById('workspace-context-preview-wrap');
     const preview = document.getElementById('workspace-context-preview');
     if (!host) return;
     const artifacts = Array.isArray(task.artifacts) ? task.artifacts : [];
-    host.innerHTML = artifacts.length ? artifacts.map((artifact) => `
+    host.innerHTML = artifacts.length ? artifacts.map((artifact) => {
+      const privacy = artifact.privacy_scan ? ` · Privacy: ${this.privacyScanSummary(artifact.privacy_scan)}` : '';
+      return `
       <article class="workspace-artifact-card">
         <div>
           <strong>${this.escapeHtml(artifact.title)}</strong>
-          <span>${this.escapeHtml(this.artifactTypeName(artifact.type))} · ${this.escapeHtml(artifact.status || 'draft')} · ${this.escapeHtml(this.formatTaskTime(artifact.created_at))}</span>
+          <span>${this.escapeHtml(this.artifactTypeName(artifact.type))} · ${this.escapeHtml(artifact.status || 'draft')} · ${this.escapeHtml(this.formatTaskTime(artifact.created_at))}${this.escapeHtml(privacy)}</span>
           <p>${this.escapeHtml(artifact.summary || 'нет краткого описания')}</p>
         </div>
         <div class="workspace-file-actions">
@@ -1559,12 +4704,440 @@ const App = {
           <button type="button" data-artifact-action="copy" data-artifact-id="${this.escapeHtml(artifact.artifact_id)}">Копировать</button>
         </div>
       </article>
-    `).join('') : '<p class="workspace-empty">Артефакты появятся после создания пакета, отчёта или проверки.</p>';
+    `;
+    }).join('') : '<p class="workspace-empty">Артефакты появятся после создания пакета, отчёта или проверки.</p>';
     const contextPack = artifacts.find((artifact) => artifact.type === 'CONTEXT_PACK' && artifact.status !== 'archived');
     if (previewWrap && preview) {
       previewWrap.hidden = !contextPack;
       preview.value = contextPack?.content || '';
     }
+  },
+
+  renderWorkspaceCouncil(task) {
+    const host = document.getElementById('workspace-council-panel');
+    if (!host) return;
+    this.ensureBrainCouncilState(task);
+    const council = task.brain_council;
+    const packages = council.prompt_packages || [];
+    const answers = council.answers || [];
+    const comparison = council.comparison;
+    const synthesis = council.strategist_synthesis;
+    host.innerHTML = `
+      <section class="brainops-status-grid">
+        <article>
+          <span>Режим</span>
+          <strong>ручной совет</strong>
+          <p>Терминатор готовит пакеты. Пользователь копирует их во внешние чаты и вставляет ответы обратно.</p>
+        </article>
+        <article>
+          <span>AI API</span>
+          <strong>не используются</strong>
+          <p>Нет backend-вызовов, токенов, внешних API или скрытой отправки данных.</p>
+        </article>
+        <article>
+          <span>Integrity</span>
+          <strong>${this.escapeHtml(this.brainIntegrityName(council.integrity_status))}</strong>
+          <p>${this.escapeHtml(this.brainCouncilStatusText(task))}</p>
+        </article>
+      </section>
+
+      <section class="brainops-roles">
+        ${BRAIN_ROLES.map((role) => this.renderBrainRoleCard(role, packages, answers)).join('')}
+      </section>
+
+      <section class="brainops-panel-block">
+        <div class="workspace-panel-head">
+          <strong>Ответ мозга</strong>
+          <span>Вставка вручную</span>
+        </div>
+        <label class="work-field">
+          <span>Мозг</span>
+          <select id="workspace-brain-role">
+            ${BRAIN_ROLES.map((role) => `<option value="${this.escapeHtml(role.id)}">${this.escapeHtml(role.brain)} — ${this.escapeHtml(role.role)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="work-field">
+          <span>Ответ</span>
+          <textarea id="workspace-brain-answer" placeholder="Вставьте ответ ChatGPT / Gemini / DeepSeek / Qwen."></textarea>
+        </label>
+        <div class="work-actions">
+          <button type="button" data-workspace-action="save_brain_answer">Сохранить ответ</button>
+          <button type="button" data-workspace-action="build_brain_comparison">Сравнить ответы</button>
+          <button type="button" data-workspace-action="create_brain_decision">Создать паспорт решения</button>
+        </div>
+      </section>
+
+      <section class="brainops-panel-block">
+        <div class="workspace-panel-head">
+          <strong>Ответы</strong>
+          <span>${answers.length}</span>
+        </div>
+        <div class="brainops-answer-list">
+          ${answers.length ? answers.map((answer) => this.renderBrainAnswerCard(answer)).join('') : '<p class="workspace-empty">Ответы появятся после ручной вставки.</p>'}
+        </div>
+      </section>
+
+      <section class="brainops-panel-block">
+        <div class="workspace-panel-head">
+          <strong>Сравнение</strong>
+          <span>${comparison ? 'готово' : 'ожидает ответов'}</span>
+        </div>
+        ${comparison ? this.renderBrainComparison(comparison) : '<p class="workspace-empty">Нужно минимум два ответа для полезного сравнения.</p>'}
+      </section>
+
+      <section class="brainops-panel-block">
+        <div class="workspace-panel-head">
+          <strong>Паспорт решения</strong>
+          <span>${synthesis ? 'создан' : 'не создан'}</span>
+        </div>
+        ${synthesis ? `<pre class="brainops-decision">${this.escapeHtml(synthesis.content)}</pre>` : '<p class="workspace-empty">Паспорт решения создаётся после сравнения или хотя бы одного ответа.</p>'}
+      </section>
+    `;
+  },
+
+  renderBrainRoleCard(role, packages, answers) {
+    const pack = packages.find((item) => item.role_id === role.id);
+    const answer = answers.find((item) => item.role_id === role.id);
+    return `
+      <article class="brainops-role-card">
+        <div class="brainops-role-mark">${this.escapeHtml(role.short)}</div>
+        <div>
+          <strong>${this.escapeHtml(role.brain)}</strong>
+          <span>${this.escapeHtml(role.role)}</span>
+          <p>${this.escapeHtml(role.mission)}</p>
+          <small>${this.escapeHtml(role.focus)}</small>
+        </div>
+        <div class="brainops-role-actions">
+          <button type="button" data-workspace-action="copy_brain_prompt" data-brain-role="${this.escapeHtml(role.id)}" ${pack ? '' : 'disabled'}>Скопировать пакет</button>
+          <span>${pack ? 'пакет готов' : 'нет пакета'} · ${answer ? 'ответ сохранён' : 'нет ответа'}</span>
+        </div>
+      </article>
+    `;
+  },
+
+  renderBrainAnswerCard(answer) {
+    const role = BRAIN_ROLE_BY_ID[answer.role_id] || {};
+    return `
+      <article class="brainops-answer-card">
+        <div>
+          <strong>${this.escapeHtml(role.brain || answer.brain || answer.role_id)}</strong>
+          <span>${this.escapeHtml(role.role || answer.role || 'роль не задана')} · ${this.escapeHtml(this.brainIntegrityName(answer.integrity?.status))}</span>
+          <p>${this.escapeHtml(answer.summary || 'краткое резюме не выделено')}</p>
+        </div>
+        <small>${this.escapeHtml(this.formatTaskTime(answer.created_at))}</small>
+      </article>
+    `;
+  },
+
+  renderBrainComparison(comparison) {
+    return `
+      <dl class="brainops-comparison">
+        <div><dt>Общее</dt><dd>${this.escapeHtml(comparison.consensus || 'не найдено')}</dd></div>
+        <div><dt>Расхождения</dt><dd>${this.escapeHtml(this.listOrFallback(comparison.disagreements, 'нет данных'))}</dd></div>
+        <div><dt>Риски</dt><dd>${this.escapeHtml(this.listOrFallback(comparison.risks, 'нет данных'))}</dd></div>
+        <div><dt>Лучший следующий шаг</dt><dd>${this.escapeHtml(comparison.next_step || 'не задано')}</dd></div>
+      </dl>
+    `;
+  },
+
+  ensureBrainCouncilState(task) {
+    task.brain_council = task.brain_council && typeof task.brain_council === 'object' ? task.brain_council : {};
+    task.brain_council.status = task.brain_council.status || 'not_started';
+    task.brain_council.prompt_packages = Array.isArray(task.brain_council.prompt_packages) ? task.brain_council.prompt_packages : [];
+    task.brain_council.answers = Array.isArray(task.brain_council.answers) ? task.brain_council.answers : [];
+    task.brain_council.comparison = task.brain_council.comparison || null;
+    task.brain_council.strategist_synthesis = task.brain_council.strategist_synthesis || null;
+    task.brain_council.integrity_status = task.brain_council.integrity_status || 'not_checked';
+    return task.brain_council;
+  },
+
+  buildBrainPromptPackages(task) {
+    const council = this.ensureBrainCouncilState(task);
+    const createdAt = new Date().toISOString();
+    council.prompt_packages = BRAIN_ROLES.map((role) => {
+      const existing = council.prompt_packages.find((item) => item.role_id === role.id);
+      return {
+        package_id: existing?.package_id || this.generateWorkspaceId('BRAINPROMPT'),
+        role_id: role.id,
+        brain: role.brain,
+        role: role.role,
+        content: this.buildBrainPromptText(task, role),
+        created_at: existing?.created_at || createdAt,
+        updated_at: createdAt,
+        status: 'ready'
+      };
+    });
+    council.status = 'prompts_ready';
+    council.updated_at = createdAt;
+    const artifact = this.createArtifact(
+      task,
+      'BRAIN_PROMPT_PACKAGE',
+      'Пакеты для Совета мозгов',
+      'Prompt packages для ChatGPT / Gemini / DeepSeek / Qwen. Отправка вручную.',
+      council.prompt_packages.map((pack) => `# ${pack.brain} — ${pack.role}\n\n${pack.content}`).join('\n\n---\n\n'),
+      'brainops'
+    );
+    artifact.status = 'ready';
+    this.addWorkspaceMessage(task, 'context_pack_created', 'Совет мозгов', 'Пакеты для Совета мозгов сформированы. Отправка только вручную.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.addWorkAudit(task, 'BrainOps prompt packages created.');
+    this.switchWorkspaceTab('council');
+    this.toast('Пакеты Совета готовы');
+  },
+
+  buildBrainPromptText(task, role) {
+    const evidence = (task.files || []).filter((file) => file.is_evidence || ['evidence', 'verifier_input', 'result_archive'].includes(file.role));
+    const artifacts = (task.artifacts || []).filter((artifact) => ['SPEC', 'CONTEXT_PACK', 'EXECUTOR_REPORT', 'VERIFIER_VERDICT', 'CHECK_LOG', 'DECISION_RECORD'].includes(artifact.type));
+    return [
+      `Ты работаешь как ${role.brain}: ${role.role} в Совете мозгов проекта Терминатор.`,
+      '',
+      'Правила:',
+      '- Не использовать AI API.',
+      '- Не предлагать опасные действия без Approval.',
+      '- Не просить секреты, токены, .env значения.',
+      '- Дай самостоятельную позицию, но учитывай роль Совета.',
+      '- Не пиши общие рассуждения без практического вывода.',
+      '',
+      `Фокус роли: ${role.focus}.`,
+      `Миссия роли: ${role.mission}`,
+      '',
+      'Задача:',
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      `title: ${task.title}`,
+      `goal: ${task.goal || task.user_request}`,
+      `status: ${this.statusName(task.status)}`,
+      `mode: ${this.modeName(task.mode)}`,
+      `quality: ${this.qualityName(task.quality_level)}`,
+      '',
+      'Контекст:',
+      `- next_step: ${task.next_step || 'не задано'}`,
+      `- readiness: ${this.listOrFallback(task.readiness_criteria, 'не задано')}`,
+      `- risks: ${this.listOrFallback(task.risks, 'не задано')}`,
+      `- forbidden_actions: ${this.listOrFallback(task.forbidden_actions, 'не задано')}`,
+      '',
+      'Артефакты:',
+      artifacts.length ? artifacts.map((artifact) => `- ${artifact.title} (${this.artifactTypeName(artifact.type)}, ${artifact.status || 'draft'})`).join('\n') : '- нет',
+      '',
+      'Evidence/files:',
+      evidence.length ? evidence.map((file) => `- ${file.name} (${this.fileRoleName(file.role)}, ${file.hash_status || 'hash не задан'})`).join('\n') : '- нет evidence',
+      '',
+      'Ответь строго в формате:',
+      '1. Позиция роли.',
+      '2. Лучшее решение.',
+      '3. Риски и слабые места.',
+      '4. Что проверить первым.',
+      '5. Что нельзя делать.',
+      '6. Итоговый verdict роли.'
+    ].join('\n');
+  },
+
+  copyBrainPromptPackage(task, roleId) {
+    const council = this.ensureBrainCouncilState(task);
+    if (!council.prompt_packages.length) this.buildBrainPromptPackages(task);
+    const pack = council.prompt_packages.find((item) => item.role_id === roleId) || council.prompt_packages[0];
+    if (!pack) return;
+    const scan = this.scanPrivacyText(pack.content);
+    if (scan.findings.length) {
+      this.workspacePendingCopyText = pack.content;
+      this.workspacePendingPrivacyFindings = scan.findings;
+      this.renderPrivacyGuardFindings(scan.findings);
+      const guard = document.getElementById('workspace-privacy-guard');
+      if (guard) guard.hidden = false;
+      this.addWorkspaceMessage(task, 'system_event', 'Privacy Guard', `Brain prompt требует проверки: ${this.privacyScanSummary(scan)}.`);
+      this.toast('Privacy Guard требует проверки');
+      return;
+    }
+    this.copyWorkspaceText(pack.content);
+    this.addWorkspaceMessage(task, 'system_event', 'Совет мозгов', `Скопирован пакет: ${pack.brain} / ${pack.role}.`);
+  },
+
+  saveBrainAnswer(task) {
+    const roleId = document.getElementById('workspace-brain-role')?.value || BRAIN_ROLES[0].id;
+    const textarea = document.getElementById('workspace-brain-answer');
+    const text = String(textarea?.value || '').trim();
+    const role = BRAIN_ROLE_BY_ID[roleId] || BRAIN_ROLES[0];
+    if (!text) {
+      this.toast('Вставь ответ мозга');
+      textarea?.focus();
+      return;
+    }
+    const council = this.ensureBrainCouncilState(task);
+    const integrity = this.checkBrainAnswerIntegrity(text, role);
+    const now = new Date().toISOString();
+    const answer = {
+      answer_id: this.generateWorkspaceId('BRAINANS'),
+      role_id: role.id,
+      brain: role.brain,
+      role: role.role,
+      content: text,
+      summary: this.summarizeBrainAnswer(text),
+      integrity,
+      created_at: now,
+      status: integrity.status === 'blocked' ? 'needs_review' : 'saved'
+    };
+    council.answers = (council.answers || []).filter((item) => item.role_id !== role.id);
+    council.answers.push(answer);
+    council.status = 'answers_collecting';
+    council.integrity_status = this.brainCouncilIntegrityStatus(council);
+    council.updated_at = now;
+    const artifact = this.createArtifact(task, 'BRAIN_ANSWER', role.artifact_title, answer.summary, text, 'brainops');
+    artifact.status = answer.status;
+    artifact.brain_role_id = role.id;
+    artifact.integrity = integrity;
+    this.addWorkspaceMessage(task, 'brain_answer', role.brain, `Ответ сохранён: ${role.role}. Integrity: ${this.brainIntegrityName(integrity.status)}.`, {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    if (textarea) textarea.value = '';
+    this.toast('Ответ Совета сохранён');
+  },
+
+  checkBrainAnswerIntegrity(text, role) {
+    const findings = [];
+    const source = String(text || '');
+    if (source.length < 120) findings.push('ответ слишком короткий для серьёзного решения');
+    if (!/(риск|опас|слаб|ошиб|risk)/i.test(source)) findings.push('нет явного блока рисков');
+    if (!/(провер|verify|check|qa|тест)/i.test(source)) findings.push('нет явного первого шага проверки');
+    if (!/(нельзя|запрещ|do not|avoid)/i.test(source)) findings.push('нет запретов / what not to do');
+    const privacy = this.scanPrivacyText(source);
+    if (privacy.findings.length) findings.push(`possible secret: ${this.privacyScanSummary(privacy)}`);
+    if (this.verifierHasDisallowedAiApiSignals(source)) findings.push('текст выглядит как использование AI API');
+    return {
+      role_id: role.id,
+      status: findings.some((item) => /secret|AI API/i.test(item)) ? 'blocked' : findings.length ? 'review' : 'pass',
+      findings,
+      checked_at: new Date().toISOString()
+    };
+  },
+
+  brainCouncilIntegrityStatus(council) {
+    const answers = council.answers || [];
+    if (!answers.length) return 'not_checked';
+    if (answers.some((answer) => answer.integrity?.status === 'blocked')) return 'blocked';
+    if (answers.some((answer) => answer.integrity?.status === 'review')) return 'review';
+    return 'pass';
+  },
+
+  brainIntegrityName(status) {
+    const names = {
+      not_checked: 'не проверено',
+      pass: 'PASS',
+      review: 'требует проверки',
+      blocked: 'заблокировано'
+    };
+    return names[status] || status || 'не проверено';
+  },
+
+  summarizeBrainAnswer(text) {
+    return String(text || '').replace(/\s+/g, ' ').trim().slice(0, 220) || 'ответ без summary';
+  },
+
+  buildBrainComparison(task) {
+    const council = this.ensureBrainCouncilState(task);
+    const answers = council.answers || [];
+    if (answers.length < 2) {
+      this.toast('Для сравнения нужно минимум два ответа');
+      return;
+    }
+    const riskAnswers = answers.filter((answer) => /(риск|опас|ошиб|слаб|risk)/i.test(answer.content));
+    const checkAnswers = answers.filter((answer) => /(провер|verify|check|qa|тест)/i.test(answer.content));
+    const consensus = answers.length >= 3
+      ? 'Есть несколько независимых позиций. Стратег должен выбрать золотую середину качества, рисков и скорости.'
+      : 'Есть начальное сравнение двух позиций. Для более сильного решения желательно добавить ещё один ответ.';
+    council.comparison = {
+      comparison_id: this.generateWorkspaceId('BRAINCOMP'),
+      answer_ids: answers.map((answer) => answer.answer_id),
+      consensus,
+      disagreements: answers.map((answer) => `${answer.brain}: ${answer.summary}`).slice(0, 4),
+      risks: riskAnswers.length ? riskAnswers.map((answer) => `${answer.brain}: риски указаны`) : ['Не все ответы явно указали риски'],
+      checks: checkAnswers.length ? checkAnswers.map((answer) => `${answer.brain}: есть проверочный фокус`) : ['Не все ответы указали проверки'],
+      next_step: 'Стратег формирует паспорт решения и список проверки первым.',
+      created_at: new Date().toISOString()
+    };
+    council.status = 'comparison_ready';
+    council.updated_at = council.comparison.created_at;
+    const artifact = this.createArtifact(
+      task,
+      'BRAIN_COMPARISON',
+      'Сравнение Совета мозгов',
+      council.comparison.consensus,
+      JSON.stringify(council.comparison, null, 2),
+      'brainops'
+    );
+    artifact.status = 'ready';
+    this.addWorkspaceMessage(task, 'brain_council', 'Совет мозгов', 'Сравнение ответов Совета создано.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.toast('Сравнение Совета готово');
+  },
+
+  createBrainDecisionPassport(task) {
+    const council = this.ensureBrainCouncilState(task);
+    const answers = council.answers || [];
+    if (!answers.length) {
+      this.toast('Сначала добавь ответы Совета');
+      return;
+    }
+    if (!council.comparison && answers.length >= 2) this.buildBrainComparison(task);
+    const strategist = answers.find((answer) => answer.role_id === 'chatgpt_strategy') || answers[0];
+    const content = [
+      '# Паспорт решения Совета мозгов',
+      '',
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      `created_at: ${new Date().toISOString()}`,
+      '',
+      '## Стратегическая позиция',
+      strategist.summary,
+      '',
+      '## Участники',
+      ...answers.map((answer) => `- ${answer.brain} / ${answer.role}: ${this.brainIntegrityName(answer.integrity?.status)}`),
+      '',
+      '## Сравнение',
+      council.comparison?.consensus || 'Сравнение не создано.',
+      '',
+      '## Риски',
+      council.comparison ? this.listOrFallback(council.comparison.risks, 'нет данных') : this.listOrFallback(task.risks, 'нет данных'),
+      '',
+      '## Что проверить первым',
+      council.comparison?.next_step || task.next_step || 'не задано',
+      '',
+      '## Запреты',
+      this.listOrFallback(task.forbidden_actions, 'не задано'),
+      '',
+      '## Decision',
+      'Решение требует подтверждения владельца. Автоматических действий не выполнялось.'
+    ].join('\n');
+    council.strategist_synthesis = {
+      synthesis_id: this.generateWorkspaceId('BRAINSYN'),
+      content,
+      strategist_answer_id: strategist.answer_id,
+      created_at: new Date().toISOString(),
+      status: 'draft'
+    };
+    council.status = 'decision_passport_ready';
+    council.updated_at = council.strategist_synthesis.created_at;
+    const artifact = this.createArtifact(task, 'STRATEGIST_SYNTHESIS', 'Паспорт решения Совета', 'Стратегический синтез ответов Совета мозгов.', content, 'brainops');
+    artifact.status = 'draft';
+    this.addWorkspaceMessage(task, 'decision', 'Совет мозгов', 'Паспорт решения Совета создан и ждёт решения владельца.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.toast('Паспорт решения создан');
+  },
+
+  brainCouncilStatusText(task) {
+    const council = this.ensureBrainCouncilState(task);
+    const answers = council.answers?.length || 0;
+    if (council.status === 'decision_passport_ready') return 'паспорт решения готов';
+    if (council.status === 'comparison_ready') return `сравнение готово, ответов: ${answers}`;
+    if (answers) return `ответы собираются: ${answers}`;
+    if (council.prompt_packages?.length) return 'prompt packages готовы';
+    return 'совет ещё не запускался';
   },
 
   renderWorkspaceMemory(task) {
@@ -1573,14 +5146,21 @@ const App = {
     const memory = task.memory_preview || {};
     if (status) status.textContent = memory.status || task.memory_status || 'ожидает данных';
     if (!host) return;
-    const linkedArtifacts = (memory.linked_artifact_ids || []).length || (task.artifacts || []).filter((artifact) => ['DECISION_RECORD', 'VERIFIER_VERDICT', 'EXECUTOR_REPORT'].includes(artifact.type)).length;
+    const linkedArtifacts = (memory.linked_artifact_ids || []).length || (task.artifacts || []).filter((artifact) => ['DECISION_RECORD', 'VERIFIER_VERDICT', 'EXECUTOR_REPORT', 'BRAIN_ANSWER', 'BRAIN_COMPARISON', 'STRATEGIST_SYNTHESIS'].includes(artifact.type)).length;
     const linkedFiles = (memory.linked_file_ids || []).length || (task.files || []).filter((file) => file.is_evidence).length;
+    const gate = this.acceptanceGateStatus(task);
+    const council = task.brain_council || {};
     host.innerHTML = `
       <dl class="work-details">
         <div><dt>Что сохранить</dt><dd>${this.escapeHtml(memory.summary || task.goal || task.user_request || 'не задано')}</dd></div>
         <div><dt>Решения</dt><dd>${this.escapeHtml(this.listOrFallback(memory.decisions, 'ожидает данных'))}</dd></div>
         <div><dt>Риски</dt><dd>${this.escapeHtml(this.listOrFallback(memory.risks || task.risks, 'не задано'))}</dd></div>
         <div><dt>Следующий шаг</dt><dd>${this.escapeHtml(memory.next_step || task.next_step || 'не задано')}</dd></div>
+        <div><dt>Verifier</dt><dd>${this.escapeHtml(this.verifierVerdictName(memory.verifier_result || task.verifier_result))}</dd></div>
+        <div><dt>Совет</dt><dd>${this.escapeHtml(this.brainCouncilStatusText(task))} · ${this.escapeHtml(this.brainIntegrityName(council.integrity_status || memory.brain_council?.integrity))}</dd></div>
+        <div><dt>Privacy</dt><dd>${this.escapeHtml(memory.privacy_status || task.privacy_guard?.status || task.verifier_privacy_scan?.status || 'not_checked')}</dd></div>
+        <div><dt>Приёмка</dt><dd>${this.escapeHtml(gate.label)}</dd></div>
+        <div><dt>Storage</dt><dd>${this.escapeHtml(memory.storage_manifest?.task_path || task.storage_manifest?.task_path || 'не задано')}</dd></div>
         <div><dt>Связанные artifacts</dt><dd>${linkedArtifacts ? String(linkedArtifacts) : 'нет artifacts'}</dd></div>
         <div><dt>Связанные files/evidence</dt><dd>${linkedFiles ? String(linkedFiles) : 'нет evidence'}</dd></div>
       </dl>
@@ -1599,7 +5179,11 @@ const App = {
 
   handleWorkspaceAction(action, sourceButton = null) {
     const task = this.getActiveWorkTask();
-    if (!task && action !== 'add_files') {
+    if (action === 'toggle_voice') {
+      this.toggleWorkspaceVoice();
+      return;
+    }
+    if (!task && !['add_files'].includes(action)) {
       this.toast('Сначала создай задачу');
       return;
     }
@@ -1621,7 +5205,14 @@ const App = {
       open_verifier: () => this.openVerifierPanel(task),
       save_memory_preview: () => this.saveWorkspaceMemoryPreview(task),
       edit_memory_preview: () => this.showWorkSafeOutput(task, 'Память', 'Редактирование Memory preview будет реализовано следующим этапом.', task.status),
-      skip_memory_preview: () => this.skipWorkspaceMemoryPreview(task)
+      skip_memory_preview: () => this.skipWorkspaceMemoryPreview(task),
+      copy_storage_manifest: () => this.copyStorageManifest(task),
+      create_restore_point: () => this.createStorageRestorePoint(task),
+      build_brain_prompts: () => this.buildBrainPromptPackages(task),
+      copy_brain_prompt: () => this.copyBrainPromptPackage(task, sourceButton?.dataset?.brainRole || ''),
+      save_brain_answer: () => this.saveBrainAnswer(task),
+      build_brain_comparison: () => this.buildBrainComparison(task),
+      create_brain_decision: () => this.createBrainDecisionPassport(task)
     };
 
     handlers[action]?.();
@@ -1666,7 +5257,19 @@ const App = {
       return;
     }
     if (action === 'copy') {
-      this.copyWorkspaceText(artifact.content || artifact.summary || artifact.title);
+      const content = artifact.content || artifact.summary || artifact.title;
+      const privacyScan = this.scanPrivacyText(content);
+      if (privacyScan.findings.length) {
+        this.workspacePendingCopyText = content;
+        this.workspacePendingPrivacyFindings = privacyScan.findings;
+        this.renderPrivacyGuardFindings(privacyScan.findings);
+        const guard = document.getElementById('workspace-privacy-guard');
+        if (guard) guard.hidden = false;
+        this.addWorkspaceMessage(task, 'system_event', 'Privacy Guard', `Копирование artifact требует проверки: ${this.privacyScanSummary(privacyScan)}.`);
+        this.toast('Privacy Guard требует проверки');
+        return;
+      }
+      this.copyWorkspaceText(content);
       this.addWorkspaceMessage(task, 'system_event', 'Артефакты', `Скопирован артефакт: ${artifact.title}`);
       this.saveWorkTasks();
       this.renderWorkTaskCard();
@@ -1689,7 +5292,10 @@ const App = {
     file.role = role;
     file.is_evidence = role === 'evidence';
     file.status = role === 'executor_package' ? 'ready_for_package' : 'attached';
-    this.addWorkspaceMessage(task, 'file_added', 'Файлы', `Файлу назначена роль: ${file.name} — ${this.fileRoleName(role)}`);
+    this.updateFileStorageRef(task, file);
+    this.addWorkspaceMessage(task, 'file_added', 'Файлы', `Файлу назначена роль: ${file.name} — ${this.fileRoleName(role)}`, {
+      linked_file_id: file.file_id
+    });
   },
 
   async addWorkspaceFiles(fileList) {
@@ -1703,9 +5309,13 @@ const App = {
 
     for (const file of files) {
       const metadata = this.createFileMetadata(task, file);
+      this.updateFileStorageRef(task, metadata);
+      await this.enrichFileMetadataWithHash(file, metadata);
       task.files.push(metadata);
       await this.prepareWorkspaceFileRuntime(file, metadata);
-      this.addWorkspaceMessage(task, 'file_added', 'Файлы', `Прикреплён файл: ${metadata.name}`);
+      this.addWorkspaceMessage(task, 'file_added', 'Файлы', `Прикреплён файл: ${metadata.name}`, {
+        linked_file_id: metadata.file_id
+      });
     }
     task.updated_at = new Date().toISOString();
     this.saveWorkTasks();
@@ -1716,6 +5326,7 @@ const App = {
 
   createFileMetadata(task, file) {
     const extension = this.fileExtension(file.name);
+    const now = new Date().toISOString();
     return {
       file_id: this.generateWorkspaceId('FILE'),
       task_id: task.task_id,
@@ -1728,9 +5339,33 @@ const App = {
       role: 'attachment',
       status: 'session_only',
       is_evidence: false,
-      added_at: new Date().toISOString(),
-      notes: this.fileKindLabel(extension)
+      added_at: now,
+      notes: this.fileKindLabel(extension),
+      hash_algorithm: 'SHA-256',
+      sha256: '',
+      hash_status: file.size > FILE_HASH_MAX_BYTES ? 'skipped_large_file' : 'pending_session',
+      storage_ref: null,
+      raw_file_saved: false
     };
+  },
+
+  async enrichFileMetadataWithHash(file, metadata) {
+    if (!window.crypto?.subtle || !file?.arrayBuffer) {
+      metadata.hash_status = 'unavailable';
+      return metadata;
+    }
+    if ((file.size || 0) > FILE_HASH_MAX_BYTES) {
+      metadata.hash_status = 'pending_local_agent';
+      return metadata;
+    }
+    try {
+      const digest = await window.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+      metadata.sha256 = Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      metadata.hash_status = 'calculated_session';
+    } catch {
+      metadata.hash_status = 'unavailable';
+    }
+    return metadata;
   },
 
   async prepareWorkspaceFileRuntime(file, metadata) {
@@ -1827,40 +5462,93 @@ const App = {
       timer_stopped_at: now,
       report_artifact_id: artifact.artifact_id
     };
-    this.addWorkspaceMessage(task, 'executor_report_received', 'Исполнитель', 'Отчёт получен. Можно запустить проверку.');
+    this.addWorkspaceMessage(task, 'executor_report_received', 'Исполнитель', 'Отчёт получен. Можно запустить проверку.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
     this.addWorkAudit(task, 'Отчёт исполнителя сохранён как artifact.');
     this.switchWorkspaceTab('artifacts');
   },
 
   buildAndShowContextPack(task) {
     const content = this.buildContextPackContent(task);
+    const privacyScan = this.scanPrivacyText(content);
     const existing = task.artifacts.find((artifact) => artifact.type === 'CONTEXT_PACK' && artifact.status !== 'archived');
     const artifact = existing || this.createArtifact(task, 'CONTEXT_PACK', 'Пакет для Codex', 'Контекст задачи для внешнего исполнителя.', content, 'workspace');
     artifact.content = content;
-    artifact.summary = 'Контекст задачи для внешнего исполнителя.';
+    artifact.summary = `Контекст задачи для внешнего исполнителя. Privacy: ${this.privacyScanSummary(privacyScan)}.`;
+    artifact.context_pack_version = 2;
+    artifact.privacy_scan = privacyScan;
+    artifact.status = privacyScan.blocked ? 'needs_review' : 'ready_for_copy';
     artifact.updated_at = new Date().toISOString();
     task.executor_state = {
       ...(task.executor_state || {}),
       package_artifact_id: artifact.artifact_id
     };
-    this.addWorkspaceMessage(task, 'context_pack_created', 'Рабочее окно', 'Пакет для Codex сформирован.');
+    task.context_pack_status = artifact.status;
+    task.privacy_guard = privacyScan;
+    this.addWorkspaceMessage(task, 'context_pack_created', 'Рабочее окно', 'Пакет для Codex сформирован.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
     this.switchWorkspaceTab('artifacts');
   },
 
   buildContextPackContent(task) {
-    const files = (task.files || []).map((file) => `- ${file.name} (${this.fileRoleName(file.role)}, ${file.human_size})`).join('\n') || '- файлов нет';
+    const files = (task.files || []).map((file) => [
+      `- ${file.name}`,
+      `  - file_id: ${file.file_id}`,
+      `  - роль: ${this.fileRoleName(file.role)}`,
+      `  - тип: ${file.extension || 'file'}`,
+      `  - размер: ${file.human_size || '0 B'}`,
+      `  - evidence: ${file.is_evidence ? 'да' : 'нет'}`,
+      `  - статус: ${file.status || 'attached'}`,
+      `  - hash: ${file.sha256 || this.hashStatusName(file.hash_status)}`,
+      `  - planned_path: ${file.storage_ref?.planned_path || this.plannedFileStoragePath(task, file)}`,
+      `  - raw_file_saved: false`
+    ].join('\n')).join('\n') || '- файлов нет';
     const clarifications = (task.messages || [])
       .filter((message) => ['clarification', 'user_message', 'decision'].includes(message.type))
       .map((message) => `- ${this.formatTaskTime(message.created_at)} ${message.author}: ${message.text}`)
       .join('\n') || '- уточнений пока нет';
+    const artifacts = (task.artifacts || [])
+      .filter((artifact) => artifact.type !== 'CONTEXT_PACK')
+      .slice(0, 12)
+      .map((artifact) => `- ${artifact.title} (${this.artifactTypeName(artifact.type)}, ${artifact.status || 'draft'}, ${this.formatTaskTime(artifact.created_at)})`)
+      .join('\n') || '- artifacts пока нет';
+    const storage = this.buildStorageManifestText(task);
+    const approvals = (task.approval_requests || [])
+      .map((approval) => `- ${approval.title || approval.command}: ${APPROVAL_STATUSES[approval.status] || approval.status}`)
+      .join('\n') || '- approval-запросов нет';
+    const verifier = task.verifier_result
+      ? `${this.verifierVerdictName(task.verifier_result)}\n${this.verifierRisksSummary(task)}`
+      : 'проверка ещё не выполнена';
+    const memory = task.memory_preview?.status
+      ? `${task.memory_preview.status}: ${task.memory_preview.summary || task.goal || task.user_request || 'не задано'}`
+      : 'memory preview ещё не обработан';
+    const privacy = this.privacyScanSummary(this.scanPrivacyText([
+      task.title,
+      task.user_request,
+      task.goal,
+      clarifications,
+      files,
+      artifacts
+    ].join('\n')));
     return [
       '# Пакет для Codex',
+      '',
+      'Версия пакета: Context Pack V2',
+      'Назначение: передать задачу внешнему исполнителю вручную через copy/paste.',
+      'Автоматическая отправка не выполняется.',
       '',
       `Задача: ${task.title}`,
       `task_id: ${task.task_id}`,
       `Проект: ${this.projectName(task.project_id)}`,
       `Статус: ${this.statusName(task.status)}`,
       `Исполнитель: ${task.executor || 'Codex'}`,
+      `Качество: ${this.qualityName(task.quality_level)}`,
+      `Режим: ${this.modeName(task.mode)}`,
+      `Privacy Guard: ${privacy}`,
       '',
       '## Цель',
       task.goal || task.user_request || 'не задано',
@@ -1871,6 +5559,21 @@ const App = {
       '## Файлы и роли',
       files,
       '',
+      '## Storage',
+      storage,
+      '',
+      '## Artifacts',
+      artifacts,
+      '',
+      '## Текущий Verifier',
+      verifier,
+      '',
+      '## Memory Preview',
+      memory,
+      '',
+      '## Approval / ограничения действий',
+      approvals,
+      '',
       '## Ограничения',
       this.listOrFallback(task.constraints, 'не задано'),
       '',
@@ -1880,16 +5583,37 @@ const App = {
       '## Критерии готовности',
       this.listOrFallback(task.readiness_criteria, 'не задано'),
       '',
+      '## Правила безопасности для исполнителя',
+      '- не использовать AI API;',
+      '- не менять .env, secrets, tokens, credentials, cookies;',
+      '- не менять DNS/VPN/proxy/network/firewall/hosts/routes;',
+      '- не делать Cloudflare deploy или GitHub push без отдельного approval;',
+      '- не менять Direct Bridge / Local Agent, если это не указано явно;',
+      '- не выполнять опасные действия и не скрывать ошибки;',
+      '- не удалять legacy-код без отдельной cleanup-задачи;',
+      '',
       '## Формат ответа',
       '- что сделано;',
       '- какие файлы изменены;',
       '- какие проверки пройдены;',
       '- что не проверено;',
       '- риски;',
-      '- что основной ветке проверить первым.',
+      '- что основной ветке проверить первым;',
+      '- использовались ли AI API;',
+      '- менялись ли Direct Bridge / Local Agent;',
+      '- были ли добавлены .env/secrets;',
+      '- где архив/evidence, если есть.',
       '',
       '## Что основной ветке проверить первым',
-      task.next_step || 'не задано'
+      task.next_step || 'не задано',
+      '',
+      '## Критерии приемки результата',
+      '- результат соответствует задаче;',
+      '- есть evidence или честно указано, что evidence нет;',
+      '- есть список проверок;',
+      '- есть список рисков и непроверенных пунктов;',
+      '- Verifier может сформировать verdict;',
+      '- Memory Preview можно сохранить или пропустить осознанно.'
     ].join('\n');
   },
 
@@ -1897,10 +5621,20 @@ const App = {
     const artifact = (task.artifacts || []).find((item) => item.type === 'CONTEXT_PACK' && item.status !== 'archived');
     const content = artifact?.content || this.buildContextPackContent(task);
     this.workspacePendingCopyText = content;
-    if (PRIVACY_GUARD_PATTERN.test(content)) {
+    const privacyScan = this.scanPrivacyText(content);
+    this.workspacePendingPrivacyFindings = privacyScan.findings;
+    if (artifact) {
+      artifact.privacy_scan = privacyScan;
+      artifact.status = privacyScan.blocked ? 'needs_review' : 'ready_for_copy';
+      artifact.summary = `Контекст задачи для внешнего исполнителя. Privacy: ${this.privacyScanSummary(privacyScan)}.`;
+    }
+    task.privacy_guard = privacyScan;
+    if (privacyScan.findings.length) {
       const guard = document.getElementById('workspace-privacy-guard');
+      this.renderPrivacyGuardFindings(privacyScan.findings);
       if (guard) guard.hidden = false;
-      this.toast('Проверь пакет на секреты');
+      this.addWorkspaceMessage(task, 'system_event', 'Privacy Guard', `Найдены потенциально чувствительные строки: ${this.privacyScanSummary(privacyScan)}.`);
+      this.toast('Privacy Guard требует проверки');
       return;
     }
     this.copyWorkspaceText(content);
@@ -1909,12 +5643,87 @@ const App = {
 
   handlePrivacyAction(action) {
     const guard = document.getElementById('workspace-privacy-guard');
+    const task = this.getActiveWorkTask();
     if (action === 'copy_anyway' && this.workspacePendingCopyText) {
       this.copyWorkspaceText(this.workspacePendingCopyText);
+      if (task) this.addWorkspaceMessage(task, 'system_event', 'Privacy Guard', 'Пакет скопирован после ручного подтверждения warning.');
+    }
+    if (action === 'redact_copy' && this.workspacePendingCopyText) {
+      const redacted = this.redactPrivacyText(this.workspacePendingCopyText);
+      this.copyWorkspaceText(redacted);
+      if (task) {
+        const artifact = this.createArtifact(task, 'CHECK_LOG', 'Privacy Guard redacted copy', 'Создана редактированная копия пакета для ручной отправки.', redacted, 'privacy_guard');
+        task.memory_preview = {
+          ...(task.memory_preview || {}),
+          linked_artifact_ids: [...new Set([...(task.memory_preview?.linked_artifact_ids || []), artifact.artifact_id])]
+        };
+        this.addWorkspaceMessage(task, 'system_event', 'Privacy Guard', 'Скопирована redacted-версия пакета. Исходные данные задачи не изменялись.');
+      }
     }
     if (action === 'review') this.switchWorkspaceTab('artifacts');
     if (guard) guard.hidden = true;
     this.workspacePendingCopyText = '';
+    this.workspacePendingPrivacyFindings = [];
+  },
+
+  scanPrivacyText(text) {
+    const lines = String(text || '').split(/\r?\n/);
+    const findings = [];
+    lines.forEach((line, index) => {
+      PRIVACY_GUARD_RULES.forEach((rule) => {
+        rule.pattern.lastIndex = 0;
+        if (!rule.pattern.test(line)) return;
+        findings.push({
+          rule_id: rule.id,
+          label: rule.label,
+          severity: rule.severity,
+          line: index + 1,
+          preview: this.maskPrivacyLine(line)
+        });
+      });
+    });
+    const blocked = findings.some((finding) => finding.severity === 'danger');
+    const review = findings.some((finding) => finding.severity === 'review');
+    return {
+      status: blocked ? 'blocked' : review ? 'review' : 'clean',
+      blocked,
+      findings,
+      checked_at: new Date().toISOString()
+    };
+  },
+
+  privacyScanSummary(scan) {
+    const findings = scan?.findings || [];
+    if (!findings.length) return 'clean';
+    const danger = findings.filter((finding) => finding.severity === 'danger').length;
+    const review = findings.filter((finding) => finding.severity === 'review').length;
+    return `${danger} danger / ${review} review`;
+  },
+
+  renderPrivacyGuardFindings(findings) {
+    const host = document.getElementById('workspace-privacy-findings');
+    if (!host) return;
+    host.innerHTML = (findings || []).slice(0, 8).map((finding) => `
+      <article>
+        <strong>${this.escapeHtml(finding.severity)} · ${this.escapeHtml(finding.label)}</strong>
+        <span>Строка ${this.escapeHtml(String(finding.line))}: ${this.escapeHtml(finding.preview)}</span>
+      </article>
+    `).join('') || '<article><span>Подозрительных строк не найдено.</span></article>';
+  },
+
+  maskPrivacyLine(line) {
+    return String(line || '')
+      .replace(/(Authorization\s*:\s*Bearer\s+)[^\s]+/ig, '$1[REDACTED]')
+      .replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{8,}/ig, '$1[REDACTED]')
+      .replace(/\bsk-[A-Za-z0-9_-]{6,}\b/g, 'sk-[REDACTED]')
+      .replace(/\bAIza[A-Za-z0-9_-]{6,}\b/g, 'AIza[REDACTED]')
+      .replace(/\bgh[pousr]_[A-Za-z0-9_]{6,}\b/g, 'ghp_[REDACTED]')
+      .replace(/((?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|PASSWD|PWD)\s*[:=]\s*)[^\s;,)]+/ig, '$1[REDACTED]')
+      .slice(0, 220);
+  },
+
+  redactPrivacyText(text) {
+    return String(text || '').split(/\r?\n/).map((line) => this.maskPrivacyLine(line)).join('\n');
   },
 
   markContextPackSent(task) {
@@ -1942,29 +5751,51 @@ const App = {
   },
 
   showWorkspaceApproval(task, commandText) {
-    const request = {
-      approval_id: this.generateWorkspaceId('APPROVAL'),
+    const request = this.createApprovalRecord({
       task_id: task.task_id,
+      project_id: task.project_id,
       command: commandText,
-      status: 'manual_required',
-      created_at: new Date().toISOString()
-    };
-    task.approval_requests = Array.isArray(task.approval_requests) ? task.approval_requests : [];
-    task.approval_requests.push(request);
-    task.approval_required = 'manual_required';
+      action: commandText,
+      action_type: 'workspace_command',
+      source: 'workspace',
+      reason: 'Команда содержит опасные ключевые слова и не может выполняться автоматически.'
+    }, task);
     const panel = document.getElementById('workspace-approval-panel');
     if (panel) panel.hidden = false;
-    this.addWorkspaceMessage(task, 'approval_event', 'Подтверждение', 'Опасная команда не выполнена. Требуется Approval Center.');
+    this.addWorkspaceMessage(task, 'approval_event', 'Подтверждение', `Опасная команда не выполнена. Approval создан: ${request.approval_id}.`, {
+      linked_approval_id: request.approval_id
+    });
   },
 
-  handleApprovalAction(action) {
+  async handleApprovalAction(action) {
     const task = this.getActiveWorkTask();
     const panel = document.getElementById('workspace-approval-panel');
     if (!task) return;
+    const approval = [...(task.approval_requests || [])].reverse().find((item) => ['manual_required', 'pending'].includes(item.status));
     if (action === 'plan') {
+      if (approval) {
+        approval.status = 'plan_prepared';
+        approval.owner_decision = 'plan_prepared';
+        approval.decision_note = 'Подготовлен безопасный план из рабочего окна. Выполнение не запускалось.';
+        approval.resolved_at = new Date().toISOString();
+        approval.updated_at = approval.resolved_at;
+        approval.execution_allowed = false;
+        approval.execution_result = 'not_executed';
+        await this.saveApprovalRecord(approval);
+      }
       this.addWorkspaceMessage(task, 'approval_event', 'Подтверждение', 'Подготовлен безопасный план вместо автоматического выполнения.');
-      this.createArtifact(task, 'FIX_REQUEST', 'План безопасного действия', 'Опасное действие требует отдельного подтверждения.', 'Сформировать отдельное ТЗ и выполнить только после approval владельца.', 'approval');
+      this.createArtifact(task, 'FIX_REQUEST', 'План безопасного действия', 'Опасное действие требует отдельного подтверждения.', approval ? this.buildApprovalPlanText(approval) : 'Сформировать отдельное ТЗ и выполнить только после approval владельца.', 'approval');
     } else {
+      if (approval) {
+        approval.status = 'cancelled';
+        approval.owner_decision = 'cancelled';
+        approval.decision_note = 'Отменено из рабочего окна. Выполнение не запускалось.';
+        approval.resolved_at = new Date().toISOString();
+        approval.updated_at = approval.resolved_at;
+        approval.execution_allowed = false;
+        approval.execution_result = 'not_executed';
+        await this.saveApprovalRecord(approval);
+      }
       this.addWorkspaceMessage(task, 'approval_event', 'Подтверждение', 'Опасное действие отменено.');
     }
     if (panel) panel.hidden = true;
@@ -1974,19 +5805,58 @@ const App = {
 
   saveWorkspaceMemoryPreview(task) {
     task.memory_status = 'saved_local';
-    task.memory_preview = {
+    task.memory_preview = this.buildWorkspaceMemoryPreview(task, 'saved_local');
+    const artifact = this.createArtifact(task, 'MEMORY_SUMMARY', 'Memory preview', 'Локальный черновик памяти для будущего Memory v2.', JSON.stringify(task.memory_preview, null, 2), 'memory_preview');
+    this.addWorkspaceMessage(task, 'memory_event', 'Память', 'Memory preview сохранён локально.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.toast('Memory preview сохранён локально');
+  },
+
+  buildWorkspaceMemoryPreview(task, status = 'draft') {
+    const linkedArtifacts = (task.artifacts || [])
+      .filter((artifact) => [
+        'DECISION_RECORD',
+        'VERIFIER_VERDICT',
+        'EXECUTOR_REPORT',
+        'RESULT_ARCHIVE',
+        'CHECK_LOG',
+        'CONTEXT_PACK',
+        'BRAIN_ANSWER',
+        'BRAIN_COMPARISON',
+        'STRATEGIST_SYNTHESIS'
+      ].includes(artifact.type))
+      .map((artifact) => artifact.artifact_id);
+    const council = task.brain_council || {};
+    return {
       ...(task.memory_preview || {}),
-      status: 'saved_local',
+      status,
       summary: task.goal || task.user_request,
       decisions: (task.messages || []).filter((message) => message.type === 'decision').map((message) => message.text),
       risks: task.risks || [],
       next_step: task.next_step,
-      linked_artifact_ids: (task.artifacts || []).map((artifact) => artifact.artifact_id),
-      linked_file_ids: (task.files || []).filter((file) => file.is_evidence).map((file) => file.file_id)
+      storage_manifest: {
+        task_path: this.ensureTaskStorageManifest(task).task_path,
+        files: this.taskStorageSummary(task).files,
+        evidence: this.taskStorageSummary(task).evidence,
+        restore_points: this.taskStorageSummary(task).restore_points,
+        policy: task.storage_manifest?.raw_file_policy || 'metadata only'
+      },
+      verifier_result: task.verifier_result || 'не проверено',
+      verifier_risks: this.normalizedVerifierRisks(task),
+      privacy_status: task.privacy_guard?.status || task.verifier_privacy_scan?.status || 'not_checked',
+      acceptance_gate: this.acceptanceGateStatus(task).label,
+      brain_council: {
+        status: council.status || 'not_started',
+        answers: Array.isArray(council.answers) ? council.answers.length : 0,
+        integrity: council.integrity_status || 'not_checked',
+        decision_passport: council.strategist_synthesis?.synthesis_id || null
+      },
+      linked_artifact_ids: [...new Set([...(task.memory_preview?.linked_artifact_ids || []), ...linkedArtifacts])],
+      linked_file_ids: (task.files || []).filter((file) => file.is_evidence).map((file) => file.file_id),
+      updated_at: new Date().toISOString()
     };
-    this.createArtifact(task, 'MEMORY_SUMMARY', 'Memory preview', 'Локальный черновик памяти для будущего Memory v2.', JSON.stringify(task.memory_preview, null, 2), 'memory_preview');
-    this.addWorkspaceMessage(task, 'memory_event', 'Память', 'Memory preview сохранён локально.');
-    this.toast('Memory preview сохранён локально');
   },
 
   skipWorkspaceMemoryPreview(task) {
@@ -2002,8 +5872,10 @@ const App = {
 
   createArtifact(task, type, title, summary, content, source, linkedFileIds = []) {
     task.artifacts = Array.isArray(task.artifacts) ? task.artifacts : [];
+    this.ensureTaskStorageManifest(task);
+    const artifactId = this.generateWorkspaceId('ART');
     const artifact = {
-      artifact_id: this.generateWorkspaceId('ART'),
+      artifact_id: artifactId,
       task_id: task.task_id,
       project_id: task.project_id,
       type,
@@ -2015,14 +5887,38 @@ const App = {
       linked_file_ids: linkedFileIds,
       linked_evidence_ids: [],
       version: 1,
-      status: 'draft'
+      status: 'draft',
+      storage_ref: {
+        root: TERMINATOR_STORAGE_ROOT,
+        task_path: this.taskStoragePath(task.task_id),
+        folder: this.artifactStorageFolder(type),
+        planned_path: `${this.taskStoragePath(task.task_id, this.artifactStorageFolder(type))}\\${this.safeStorageSegment(`${artifactId}_${type || 'artifact'}`)}.md`,
+        persistence: 'metadata_only_browser',
+        raw_file_saved: false,
+        local_agent_required: true
+      }
     };
     task.artifacts.unshift(artifact);
+    this.recordTaskEvent(task, 'artifact_created', `Artifact создан: ${title}`, {
+      actor: source || 'workspace',
+      source: source || 'workspace',
+      target_id: artifact.artifact_id,
+      linked_artifact_id: artifact.artifact_id
+    });
     return artifact;
+  },
+
+  artifactStorageFolder(type) {
+    if (type === 'EXECUTOR_REPORT') return 'reports';
+    if (type === 'CHECK_LOG') return 'logs';
+    if (type === 'SCREENSHOT' || type === 'RESULT_ARCHIVE') return 'evidence';
+    if (type === 'RESTORE_POINT') return 'restore_points';
+    return 'artifacts';
   },
 
   addWorkspaceMessage(task, type, author, text, extras = {}) {
     task.messages = Array.isArray(task.messages) ? task.messages : [];
+    const linkedArtifacts = Array.isArray(extras.linked_artifacts) ? extras.linked_artifacts : [];
     const message = {
       message_id: this.generateWorkspaceId('MSG'),
       task_id: task.task_id,
@@ -2031,10 +5927,20 @@ const App = {
       text,
       created_at: new Date().toISOString(),
       attachments: [],
-      linked_artifacts: [],
+      linked_artifacts: linkedArtifacts,
       ...extras
     };
     task.messages.push(message);
+    this.recordTaskEvent(task, type, text, {
+      actor: author || 'workspace',
+      source: 'message',
+      target_id: message.message_id,
+      linked_artifact_id: extras.linked_artifact_id || linkedArtifacts[0] || '',
+      linked_file_id: extras.linked_file_id || '',
+      linked_approval_id: extras.linked_approval_id || '',
+      risk_level: type === 'approval_event' ? 'approval_required' : 'safe',
+      created_at: message.created_at
+    });
     return message;
   },
 
@@ -2120,7 +6026,12 @@ const App = {
       MEMORY_SUMMARY: 'Память',
       DECISION_RECORD: 'Решение',
       FOLLOWUP_PACKAGE: 'Follow-up',
-      FIX_REQUEST: 'Запрос доработки'
+      FIX_REQUEST: 'Запрос доработки',
+      RESTORE_POINT: 'Restore point',
+      BRAIN_PROMPT_PACKAGE: 'Пакеты Совета',
+      BRAIN_ANSWER: 'Ответ мозга',
+      BRAIN_COMPARISON: 'Сравнение Совета',
+      STRATEGIST_SYNTHESIS: 'Паспорт решения Совета'
     };
     return names[type] || type || 'Артефакт';
   },
@@ -2134,9 +6045,13 @@ const App = {
       context_pack_created: 'пакет',
       executor_marked_sent: 'исполнитель',
       executor_report_received: 'отчёт',
+      artifact_created: 'артефакт',
       verifier_result: 'проверка',
       memory_event: 'память',
       approval_event: 'подтверждение',
+      brain_answer: 'ответ мозга',
+      brain_council: 'совет',
+      audit: 'аудит',
       decision: 'решение'
     };
     return labels[type] || 'событие';
@@ -2174,7 +6089,7 @@ const App = {
   openVerifierPanel(task) {
     task.status = 'verifying';
     task.updated_at = new Date().toISOString();
-    this.addWorkAudit(task, 'Открыта панель Verifier v1.');
+    this.addWorkAudit(task, 'Открыта панель Verifier v2.');
     this.workspaceActiveTab = 'check';
 
     const output = document.getElementById('work-safe-output');
@@ -2185,7 +6100,7 @@ const App = {
 
     this.renderWorkspaceTabs();
     this.renderVerifierPanel(task);
-    this.toast('Verifier v1 открыт');
+    this.toast('Verifier v2 открыт');
   },
 
   renderVerifierPanel(task) {
@@ -2237,7 +6152,7 @@ const App = {
     if (action === 'close') {
       const panel = document.getElementById('work-verifier-panel');
       if (panel) panel.hidden = true;
-      this.addWorkAudit(task, 'Панель Verifier v1 закрыта.');
+      this.addWorkAudit(task, 'Панель Verifier v2 закрыта.');
       this.saveWorkTasks();
       this.toast('Проверка закрыта');
       return;
@@ -2246,7 +6161,7 @@ const App = {
     if (action !== 'build') return;
 
     const verifierInput = this.collectVerifierInput();
-    const evaluation = this.evaluateVerifierInput(verifierInput);
+    const evaluation = this.evaluateVerifierInput(verifierInput, task);
     this.saveVerifierResult(task, verifierInput, evaluation);
     this.saveWorkTasks();
     this.renderWorkTaskCard();
@@ -2275,36 +6190,127 @@ const App = {
     };
   },
 
-  evaluateVerifierInput(input) {
+  evaluateVerifierInput(input, task = null) {
     const checkedItems = VERIFIER_CHECKLIST.filter((item) => input.checklist[item.id]);
     const missingCritical = VERIFIER_CHECKLIST.filter((item) => item.critical && !input.checklist[item.id]);
     const rejectCritical = missingCritical.filter((item) => item.rejectIfMissing);
     const risksPresent = [input.risks.not_checked, input.risks.manual_review, input.risks.can_break].some(Boolean);
     const checklistIncomplete = checkedItems.length < VERIFIER_CHECKLIST.length;
+    const textForScan = [input.report, input.evidence, input.expected, input.first_check].join('\n');
+    const privacyScan = this.scanPrivacyText(textForScan);
+    const gateFindings = this.buildVerifierGateFindings(input, task, privacyScan);
+    const evidenceGate = this.verifierEvidenceGate(task, input);
+    const qualityGate = this.verifierQualityGate(task, input, gateFindings);
     const reasons = [];
     let verdict = 'MANUAL_REVIEW';
 
     if (!input.report && !input.evidence && checkedItems.length === 0) {
       reasons.push('Недостаточно данных: нет отчета, evidence и checklist.');
-      return { verdict, reasons, checklistIncomplete, risksPresent };
+      return { verdict, reasons, checklistIncomplete, risksPresent, privacyScan, gateFindings, evidenceGate, qualityGate };
     }
 
-    if (rejectCritical.length) {
+    if (privacyScan.blocked) {
+      verdict = 'REJECT';
+      reasons.push('Privacy Guard нашёл потенциальные секреты или чувствительные значения в отчете/evidence.');
+    }
+
+    const dangerousFindings = gateFindings.filter((finding) => finding.severity === 'danger');
+    if (dangerousFindings.length) {
+      verdict = 'REJECT';
+      reasons.push(...dangerousFindings.map((finding) => finding.text));
+    }
+
+    const blockingFindings = gateFindings.filter((finding) => finding.blocksPass);
+    if (verdict !== 'REJECT' && blockingFindings.length) {
+      verdict = 'NEEDS_FIX';
+      reasons.push(...blockingFindings.map((finding) => finding.text));
+    }
+
+    if (verdict !== 'REJECT' && rejectCritical.length) {
       verdict = 'REJECT';
       reasons.push(...rejectCritical.map((item) => `Не подтверждено: ${item.label}.`));
-    } else if (missingCritical.length) {
+    } else if (verdict !== 'REJECT' && missingCritical.length) {
       verdict = 'NEEDS_FIX';
       reasons.push(...missingCritical.map((item) => `Не закрыт критичный пункт: ${item.label}.`));
-    } else if (checklistIncomplete || risksPresent) {
+    } else if (verdict !== 'REJECT' && verdict !== 'NEEDS_FIX' && !evidenceGate.ok && !evidenceGate.honestAbsence) {
+      verdict = 'NEEDS_FIX';
+      reasons.push(evidenceGate.reason);
+    } else if (verdict !== 'REJECT' && verdict !== 'NEEDS_FIX' && evidenceGate.honestAbsence) {
+      verdict = 'PASS_WITH_RISKS';
+      reasons.push(evidenceGate.reason);
+    } else if (verdict !== 'REJECT' && (checklistIncomplete || risksPresent || gateFindings.length || privacyScan.findings.length)) {
       verdict = 'PASS_WITH_RISKS';
       if (checklistIncomplete) reasons.push('Есть неполные проверки.');
       if (risksPresent) reasons.push('Есть риски или пункты для ручной проверки.');
-    } else {
+      if (privacyScan.findings.length) reasons.push(`Privacy Guard требует ручной проверки: ${this.privacyScanSummary(privacyScan)}.`);
+      if (gateFindings.length) reasons.push('Есть дополнительные gate findings.');
+    } else if (verdict !== 'REJECT' && !qualityGate.ok) {
+      verdict = 'PASS_WITH_RISKS';
+      reasons.push(qualityGate.reason);
+    } else if (verdict !== 'REJECT') {
       verdict = 'PASS';
       reasons.push('Ключевые проверки отмечены, явных рисков не указано.');
     }
 
-    return { verdict, reasons, checklistIncomplete, risksPresent };
+    return { verdict, reasons, checklistIncomplete, risksPresent, privacyScan, gateFindings, evidenceGate, qualityGate };
+  },
+
+  buildVerifierGateFindings(input, task, privacyScan) {
+    const findings = [];
+    const report = input.report || '';
+    const evidence = input.evidence || '';
+    const text = `${report}\n${evidence}`;
+    const lower = text.toLowerCase();
+    const evidenceGate = this.verifierEvidenceGate(task, input);
+
+    if (!report.trim()) {
+      findings.push({ severity: 'review', blocksPass: true, text: 'Отчет исполнителя не вставлен.' });
+    } else if (report.length < 80) {
+      findings.push({ severity: 'review', blocksPass: true, text: 'Отчет слишком короткий для уверенной приемки.' });
+    }
+    if (!evidenceGate.ok) {
+      findings.push({ severity: evidenceGate.honestAbsence ? 'review' : 'review', blocksPass: !evidenceGate.honestAbsence, text: evidenceGate.reason });
+    }
+    if (input.checklist.checks_passed && !this.verifierHasCheckSignals(text)) {
+      findings.push({ severity: 'review', blocksPass: true, text: 'Пункт про проверки отмечен, но в отчете/evidence нет явного списка проверок.' });
+    }
+    if (input.checklist.changed_files && !this.verifierHasChangedFileSignals(text)) {
+      findings.push({ severity: 'review', text: 'Пункт про измененные файлы отмечен, но список файлов в отчете не найден.' });
+    }
+    if (input.checklist.first_check && !input.first_check.trim()) {
+      findings.push({ severity: 'review', blocksPass: true, text: 'Пункт "что проверить первым" отмечен, но поле проверки пустое.' });
+    }
+    if (input.checklist.result_archive_path && !evidence.trim() && !(task?.artifacts || []).some((artifact) => artifact.type === 'RESULT_ARCHIVE')) {
+      findings.push({ severity: 'review', blocksPass: true, text: 'Пункт про архив/путь отмечен, но путь или описание результата не заполнены.' });
+    }
+    if (this.verifierHasDisallowedAiApiSignals(text)) {
+      findings.push({ severity: 'danger', text: 'Отчет похож на использование AI API, что запрещено без отдельного approval.' });
+    }
+    if (/direct bridge|local agent|cloudflare worker|mina-local-agent/i.test(text) && !input.checklist.no_bridge_agent_changes) {
+      findings.push({ severity: 'review', text: 'В отчете упомянуты Direct Bridge / Local Agent, но checklist не подтверждает, что они не менялись.' });
+    }
+    if (/\b(?:не проверено|not checked|не тестировал|не тестировалось)\b/i.test(text) && !input.risks.not_checked) {
+      findings.push({ severity: 'review', text: 'В отчете есть непроверенные пункты, но поле "Что не проверено" пустое.' });
+    }
+    if (/\b(?:ошибка|failed|fail|не работает|сломано|crash|exception)\b/i.test(text) && !input.risks.can_break) {
+      findings.push({ severity: 'review', text: 'В отчете есть признаки ошибок, но риск поломки не описан.' });
+    }
+    if ((privacyScan?.findings || []).some((finding) => finding.severity === 'danger')) {
+      findings.push({ severity: 'danger', text: 'В отчете/evidence есть потенциальный секрет или токен.' });
+    }
+    if (lower.includes('кракозябр') && !input.checklist.no_mojibake) {
+      findings.push({ severity: 'review', text: 'Упомянут текст/кодировка, но пункт про отсутствие кракозябр не отмечен.' });
+    }
+    if (this.verifierHasMojibakeSignals(text)) {
+      findings.push({ severity: 'danger', text: 'В отчете/evidence найдены признаки сломанной кодировки.' });
+    }
+    if (/click-zone-only|click zones|click-zone/i.test(text) && !input.checklist.no_click_zone_only) {
+      findings.push({ severity: 'review', text: 'Упомянут click-zone подход, но checklist не подтверждает отсутствие click-zone-only UI.' });
+    }
+    if (/(?:deploy|cloudflare|push\s+main|force\s+push|dns|vpn|proxy|firewall|defender|\.env|delete|remove|удали)/i.test(text) && !input.checklist.no_env_secrets) {
+      findings.push({ severity: 'danger', text: 'В отчете есть признаки запрещенных действий или чувствительных зон без безопасного подтверждения.' });
+    }
+    return findings;
   },
 
   saveVerifierResult(task, input, evaluation) {
@@ -2321,6 +6327,10 @@ const App = {
     task.verifier_return_text = ['NEEDS_FIX', 'REJECT'].includes(evaluation.verdict)
       ? this.buildVerifierReturnText(task, evaluation.reasons, input)
       : '';
+    task.verifier_gate_findings = evaluation.gateFindings || [];
+    task.verifier_evidence_gate = evaluation.evidenceGate || this.verifierEvidenceGate(task, input);
+    task.verifier_quality_gate = evaluation.qualityGate || this.verifierQualityGate(task, input, task.verifier_gate_findings);
+    task.verifier_privacy_scan = evaluation.privacyScan || this.scanPrivacyText([input.report, input.evidence].join('\n'));
     task.verified_at = now;
     task.updated_at = now;
     task.status = VERIFIER_VERDICTS[evaluation.verdict]?.status || 'manual_required';
@@ -2336,15 +6346,28 @@ const App = {
         ...(evaluation.reasons.length ? evaluation.reasons.map((reason) => `- ${reason}`) : ['- не указано']),
         '',
         `Checklist: ${this.verifierChecklistSummary({ verifier_checklist: input.checklist })}`,
-        `Риски: ${this.verifierRisksSummary({ verifier_risks: input.risks })}`
+        `Риски: ${this.verifierRisksSummary({ verifier_risks: input.risks })}`,
+        `Privacy: ${this.privacyScanSummary(task.verifier_privacy_scan)}`,
+        `Evidence gate: ${task.verifier_evidence_gate.label} — ${task.verifier_evidence_gate.reason}`,
+        `Quality gate: ${task.verifier_quality_gate.label} — ${task.verifier_quality_gate.reason}`,
+        '',
+        'Gate findings:',
+        ...((evaluation.gateFindings || []).length ? evaluation.gateFindings.map((finding) => `- ${finding.severity}${finding.blocksPass ? ' / blocks PASS' : ''}: ${finding.text}`) : ['- нет'])
       ].join('\n'),
       'verifier'
     );
+    artifact.status = evaluation.verdict === 'PASS' ? 'accepted' : evaluation.verdict === 'PASS_WITH_RISKS' ? 'accepted_with_risks' : 'needs_action';
+    artifact.privacy_scan = task.verifier_privacy_scan;
     task.memory_preview = {
       ...(task.memory_preview || {}),
+      verifier_result: evaluation.verdict,
+      verifier_risks: input.risks,
       linked_artifact_ids: [...new Set([...(task.memory_preview?.linked_artifact_ids || []), artifact.artifact_id])]
     };
-    this.addWorkspaceMessage(task, 'verifier_result', 'Проверка', `Verifier сформировал verdict: ${this.verifierVerdictName(evaluation.verdict)}.`);
+    this.addWorkspaceMessage(task, 'verifier_result', 'Проверка', `Verifier сформировал verdict: ${this.verifierVerdictName(evaluation.verdict)}.`, {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
     this.addWorkAudit(task, `Verifier сформировал verdict: ${evaluation.verdict}.`);
   },
 
@@ -2358,10 +6381,12 @@ const App = {
     const returnBlock = document.getElementById('verifier-return-block');
     const returnText = document.getElementById('verifier-return-text');
     const riskNote = document.getElementById('verifier-risk-note');
+    const gateList = document.getElementById('verifier-gate-list');
 
     if (!verdict || verdict === 'не проверено') {
       resultPanel.hidden = true;
       if (riskNote) riskNote.hidden = true;
+      if (gateList) gateList.innerHTML = '';
       return;
     }
 
@@ -2378,6 +6403,29 @@ const App = {
       returnText.value = needsReturn ? task.verifier_return_text || '' : '';
     }
 
+    if (gateList) {
+      const evidenceGate = task.verifier_evidence_gate || this.verifierEvidenceGate(task);
+      const qualityGate = task.verifier_quality_gate || this.verifierQualityGate(task);
+      const findings = [
+        {
+          severity: evidenceGate.ok ? 'safe' : 'review',
+          text: `Evidence gate: ${evidenceGate.label}. ${evidenceGate.reason}`
+        },
+        {
+          severity: qualityGate.ok ? 'safe' : 'review',
+          text: `Quality gate: ${qualityGate.label}. ${qualityGate.reason}`
+        },
+        ...(task.verifier_gate_findings || []),
+        ...((task.verifier_privacy_scan?.findings || []).map((finding) => ({
+          severity: finding.severity,
+          text: `Privacy: ${finding.label}, строка ${finding.line}`
+        })))
+      ];
+      gateList.innerHTML = findings.length
+        ? findings.slice(0, 8).map((finding) => `<article data-severity="${this.escapeHtml(finding.severity)}">${this.escapeHtml(finding.text)}</article>`).join('')
+        : '<article>Дополнительных gate findings нет.</article>';
+    }
+
     const checklist = task.verifier_checklist || {};
     const risks = this.normalizedVerifierRisks(task);
     const incomplete = VERIFIER_CHECKLIST.some((item) => !checklist[item.id]);
@@ -2389,7 +6437,7 @@ const App = {
   },
 
   buildVerifierReturnText(task, reasons, input) {
-    const reasonLines = reasons.length ? reasons : ['Verifier v1 не смог подтвердить безопасную приемку результата.'];
+    const reasonLines = reasons.length ? reasons : ['Verifier v2 не смог подтвердить безопасную приемку результата.'];
     const firstCheck = input.first_check || 'повторить проверку по исходным критериям задачи';
     return [
       'Результат не принят.',
@@ -2401,6 +6449,8 @@ const App = {
       '- закрыть критичные пункты checklist;',
       '- приложить недостающий отчет, evidence или архив;',
       '- явно указать, что не проверено и какие риски остались.',
+      '- убрать секреты, токены, .env-значения и чувствительные строки из отчета/evidence;',
+      '- подтвердить отсутствие AI API и запрещенных изменений.',
       '',
       'Что повторно проверить:',
       `- ${firstCheck}`,
@@ -2512,12 +6562,15 @@ const App = {
 
     const handlers = {
       prepare_task: () => this.showWorkSafeOutput(task, 'Подготовить ТЗ', this.buildCodexTaskPreview(task), 'context_ready'),
-      brain_council: () => this.showWorkSafeOutput(task, 'Совет мозгов', 'Промпты для ChatGPT / Gemini / DeepSeek / Qwen будут реализованы следующим этапом.', 'planning'),
+      brain_council: () => {
+        this.buildBrainPromptPackages(task);
+        task.status = task.status === 'created' ? 'planning' : task.status;
+      },
       assign_codex: () => this.showWorkSafeOutput(task, 'Отдать Codex', this.buildCodexTaskPreview(task), 'ready_for_executor'),
       check_result: () => this.openVerifierPanel(task),
       research: () => this.showWorkSafeOutput(task, 'Исследовать', 'ResearchOps v1 будет реализован следующим этапом.', 'planning'),
       save_memory: () => this.saveWorkMemoryDraft(task),
-      accept: () => this.setWorkStatus(task, 'accepted', 'Статус изменен на accepted.'),
+      accept: () => this.attemptAcceptTask(task),
       needs_fix: () => this.showWorkSafeOutput(task, 'Вернуть на доработку', this.buildNeedsFixTemplate(task), 'needs_fix'),
       toggle_expert: () => this.toggleWorkExpert(task)
     };
@@ -2542,7 +6595,7 @@ const App = {
       tasks: `Локально сохранено задач: ${this.workTasks.length}`,
       verify: 'Сначала создай задачу для проверки результата.',
       research: 'ResearchOps v1 будет реализован следующим этапом.',
-      council: 'Совет мозгов будет реализован следующим этапом.'
+      council: 'Создай или открой задачу, затем используй вкладку Совет в Рабочем окне.'
     };
     this.toast(labels[action] || 'Действие будет реализовано следующим этапом', 3600);
   },
@@ -2581,9 +6634,43 @@ const App = {
   saveWorkMemoryDraft(task) {
     task.memory_status = 'saved_local';
     task.status = 'saved';
+    task.memory_preview = this.buildWorkspaceMemoryPreview(task, 'saved_local');
     task.updated_at = new Date().toISOString();
     this.addWorkAudit(task, 'Создан memory preview.');
     this.showWorkSafeOutput(task, 'Сохранить в память', `Memory preview сохранён локально для ${task.task_id}.`, 'saved');
+  },
+
+  attemptAcceptTask(task) {
+    const gate = this.acceptanceGateStatus(task);
+    if (!gate.ready) {
+      if (!['PASS', 'PASS_WITH_RISKS'].includes(task.verifier_result)) {
+        this.openVerifierPanel(task);
+      } else if (!['saved_local', 'skipped', 'не сохранять'].includes(task.memory_preview?.status || task.memory_status)) {
+        task.memory_preview = this.buildWorkspaceMemoryPreview(task, 'draft');
+        task.memory_status = 'draft';
+        task.status = 'saving_memory';
+        this.switchWorkspaceTab('memory');
+        this.addWorkspaceMessage(task, 'memory_event', 'Память', 'Перед приёмкой нужно сохранить или пропустить Memory Preview.');
+      }
+      this.addWorkAudit(task, `Приёмка заблокирована: ${gate.reason}`);
+      this.toast(gate.label);
+      return;
+    }
+
+    const status = task.verifier_result === 'PASS_WITH_RISKS' ? 'accepted_with_risks' : 'accepted';
+    task.status = status;
+    task.accepted_at = new Date().toISOString();
+    task.updated_at = task.accepted_at;
+    const decision = [
+      `Решение: ${this.statusName(status)}`,
+      `Verifier: ${this.verifierVerdictName(task.verifier_result)}`,
+      `Память: ${task.memory_preview?.status || task.memory_status}`,
+      `Задача: ${task.task_id} — ${task.title}`
+    ].join('\n');
+    this.createArtifact(task, 'DECISION_RECORD', 'Решение по задаче', `Задача ${this.statusName(status)}.`, decision, 'acceptance');
+    this.addWorkspaceMessage(task, 'decision', 'Владелец', `Задача ${this.statusName(status)}.`);
+    this.addWorkAudit(task, `Статус изменен на ${status}.`);
+    this.toast(this.statusName(status));
   },
 
   setWorkStatus(task, status, auditText) {
@@ -2623,6 +6710,8 @@ const App = {
       ['verifier_checklist', this.verifierChecklistSummary(task)],
       ['verifier_risks', this.verifierRisksSummary(task)],
       ['verifier_notes', this.verifierNotesSummary(task)],
+      ['verifier_evidence_gate', task.verifier_evidence_gate?.label || this.verifierEvidenceGate(task).label],
+      ['verifier_quality_gate', task.verifier_quality_gate?.label || this.verifierQualityGate(task).label],
       ['verifier_return_text', task.verifier_return_text || 'не задано'],
       ['verified_at', task.verified_at || 'не проверено'],
       ['memory_status', task.memory_status || 'ожидает данных'],
@@ -2647,6 +6736,10 @@ const App = {
     const at = new Date().toLocaleString('ru-RU', { hour12: false });
     task.audit_log = Array.isArray(task.audit_log) ? task.audit_log : [];
     task.audit_log.push(`${at} — ${text}`);
+    this.recordTaskEvent(task, 'audit', text, {
+      actor: 'system',
+      source: 'audit'
+    });
   },
 
   getActiveWorkTask() {
@@ -2654,7 +6747,7 @@ const App = {
   },
 
   projectName(projectId) {
-    return WORK_PROJECT_BY_ID[projectId]?.name || 'Терминатор';
+    return this.projectById(projectId)?.name || WORK_PROJECT_BY_ID[projectId]?.name || 'Терминатор';
   },
 
   modeName(modeId) {
@@ -2914,4 +7007,15 @@ const App = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => App.init());
+function startMinaApp() {
+  App.init().catch((error) => {
+    console.error('[MinaWebApp] Init failed', error);
+    App.toast?.('Ошибка запуска Mina UI');
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startMinaApp, { once: true });
+} else {
+  startMinaApp();
+}

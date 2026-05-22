@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260507-6">
+  <link rel="stylesheet" href="styles.css?v=20260521-12">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -53,24 +53,24 @@
           </div>
 
           <div class="command-stack">
-            <button id="btn-personal" class="command-button" type="button" data-nav="personal">
-              <span class="button-icon button-icon--user">👤</span>
-              <span class="button-label">Личное</span>
-              <span class="button-arrow">›</span>
-            </button>
             <button id="btn-work" class="command-button" type="button" data-nav="work">
               <span class="button-icon">💼</span>
               <span class="button-label">Рабочее</span>
               <span class="button-arrow">›</span>
             </button>
-            <button id="btn-other" class="command-button" type="button" data-toast="Раздел в разработке">
-              <span class="button-icon">🧩</span>
-              <span class="button-label">Прочее</span>
+            <button id="btn-mission" class="command-button" type="button" data-nav="mission">
+              <span class="button-icon">MC</span>
+              <span class="button-label">Центр управления</span>
+              <span class="button-arrow">›</span>
+            </button>
+            <button id="btn-system" class="command-button" type="button" data-nav="system">
+              <span class="button-icon">SYS</span>
+              <span class="button-label">Система</span>
               <span class="button-arrow">›</span>
             </button>
           </div>
 
-          <p class="status-pill status-pill--success">Система готова • подключение стабильно</p>
+          <p class="status-pill status-pill--success">Рабочее активно • Task Runtime готовится</p>
         </article>
       </div>
     </section>
@@ -94,6 +94,35 @@
             <h2>Рабочее</h2>
             <p>Центр управления задачами</p>
           </div>
+
+          <section class="runtime-panel" aria-label="Проекты">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Проекты</strong>
+                <span id="runtime-project-count">preset-проекты готовы</span>
+              </div>
+              <span id="runtime-storage-status">IndexedDB: проверяется</span>
+            </div>
+            <div class="project-manager">
+              <label class="work-field">
+                <span>Название проекта</span>
+                <input id="work-project-name-input" type="text" placeholder="Новый проект">
+              </label>
+              <label class="work-field">
+                <span>Тип</span>
+                <select id="work-project-type-select"></select>
+              </label>
+              <label class="work-field work-field--wide">
+                <span>Цель проекта</span>
+                <textarea id="work-project-goal-input" rows="2" placeholder="Коротко: зачем нужен проект"></textarea>
+              </label>
+              <div class="project-actions">
+                <button type="button" data-project-action="create">Создать проект</button>
+                <button type="button" data-project-action="rename">Переименовать выбранный</button>
+                <button type="button" data-project-action="archive">Архивировать выбранный</button>
+              </div>
+            </div>
+          </section>
 
           <form id="work-task-form" class="work-form">
             <label class="work-field work-field--wide">
@@ -230,8 +259,10 @@
 
                   <div id="workspace-privacy-guard" class="workspace-approval" hidden>
                     <strong>Подтверждение действия</strong>
-                    <p>Возможны секреты в пакете. Проверьте текст перед отправкой во внешний ИИ.</p>
+                    <p>Privacy Guard нашёл потенциальные секреты или чувствительные строки. Проверьте пакет перед отправкой во внешний ИИ.</p>
+                    <div id="workspace-privacy-findings" class="workspace-privacy-findings"></div>
                     <div class="work-actions">
+                      <button type="button" data-privacy-action="redact_copy">Скрыть найденное и копировать</button>
                       <button type="button" data-privacy-action="copy_anyway">Копировать всё равно</button>
                       <button type="button" data-privacy-action="review">Вернуться и проверить</button>
                       <button type="button" data-privacy-action="cancel">Отмена</button>
@@ -243,6 +274,7 @@
                   <nav class="workspace-tabs" aria-label="Вкладки рабочего окна">
                     <button type="button" class="active" data-workspace-tab="files">Файлы</button>
                     <button type="button" data-workspace-tab="artifacts">Артефакты</button>
+                    <button type="button" data-workspace-tab="council">Совет</button>
                     <button type="button" data-workspace-tab="check">Проверка</button>
                     <button type="button" data-workspace-tab="memory">Память</button>
                   </nav>
@@ -252,6 +284,7 @@
                       <strong>Файлы задачи</strong>
                       <p>Перетащите файлы сюда или нажмите + Файлы. В v1 сохраняется только metadata.</p>
                     </div>
+                    <div id="workspace-storage-manifest" class="workspace-storage-manifest"></div>
                     <input id="workspace-file-input" type="file" multiple hidden>
                     <div id="workspace-files-list" class="workspace-list"></div>
                   </section>
@@ -272,6 +305,14 @@
                   <section id="workspace-tab-check" class="workspace-tab-panel" hidden>
                   </section>
 
+                  <section id="workspace-tab-council" class="workspace-tab-panel" hidden>
+                    <div class="workspace-panel-head">
+                      <strong>Совет мозгов</strong>
+                      <button type="button" data-workspace-action="build_brain_prompts">Сформировать промпты</button>
+                    </div>
+                    <div id="workspace-council-panel" class="brainops-panel"></div>
+                  </section>
+
                   <section id="workspace-tab-memory" class="workspace-tab-panel" hidden>
                     <div class="workspace-panel-head">
                       <strong>Память</strong>
@@ -289,6 +330,9 @@
 
               <footer class="workspace-console" aria-label="Рабочая консоль">
                 <button type="button" class="workspace-file-button" data-workspace-action="add_files">+ Файлы</button>
+                <button type="button" id="workspace-voice-toggle" class="workspace-voice-button" data-workspace-action="toggle_voice" aria-pressed="false">
+                  Микрофон
+                </button>
                 <label class="workspace-mode">
                   <span>Режим</span>
                   <select id="workspace-message-mode">
@@ -308,6 +352,17 @@
                   <button type="button" data-workspace-action="insert_report">Вставить отчёт</button>
                   <button type="button" data-workspace-action="open_verifier">Проверить результат</button>
                 </div>
+                <div id="workspace-voice-panel" class="workspace-voice-panel" hidden>
+                  <div class="voice-status-line">
+                    <strong id="workspace-voice-state">Готово</strong>
+                    <span id="workspace-voice-support">Browser Speech API: проверяется</span>
+                  </div>
+                  <label class="voice-transcript-field">
+                    <span>Вы сказали</span>
+                    <textarea id="workspace-voice-transcript" placeholder="Нажмите Микрофон или вставьте текст команды для preview."></textarea>
+                  </label>
+                  <div id="workspace-voice-preview" class="voice-preview-card" hidden></div>
+                </div>
               </footer>
             </section>
 
@@ -317,7 +372,7 @@
               <div class="verifier-header">
                 <div>
                   <h3>Проверка результата</h3>
-                  <p>Verifier v1 проверяет отчет, evidence и риски без запуска опасных действий.</p>
+                  <p>Verifier v2 проверяет отчет, evidence, privacy, acceptance gates и риски без запуска опасных действий.</p>
                 </div>
                 <span id="verifier-current-verdict" class="verifier-verdict verifier-verdict--empty">не проверено</span>
               </div>
@@ -375,6 +430,7 @@
               <div id="verifier-result-panel" class="verifier-result" hidden>
                 <strong id="verifier-result-title">Вердикт</strong>
                 <p id="verifier-result-description"></p>
+                <div id="verifier-gate-list" class="verifier-gate-list"></div>
                 <label id="verifier-return-block" class="work-field verifier-field" hidden>
                   <span>Что вернуть исполнителю</span>
                   <textarea id="verifier-return-text" readonly></textarea>
@@ -383,6 +439,200 @@
             </section>
 
             <div id="work-expert-view" class="work-expert" hidden></div>
+          </section>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-mission" class="screen screen--blue" data-screen="mission">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell command-shell--mission">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="menu" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading">
+            <h2>Центр управления</h2>
+            <p>Сводка проектов, задач и рисков</p>
+          </div>
+
+          <section id="mission-summary" class="mission-grid" aria-label="Сводка"></section>
+          <section class="mission-status-board" aria-label="Runtime обзор">
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Проекты</strong>
+                  <span>Активные рабочие направления</span>
+                </div>
+              </div>
+              <div id="mission-project-overview" class="mission-project-overview"></div>
+            </section>
+
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Риски</strong>
+                  <span>Что требует внимания владельца</span>
+                </div>
+              </div>
+              <div id="mission-risk-radar" class="system-list"></div>
+            </section>
+
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Контур</strong>
+                  <span>Runtime, Direct Mode и Local Agent</span>
+                </div>
+              </div>
+              <div id="mission-runtime-health" class="system-list"></div>
+            </section>
+          </section>
+
+          <section class="mission-layout" aria-label="Рабочие очереди">
+            <section class="runtime-panel mission-focus-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Главный следующий шаг</strong>
+                  <span>Что сейчас важнее всего</span>
+                </div>
+              </div>
+              <div id="mission-next-step" class="mission-next-step"></div>
+            </section>
+
+            <section class="runtime-panel mission-queue-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Очереди задач</strong>
+                  <span>Активные состояния из Task Runtime</span>
+                </div>
+              </div>
+              <div id="mission-task-queues" class="mission-queues"></div>
+            </section>
+
+            <section class="runtime-panel mission-events-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Последние события</strong>
+                  <span>История задач, решений и артефактов</span>
+                </div>
+              </div>
+              <div id="mission-event-feed" class="mission-event-feed"></div>
+            </section>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Принцип работы</strong>
+                <span>Центр управления не выполняет опасные действия</span>
+              </div>
+            </div>
+            <p class="runtime-note">Экран показывает локальное состояние Task Runtime V1: проекты, задачи, очереди, риски и последние события. Direct Bridge, Local Agent и deploy здесь не запускаются.</p>
+          </section>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-system" class="screen screen--blue" data-screen="system">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner">
+        <article class="command-shell command-shell--system">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="menu" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div class="screen-heading">
+            <h2>Система</h2>
+            <p>Runtime, безопасность и будущие устройства</p>
+          </div>
+
+          <section id="system-summary" class="mission-grid" aria-label="Состояние системы"></section>
+          <section class="system-layout" aria-label="Системные панели">
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Диагност</strong>
+                  <span>Безопасные проверки состояния</span>
+                </div>
+              </div>
+              <div id="system-diagnostics" class="system-list"></div>
+            </section>
+
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Storage policy</strong>
+                  <span>Где живут рабочие данные</span>
+                </div>
+              </div>
+              <div id="system-storage-policy" class="system-list"></div>
+            </section>
+
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Checkpoint</strong>
+                  <span>Где мы находимся в Phase 1</span>
+                </div>
+              </div>
+              <div id="system-last-checkpoint" class="system-list"></div>
+            </section>
+
+            <section class="runtime-panel">
+              <div class="runtime-panel-head">
+                <div>
+                  <strong>Legacy warnings</strong>
+                  <span>Что не является активным путём</span>
+                </div>
+              </div>
+              <div id="system-legacy-warnings" class="system-list"></div>
+            </section>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Approval Center</strong>
+                <span>Риски, подтверждения и безопасные решения</span>
+              </div>
+            </div>
+            <div id="system-approval-center" class="approval-center"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Устройства</strong>
+                <span>Паспорт, доверие, возможности и события</span>
+              </div>
+            </div>
+            <div id="system-device-preview" class="device-preview"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Голос</strong>
+                <span>Mina Voice hook без фонового прослушивания</span>
+              </div>
+            </div>
+            <div id="system-voice-hooks" class="voice-system-panel"></div>
           </section>
         </article>
       </div>
@@ -580,9 +830,9 @@
           </div>
 
           <div class="command-stack">
-            <button class="command-button" type="button" data-nav="personal">
-              <span class="button-icon">ID</span>
-              <span class="button-label">Вернуться в Личное</span>
+            <button class="command-button" type="button" data-nav="work">
+              <span class="button-icon">WK</span>
+              <span class="button-label">Вернуться в Рабочее</span>
               <span class="button-arrow">›</span>
             </button>
             <button class="command-button" type="button" data-nav="menu">
@@ -603,6 +853,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260507-6"></script>
+  <script src="app.js?v=20260521-12"></script>
 </body>
 </html>
