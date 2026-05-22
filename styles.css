@@ -4015,3 +4015,12 @@ button:not(:disabled) {
 #btn-start {
   cursor: pointer;
 }
+
+#screen-start.active {
+  cursor: pointer;
+}
+
+#screen-start #btn-start {
+  pointer-events: auto;
+  z-index: 3;
+}

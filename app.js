@@ -1311,8 +1311,18 @@ const App = {
       this.workspaceVoiceTranscript = voiceTranscript.value;
     });
 
-    document.getElementById('btn-start').addEventListener('click', () => {
+    const openMainMenu = () => {
       this.go('menu');
+    };
+    document.getElementById('btn-start').addEventListener('click', openMainMenu);
+    document.getElementById('screen-start')?.addEventListener('pointerup', (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      openMainMenu();
+    });
+    document.getElementById('screen-start')?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openMainMenu();
     });
     document.getElementById('work-task-form')?.addEventListener('submit', (event) => {
       event.preventDefault();
