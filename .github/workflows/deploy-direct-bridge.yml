@@ -1,0 +1,26 @@
+name: Deploy Direct Bridge
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy mina-direct-bridge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CLOUDFLARE_ACCOUNT_ID: a74131f0d123390793ac6a399ce78074
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Deploy Worker
+        working-directory: .github/cloudflare/direct-bridge
+        run: npx --yes wrangler@4.93.1 deploy --keep-vars
