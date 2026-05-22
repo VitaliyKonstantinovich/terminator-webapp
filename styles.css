@@ -324,13 +324,14 @@ button:not(:disabled) {
 
 .mina-live-hud {
   position: fixed;
-  top: 30%;
-  right: max(24px, calc((100vw - min(100vw, calc(100dvh * 16 / 9))) / 2 + 38px));
+  top: 29.7%;
+  right: max(10px, calc((100vw - min(100vw, calc(100dvh * 16 / 9))) / 2 + 16px));
   z-index: 18;
-  width: clamp(190px, 12.5vw, 240px);
+  width: clamp(212px, 13.6vw, 270px);
   display: none;
-  gap: 14px;
+  gap: 0;
   pointer-events: none;
+  perspective: 900px;
 }
 
 body[data-screen="menu"] .mina-live-hud {
@@ -339,26 +340,28 @@ body[data-screen="menu"] .mina-live-hud {
 
 .mina-hud-card {
   position: relative;
-  min-height: 112px;
+  min-height: 124px;
   display: grid;
   align-content: start;
   gap: 8px;
-  padding: 14px 14px 13px;
+  padding: 17px 18px 15px;
   border: 1px solid rgba(70, 177, 255, 0.36);
-  border-radius: 10px;
+  border-radius: 0;
   background:
-    linear-gradient(180deg, rgba(2, 22, 49, 0.7), rgba(1, 10, 27, 0.78)),
-    rgba(2, 13, 31, 0.74);
+    linear-gradient(90deg, rgba(5, 38, 74, 0.92), rgba(2, 16, 37, 0.96) 58%, rgba(2, 11, 28, 0.92)),
+    rgba(2, 13, 31, 0.94);
   box-shadow:
     inset 0 0 0 1px rgba(112, 220, 255, 0.06),
-    inset 0 0 22px rgba(37, 151, 255, 0.12),
+    inset 0 0 28px rgba(37, 151, 255, 0.16),
     0 0 20px rgba(0, 145, 255, 0.18);
-  clip-path: polygon(8% 0, 92% 0, 100% 12%, 100% 88%, 92% 100%, 8% 100%, 0 88%, 0 12%);
+  clip-path: polygon(12% 0, 93% 0, 100% 12%, 100% 87%, 90% 100%, 8% 100%, 0 89%, 0 16%);
   pointer-events: auto;
+  transform: rotateY(-7deg) skewY(-1.6deg);
+  transform-origin: right center;
 }
 
 .mina-hud-card--notifications {
-  margin-top: clamp(126px, 14vh, 166px);
+  margin-top: clamp(150px, 16vh, 190px);
 }
 
 .mina-hud-card::before,
@@ -369,17 +372,17 @@ body[data-screen="menu"] .mina-live-hud {
 }
 
 .mina-hud-card::before {
-  inset: 5px;
+  inset: 6px;
   border: 1px solid rgba(76, 188, 255, 0.18);
-  clip-path: polygon(7% 0, 93% 0, 100% 11%, 100% 89%, 93% 100%, 7% 100%, 0 89%, 0 11%);
+  clip-path: polygon(11% 0, 93% 0, 100% 12%, 100% 88%, 91% 100%, 8% 100%, 0 89%, 0 15%);
 }
 
 .mina-hud-card::after {
-  right: 11px;
-  top: 14px;
-  width: 25px;
-  height: 72px;
-  opacity: 0.28;
+  right: 14px;
+  top: 16px;
+  width: 34px;
+  height: 82px;
+  opacity: 0.46;
   background:
     repeating-linear-gradient(180deg, rgba(88, 207, 255, 0.8) 0 2px, transparent 2px 8px);
 }
@@ -3579,11 +3582,19 @@ body[data-screen="menu"] .mina-live-hud {
     --frame-h: min(100dvh, calc(100vw * 9 / 16));
     padding: 0;
     overflow: hidden;
-    background: #030914;
+    background-color: #030914;
+    background-image: var(--desktop-bg);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
   }
 
   .screen--start {
-    background: #080102;
+    background-color: #080102;
+    background-image: url("assets/mina-ui/desktop/01_start_screen_desktop_red.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
   }
 
   .screen--start .start-image,
@@ -3618,11 +3629,11 @@ body[data-screen="menu"] .mina-live-hud {
   }
 
   #screen-menu {
-    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue.png");
+    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue_1920.png");
   }
 
   #screen-work {
-    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue.png");
+    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue_1920.png");
   }
 
   #screen-personal {
