@@ -1105,7 +1105,6 @@ const App = {
   workspaceVoiceOpen: false,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
-  minaHudTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
   commandPollTimer: null,
@@ -1141,7 +1140,6 @@ const App = {
     this.renderBrain();
     this.renderAnyDeskAccess();
     this.startWorkspaceTimer();
-    this.startMinaHud();
     this.go('start', { immediate: true });
     this.retryTelegramInit();
   },
@@ -1187,12 +1185,6 @@ const App = {
       const toastButton = event.target.closest('[data-toast]');
       if (toastButton) {
         this.toast(toastButton.dataset.toast);
-        return;
-      }
-
-      const hudButton = event.target.closest('[data-hud-action]');
-      if (hudButton) {
-        this.handleHudAction(hudButton.dataset.hudAction);
         return;
       }
 
@@ -1425,12 +1417,6 @@ const App = {
     this.workspaceTimer = window.setInterval(() => this.updateWorkspaceTimer(), 1000);
   },
 
-  startMinaHud() {
-    this.updateMinaHud();
-    if (this.minaHudTimer) return;
-    this.minaHudTimer = window.setInterval(() => this.updateMinaHud(), 1000);
-  },
-
   get model() {
     return MODELS[this.selectedModel] || MODELS.chatgpt;
   },
@@ -1488,7 +1474,6 @@ const App = {
     }
 
     document.body.dataset.screen = name;
-    this.updateMinaHud();
     if (name === 'mission') this.renderMissionControl();
     if (name === 'system') this.renderSystemStatus();
     this.updateTelegramControls();
@@ -1861,8 +1846,8 @@ const App = {
       ['Проекты', projects.length, 'активные проекты'],
       ['Активные задачи', active, 'в работе или ожидании'],
       ['Ждут отчёт', waiting, 'ожидание исполнителя'],
-      ['Проверка', verifying, 'требуют проверки'],
-      ['Подтверждения', approvals, 'требуют решения'],
+      ['Проверка', verifying, 'требуют Verifier'],
+      ['Approval', approvals, 'требуют решения'],
       ['Риски', risks, 'не низкий риск']
     ];
     host.innerHTML = cards.map(([title, value, note]) => `
@@ -1878,7 +1863,6 @@ const App = {
     this.renderMissionNextStep(tasks, projects);
     this.renderMissionTaskQueues(tasks);
     this.renderMissionEventFeed(tasks);
-    this.updateMinaHud();
   },
 
   renderMissionProjectOverview(projects, tasks) {
@@ -1899,7 +1883,7 @@ const App = {
           <dl>
             <div><dt>активно</dt><dd>${activeCount}</dd></div>
             <div><dt>отчёт</dt><dd>${waitingCount}</dd></div>
-            <div><dt>решение</dt><dd>${approvalCount}</dd></div>
+            <div><dt>approval</dt><dd>${approvalCount}</dd></div>
           </dl>
         </article>
       `;
@@ -1917,9 +1901,9 @@ const App = {
     const rows = [
       ['Высокий риск', String(highRiskTasks.length), highRiskTasks[0]?.title || 'критичных задач нет'],
       ['Средний риск', String(mediumRiskTasks.length), mediumRiskTasks[0]?.title || 'средних рисков нет'],
-      ['Ждут решения', String(pendingApprovals.length), pendingApprovals[0]?.title || 'очередь решений пуста'],
-      ['Не готовы к приёмке', String(blockedAcceptance.length), blockedAcceptance[0]?.title || 'активные проверки чистые'],
-      ['Нет доказательств', String(noEvidence.length), noEvidence[0]?.title || 'пробелы в доказательствах не найдены']
+      ['Ждут approval', String(pendingApprovals.length), pendingApprovals[0]?.title || 'очередь approval пуста'],
+      ['Gates не закрыты', String(blockedAcceptance.length), blockedAcceptance[0]?.title || 'активные gates чистые'],
+      ['Нет evidence', String(noEvidence.length), noEvidence[0]?.title || 'evidence gaps не найдены']
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
   },
@@ -1930,12 +1914,12 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const rows = [
-      ['Система задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? `${tasks.length} задач в локальном хранилище` : 'Работает резервное хранилище браузера'],
-      ['Облачная синхронизация', this.taskStoreSyncStatus || 'не проверено', this.taskStoreLastSyncAt ? `синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'ожидает вход владельца')],
-      ['Прямой режим', direct.status, direct.note],
-      ['Локальный агент', agent.status, agent.note],
-      ['Хранилище', TERMINATOR_STORAGE_ROOT, 'тяжёлые файлы, архивы и evidence на D'],
-      ['Контрольная точка', 'Phase 2', `${TERMINATOR_LAST_CHECKPOINT.previous} закрыт; текущий слой: ${TERMINATOR_LAST_CHECKPOINT.name}`]
+      ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
+      ['TaskStore', this.taskStoreSyncStatus || 'не проверен', this.taskStoreLastSyncAt ? `синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'ожидает owner session')],
+      ['Direct Mode', direct.status, direct.note],
+      ['Local Agent', agent.status, agent.note],
+      ['Storage', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs, архивы и evidence backups на D'],
+      ['Checkpoint', 'Phase 2', `${TERMINATOR_LAST_CHECKPOINT.previous} закрыт; текущий слой: ${TERMINATOR_LAST_CHECKPOINT.name}`]
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
   },
@@ -1948,7 +1932,7 @@ const App = {
     const approval = tasks.filter((task) => this.taskRequiresApproval(task));
     const draft = tasks.filter((task) => ['created', 'context_ready', 'ready_for_executor'].includes(task.status));
     let title = 'Создать первую задачу';
-    let body = 'Система задач готова. Следующий шаг — создать задачу в Рабочем окне.';
+    let body = 'Task Runtime готов. Следующий шаг — создать задачу в Рабочем окне.';
     let action = 'open_work';
     let taskId = '';
 
@@ -1977,7 +1961,7 @@ const App = {
       action = 'open_task';
       taskId = task.task_id;
     } else if (projects.length) {
-      title = 'Система чистая';
+      title = 'Runtime чистый';
       body = 'Активных задач нет. Можно открыть Рабочее и создать следующий управляемый процесс.';
     }
 
@@ -2011,7 +1995,7 @@ const App = {
       },
       {
         id: 'approval',
-        title: 'Решения',
+        title: 'Approval',
         tasks: tasks.filter((task) => this.taskRequiresApproval(task))
       }
     ];
@@ -2221,37 +2205,37 @@ const App = {
       checks.push(directHealth);
 
       checks.push(this.diagnosticCheck(
-        'Синхронизация задач',
+        'TaskStore sync',
         ['synced', 'syncing'].includes(this.taskStoreSyncStatus) ? 'pass' : 'manual_check',
         this.taskStoreSyncStatus === 'failed' ? 'review' : 'safe',
         this.taskStoreSyncStatus === 'synced'
-          ? `Задачи синхронизированы: ${this.formatTaskTime(this.taskStoreLastSyncAt)}.`
+          ? `TaskStore синхронизирован: ${this.formatTaskTime(this.taskStoreLastSyncAt)}.`
           : this.taskStoreSyncStatus === 'owner_session_required'
-            ? 'Синхронизация ждёт вход владельца; данные остаются в локальном хранилище.'
+            ? 'TaskStore ждёт вход владельца; данные остаются в IndexedDB.'
             : this.taskStoreSyncError || `Текущий статус: ${this.taskStoreSyncStatus || 'не проверено'}.`,
         'sync_task_store'
       ));
 
       checks.push(this.diagnosticCheck(
-        'Локальный агент',
+        'Local Agent',
         agent.status === 'на связи' || agent.status === 'connected' ? 'pass' : 'manual_check',
         'review',
-        `${agent.note}. Браузерный диагност не опрашивает процессы Windows без локального агента.`
+        `${agent.note}. Browser-side Diagnost не опрашивает процессы Windows без Local Agent runtime.`
       ));
 
       checks.push(this.diagnosticCheck(
-        'Хранилище D',
+        'Storage D',
         'manual_check',
         'review',
-        `${TERMINATOR_STORAGE_ROOT} является рабочей папкой хранения. Браузер не проверяет свободное место и папки без локального агента.`
+        `${TERMINATOR_STORAGE_ROOT} является рабочим storage root. Browser не проверяет свободное место и папки без Local Agent storage.`
       ));
 
       const storageManifestGaps = tasks.filter((task) => !task.storage_manifest?.task_path || !Array.isArray(task.storage_manifest?.folders) || task.storage_manifest.folders.length < TASK_STORAGE_SUBFOLDERS.length);
       checks.push(this.diagnosticCheck(
-        'Паспорт хранения задачи',
+        'Task storage manifest',
         storageManifestGaps.length ? 'review' : 'pass',
         storageManifestGaps.length ? 'review' : 'safe',
-        storageManifestGaps.length ? `${storageManifestGaps.length} задач без полного паспорта хранения.` : `Паспорт хранения есть у ${tasks.length} задач.`
+        storageManifestGaps.length ? `${storageManifestGaps.length} задач без полного storage manifest.` : `Storage manifest есть у ${tasks.length} задач.`
       ));
 
       const storageContractGaps = tasks.filter((task) => !task.storage_manifest?.local_agent_contract || task.storage_manifest.schema_version < TASK_STORAGE_SCHEMA_VERSION);
@@ -2368,15 +2352,15 @@ const App = {
         'Browser-side Diagnost не видит окна Windows. После Windows app/tray этот check должен перейти в Local Agent/desktop companion.'
       ));
 
-      if (!this.taskRuntimeReady) suggestions.push(this.diagnosticSuggestion('Проверить браузерное хранилище', 'review', 'manual_review', 'IndexedDB в резерве. Проверьте разрешения/режим браузера перед QA Max.'));
-      if (this.taskStoreSyncStatus !== 'synced') suggestions.push(this.diagnosticSuggestion('Синхронизировать задачи', 'safe', 'sync_task_store', 'Мост переводит задачи из локального браузерного кеша в общий контур Direct Mode.'));
-      if (storageManifestGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить паспорта хранения', 'safe', 'refresh_runtime', 'Безопасно открыть задачи и пересобрать planned storage paths.'));
-      if (missingDevices.length || devicesWithoutCapabilities.length) suggestions.push(this.diagnosticSuggestion('Обновить реестр устройств', 'safe', 'refresh_runtime', 'Безопасно перечитать локальный реестр устройств и паспорта по умолчанию.'));
-      if (taskEventGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить старые задачи при открытии', 'safe', 'refresh_runtime', 'Безопасно перечитать состояние задач и пересобрать панели.'));
-      if (!activeTaskExists || !activeDeviceExists) suggestions.push(this.diagnosticSuggestion('Сбросить зависший выбор', 'safe', 'clear_stale_selection', 'Сбросить несуществующую выбранную задачу или устройство.'));
-      if (pendingApprovals.length) suggestions.push(this.diagnosticSuggestion('Разобрать очередь решений', 'approval_required', 'open_approval_center', 'Опасные действия не выполнять, только принять решение владельца.'));
-      if (staleWaiting.length || staleManual.length) suggestions.push(this.diagnosticSuggestion('Подготовить план восстановления', 'review', 'create_recovery_plan', 'Сформировать план восстановления без выполнения команд.'));
-      suggestions.push(this.diagnosticSuggestion('Обновить панели', 'safe', 'refresh_runtime', 'Безопасно перечитать локальное состояние и перерисовать Центр управления/Систему.'));
+      if (!this.taskRuntimeReady) suggestions.push(this.diagnosticSuggestion('Проверить браузерный storage', 'review', 'manual_review', 'IndexedDB в fallback. Проверьте разрешения/режим браузера перед QA Max.'));
+      if (this.taskStoreSyncStatus !== 'synced') suggestions.push(this.diagnosticSuggestion('Синхронизировать TaskStore', 'safe', 'sync_task_store', 'Bridge TaskStore переводит задачи из локального браузерного кеша в общий контур Direct Mode.'));
+      if (storageManifestGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить storage manifests', 'safe', 'refresh_runtime', 'Безопасно открыть задачи и пересобрать planned storage paths.'));
+      if (missingDevices.length || devicesWithoutCapabilities.length) suggestions.push(this.diagnosticSuggestion('Обновить Device Registry', 'safe', 'refresh_runtime', 'Безопасно перечитать локальный реестр устройств и default passports.'));
+      if (taskEventGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить старые задачи при открытии', 'safe', 'refresh_runtime', 'Безопасно перечитать runtime state и пересобрать панели.'));
+      if (!activeTaskExists || !activeDeviceExists) suggestions.push(this.diagnosticSuggestion('Очистить stale selection', 'safe', 'clear_stale_selection', 'Сбросить несуществующий active task/device pointer.'));
+      if (pendingApprovals.length) suggestions.push(this.diagnosticSuggestion('Разобрать Approval queue', 'approval_required', 'open_approval_center', 'Опасные действия не выполнять, только принять решение владельца.'));
+      if (staleWaiting.length || staleManual.length) suggestions.push(this.diagnosticSuggestion('Подготовить recovery plan', 'review', 'create_recovery_plan', 'Сформировать план восстановления без выполнения команд.'));
+      suggestions.push(this.diagnosticSuggestion('Обновить runtime панели', 'safe', 'refresh_runtime', 'Безопасно перечитать локальное состояние и перерисовать Mission/System.'));
 
       const run = await this.saveSystemDiagnostic({
         diagnostic_id: this.generateWorkspaceId('DIAG'),
@@ -2442,7 +2426,7 @@ const App = {
       try {
         const data = await response.clone().json();
         storage = data?.storage ? ` storage=${data.storage}` : '';
-        if (data?.task_store) storage += `; хранилище задач=${data.task_store}`;
+        if (data?.task_store) storage += `; TaskStore=${data.task_store}`;
       } catch {}
       return this.diagnosticCheck('Direct Bridge health', 'pass', 'safe', `${host} отвечает 200 OK.${storage}`);
     } catch (error) {
@@ -2519,15 +2503,15 @@ const App = {
       host = 'bridge url требует проверки';
     }
     const session = baseUrl ? getStoredOwnerSession(baseUrl) : null;
-    if (!baseUrl) return { status: 'не настроен', note: 'URL моста не найден в настройках WebApp' };
+    if (!baseUrl) return { status: 'не настроен', note: 'Direct Bridge URL не найден в WebApp config' };
     if (!active) return { status: 'не активен', note: `${host}; transport сейчас не direct` };
     if (session?.token) return { status: 'сессия активна', note: `${host}; токен не показывается` };
-    return { status: 'ожидает вход', note: `${host}; потребуется вход владельца при отправке команды` };
+    return { status: 'ожидает вход', note: `${host}; owner session понадобится при отправке команды` };
   },
 
   localAgentStatusSnapshot() {
     const agent = (this.systemDevices || []).find((device) => device.type === 'local_agent');
-    if (!agent) return { status: 'не найден', note: 'локальный агент отсутствует в реестре устройств' };
+    if (!agent) return { status: 'не найден', note: 'Local Agent отсутствует в Device Registry' };
     const status = DEVICE_STATUSES[agent.status] || agent.status || 'не проверено';
     const trust = DEVICE_TRUST_LEVELS[agent.trust_level] || agent.trust_level || 'неизвестно';
     return {
@@ -2546,13 +2530,13 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const cards = [
-      ['Система задач', this.taskRuntimeReady ? 'IndexedDB' : 'резерв', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'резервное хранилище браузера'],
-      ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
+      ['Task Runtime', this.taskRuntimeReady ? 'IndexedDB' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный fallback localStorage'],
+      ['Approval', approvals, 'опасные действия не выполняются автоматически'],
       ['Устройства', this.systemDevices.length, `${trustedDevices} доверенных или системных`],
-      ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'ручной ввод', 'без фонового прослушивания и без AI API'],
-      ['Хранилище', TERMINATOR_STORAGE_ROOT, 'тяжёлые файлы и evidence на D'],
-      ['Мост', direct.status, direct.note],
-      ['Локальный агент', agent.status, agent.note]
+      ['Mina Voice', this.workspaceVoiceSupported ? 'push-to-talk' : 'manual preview', 'без фонового прослушивания и без AI API'],
+      ['Storage root', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs и evidence на D'],
+      ['Direct Bridge', direct.status, direct.note],
+      ['Local Agent', agent.status, agent.note]
     ];
     host.innerHTML = cards.map(([title, value, note]) => `
       <article class="mission-card">
@@ -2568,7 +2552,6 @@ const App = {
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
-    this.updateMinaHud();
   },
 
   renderSystemDiagnostics() {
@@ -2578,33 +2561,33 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const latest = this.systemDiagnostics[0] || null;
     const rows = [
-      ['Хранилище задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? 'IndexedDB доступен' : 'Используется резервное хранилище браузера'],
-      ['Журнал событий', 'OK', 'события рабочего окна сохраняются вместе с задачей'],
-      ['Модель задач', 'OK', 'новые задачи готовы к голосу и будущим устройствам'],
-      ['Реестр устройств', this.systemDevices.length ? 'OK' : 'нет данных', `${this.systemDevices.length} устройств в локальном реестре`],
-      ['Политика устройств', 'OK', 'только паспорта, доверие, риск и возможности; реальные команды устройствам не запускаются'],
-      ['Голосовой ввод', this.workspaceVoiceSupported ? 'OK' : 'резерв', this.workspaceVoiceSupported ? 'запись по кнопке доступна' : 'доступен ручной preview текста'],
-      ['Главная навигация', 'OK', '`Личное` скрыто из активного меню'],
-      ['Старое Личное', this.isLegacyPersonalAccessAllowed() ? 'rollback включён' : 'заблокировано', this.isLegacyPersonalAccessAllowed() ? 'Внутренний rollback-доступ включён; выключить перед production QA' : 'Прямой переход в старое Личное блокируется'],
-      ['Хранилище агента', `contract v${TASK_STORAGE_SCHEMA_VERSION}`, 'подготовка, запись, проверка и restore actions готовы без удаления и без чтения секретов'],
-      ['Проверка результата', 'read-only', 'локальный агент может проверить текст и хранилище задачи без опасных действий'],
-      ['Память', 'D storage ready', 'предпросмотр памяти можно сохранить в папку памяти задачи'],
-      ['Мост', direct.status, `${direct.note}; deploy/config не менялись`],
-      ['Локальный агент', agent.status, `${agent.note}; runtime на ПК не менялся`],
-      ['AI API', 'выключены', 'runtime-вызовы AI API не добавлялись']
+      ['Runtime storage', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? 'IndexedDB доступен' : 'Используется localStorage fallback'],
+      ['Event log', 'OK', 'Workspace events сохраняются в task state и IndexedDB events store'],
+      ['Task model', 'OK', 'Voice-ready и device-ready поля есть в новых задачах'],
+      ['Device Registry', this.systemDevices.length ? 'OK' : 'нет данных', `${this.systemDevices.length} устройств в локальном реестре`],
+      ['Device Mesh policy', 'OK', 'только паспорта, trust/risk/capabilities; реальные adapter-команды не запускаются'],
+      ['Mina Voice hook', this.workspaceVoiceSupported ? 'OK' : 'fallback', this.workspaceVoiceSupported ? 'push-to-talk доступен' : 'manual transcript preview доступен'],
+      ['Main navigation', 'OK', '`Личное` скрыто из активного меню'],
+      ['Legacy Personal route', this.isLegacyPersonalAccessAllowed() ? 'rollback flag on' : 'blocked', this.isLegacyPersonalAccessAllowed() ? 'Внутренний rollback-доступ включён; выключить перед production QA' : 'Прямой переход в старое Личное блокируется'],
+      ['Local Agent storage', `contract v${TASK_STORAGE_SCHEMA_VERSION}`, 'prepare/write/verify/restore actions готовы без удаления и без чтения секретов'],
+      ['Verifier runtime', 'read-only', 'Local Agent может сделать scan текста/task storage и записать CHECK_LOG'],
+      ['Memory runtime', 'D storage ready', 'Memory Preview можно сохранить как record в task memory folder'],
+      ['Direct Bridge', direct.status, `${direct.note}; deploy/config не менялись`],
+      ['Local Agent', agent.status, `${agent.note}; runtime на ПК не менялся`],
+      ['AI API', 'Disabled', 'Runtime-вызовы AI API не добавлялись']
     ];
     host.innerHTML = `
       <section class="diagnost-console">
         <div class="diagnost-actions">
           <button type="button" data-diagnost-action="run" ${this.diagnosticRunning ? 'disabled' : ''}>${this.diagnosticRunning ? 'Проверяю...' : 'Запустить диагностику'}</button>
           <button type="button" data-diagnost-action="refresh_runtime">Обновить панели</button>
-          <button type="button" data-diagnost-action="sync_task_store">Синхронизировать задачи</button>
-          <button type="button" data-diagnost-action="clear_stale_selection">Сбросить зависший выбор</button>
+          <button type="button" data-diagnost-action="sync_task_store">Синхронизировать TaskStore</button>
+          <button type="button" data-diagnost-action="clear_stale_selection">Очистить stale state</button>
         </div>
         <div class="diagnost-status">
           <strong>${this.escapeHtml(latest ? this.diagnosticStatusName(latest.status) : 'не запускалась')}</strong>
           <span>${this.escapeHtml(latest ? this.formatTaskTime(latest.created_at) : 'последнего прогона нет')}</span>
-          <p>${this.escapeHtml(latest?.summary || 'Диагност готов к безопасной проверке системы задач, моста, подтверждений, хранилища и состояния интерфейса.')}</p>
+          <p>${this.escapeHtml(latest?.summary || 'Диагност готов к read-only проверке runtime, bridge health, approvals, storage policy и UI state.')}</p>
         </div>
       </section>
       <section class="diagnost-grid">
@@ -2670,14 +2653,14 @@ const App = {
       ['Активный код', 'C:', 'в проектной папке остаются source и лёгкие docs/evidence'],
       ['Архивы Codex', 'D:', `${TERMINATOR_STORAGE_ROOT}\\codex_outputs`],
       ['Evidence backups', 'D:', `${TERMINATOR_STORAGE_ROOT}\\evidence_backups`],
-      ['Файлы задач', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\files`],
-      ['Доказательства задач', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\evidence`],
-      ['Артефакты и отчёты', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\artifacts / reports`],
-      ['Хранилище агента', 'Phase 2 runtime', 'prepare/write artifacts/reports/memory/restore/check logs на D; без удаления и без чтения секретов'],
-      ['Схема хранения', `v${TASK_STORAGE_SCHEMA_VERSION}`, `${TASK_STORAGE_SUBFOLDERS.length} папок в contract папки задачи`],
-      ['Паспорта задач', `${taskCount} задач`, `${fileCount} file metadata records; raw/base64 не хранится`],
-      ['Синхронизация задач', this.taskStoreSyncStatus || 'не проверено', this.taskStoreLastSyncAt ? `последняя синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'мост задач ждёт сессию владельца')],
-      ['Секреты', 'запрещено', 'не писать в docs/evidence/logs']
+      ['Task files', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\files`],
+      ['Task evidence', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\evidence`],
+      ['Task artifacts/reports', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\artifacts / reports`],
+      ['Local Agent storage', 'Phase 2 runtime', 'prepare/write artifacts/reports/memory/restore/check logs на D; без удаления и без чтения секретов'],
+      ['Storage schema', `v${TASK_STORAGE_SCHEMA_VERSION}`, `${TASK_STORAGE_SUBFOLDERS.length} папок в task folder contract`],
+      ['Runtime manifests', `${taskCount} задач`, `${fileCount} file metadata records; raw/base64 не хранится`],
+      ['TaskStore sync', this.taskStoreSyncStatus || 'не проверено', this.taskStoreLastSyncAt ? `последняя синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'Bridge TaskStore ждёт сессию владельца')],
+      ['Secrets', 'запрещено', 'не писать в docs/evidence/logs']
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
   },
@@ -3396,21 +3379,21 @@ const App = {
         last_seen: now,
         notes: 'Главная рабочая машина и будущий runtime/storage узел.',
         capabilities: [
-          ['cap_pc_status', 'read_status', 'Показать состояние системы', 'safe', false],
-          ['cap_pc_storage', 'storage_policy', 'Показать политику хранения', 'safe', false],
+          ['cap_pc_status', 'read_status', 'Показать состояние runtime', 'safe', false],
+          ['cap_pc_storage', 'storage_policy', 'Показать storage policy', 'safe', false],
           ['cap_pc_diagnostics', 'safe_diagnostics', 'Безопасные read-only диагностики', 'review', true]
         ]
       }),
       this.normalizeDevice({
         device_id: 'device_local_agent',
-        name: 'Локальный агент Mina',
+        name: 'Mina Local Agent',
         type: 'local_agent',
         connection_type: 'bridge_polling',
         trust_level: 'system_device',
         status: 'unknown',
         risk_level: 'review',
         owner_confirmed: true,
-        notes: 'Локальный исполнитель. В этом слое команды агенту не отправляются.',
+        notes: 'Runtime-исполнитель. В этом слое команды агенту не отправляются.',
         capabilities: [
           ['cap_agent_health', 'read_status', 'Показать health/status позже', 'safe', false],
           ['cap_agent_file_meta', 'file_metadata', 'Файловая metadata через Local Agent позже', 'review', true]
@@ -3975,15 +3958,15 @@ const App = {
       this.renderWorkTaskCard();
       this.renderMissionControl();
       this.renderSystemStatus();
-      if (interactive) this.toast('Задачи синхронизированы');
+      if (interactive) this.toast('TaskStore синхронизирован');
       return { ok: true, task_count: this.workTasks.length };
     } catch (error) {
       console.warn('[MinaWebApp] TaskStore sync failed', error);
       this.taskStoreSyncStatus = 'failed';
-      this.taskStoreSyncError = error?.message || 'синхронизация задач не прошла';
+      this.taskStoreSyncError = error?.message || 'TaskStore sync failed';
       this.renderMissionControl();
       this.renderSystemStatus();
-      if (interactive) this.toast('Синхронизация задач не прошла');
+      if (interactive) this.toast('TaskStore sync не прошёл');
       return { ok: false, reason: 'sync_failed', error };
     } finally {
       this.taskStoreSyncRunning = false;
@@ -7551,84 +7534,6 @@ const App = {
     if (status.status === 'manual_required') return 'Требуется ручная проверка';
     if (status.status === 'failed') return 'Команда не выполнена';
     return 'Статус команды обновлён';
-  },
-
-  getMoscowNowParts() {
-    const now = new Date();
-    const date = new Intl.DateTimeFormat('ru-RU', {
-      timeZone: 'Europe/Moscow',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(now);
-    const time = new Intl.DateTimeFormat('ru-RU', {
-      timeZone: 'Europe/Moscow',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    }).format(now);
-    return { date, time };
-  },
-
-  buildMinaHudNotifications() {
-    const tasks = this.workTasks || [];
-    const approvals = this.approvalRecords || [];
-    const waiting = tasks.filter((task) => task.status === 'waiting_executor_report').length;
-    const checking = tasks.filter((task) => ['executor_report_received', 'verifying', 'needs_fix', 'manual_required'].includes(task.status)).length;
-    const risk = tasks.filter((task) => this.resolveTaskRiskLevel(task) !== 'низкий').length;
-    const pendingApprovals = approvals.filter((approval) => ['pending', 'approval_required', 'plan_prepared'].includes(approval.status)).length;
-    const entries = [];
-
-    if (waiting) entries.push({ title: 'Ждут отчёт', text: `${waiting} задач ожидают отчёт исполнителя.` });
-    if (checking) entries.push({ title: 'Проверка', text: `${checking} задач требуют проверки результата.` });
-    if (pendingApprovals) entries.push({ title: 'Approval', text: `${pendingApprovals} действий требуют решения владельца.` });
-    if (risk) entries.push({ title: 'Риски', text: `${risk} задач не в низком риске.` });
-    if (!this.taskRuntimeReady) entries.push({ title: 'Runtime', text: 'IndexedDB недоступен, включён fallback.' });
-    if (this.taskStoreSyncStatus === 'owner_session_required') entries.push({ title: 'Синхронизация', text: 'Для синхронизации нужен вход владельца.' });
-    if (!entries.length) entries.push({ title: 'Система', text: 'Критичных уведомлений нет.' });
-
-    return entries;
-  },
-
-  updateMinaHud() {
-    const dateEl = document.getElementById('mina-msk-date');
-    const timeEl = document.getElementById('mina-msk-time');
-    const countEl = document.getElementById('mina-notification-count');
-    const listEl = document.getElementById('mina-notification-list');
-    if (!dateEl || !timeEl || !countEl) return;
-
-    const { date, time } = this.getMoscowNowParts();
-    dateEl.textContent = date;
-    timeEl.textContent = time;
-
-    const notifications = this.buildMinaHudNotifications();
-    const activeCount = notifications.filter((item) => item.title !== 'Система').length;
-    countEl.textContent = String(activeCount);
-    countEl.classList.toggle('is-zero', activeCount === 0);
-
-    if (listEl && !listEl.hidden) {
-      listEl.innerHTML = notifications.map((item) => `
-        <article>
-          <strong>${this.escapeHtml(item.title)}</strong>
-          <p>${this.escapeHtml(item.text)}</p>
-        </article>
-      `).join('');
-    }
-  },
-
-  handleHudAction(action) {
-    if (action !== 'show_notifications') return;
-    const button = document.getElementById('mina-show-notifications');
-    const list = document.getElementById('mina-notification-list');
-    if (!button || !list) return;
-    const nextHidden = !list.hidden ? true : false;
-    list.hidden = nextHidden;
-    button.setAttribute('aria-expanded', String(!nextHidden));
-    if (!nextHidden) {
-      this.updateMinaHud();
-      this.toast('Уведомления открыты');
-    }
   },
 
   toast(message, duration = 2600) {

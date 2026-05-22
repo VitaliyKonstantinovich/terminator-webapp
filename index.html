@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260522-11">
+  <link rel="stylesheet" href="styles.css?v=20260522-12">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -70,7 +70,7 @@
             </button>
           </div>
 
-          <p class="status-pill status-pill--success">Рабочее активно • система задач включена</p>
+          <p class="status-pill status-pill--success">Рабочее активно • Task Runtime готовится</p>
         </article>
       </div>
     </section>
@@ -250,7 +250,7 @@
 
                   <div id="workspace-approval-panel" class="workspace-approval" hidden>
                     <strong>Подтверждение действия</strong>
-                    <p>Это потенциально опасное действие. В v1 действие не выполняется автоматически. Требуется подтверждение владельца.</p>
+                    <p>Это потенциально опасное действие. В v1 действие не выполняется автоматически. Требуется Approval Center.</p>
                     <div class="work-actions">
                       <button type="button" data-approval-action="plan">Подготовить план</button>
                       <button type="button" data-approval-action="cancel">Отмена</button>
@@ -465,7 +465,7 @@
           </div>
 
           <section id="mission-summary" class="mission-grid" aria-label="Сводка"></section>
-          <section class="mission-status-board" aria-label="Обзор системы задач">
+          <section class="mission-status-board" aria-label="Runtime обзор">
             <section class="runtime-panel">
               <div class="runtime-panel-head">
                 <div>
@@ -490,7 +490,7 @@
               <div class="runtime-panel-head">
                 <div>
                   <strong>Контур</strong>
-                  <span>Система задач, мост и локальный агент</span>
+                  <span>Runtime, Direct Mode и Local Agent</span>
                 </div>
               </div>
               <div id="mission-runtime-health" class="system-list"></div>
@@ -512,7 +512,7 @@
               <div class="runtime-panel-head">
                 <div>
                   <strong>Очереди задач</strong>
-                  <span>Активные состояния задач</span>
+                  <span>Активные состояния из Task Runtime</span>
                 </div>
               </div>
               <div id="mission-task-queues" class="mission-queues"></div>
@@ -536,7 +536,7 @@
                 <span>Центр управления не выполняет опасные действия</span>
               </div>
             </div>
-            <p class="runtime-note">Экран показывает локальное состояние системы задач: проекты, очереди, риски и последние события. Мост, локальный агент и выкладка здесь не запускаются.</p>
+            <p class="runtime-note">Экран показывает локальное состояние Task Runtime V1: проекты, задачи, очереди, риски и последние события. Direct Bridge, Local Agent и deploy здесь не запускаются.</p>
           </section>
         </article>
       </div>
@@ -559,7 +559,7 @@
 
           <div class="screen-heading">
             <h2>Система</h2>
-            <p>Система задач, безопасность и будущие устройства</p>
+            <p>Runtime, безопасность и будущие устройства</p>
           </div>
 
           <section id="system-summary" class="mission-grid" aria-label="Состояние системы"></section>
@@ -577,7 +577,7 @@
             <section class="runtime-panel">
               <div class="runtime-panel-head">
                 <div>
-                  <strong>Политика хранения</strong>
+                  <strong>Storage policy</strong>
                   <span>Где живут рабочие данные</span>
                 </div>
               </div>
@@ -597,7 +597,7 @@
             <section class="runtime-panel">
               <div class="runtime-panel-head">
                 <div>
-                  <strong>Старые режимы</strong>
+                  <strong>Legacy warnings</strong>
                   <span>Что не является активным путём</span>
                 </div>
               </div>
@@ -608,7 +608,7 @@
           <section class="runtime-panel">
             <div class="runtime-panel-head">
               <div>
-                <strong>Подтверждение действий</strong>
+                <strong>Approval Center</strong>
                 <span>Риски, подтверждения и безопасные решения</span>
               </div>
             </div>
@@ -849,29 +849,10 @@
         </article>
       </div>
     </section>
-
-    <aside id="mina-live-hud" class="mina-live-hud" aria-label="Живой HUD Mina">
-      <section class="mina-hud-card mina-hud-card--time" aria-label="Дата и время по Москве">
-        <span>Дата / время</span>
-        <time id="mina-msk-date">--.--.----</time>
-        <time id="mina-msk-time">--:--:--</time>
-      </section>
-      <section class="mina-hud-card mina-hud-card--notifications" aria-label="Уведомления">
-        <span>Уведомления</span>
-        <div class="mina-notification-orbit" aria-hidden="true">
-          <b class="mina-notification-bell"></b>
-          <strong id="mina-notification-count">0</strong>
-        </div>
-        <button id="mina-show-notifications" type="button" data-hud-action="show_notifications" aria-expanded="false">
-          Показать
-        </button>
-        <div id="mina-notification-list" class="mina-notification-list" hidden></div>
-      </section>
-    </aside>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260522-11"></script>
+  <script src="app.js?v=20260522-12"></script>
 </body>
 </html>
