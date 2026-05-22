@@ -2,6 +2,12 @@ name: Deploy Direct Bridge
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/cloudflare/direct-bridge/**"
+      - ".github/workflows/deploy-direct-bridge.yml"
 
 jobs:
   deploy:
