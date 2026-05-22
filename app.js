@@ -858,11 +858,6 @@ async function directBridgeRequest(baseUrl, route, options = {}) {
 }
 
 async function directBridgeRequestOnce(baseUrl, route, options = {}) {
-  if (shouldUseDirectBridgeFrame(baseUrl, options)) {
-    const frameResponse = await directBridgeFrameRequest(baseUrl, route, options);
-    return parseDirectBridgeResponse(frameResponse, options);
-  }
-
   const headers = buildDirectBridgeHeaders(options);
 
   const controller = new AbortController();
@@ -881,6 +876,10 @@ async function directBridgeRequestOnce(baseUrl, route, options = {}) {
     });
   } catch (error) {
     error.retryable = true;
+    if (shouldUseDirectBridgeFrame(baseUrl, options)) {
+      const frameResponse = await directBridgeFrameRequest(baseUrl, route, options);
+      return parseDirectBridgeResponse(frameResponse, options);
+    }
     throw error;
   } finally {
     window.clearTimeout(timeout);
