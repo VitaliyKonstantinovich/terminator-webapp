@@ -3580,10 +3580,11 @@ body[data-screen="menu"] .mina-live-hud {
   .screen {
     --frame-w: min(100vw, calc(100dvh * 16 / 9));
     --frame-h: min(100dvh, calc(100vw * 9 / 16));
+    --desktop-ambient-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue_ambient_1920.png");
     padding: 0;
     overflow: hidden;
     background-color: #030914;
-    background-image: var(--desktop-bg);
+    background-image: var(--desktop-ambient-bg);
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
@@ -3591,7 +3592,7 @@ body[data-screen="menu"] .mina-live-hud {
 
   .screen--start {
     background-color: #080102;
-    background-image: url("assets/mina-ui/desktop/01_start_screen_desktop_red.png");
+    background-image: url("assets/mina-ui/desktop/01_start_screen_desktop_red_ambient_1920.png");
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
@@ -3629,11 +3630,11 @@ body[data-screen="menu"] .mina-live-hud {
   }
 
   #screen-menu {
-    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue_1920.png");
+    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue.png");
   }
 
   #screen-work {
-    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue_1920.png");
+    --desktop-bg: url("assets/mina-ui/desktop/02_main_menu_desktop_blue.png");
   }
 
   #screen-personal {
