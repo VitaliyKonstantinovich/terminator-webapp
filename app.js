@@ -557,7 +557,9 @@ async function getOwnerSessionToken(baseUrl) {
   const session = await directBridgeRequest(baseUrl, '/owner/session', {
     method: 'POST',
     body: { secret },
-    skipAuth: true
+    skipAuth: true,
+    idempotent: false,
+    timeoutMs: 10000
   });
 
   const token = session?.session_token || session?.token;
@@ -895,7 +897,7 @@ async function directBridgeRequestOnce(baseUrl, route, options = {}) {
 function shouldRetryDirectRequest(options) {
   const method = String(options.method || 'GET').toUpperCase();
   if (method === 'GET') return true;
-  if (options.skipAuth) return true;
+  if (options.skipAuth) return options.idempotent === true;
   return options.idempotent === true;
 }
 
