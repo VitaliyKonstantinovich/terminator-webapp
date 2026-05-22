@@ -133,7 +133,7 @@ const WORK_STORAGE_KEY = 'mina_work_tasks_v1';
 const WORK_COUNTER_KEY = 'mina_work_task_counter_v1';
 const SYSTEM_DIAGNOSTICS_STORAGE_KEY = 'mina_system_diagnostics_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
-const WORK_RUNTIME_DB_VERSION = 3;
+const WORK_RUNTIME_DB_VERSION = 5;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
 const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
 const WORK_PROJECT_BY_ID = Object.fromEntries(WORK_PROJECTS.map((project) => [project.id, project]));
@@ -160,9 +160,9 @@ const DEFAULT_PROJECT_TYPE = 'custom';
 const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
 const DIAGNOSTIC_MANUAL_REVIEW_STALE_MS = 24 * 60 * 60 * 1000;
 const DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS = 6000;
-const TASK_STORAGE_SCHEMA_VERSION = 1;
+const TASK_STORAGE_SCHEMA_VERSION = 3;
 const FILE_HASH_MAX_BYTES = 50 * 1024 * 1024;
-const TASK_STORAGE_SUBFOLDERS = ['files', 'evidence', 'artifacts', 'reports', 'logs', 'previews', 'restore_points'];
+const TASK_STORAGE_SUBFOLDERS = ['files', 'evidence', 'artifacts', 'reports', 'logs', 'previews', 'restore_points', 'manifests', 'memory', 'incoming', 'quarantine'];
 const RAW_FILE_STORAGE_PATTERN = /(?:data:[^"'\\\s]+;base64,|;base64,)/i;
 const TASK_STORAGE_FOLDER_LABELS = {
   files: 'Файлы',
@@ -171,8 +171,15 @@ const TASK_STORAGE_FOLDER_LABELS = {
   reports: 'Отчёты',
   logs: 'Логи',
   previews: 'Preview',
-  restore_points: 'Restore points'
+  restore_points: 'Restore points',
+  manifests: 'Manifests',
+  memory: 'Memory',
+  incoming: 'Incoming',
+  quarantine: 'Quarantine'
 };
+
+const LEGACY_PERSONAL_SCREENS = new Set(['personal', 'brain', 'remote', 'complete']);
+const LEGACY_PERSONAL_ACCESS_KEY = 'mina_allow_legacy_personal';
 
 const DEVICE_TYPES = {
   windows_pc: 'ПК Windows',
@@ -332,11 +339,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'BrainOps / Council UI-Assisted Foundation',
-  date: '2026-05-21',
-  status: 'закрыт локально',
-  previous: 'System Extensions: Device Mesh + Mina Voice Hooks',
-  next: 'Phase 1 QA Max + Live Acceptance'
+  name: 'Phase 2 Full Runtime Sync',
+  date: '2026-05-22',
+  status: 'не закрыт: Cloudflare upload обрывается',
+  previous: 'Phase 2 Local Runtime + Storage закрыт локально',
+  next: 'закрыть TaskStore deploy, затем Phase 3 ResearchOps + BrainOps'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -347,7 +354,17 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 6, name: 'Files + Storage Foundation на D', status: 'закрыт' },
   { id: 7, name: 'System Extensions: Device Mesh + Mina Voice Hooks', status: 'закрыт' },
   { id: 8, name: 'BrainOps / Council UI-Assisted Foundation', status: 'закрыт' },
-  { id: 9, name: 'Phase 1 QA Max + Live Acceptance', status: 'не закрыт' }
+  { id: 9, name: 'Phase 1 QA Max + Live Acceptance', status: 'закрыт' },
+  { id: 10, name: 'Remove Personal Legacy + Phase 2 Local Runtime Storage Foundation', status: 'закрыт' },
+  { id: 11, name: 'Local Agent File Storage Runtime V1', status: 'закрыт' },
+  { id: 12, name: 'Verifier Runtime Read-only V1', status: 'закрыт' },
+  { id: 13, name: 'Memory Runtime V1 на D', status: 'закрыт' },
+  { id: 14, name: 'Restore Points + Storage Diagnostics', status: 'закрыт' },
+  { id: 15, name: 'Phase 2 Local Runtime Acceptance', status: 'закрыт локально' },
+  { id: 16, name: 'Bridge TaskStore + EventLog backend', status: 'реализован локально, deploy не прошёл' },
+  { id: 17, name: 'WebApp TaskStore sync binding', status: 'реализован локально' },
+  { id: 18, name: 'Local Agent task status sync', status: 'реализован локально' },
+  { id: 19, name: 'Phase 2 Full Runtime Live Acceptance', status: 'не закрыт' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -361,6 +378,8 @@ const DIRECT_REQUEST_RETRY_ATTEMPTS = 3;
 const DIRECT_REQUEST_RETRY_BASE_DELAY_MS = 700;
 const DIRECT_FINAL_STATUSES = new Set(['completed', 'failed', 'manual_required']);
 const DIRECT_RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const TASK_STORE_SYNC_DEBOUNCE_MS = 1800;
+const TASK_STORE_SYNC_MAX_TASKS = 100;
 const DIRECT_SESSION_LEGACY_STORAGE_KEY = 'mina_direct_owner_session';
 const DIRECT_SESSION_TOKEN_KEY = 'minaOwnerSessionToken';
 const DIRECT_SESSION_EXPIRES_KEY = 'minaOwnerSessionExpiresAt';
@@ -417,6 +436,33 @@ function getDirectTransport() {
 function getConfiguredDirectBridgeBaseUrl() {
   const config = getDirectBridgeConfig();
   return config?.baseUrl ? config.baseUrl.replace(/\/+$/, '') : '';
+}
+
+function hasStoredOwnerSession(baseUrl) {
+  return Boolean(getStoredOwnerSession(baseUrl)?.token);
+}
+
+async function directTaskStoreRequest(route, options = {}) {
+  const baseUrl = getConfiguredDirectBridgeBaseUrl();
+  if (!baseUrl) {
+    return { ok: false, reason: 'bridge_unconfigured', message: 'Direct Bridge не настроен' };
+  }
+
+  const token = options.token || (options.interactive
+    ? await ensureOwnerSession(baseUrl, { interactive: true })
+    : getStoredOwnerSession(baseUrl)?.token);
+
+  if (!token) {
+    return { ok: false, reason: 'owner_session_required', message: OWNER_SESSION_REQUIRED_MESSAGE };
+  }
+
+  return directBridgeRequest(baseUrl, route, {
+    method: options.method || 'GET',
+    token,
+    body: options.body,
+    idempotent: options.idempotent !== false,
+    timeoutMs: options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS
+  });
 }
 
 function isConfiguredDirectModeActive() {
@@ -1002,6 +1048,11 @@ const App = {
   taskRuntimeDb: null,
   taskRuntimeReady: false,
   taskRuntimeFallback: false,
+  taskStoreSyncStatus: 'not_connected',
+  taskStoreLastSyncAt: '',
+  taskStoreSyncError: '',
+  taskStoreSyncRunning: false,
+  taskStoreSyncTimer: null,
   workProjects: [],
   workTasks: [],
   systemDevices: [],
@@ -1028,7 +1079,7 @@ const App = {
   toastTimer: null,
   commandPollTimer: null,
   tg: null,
-  order: ['start', 'menu', 'work', 'mission', 'system', 'personal', 'brain', 'remote', 'complete'],
+  order: ['start', 'menu', 'work', 'mission', 'system'],
   anydesk: {
     id: '',
     status: 'не проверен',
@@ -1046,6 +1097,7 @@ const App = {
     await this.initTaskRuntime();
     await this.loadWorkProjects();
     await this.loadWorkTasks();
+    await this.syncTaskStore({ interactive: false, reason: 'init' });
     await this.loadSystemDevices();
     await this.loadApprovalRecords();
     await this.loadSystemDiagnostics();
@@ -1341,6 +1393,10 @@ const App = {
 
   selectModel(key) {
     if (!MODELS[key]) return;
+    if (!this.isLegacyPersonalAccessAllowed()) {
+      this.handleLegacyPersonalBlocked('brain');
+      return;
+    }
     this.selectedModel = key;
     this.renderBrain();
     this.updateModelButtons();
@@ -1367,6 +1423,11 @@ const App = {
   },
 
   go(name, options = {}) {
+    if (LEGACY_PERSONAL_SCREENS.has(name) && !this.isLegacyPersonalAccessAllowed()) {
+      this.handleLegacyPersonalBlocked(name);
+      return;
+    }
+
     const target = document.getElementById(`screen-${name}`);
     if (!target) return;
 
@@ -1396,9 +1457,9 @@ const App = {
       mission: 'menu',
       system: 'menu',
       personal: 'menu',
-      brain: 'personal',
-      remote: 'brain',
-      complete: 'remote'
+      brain: this.isLegacyPersonalAccessAllowed() ? 'personal' : 'menu',
+      remote: this.isLegacyPersonalAccessAllowed() ? 'brain' : 'menu',
+      complete: this.isLegacyPersonalAccessAllowed() ? 'remote' : 'menu'
     };
 
     const next = backMap[this.current];
@@ -1417,6 +1478,24 @@ const App = {
     }
 
     this.go(this.current === 'menu' ? 'start' : 'menu');
+  },
+
+  isLegacyPersonalAccessAllowed() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('legacy_personal') === '1'
+      || window.sessionStorage?.getItem(LEGACY_PERSONAL_ACCESS_KEY) === '1';
+  },
+
+  handleLegacyPersonalBlocked(target = 'personal') {
+    const label = {
+      personal: 'Личное',
+      brain: 'старый экран модели',
+      remote: 'старый AnyDesk flow',
+      complete: 'старое завершение сессии'
+    }[target] || target;
+    this.current = this.current || 'menu';
+    this.toast(`${label}: legacy-режим скрыт. Используй Рабочее / Совет / Система.`);
+    this.go('system');
   },
 
   updateTelegramControls() {
@@ -1806,10 +1885,11 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const rows = [
       ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
+      ['TaskStore', this.taskStoreSyncStatus || 'не проверен', this.taskStoreLastSyncAt ? `синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'ожидает owner session')],
       ['Direct Mode', direct.status, direct.note],
       ['Local Agent', agent.status, agent.note],
       ['Storage', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs, архивы и evidence backups на D'],
-      ['Checkpoint', 'шаг 5', `${TERMINATOR_LAST_CHECKPOINT.previous} закрыт; текущий слой: ${TERMINATOR_LAST_CHECKPOINT.name}`]
+      ['Checkpoint', 'Phase 2', `${TERMINATOR_LAST_CHECKPOINT.previous} закрыт; текущий слой: ${TERMINATOR_LAST_CHECKPOINT.name}`]
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
   },
@@ -2095,6 +2175,18 @@ const App = {
       checks.push(directHealth);
 
       checks.push(this.diagnosticCheck(
+        'TaskStore sync',
+        ['synced', 'syncing'].includes(this.taskStoreSyncStatus) ? 'pass' : 'manual_check',
+        this.taskStoreSyncStatus === 'failed' ? 'review' : 'safe',
+        this.taskStoreSyncStatus === 'synced'
+          ? `TaskStore синхронизирован: ${this.formatTaskTime(this.taskStoreLastSyncAt)}.`
+          : this.taskStoreSyncStatus === 'owner_session_required'
+            ? 'TaskStore ждёт вход владельца; данные остаются в IndexedDB.'
+            : this.taskStoreSyncError || `Текущий статус: ${this.taskStoreSyncStatus || 'не проверено'}.`,
+        'sync_task_store'
+      ));
+
+      checks.push(this.diagnosticCheck(
         'Local Agent',
         agent.status === 'на связи' || agent.status === 'connected' ? 'pass' : 'manual_check',
         'review',
@@ -2114,6 +2206,16 @@ const App = {
         storageManifestGaps.length ? 'review' : 'pass',
         storageManifestGaps.length ? 'review' : 'safe',
         storageManifestGaps.length ? `${storageManifestGaps.length} задач без полного storage manifest.` : `Storage manifest есть у ${tasks.length} задач.`
+      ));
+
+      const storageContractGaps = tasks.filter((task) => !task.storage_manifest?.local_agent_contract || task.storage_manifest.schema_version < TASK_STORAGE_SCHEMA_VERSION);
+      checks.push(this.diagnosticCheck(
+        'Local Agent storage contract',
+        storageContractGaps.length ? 'review' : 'pass',
+        storageContractGaps.length ? 'review' : 'safe',
+        storageContractGaps.length
+          ? `${storageContractGaps.length} задач требуют обновления storage contract до v${TASK_STORAGE_SCHEMA_VERSION}.`
+          : `Storage contract v${TASK_STORAGE_SCHEMA_VERSION} готов: prepare_task_storage без destructive actions.`
       ));
 
       const rawFilePolicyBroken = tasks.some((task) => (task.files || []).some((file) => file.raw_file_saved || file.base64 || file.dataUrl || file.content));
@@ -2201,11 +2303,16 @@ const App = {
       ));
 
       const personalButtonVisible = Array.from(document.querySelectorAll('#screen-menu .command-button')).some((button) => button.innerText.includes('Личное'));
+      const legacyPersonalAllowed = this.isLegacyPersonalAccessAllowed();
       checks.push(this.diagnosticCheck(
         'Legacy в активном UI',
-        personalButtonVisible ? 'review' : 'pass',
-        personalButtonVisible ? 'review' : 'safe',
-        personalButtonVisible ? '`Личное` найдено в активном меню.' : '`Личное` скрыто из активного меню.'
+        personalButtonVisible || legacyPersonalAllowed ? 'review' : 'pass',
+        personalButtonVisible || legacyPersonalAllowed ? 'review' : 'safe',
+        personalButtonVisible
+          ? '`Личное` найдено в активном меню.'
+          : legacyPersonalAllowed
+            ? 'Legacy Personal rollback-флаг включён. Отключить перед production QA.'
+            : '`Личное` скрыто и legacy-route заблокирован.'
       ));
 
       checks.push(this.diagnosticCheck(
@@ -2216,6 +2323,7 @@ const App = {
       ));
 
       if (!this.taskRuntimeReady) suggestions.push(this.diagnosticSuggestion('Проверить браузерный storage', 'review', 'manual_review', 'IndexedDB в fallback. Проверьте разрешения/режим браузера перед QA Max.'));
+      if (this.taskStoreSyncStatus !== 'synced') suggestions.push(this.diagnosticSuggestion('Синхронизировать TaskStore', 'safe', 'sync_task_store', 'Bridge TaskStore переводит задачи из локального браузерного кеша в общий контур Direct Mode.'));
       if (storageManifestGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить storage manifests', 'safe', 'refresh_runtime', 'Безопасно открыть задачи и пересобрать planned storage paths.'));
       if (missingDevices.length || devicesWithoutCapabilities.length) suggestions.push(this.diagnosticSuggestion('Обновить Device Registry', 'safe', 'refresh_runtime', 'Безопасно перечитать локальный реестр устройств и default passports.'));
       if (taskEventGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить старые задачи при открытии', 'safe', 'refresh_runtime', 'Безопасно перечитать runtime state и пересобрать панели.'));
@@ -2288,6 +2396,7 @@ const App = {
       try {
         const data = await response.clone().json();
         storage = data?.storage ? ` storage=${data.storage}` : '';
+        if (data?.task_store) storage += `; TaskStore=${data.task_store}`;
       } catch {}
       return this.diagnosticCheck('Direct Bridge health', 'pass', 'safe', `${host} отвечает 200 OK.${storage}`);
     } catch (error) {
@@ -2303,12 +2412,17 @@ const App = {
     if (action === 'refresh_runtime') {
       await this.loadWorkProjects();
       await this.loadWorkTasks();
+      await this.syncTaskStore({ interactive: false, reason: 'refresh_runtime' });
       await this.loadSystemDevices();
       await this.loadApprovalRecords();
       await this.loadSystemDiagnostics();
       this.renderMissionControl();
       this.renderSystemStatus();
       this.toast('Runtime панели обновлены');
+      return;
+    }
+    if (action === 'sync_task_store') {
+      await this.syncTaskStore({ interactive: true, reason: 'manual_system_action' });
       return;
     }
     if (action === 'clear_stale_selection') {
@@ -2424,6 +2538,10 @@ const App = {
       ['Device Mesh policy', 'OK', 'только паспорта, trust/risk/capabilities; реальные adapter-команды не запускаются'],
       ['Mina Voice hook', this.workspaceVoiceSupported ? 'OK' : 'fallback', this.workspaceVoiceSupported ? 'push-to-talk доступен' : 'manual transcript preview доступен'],
       ['Main navigation', 'OK', '`Личное` скрыто из активного меню'],
+      ['Legacy Personal route', this.isLegacyPersonalAccessAllowed() ? 'rollback flag on' : 'blocked', this.isLegacyPersonalAccessAllowed() ? 'Внутренний rollback-доступ включён; выключить перед production QA' : 'Прямой переход в старое Личное блокируется'],
+      ['Local Agent storage', `contract v${TASK_STORAGE_SCHEMA_VERSION}`, 'prepare/write/verify/restore actions готовы без удаления и без чтения секретов'],
+      ['Verifier runtime', 'read-only', 'Local Agent может сделать scan текста/task storage и записать CHECK_LOG'],
+      ['Memory runtime', 'D storage ready', 'Memory Preview можно сохранить как record в task memory folder'],
       ['Direct Bridge', direct.status, `${direct.note}; deploy/config не менялись`],
       ['Local Agent', agent.status, `${agent.note}; runtime на ПК не менялся`],
       ['AI API', 'Disabled', 'Runtime-вызовы AI API не добавлялись']
@@ -2433,6 +2551,7 @@ const App = {
         <div class="diagnost-actions">
           <button type="button" data-diagnost-action="run" ${this.diagnosticRunning ? 'disabled' : ''}>${this.diagnosticRunning ? 'Проверяю...' : 'Запустить диагностику'}</button>
           <button type="button" data-diagnost-action="refresh_runtime">Обновить панели</button>
+          <button type="button" data-diagnost-action="sync_task_store">Синхронизировать TaskStore</button>
           <button type="button" data-diagnost-action="clear_stale_selection">Очистить stale state</button>
         </div>
         <div class="diagnost-status">
@@ -2486,6 +2605,7 @@ const App = {
   diagnosticActionName(action) {
     const names = {
       refresh_runtime: 'Обновить',
+      sync_task_store: 'Синхронизировать',
       clear_stale_selection: 'Очистить',
       open_approval_center: 'Открыть',
       create_recovery_plan: 'Создать план',
@@ -2506,7 +2626,10 @@ const App = {
       ['Task files', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\files`],
       ['Task evidence', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\evidence`],
       ['Task artifacts/reports', 'D:', `${TERMINATOR_STORAGE_ROOT}\\tasks\\<task_id>\\artifacts / reports`],
+      ['Local Agent storage', 'Phase 2 runtime', 'prepare/write artifacts/reports/memory/restore/check logs на D; без удаления и без чтения секретов'],
+      ['Storage schema', `v${TASK_STORAGE_SCHEMA_VERSION}`, `${TASK_STORAGE_SUBFOLDERS.length} папок в task folder contract`],
       ['Runtime manifests', `${taskCount} задач`, `${fileCount} file metadata records; raw/base64 не хранится`],
+      ['TaskStore sync', this.taskStoreSyncStatus || 'не проверено', this.taskStoreLastSyncAt ? `последняя синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'Bridge TaskStore ждёт сессию владельца')],
       ['Secrets', 'запрещено', 'не писать в docs/evidence/logs']
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
@@ -2528,11 +2651,11 @@ const App = {
     const host = document.getElementById('system-legacy-warnings');
     if (!host) return;
     const rows = [
-      ['Личное', 'hidden legacy', 'скрыто из активного меню; физический cleanup позже отдельным блоком'],
+      ['Личное', 'blocked legacy', 'скрыто из активного меню; прямой legacy-route блокируется без внутреннего rollback-флага'],
       ['n8n / Telegram', 'legacy', 'не является Phase 1 core path и не восстанавливается здесь'],
       ['Amvera workflows', 'legacy debt', 'не участвуют в Direct Mode / Рабочем как основном пути'],
       ['PM2 brain workers', 'legacy audit later', 'не строим новые функции на этом слое'],
-      ['Personal handlers', 'не удалять', 'оставлены для rollback до отдельного cleanup checkpoint']
+      ['Personal handlers', 'оставлены', 'код и Direct actions не удалялись; активный продуктовый путь заблокирован']
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
   },
@@ -3630,6 +3753,10 @@ const App = {
           source: 'task_runtime_v1',
           persistence: this.taskRuntimeReady ? 'indexeddb' : 'localStorage_fallback'
         };
+    task.sync_status = task.sync_status || 'local_only';
+    task.task_store_status = task.task_store_status || task.sync_status;
+    task.task_store_revision = Number(task.task_store_revision || task.sync_revision || 0);
+    task.server_updated_at = task.server_updated_at || '';
     this.ensureTaskStorageManifest(task);
     task.timer_started_at = task.timer_started_at || task.executor_state.timer_started_at || '';
     task.timer_stopped_at = task.timer_stopped_at || task.executor_state.timer_stopped_at || '';
@@ -3690,12 +3817,143 @@ const App = {
         this.taskRuntimeFallback = true;
       });
     }
+    this.scheduleTaskStoreSync();
     this.renderMissionControl();
     this.renderSystemStatus();
   },
 
   async flushRuntimeSave() {
     if (this.runtimeSavePromise) await this.runtimeSavePromise;
+  },
+
+  scheduleTaskStoreSync() {
+    if (this.taskStoreSyncRunning) return;
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    if (!baseUrl || !hasStoredOwnerSession(baseUrl)) {
+      this.taskStoreSyncStatus = baseUrl ? 'owner_session_required' : 'not_configured';
+      return;
+    }
+
+    window.clearTimeout(this.taskStoreSyncTimer);
+    this.taskStoreSyncTimer = window.setTimeout(() => {
+      this.syncTaskStore({ interactive: false, reason: 'debounced_save' });
+    }, TASK_STORE_SYNC_DEBOUNCE_MS);
+  },
+
+  async syncTaskStore(options = {}) {
+    const interactive = Boolean(options.interactive);
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    if (!baseUrl) {
+      this.taskStoreSyncStatus = 'not_configured';
+      this.taskStoreSyncError = 'Direct Bridge URL не задан';
+      return { ok: false, reason: 'bridge_unconfigured' };
+    }
+
+    const token = interactive
+      ? await ensureOwnerSession(baseUrl, { interactive: true })
+      : getStoredOwnerSession(baseUrl)?.token;
+
+    if (!token) {
+      this.taskStoreSyncStatus = 'owner_session_required';
+      this.taskStoreSyncError = interactive ? OWNER_SESSION_REQUIRED_MESSAGE : '';
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      return { ok: false, reason: 'owner_session_required' };
+    }
+
+    if (this.taskStoreSyncRunning) return { ok: false, reason: 'sync_running' };
+    this.taskStoreSyncRunning = true;
+    this.taskStoreSyncStatus = 'syncing';
+    this.taskStoreSyncError = '';
+    this.renderMissionControl();
+    this.renderSystemStatus();
+
+    try {
+      await this.flushRuntimeSave();
+      const localTasks = (this.workTasks || [])
+        .map((task) => this.serializeTaskForTaskStore(task))
+        .slice(0, TASK_STORE_SYNC_MAX_TASKS);
+
+      for (const task of localTasks) {
+        const result = await directTaskStoreRequest(`/tasks/${encodeURIComponent(task.task_id)}`, {
+          method: 'PUT',
+          token,
+          body: { task },
+          idempotent: true,
+          timeoutMs: 45000
+        });
+        if (result?.task) {
+          const index = this.workTasks.findIndex((item) => item.task_id === task.task_id);
+          if (index >= 0) {
+            this.workTasks[index] = this.normalizeWorkTask({
+              ...this.workTasks[index],
+              task_store_revision: result.sync_revision,
+              sync_status: 'synced',
+              server_updated_at: result.task.server_updated_at || result.summary?.server_updated_at || new Date().toISOString()
+            });
+          }
+        }
+      }
+
+      const remote = await directTaskStoreRequest('/tasks?full=1', {
+        method: 'GET',
+        token,
+        timeoutMs: 45000
+      });
+      const remoteTasks = Array.isArray(remote?.tasks)
+        ? remote.tasks.filter((task) => task?.task_id).map((task) => this.normalizeWorkTask({
+            ...task,
+            sync_status: 'synced',
+            task_store_revision: task.sync_revision || task.task_store_revision || 0
+          }))
+        : [];
+      const merged = this.mergeWorkTaskLists(remoteTasks, this.workTasks || []);
+      this.workTasks = merged.tasks.map((task) => this.normalizeWorkTask({
+        ...task,
+        sync_status: 'synced',
+        task_store_status: 'synced'
+      }));
+      if (!this.workTasks.some((task) => task.task_id === this.activeWorkTaskId)) {
+        this.activeWorkTaskId = this.workTasks[0]?.task_id || '';
+      }
+
+      try {
+        window.localStorage?.setItem(WORK_STORAGE_KEY, JSON.stringify(this.workTasks.slice(0, 50)));
+      } catch {}
+      await this.persistRuntimeSnapshot();
+
+      this.taskStoreSyncStatus = 'synced';
+      this.taskStoreLastSyncAt = new Date().toISOString();
+      this.taskStoreSyncError = '';
+      this.renderWorkTaskCard();
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      if (interactive) this.toast('TaskStore синхронизирован');
+      return { ok: true, task_count: this.workTasks.length };
+    } catch (error) {
+      console.warn('[MinaWebApp] TaskStore sync failed', error);
+      this.taskStoreSyncStatus = 'failed';
+      this.taskStoreSyncError = error?.message || 'TaskStore sync failed';
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      if (interactive) this.toast('TaskStore sync не прошёл');
+      return { ok: false, reason: 'sync_failed', error };
+    } finally {
+      this.taskStoreSyncRunning = false;
+    }
+  },
+
+  serializeTaskForTaskStore(task) {
+    const normalized = this.normalizeWorkTask({ ...task });
+    return {
+      ...normalized,
+      sync_status: normalized.sync_status || 'pending_sync',
+      runtime: {
+        ...(normalized.runtime || {}),
+        task_store: 'direct_bridge_task_store',
+        local_cache: this.taskRuntimeReady ? 'indexeddb' : 'localStorage_fallback'
+      }
+    };
   },
 
   async persistRuntimeSnapshot() {
@@ -4466,9 +4724,12 @@ const App = {
             </article>
           `).join('')}
         </div>
-        <p>В браузере сохраняются только metadata, planned paths и hashes. Реальные файлы на D будет переносить Local Agent в следующем слое после approval.</p>
+        <p>В браузере сохраняются только metadata, planned paths и hashes. Local Agent storage v1 создаёт папки и manifest на D, но не удаляет файлы, не читает секреты и не распаковывает архивы.</p>
         <div class="workspace-file-actions">
           <button type="button" data-workspace-action="copy_storage_manifest">Скопировать карту</button>
+          <button type="button" data-workspace-action="copy_storage_agent_command">Команда Local Agent</button>
+          <button type="button" data-workspace-action="copy_phase2_runtime_package">Пакет Phase 2</button>
+          <button type="button" data-workspace-action="send_storage_prepare">Подготовить на D</button>
           <button type="button" data-workspace-action="create_restore_point">Создать restore point</button>
         </div>
       </section>
@@ -4497,12 +4758,49 @@ const App = {
       storage_root: TERMINATOR_STORAGE_ROOT,
       task_path: taskPath,
       status: existing.status || 'planned',
-      status_label: 'metadata-only / ждёт Local Agent storage',
-      persistence: 'browser_runtime_metadata',
+      status_label: 'Phase 2 storage contract / ждёт Local Agent prepare',
+      persistence: 'browser_runtime_metadata + local_agent_manifest',
       raw_file_policy: 'raw/base64 не хранить в localStorage',
       local_agent_required: true,
+      prepared_by_local_agent: Boolean(existing.prepared_by_local_agent),
+      runtime_status: existing.runtime_status || task.phase2_runtime_status || 'browser_ready',
       created_at: existing.created_at || task.created_at || now,
       updated_at: now,
+      manifest_files: {
+        json: `${taskPath}\\manifests\\task-storage-manifest.json`,
+        markdown: `${taskPath}\\manifests\\task-storage-manifest.md`
+      },
+      local_agent_contract: {
+        action_type: 'storage_action',
+        action: 'prepare_task_storage',
+        supported_actions: [
+          'prepare_task_storage',
+          'write_task_artifact',
+          'write_task_report',
+          'write_memory_record',
+          'create_restore_point',
+          'inspect_task_storage',
+          'verify_task_bundle'
+        ],
+        execution: 'safe_folder_prepare_only',
+        destructive_actions_allowed: false,
+        reads_secret_files: false,
+        extracts_archives: false,
+        runs_files: false
+      },
+      safe_operations: [
+        'create_task_folders',
+        'write_storage_manifest',
+        'write_restore_point_metadata'
+      ],
+      blocked_operations: [
+        'delete_files',
+        'read_env',
+        'extract_archives',
+        'run_unknown_files',
+        'network_changes',
+        'security_changes'
+      ],
       folders: TASK_STORAGE_SUBFOLDERS.map((folder) => ({
         id: folder,
         label: TASK_STORAGE_FOLDER_LABELS[folder] || folder,
@@ -4516,9 +4814,12 @@ const App = {
       root: TERMINATOR_STORAGE_ROOT,
       task_path: taskPath,
       browser_persistence: 'metadata_only',
-      local_agent_storage: 'future_required',
+      local_agent_storage: 'phase2_prepare_manifest_contract',
+      local_agent_runtime: 'phase2_write_records_hashes_verify_readonly',
       raw_files_in_localStorage: false,
-      hash_policy: `browser SHA-256 до ${this.humanFileSize(FILE_HASH_MAX_BYTES)}, дальше Local Agent`
+      hash_policy: `browser SHA-256 до ${this.humanFileSize(FILE_HASH_MAX_BYTES)}, дальше Local Agent`,
+      safe_prepare_action: 'prepare_task_storage',
+      safe_runtime_actions: manifest.local_agent_contract?.supported_actions || []
     };
     return manifest;
   },
@@ -4630,6 +4931,9 @@ const App = {
       `task_path: ${manifest.task_path}`,
       `policy: ${manifest.raw_file_policy}`,
       `browser_persistence: ${manifest.persistence}`,
+      `local_agent_action: ${manifest.local_agent_contract?.action || 'prepare_task_storage'}`,
+      `manifest_json: ${manifest.manifest_files?.json || 'не задано'}`,
+      `manifest_md: ${manifest.manifest_files?.markdown || 'не задано'}`,
       `files: ${summary.files}`,
       `evidence: ${summary.evidence}`,
       `hashed: ${summary.hashed}`,
@@ -4643,7 +4947,9 @@ const App = {
       '## Ограничение v1',
       '- браузер хранит только metadata/hash/planned paths;',
       '- реальные файлы не пишутся в localStorage;',
-      '- постоянное хранение на D подключается через Local Agent storage в следующем слое.'
+      '- Local Agent storage runtime готовит папки, пишет artifacts/reports/memory/restore points на D и считает hashes;',
+      '- Verifier runtime делает read-only scan без запуска файлов;',
+      '- Local Agent не удаляет файлы, не читает .env/secrets, не распаковывает архивы и не запускает неизвестные файлы.'
     ].join('\n');
   },
 
@@ -4652,6 +4958,209 @@ const App = {
     this.copyWorkspaceText(text);
     this.addWorkspaceMessage(task, 'system_event', 'Хранилище', 'Storage manifest скопирован.');
     this.addWorkAudit(task, 'Storage manifest скопирован.');
+  },
+
+  buildStorageAgentCommand(task) {
+    const manifest = this.ensureTaskStorageManifest(task);
+    const payload = {
+      type: 'storage_action',
+      action: 'prepare_task_storage',
+      task_id: task.task_id,
+      project_id: task.project_id,
+      title: task.title,
+      storage_root: manifest.storage_root,
+      dry_run: false
+    };
+    return [
+      '# Local Agent storage prepare',
+      '',
+      'Рабочая папка Local Agent:',
+      'C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\local-agent',
+      '',
+      'PowerShell:',
+      `node .\\mina-local-agent.mjs --prepare-task-storage=${task.task_id}`,
+      '',
+      'Future Direct Bridge payload:',
+      JSON.stringify(payload, null, 2),
+      '',
+      'Supported Phase 2 storage actions:',
+      '- prepare_task_storage',
+      '- write_task_artifact',
+      '- write_task_report',
+      '- write_memory_record',
+      '- create_restore_point',
+      '- inspect_task_storage',
+      '- verify_task_bundle',
+      '',
+      'Safety:',
+      '- создаёт только папки задачи и manifest на D;',
+      '- не удаляет файлы;',
+      '- не читает .env/secrets;',
+      '- не распаковывает архивы;',
+      '- не запускает неизвестные файлы.'
+    ].join('\n');
+  },
+
+  buildPhase2RuntimePayloads(task) {
+    const manifest = this.ensureTaskStorageManifest(task);
+    const taskBase = {
+      type: 'storage_action',
+      task_id: task.task_id,
+      project_id: task.project_id,
+      title: task.title,
+      storage_root: manifest.storage_root,
+      source: 'mina_webapp',
+      version: 2
+    };
+    const payloads = [
+      {
+        ...taskBase,
+        action: 'prepare_task_storage'
+      },
+      ...((task.artifacts || []).slice(0, 20).map((artifact) => ({
+        ...taskBase,
+        action: artifact.type === 'EXECUTOR_REPORT' ? 'write_task_report' : 'write_task_artifact',
+        artifact_id: artifact.artifact_id,
+        artifact_type: artifact.type,
+        title: artifact.title,
+        summary: artifact.summary,
+        content: artifact.content || artifact.summary || artifact.title,
+        linked_file_ids: artifact.linked_file_ids || [],
+        linked_artifact_ids: artifact.linked_artifact_ids || []
+      }))),
+      {
+        ...taskBase,
+        action: 'write_memory_record',
+        memory_id: `MEMORY-${task.task_id}`,
+        title: 'Memory preview',
+        summary: task.memory_preview?.summary || task.goal || task.user_request || '',
+        content: JSON.stringify(this.buildWorkspaceMemoryPreview(task, task.memory_preview?.status || 'draft'), null, 2),
+        linked_artifact_ids: task.memory_preview?.linked_artifact_ids || []
+      },
+      {
+        ...taskBase,
+        action: 'create_restore_point',
+        snapshot: this.buildTaskRuntimeSnapshot(task)
+      },
+      {
+        ...taskBase,
+        action: 'verify_task_bundle',
+        report: this.normalizedVerifierNotes(task).report || (task.artifacts || []).find((artifact) => artifact.type === 'EXECUTOR_REPORT')?.content || '',
+        evidence: this.normalizedVerifierNotes(task).evidence || this.taskStoragePath(task.task_id, 'evidence'),
+        expected: task.user_request || task.goal || task.title,
+        notes: this.verifierRisksSummary(task)
+      },
+      {
+        ...taskBase,
+        action: 'inspect_task_storage'
+      }
+    ];
+    return payloads;
+  },
+
+  buildTaskRuntimeSnapshot(task) {
+    return {
+      restore_point_id: `RESTORE-${task.task_id}-${Date.now()}`,
+      title: `Restore point ${task.task_id}`,
+      summary: 'Phase 2 metadata snapshot for Local Agent storage runtime.',
+      source: 'mina_webapp',
+      task_id: task.task_id,
+      project_id: task.project_id,
+      status: task.status,
+      title_text: task.title,
+      updated_at: task.updated_at,
+      messages: (task.messages || []).length,
+      events: (task.events || []).length,
+      files: (task.files || []).map((file) => ({
+        file_id: file.file_id,
+        name: file.name,
+        role: file.role,
+        size_bytes: file.size_bytes,
+        sha256: file.sha256 || '',
+        hash_status: file.hash_status || '',
+        planned_path: file.storage_ref?.planned_path || ''
+      })),
+      artifacts: (task.artifacts || []).map((artifact) => ({
+        artifact_id: artifact.artifact_id,
+        type: artifact.type,
+        title: artifact.title,
+        status: artifact.status,
+        planned_path: artifact.storage_ref?.planned_path || ''
+      })),
+      verifier_result: task.verifier_result || '',
+      memory_status: task.memory_preview?.status || task.memory_status || '',
+      approval_count: (task.approval_requests || []).length
+    };
+  },
+
+  buildPhase2RuntimePackageText(task) {
+    const payloads = this.buildPhase2RuntimePayloads(task);
+    return [
+      '# Phase 2 Local Agent Runtime Package',
+      '',
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      `created_at: ${new Date().toISOString()}`,
+      '',
+      '## Что делает пакет',
+      '- готовит task storage на D;',
+      '- сохраняет artifacts/reports/memory records;',
+      '- создаёт restore point;',
+      '- запускает read-only verifier scan;',
+      '- инспектирует task storage;',
+      '- не удаляет файлы, не читает .env/secrets, не распаковывает архивы, не запускает файлы.',
+      '',
+      '## Payloads',
+      JSON.stringify(payloads, null, 2)
+    ].join('\n');
+  },
+
+  copyPhase2RuntimePackage(task) {
+    const text = this.buildPhase2RuntimePackageText(task);
+    this.copyWorkspaceText(text);
+    const artifact = this.createArtifact(task, 'PLAN', 'Phase 2 Local Agent Runtime Package', 'Payload-пакет для безопасного сохранения runtime на D.', text, 'storage');
+    artifact.status = 'ready';
+    task.phase2_runtime_status = 'package_ready';
+    task.storage_manifest.runtime_status = 'package_ready';
+    this.addWorkspaceMessage(task, 'system_event', 'Хранилище', 'Phase 2 Local Agent Runtime Package создан и скопирован.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.addWorkAudit(task, 'Создан Phase 2 Local Agent Runtime Package.');
+    this.toast('Phase 2 пакет создан');
+  },
+
+  async sendStoragePrepare(task) {
+    const manifest = this.ensureTaskStorageManifest(task);
+    const payload = {
+      type: 'storage_action',
+      action: 'prepare_task_storage',
+      task_id: task.task_id,
+      project_id: task.project_id,
+      title: task.title,
+      storage_root: manifest.storage_root,
+      source: 'mina_webapp',
+      version: 2
+    };
+    const result = await sendTerminatorAction(payload);
+    if (result.ok && result.commandId && result.canTrackStatus) {
+      this.watchDirectCommand(result.commandId, { action: 'prepare_task_storage' });
+    }
+    task.phase2_runtime_status = result.ok ? 'prepare_command_sent' : 'prepare_command_not_sent';
+    this.addWorkspaceMessage(task, 'system_event', 'Хранилище', result.ok ? 'Команда подготовки storage отправлена Local Agent.' : `Команда storage не отправлена: ${result.message || result.reason || 'ошибка'}`);
+    this.toast(result.ok ? 'Команда storage отправлена' : 'Storage command не отправлен');
+  },
+
+  copyStorageAgentCommand(task) {
+    const text = this.buildStorageAgentCommand(task);
+    this.copyWorkspaceText(text);
+    const artifact = this.createArtifact(task, 'PLAN', 'Local Agent storage prepare', 'Команда и payload для безопасной подготовки storage на D.', text, 'storage');
+    artifact.status = 'ready';
+    this.addWorkspaceMessage(task, 'system_event', 'Хранилище', 'Команда Local Agent storage скопирована.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.addWorkAudit(task, 'Скопирована команда Local Agent storage prepare.');
   },
 
   createStorageRestorePoint(task) {
@@ -5207,6 +5716,9 @@ const App = {
       edit_memory_preview: () => this.showWorkSafeOutput(task, 'Память', 'Редактирование Memory preview будет реализовано следующим этапом.', task.status),
       skip_memory_preview: () => this.skipWorkspaceMemoryPreview(task),
       copy_storage_manifest: () => this.copyStorageManifest(task),
+      copy_storage_agent_command: () => this.copyStorageAgentCommand(task),
+      copy_phase2_runtime_package: () => this.copyPhase2RuntimePackage(task),
+      send_storage_prepare: () => this.sendStoragePrepare(task),
       create_restore_point: () => this.createStorageRestorePoint(task),
       build_brain_prompts: () => this.buildBrainPromptPackages(task),
       copy_brain_prompt: () => this.copyBrainPromptPackage(task, sourceButton?.dataset?.brainRole || ''),
@@ -6793,6 +7305,11 @@ const App = {
   },
 
   async sendPersonalAction(action, payload = {}) {
+    if (!this.isLegacyPersonalAccessAllowed()) {
+      this.toast('Личное отключено как активный режим. Используй Рабочее / Совет мозгов.');
+      return false;
+    }
+
     const brain = payload.brain || this.selectedModel;
     if (action === 'ensure_anydesk') this.setAnyDeskPending();
 

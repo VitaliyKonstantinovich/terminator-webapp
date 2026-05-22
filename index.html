@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260521-12">
+  <link rel="stylesheet" href="styles.css?v=20260522-3">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -638,7 +638,7 @@
       </div>
     </section>
 
-    <section id="screen-personal" class="screen screen--blue" data-screen="personal">
+    <section id="screen-personal" class="screen screen--blue screen--legacy-personal" data-screen="personal" data-legacy="personal">
       <div class="telemetry telemetry--left" aria-hidden="true"></div>
       <div class="telemetry telemetry--right" aria-hidden="true"></div>
       <div class="screen-inner">
@@ -655,7 +655,7 @@
 
           <div class="screen-heading">
             <h2>Личное</h2>
-            <p>Выбери ИИ для ручной работы через ПК Терминатора</p>
+            <p>Legacy-режим скрыт из активного продукта. Рабочий путь: Рабочее → Совет → Проверка → Память.</p>
           </div>
 
           <div class="command-stack model-stack" aria-label="Выбор модели">
@@ -690,7 +690,7 @@
       <div class="screen-inner">
         <article class="command-shell command-shell--brain">
           <nav class="topbar" aria-label="Навигация">
-            <button class="icon-button" type="button" data-nav="personal" aria-label="Назад">
+            <button class="icon-button" type="button" data-nav="menu" aria-label="Назад">
               <span aria-hidden="true">←</span>
             </button>
             <span class="topbar-title">MINA UI</span>
@@ -853,6 +853,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260521-12"></script>
+  <script src="app.js?v=20260522-3"></script>
 </body>
 </html>
