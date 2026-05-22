@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260522-6">
+  <link rel="stylesheet" href="styles.css?v=20260522-7">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -70,7 +70,7 @@
             </button>
           </div>
 
-          <p class="status-pill status-pill--success">Рабочее активно • Task Runtime готовится</p>
+          <p class="status-pill status-pill--success">Рабочее активно • Task Runtime включён</p>
         </article>
       </div>
     </section>
@@ -849,10 +849,29 @@
         </article>
       </div>
     </section>
+
+    <aside id="mina-live-hud" class="mina-live-hud" aria-label="Живой HUD Mina">
+      <section class="mina-hud-card mina-hud-card--time" aria-label="Дата и время по Москве">
+        <span>Дата / время</span>
+        <time id="mina-msk-date">--.--.----</time>
+        <time id="mina-msk-time">--:--:--</time>
+      </section>
+      <section class="mina-hud-card mina-hud-card--notifications" aria-label="Уведомления">
+        <span>Уведомления</span>
+        <div class="mina-notification-orbit" aria-hidden="true">
+          <b class="mina-notification-bell"></b>
+          <strong id="mina-notification-count">0</strong>
+        </div>
+        <button id="mina-show-notifications" type="button" data-hud-action="show_notifications" aria-expanded="false">
+          Показать
+        </button>
+        <div id="mina-notification-list" class="mina-notification-list" hidden></div>
+      </section>
+    </aside>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260522-6"></script>
+  <script src="app.js?v=20260522-7"></script>
 </body>
 </html>

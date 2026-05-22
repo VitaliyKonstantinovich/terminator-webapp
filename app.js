@@ -1105,6 +1105,7 @@ const App = {
   workspaceVoiceOpen: false,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
+  minaHudTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
   commandPollTimer: null,
@@ -1140,6 +1141,7 @@ const App = {
     this.renderBrain();
     this.renderAnyDeskAccess();
     this.startWorkspaceTimer();
+    this.startMinaHud();
     this.go('start', { immediate: true });
     this.retryTelegramInit();
   },
@@ -1185,6 +1187,12 @@ const App = {
       const toastButton = event.target.closest('[data-toast]');
       if (toastButton) {
         this.toast(toastButton.dataset.toast);
+        return;
+      }
+
+      const hudButton = event.target.closest('[data-hud-action]');
+      if (hudButton) {
+        this.handleHudAction(hudButton.dataset.hudAction);
         return;
       }
 
@@ -1417,6 +1425,12 @@ const App = {
     this.workspaceTimer = window.setInterval(() => this.updateWorkspaceTimer(), 1000);
   },
 
+  startMinaHud() {
+    this.updateMinaHud();
+    if (this.minaHudTimer) return;
+    this.minaHudTimer = window.setInterval(() => this.updateMinaHud(), 1000);
+  },
+
   get model() {
     return MODELS[this.selectedModel] || MODELS.chatgpt;
   },
@@ -1474,6 +1488,7 @@ const App = {
     }
 
     document.body.dataset.screen = name;
+    this.updateMinaHud();
     if (name === 'mission') this.renderMissionControl();
     if (name === 'system') this.renderSystemStatus();
     this.updateTelegramControls();
@@ -1863,6 +1878,7 @@ const App = {
     this.renderMissionNextStep(tasks, projects);
     this.renderMissionTaskQueues(tasks);
     this.renderMissionEventFeed(tasks);
+    this.updateMinaHud();
   },
 
   renderMissionProjectOverview(projects, tasks) {
@@ -2552,6 +2568,7 @@ const App = {
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
+    this.updateMinaHud();
   },
 
   renderSystemDiagnostics() {
@@ -7534,6 +7551,84 @@ const App = {
     if (status.status === 'manual_required') return 'Требуется ручная проверка';
     if (status.status === 'failed') return 'Команда не выполнена';
     return 'Статус команды обновлён';
+  },
+
+  getMoscowNowParts() {
+    const now = new Date();
+    const date = new Intl.DateTimeFormat('ru-RU', {
+      timeZone: 'Europe/Moscow',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(now);
+    const time = new Intl.DateTimeFormat('ru-RU', {
+      timeZone: 'Europe/Moscow',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(now);
+    return { date, time };
+  },
+
+  buildMinaHudNotifications() {
+    const tasks = this.workTasks || [];
+    const approvals = this.approvalRecords || [];
+    const waiting = tasks.filter((task) => task.status === 'waiting_executor_report').length;
+    const checking = tasks.filter((task) => ['executor_report_received', 'verifying', 'needs_fix', 'manual_required'].includes(task.status)).length;
+    const risk = tasks.filter((task) => this.resolveTaskRiskLevel(task) !== 'низкий').length;
+    const pendingApprovals = approvals.filter((approval) => ['pending', 'approval_required', 'plan_prepared'].includes(approval.status)).length;
+    const entries = [];
+
+    if (waiting) entries.push({ title: 'Ждут отчёт', text: `${waiting} задач ожидают отчёт исполнителя.` });
+    if (checking) entries.push({ title: 'Проверка', text: `${checking} задач требуют проверки результата.` });
+    if (pendingApprovals) entries.push({ title: 'Approval', text: `${pendingApprovals} действий требуют решения владельца.` });
+    if (risk) entries.push({ title: 'Риски', text: `${risk} задач не в низком риске.` });
+    if (!this.taskRuntimeReady) entries.push({ title: 'Runtime', text: 'IndexedDB недоступен, включён fallback.' });
+    if (this.taskStoreSyncStatus === 'owner_session_required') entries.push({ title: 'TaskStore', text: 'Для синхронизации нужен вход владельца.' });
+    if (!entries.length) entries.push({ title: 'Система', text: 'Критичных уведомлений нет.' });
+
+    return entries;
+  },
+
+  updateMinaHud() {
+    const dateEl = document.getElementById('mina-msk-date');
+    const timeEl = document.getElementById('mina-msk-time');
+    const countEl = document.getElementById('mina-notification-count');
+    const listEl = document.getElementById('mina-notification-list');
+    if (!dateEl || !timeEl || !countEl) return;
+
+    const { date, time } = this.getMoscowNowParts();
+    dateEl.textContent = date;
+    timeEl.textContent = time;
+
+    const notifications = this.buildMinaHudNotifications();
+    const activeCount = notifications.filter((item) => item.title !== 'Система').length;
+    countEl.textContent = String(activeCount);
+    countEl.classList.toggle('is-zero', activeCount === 0);
+
+    if (listEl && !listEl.hidden) {
+      listEl.innerHTML = notifications.map((item) => `
+        <article>
+          <strong>${this.escapeHtml(item.title)}</strong>
+          <p>${this.escapeHtml(item.text)}</p>
+        </article>
+      `).join('');
+    }
+  },
+
+  handleHudAction(action) {
+    if (action !== 'show_notifications') return;
+    const button = document.getElementById('mina-show-notifications');
+    const list = document.getElementById('mina-notification-list');
+    if (!button || !list) return;
+    const nextHidden = !list.hidden ? true : false;
+    list.hidden = nextHidden;
+    button.setAttribute('aria-expanded', String(!nextHidden));
+    if (!nextHidden) {
+      this.updateMinaHud();
+      this.toast('Уведомления открыты');
+    }
   },
 
   toast(message, duration = 2600) {

@@ -322,6 +322,227 @@ button:not(:disabled) {
   right: 3.2vw;
 }
 
+.mina-live-hud {
+  position: fixed;
+  top: 30%;
+  right: max(24px, calc((100vw - min(100vw, calc(100dvh * 16 / 9))) / 2 + 38px));
+  z-index: 18;
+  width: clamp(190px, 12.5vw, 240px);
+  display: none;
+  gap: 14px;
+  pointer-events: none;
+}
+
+body[data-screen="menu"] .mina-live-hud {
+  display: grid;
+}
+
+.mina-hud-card {
+  position: relative;
+  min-height: 112px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px 14px 13px;
+  border: 1px solid rgba(70, 177, 255, 0.36);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(2, 22, 49, 0.7), rgba(1, 10, 27, 0.78)),
+    rgba(2, 13, 31, 0.74);
+  box-shadow:
+    inset 0 0 0 1px rgba(112, 220, 255, 0.06),
+    inset 0 0 22px rgba(37, 151, 255, 0.12),
+    0 0 20px rgba(0, 145, 255, 0.18);
+  clip-path: polygon(8% 0, 92% 0, 100% 12%, 100% 88%, 92% 100%, 8% 100%, 0 88%, 0 12%);
+  pointer-events: auto;
+}
+
+.mina-hud-card--notifications {
+  margin-top: clamp(126px, 14vh, 166px);
+}
+
+.mina-hud-card::before,
+.mina-hud-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.mina-hud-card::before {
+  inset: 5px;
+  border: 1px solid rgba(76, 188, 255, 0.18);
+  clip-path: polygon(7% 0, 93% 0, 100% 11%, 100% 89%, 93% 100%, 7% 100%, 0 89%, 0 11%);
+}
+
+.mina-hud-card::after {
+  right: 11px;
+  top: 14px;
+  width: 25px;
+  height: 72px;
+  opacity: 0.28;
+  background:
+    repeating-linear-gradient(180deg, rgba(88, 207, 255, 0.8) 0 2px, transparent 2px 8px);
+}
+
+.mina-hud-card > span {
+  color: #70cfff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.mina-hud-card time {
+  display: block;
+  color: #9ed9ff;
+  font-weight: 900;
+  line-height: 1.08;
+  text-shadow: 0 0 16px rgba(44, 169, 255, 0.45);
+}
+
+#mina-msk-date {
+  margin-top: 8px;
+  font-size: clamp(15px, 1.2vw, 19px);
+}
+
+#mina-msk-time {
+  font-size: clamp(22px, 1.8vw, 30px);
+}
+
+.mina-notification-orbit {
+  position: relative;
+  width: 54px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  color: #6ecfff;
+  font-size: 31px;
+  text-shadow: 0 0 18px rgba(60, 190, 255, 0.75);
+}
+
+.mina-notification-orbit b {
+  font-weight: 400;
+}
+
+.mina-notification-bell {
+  position: relative;
+  width: 24px;
+  height: 25px;
+  display: block;
+  border: 2px solid currentColor;
+  border-top: 0;
+  border-radius: 7px 7px 10px 10px;
+  box-shadow:
+    0 0 14px rgba(78, 203, 255, 0.58),
+    inset 0 0 10px rgba(78, 203, 255, 0.18);
+}
+
+.mina-notification-bell::before,
+.mina-notification-bell::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.mina-notification-bell::before {
+  top: -9px;
+  width: 14px;
+  height: 11px;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 11px 11px 0 0;
+}
+
+.mina-notification-bell::after {
+  bottom: -7px;
+  width: 8px;
+  height: 5px;
+  border-radius: 0 0 8px 8px;
+  background: currentColor;
+  box-shadow: 0 0 12px rgba(78, 203, 255, 0.75);
+}
+
+.mina-notification-orbit strong {
+  position: absolute;
+  right: -12px;
+  top: -5px;
+  min-width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ff3658;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 0 18px rgba(255, 38, 72, 0.8);
+}
+
+.mina-notification-orbit strong.is-zero {
+  background: rgba(33, 246, 157, 0.88);
+  color: #01201a;
+  box-shadow: 0 0 18px rgba(33, 246, 157, 0.5);
+}
+
+#mina-show-notifications {
+  min-height: 34px;
+  border: 1px solid rgba(68, 166, 255, 0.44);
+  border-radius: 6px;
+  background: rgba(1, 17, 41, 0.72);
+  color: #7ed6ff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 16px rgba(31, 126, 255, 0.12);
+}
+
+#mina-show-notifications:hover,
+#mina-show-notifications:focus-visible {
+  border-color: rgba(126, 231, 255, 0.92);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(34, 165, 255, 0.32), inset 0 0 18px rgba(31, 126, 255, 0.18);
+  outline: none;
+}
+
+.mina-notification-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(300px, 80vw);
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(82, 203, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(1, 10, 27, 0.96);
+  box-shadow: 0 0 26px rgba(0, 145, 255, 0.28);
+}
+
+.mina-notification-list[hidden] {
+  display: none;
+}
+
+.mina-notification-list article {
+  padding: 8px;
+  border: 1px solid rgba(82, 203, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(4, 28, 60, 0.72);
+}
+
+.mina-notification-list strong {
+  color: #eafaff;
+  font-size: 12px;
+}
+
+.mina-notification-list p {
+  margin: 4px 0 0;
+  color: #a9cce5;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .screen-inner {
   width: min(100%, 720px);
   min-height: min(780px, calc(100dvh - 44px - var(--safe-top) - var(--safe-bottom)));
@@ -345,6 +566,34 @@ button:not(:disabled) {
     inset 0 0 0 1px rgba(130, 225, 255, 0.09),
     inset 0 0 42px rgba(31, 126, 255, 0.1),
     var(--shadow-blue);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 205, 255, 0.62) rgba(2, 14, 32, 0.72);
+}
+
+.command-shell::-webkit-scrollbar,
+.workspace-history::-webkit-scrollbar,
+.workspace-tab-panel::-webkit-scrollbar,
+.workspace-file-preview::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.command-shell::-webkit-scrollbar-track,
+.workspace-history::-webkit-scrollbar-track,
+.workspace-tab-panel::-webkit-scrollbar-track,
+.workspace-file-preview::-webkit-scrollbar-track {
+  background: rgba(2, 14, 32, 0.72);
+  border-radius: 8px;
+}
+
+.command-shell::-webkit-scrollbar-thumb,
+.workspace-history::-webkit-scrollbar-thumb,
+.workspace-tab-panel::-webkit-scrollbar-thumb,
+.workspace-file-preview::-webkit-scrollbar-thumb {
+  border: 1px solid rgba(109, 221, 255, 0.34);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(86, 218, 255, 0.78), rgba(12, 87, 160, 0.86));
+  box-shadow: 0 0 14px rgba(50, 185, 255, 0.42);
 }
 
 .command-shell::before,
@@ -1731,9 +1980,12 @@ button:not(:disabled) {
   margin-bottom: 16px;
   padding: 14px;
   border: 1px solid rgba(82, 203, 255, 0.28);
-  border-radius: 8px;
-  background: rgba(3, 20, 44, 0.58);
-  box-shadow: inset 0 0 24px rgba(42, 168, 255, 0.07);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(4, 27, 59, 0.76), rgba(1, 12, 30, 0.82)),
+    rgba(3, 20, 44, 0.58);
+  box-shadow: inset 0 0 28px rgba(42, 168, 255, 0.1), 0 0 18px rgba(0, 137, 255, 0.08);
+  clip-path: polygon(1.2% 0, 98.8% 0, 100% 7%, 100% 93%, 98.8% 100%, 1.2% 100%, 0 93%, 0 7%);
 }
 
 .runtime-panel-head {
@@ -1774,9 +2026,10 @@ button:not(:disabled) {
   min-height: 38px;
   padding: 0 12px;
   border: 1px solid rgba(110, 231, 255, 0.28);
-  border-radius: 8px;
+  border-radius: 7px;
   background: rgba(7, 28, 60, 0.84);
   color: var(--text);
+  clip-path: polygon(6% 0, 94% 0, 100% 28%, 100% 72%, 94% 100%, 6% 100%, 0 72%, 0 28%);
 }
 
 .runtime-note {
@@ -1851,9 +2104,12 @@ button:not(:disabled) {
   min-height: 116px;
   padding: 16px;
   border: 1px solid rgba(110, 231, 255, 0.24);
-  border-radius: 8px;
-  background: rgba(2, 18, 40, 0.74);
-  box-shadow: inset 0 0 22px rgba(42, 168, 255, 0.07);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(4, 27, 59, 0.74), rgba(1, 12, 30, 0.82)),
+    rgba(2, 18, 40, 0.74);
+  box-shadow: inset 0 0 28px rgba(42, 168, 255, 0.1);
+  clip-path: polygon(2.2% 0, 97.8% 0, 100% 9%, 100% 91%, 97.8% 100%, 2.2% 100%, 0 91%, 0 9%);
 }
 
 .mission-card span {
@@ -1868,8 +2124,9 @@ button:not(:disabled) {
   display: block;
   margin-top: 10px;
   color: var(--cyan);
-  font-size: 28px;
+  font-size: clamp(24px, 2vw, 34px);
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .mission-card p {
@@ -2953,6 +3210,10 @@ button:not(:disabled) {
 }
 
 @media (max-width: 760px) {
+  .mina-live-hud {
+    display: none !important;
+  }
+
   .screen {
     align-items: stretch;
     padding: max(14px, var(--safe-top)) 12px max(14px, var(--safe-bottom));
@@ -3546,22 +3807,25 @@ button:not(:disabled) {
     inset: auto;
     left: 50%;
     top: 50%;
-    width: min(72%, 940px);
-    height: 84%;
+    width: min(92%, 1500px);
+    height: 88%;
     display: grid;
     gap: 16px;
-    padding: 20px 24px 24px;
+    padding: 20px 24px 96px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 12px;
     background:
-      linear-gradient(180deg, rgba(7, 24, 51, 0.94), rgba(2, 9, 23, 0.96)),
-      var(--panel);
+      radial-gradient(circle at 50% 100%, rgba(0, 132, 255, 0.16), transparent 42%),
+      linear-gradient(180deg, rgba(7, 24, 51, 0.985), rgba(2, 9, 23, 0.992)),
+      rgba(2, 10, 24, 0.99);
     box-shadow:
       inset 0 0 0 1px rgba(130, 225, 255, 0.09),
-      inset 0 0 42px rgba(31, 126, 255, 0.1),
-      var(--shadow-blue);
+      inset 0 0 64px rgba(31, 126, 255, 0.14),
+      0 0 44px rgba(0, 140, 255, 0.36);
     overflow-y: auto;
+    overflow-x: hidden;
     transform: translate(-50%, -50%);
+    clip-path: polygon(2.6% 0, 97.4% 0, 100% 4.8%, 100% 95.2%, 97.4% 100%, 2.6% 100%, 0 95.2%, 0 4.8%);
   }
 
   #screen-work .command-shell--work::before,
@@ -3635,23 +3899,26 @@ button:not(:disabled) {
     inset: auto;
     left: 50%;
     top: 50%;
-    width: min(78%, 1120px);
-    height: 84%;
+    width: min(92%, 1500px);
+    height: 88%;
     display: grid;
     align-content: start;
     gap: 16px;
-    padding: 20px 24px 24px;
+    padding: 24px 28px 96px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 12px;
     background:
-      linear-gradient(180deg, rgba(7, 24, 51, 0.94), rgba(2, 9, 23, 0.96)),
-      var(--panel);
+      radial-gradient(circle at 50% 100%, rgba(0, 132, 255, 0.15), transparent 42%),
+      linear-gradient(180deg, rgba(7, 24, 51, 0.985), rgba(2, 9, 23, 0.992)),
+      rgba(2, 10, 24, 0.99);
     box-shadow:
       inset 0 0 0 1px rgba(130, 225, 255, 0.09),
-      inset 0 0 42px rgba(31, 126, 255, 0.1),
-      var(--shadow-blue);
+      inset 0 0 64px rgba(31, 126, 255, 0.14),
+      0 0 44px rgba(0, 140, 255, 0.36);
     overflow-y: auto;
+    overflow-x: hidden;
     transform: translate(-50%, -50%);
+    clip-path: polygon(2.6% 0, 97.4% 0, 100% 4.8%, 100% 95.2%, 97.4% 100%, 2.6% 100%, 0 95.2%, 0 4.8%);
   }
 
   #screen-mission .command-shell--mission::before,
