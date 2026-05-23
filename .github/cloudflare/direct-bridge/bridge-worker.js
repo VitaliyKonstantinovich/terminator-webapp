@@ -15,6 +15,7 @@ const TASK_STORE_MAX_STRING_LENGTH = 30000;
 const TASK_STORE_MAX_ARRAY_LENGTH = 250;
 const TASK_STORE_MAX_DEPTH = 6;
 const RAW_FILE_DATA_PATTERN = /(?:data:[^"'\\\s]+;base64,|;base64,)/i;
+const WEBAPP_UPSTREAM_BASE = "https://vitaliykonstantinovich.github.io/terminator-webapp";
 
 const ALL_STATUSES = new Set([
   "queued",
@@ -47,6 +48,14 @@ export default {
         path: url.pathname,
         agent_id: request.headers.get("x-agent-id") || url.searchParams.get("agent_id") || null,
       });
+
+      if (url.pathname === "/" && request.method === "GET") {
+        return Response.redirect(`${url.origin}/app/`, 302);
+      }
+
+      if ((url.pathname === "/app" || url.pathname.startsWith("/app/")) && request.method === "GET") {
+        return await serveWebAppAsset(request, env, requestId, startedAt);
+      }
 
       if (url.pathname === "/bridge-frame" && request.method === "GET") {
         return bridgeFrameResponse(env);
@@ -1206,10 +1215,82 @@ async function readJson(request) {
   }
 }
 
+async function serveWebAppAsset(request, env, requestId, startedAt) {
+  const url = new URL(request.url);
+  if (url.pathname === "/app") {
+    return Response.redirect(`${url.origin}/app/`, 302);
+  }
+
+  const relativePath = url.pathname === "/app/"
+    ? "/index.html"
+    : url.pathname.replace(/^\/app/, "") || "/index.html";
+  if (relativePath.includes("..")) {
+    return tracedJson({ ok: false, error: "INVALID_APP_ASSET" }, 400, "", env, requestId, startedAt);
+  }
+
+  const upstreamUrl = new URL(`${WEBAPP_UPSTREAM_BASE}${relativePath}`);
+  url.searchParams.forEach((value, key) => upstreamUrl.searchParams.set(key, value));
+  const upstream = await fetch(upstreamUrl.toString(), {
+    headers: { "user-agent": "terminator-bridge-app-proxy/1.0" },
+    cf: { cacheTtl: relativePath === "/index.html" ? 30 : 300, cacheEverything: true },
+  });
+
+  if (!upstream.ok) {
+    return new Response("App asset not found", {
+      status: upstream.status,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store",
+        "x-request-id": requestId,
+      },
+    });
+  }
+
+  const headers = new Headers(upstream.headers);
+  headers.set("x-request-id", requestId);
+  headers.set("x-terminator-app-origin", "direct-bridge");
+  headers.delete("content-security-policy");
+  headers.delete("content-security-policy-report-only");
+
+  if (relativePath === "/index.html") {
+    const html = await upstream.text();
+    headers.set("content-type", "text/html; charset=utf-8");
+    headers.set("cache-control", "no-store");
+    return new Response(injectSameOriginBridgeConfig(html, url.origin), {
+      status: 200,
+      headers,
+    });
+  }
+
+  if (relativePath === "/app.js" || relativePath === "/styles.css") {
+    headers.set("cache-control", "no-store");
+  }
+
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers,
+  });
+}
+
+function injectSameOriginBridgeConfig(html, origin) {
+  const config = `<script>
+window.MINA_DIRECT_BRIDGE_URL = ${JSON.stringify(origin)};
+window.MINA_DIRECT_BRIDGE = { baseUrl: ${JSON.stringify(origin)}, transportMode: "direct" };
+window.MINA_RUNTIME_ENTRY = "direct-bridge-app";
+</script>`;
+  if (html.includes("window.MINA_DIRECT_BRIDGE_URL")) return html;
+  return html.replace("</head>", `${config}\n</head>`);
+}
+
 async function assertAllowedOrigin(origin, env, request = null) {
   const allowedOrigin = env.ALLOWED_ORIGIN;
   if (!allowedOrigin || allowedOrigin === "<set_later>") {
     throw new BridgeError(503, "ALLOWED_ORIGIN_NOT_CONFIGURED", "Set ALLOWED_ORIGIN before enabling Direct Mode.");
+  }
+
+  if (request) {
+    const requestOrigin = new URL(request.url).origin;
+    if (origin && origin === requestOrigin) return;
   }
 
   if (request?.headers?.get("x-bridge-frame") === "1") {
