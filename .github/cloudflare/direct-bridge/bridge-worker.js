@@ -1231,8 +1231,10 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
   const upstreamUrl = new URL(`${WEBAPP_UPSTREAM_BASE}${relativePath}`);
   url.searchParams.forEach((value, key) => upstreamUrl.searchParams.set(key, value));
   const upstream = await fetch(upstreamUrl.toString(), {
-    headers: { "user-agent": "terminator-bridge-app-proxy/1.0" },
-    cf: { cacheTtl: relativePath === "/index.html" ? 30 : 300, cacheEverything: true },
+    headers: {
+      "user-agent": "terminator-bridge-app-proxy/1.0",
+      "accept-encoding": "identity",
+    },
   });
 
   if (!upstream.ok) {
@@ -1249,6 +1251,7 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
   const headers = new Headers(upstream.headers);
   headers.set("x-request-id", requestId);
   headers.set("x-terminator-app-origin", "direct-bridge");
+  headers.set("x-terminator-asset-mode", "buffered-v2");
   headers.delete("content-length");
   headers.delete("content-encoding");
   headers.delete("transfer-encoding");
