@@ -29,4 +29,14 @@ jobs:
 
       - name: Deploy Worker
         working-directory: .github/cloudflare/direct-bridge
-        run: npx --yes wrangler@4.93.1 deploy --keep-vars
+        run: |
+          for attempt in 1 2 3; do
+            echo "Deploy attempt ${attempt}/3"
+            if npx --yes wrangler@4.93.1 deploy --keep-vars; then
+              exit 0
+            fi
+            if [ "$attempt" = "3" ]; then
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
