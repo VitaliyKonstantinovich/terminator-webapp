@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>TERMINATOR MINA UI</title>
   <meta name="description" content="Telegram Mini App Терминатор — Mina UI">
+  <script>
+    (function redirectToStableBridgeApp() {
+      var isGithubPages = window.location.hostname === "vitaliykonstantinovich.github.io"
+        && window.location.pathname.indexOf("/terminator-webapp") === 0;
+      var params = new URLSearchParams(window.location.search);
+
+      if (isGithubPages && !params.has("no_bridge_redirect")) {
+        params.set("from", "github_pages");
+        window.location.replace("https://mina-direct-bridge.glebik2807.workers.dev/app/?" + params.toString() + window.location.hash);
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
