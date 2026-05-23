@@ -1431,7 +1431,14 @@ function bridgeFrameResponse(env) {
   window.addEventListener("message", async (event) => {
     if (!ALLOWED_ORIGINS.has(event.origin)) return;
     const message = event.data || {};
-    if (message.source !== SOURCE_IN || !message.requestId) return;
+    if (message.source !== SOURCE_IN) return;
+
+    if (message.type === "ping") {
+      send(event, { type: "ready" });
+      return;
+    }
+
+    if (!message.requestId) return;
 
     const route = safeRoute(message.route);
     if (!route) {

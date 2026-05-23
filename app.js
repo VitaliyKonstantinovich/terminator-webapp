@@ -1049,12 +1049,15 @@ function prepareDirectBridgePopupTransport(baseUrl) {
   const existing = directBridgePopupTransports.get(targetOrigin);
   if (existing && !existing.popup.closed) return existing;
 
-  const popup = window.open(
-    `${targetOrigin}${DIRECT_BRIDGE_FRAME_PATH}?mode=popup&v=1`,
-    'mina-direct-bridge',
-    'popup=yes,width=420,height=260,left=40,top=40'
-  );
+  const popupUrl = `${targetOrigin}${DIRECT_BRIDGE_FRAME_PATH}?mode=popup&v=1`;
+  const popup = window.open('', 'mina-direct-bridge', 'popup=yes,width=420,height=260,left=40,top=40');
   if (!popup) return null;
+  try {
+    popup.location.href = popupUrl;
+  } catch {
+    popup.close();
+    return null;
+  }
 
   const transport = createDirectBridgeWindowTransport(targetOrigin, popup, () => {
     directBridgePopupTransports.delete(targetOrigin);
@@ -1089,9 +1092,18 @@ function createDirectBridgeWindowTransport(targetOrigin, popup, cleanup) {
 
   transport.ready = new Promise((resolve, reject) => {
     const timer = window.setTimeout(() => {
+      window.clearInterval(pingTimer);
       cleanup?.();
       reject(new Error('Bridge window did not become ready.'));
     }, DIRECT_BRIDGE_FRAME_READY_TIMEOUT_MS);
+
+    const postPing = () => {
+      try {
+        popup.postMessage({ source: DIRECT_BRIDGE_RPC_SOURCE, type: 'ping' }, targetOrigin);
+      } catch {}
+    };
+    const pingTimer = window.setInterval(postPing, 250);
+    postPing();
 
     const handleMessage = (event) => {
       if (event.origin !== targetOrigin) return;
@@ -1100,6 +1112,7 @@ function createDirectBridgeWindowTransport(targetOrigin, popup, cleanup) {
 
       if (message.type === 'ready') {
         window.clearTimeout(timer);
+        window.clearInterval(pingTimer);
         transport.handleMessage = handleMessage;
         resolve();
         return;
