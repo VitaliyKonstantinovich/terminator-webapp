@@ -868,6 +868,8 @@ async function directBridgeRequestOnce(baseUrl, route, options = {}) {
     try {
       const popupResponse = await directBridgePopupRequest(baseUrl, route, options);
       return parseDirectBridgeResponse(popupResponse, options);
+    } catch (error) {
+      error.retryable = true;
     } finally {
       closeDirectBridgePopupTransport(baseUrl);
     }
