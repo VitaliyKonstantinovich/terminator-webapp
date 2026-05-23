@@ -383,6 +383,7 @@ const DIRECT_BRIDGE_FRAME_READY_TIMEOUT_MS = 12000;
 const DIRECT_BRIDGE_FRAME_SOURCE = 'mina-bridge-frame';
 const DIRECT_BRIDGE_RPC_SOURCE = 'mina-webapp-bridge-rpc';
 const directBridgeFrameTransports = new Map();
+const directBridgePopupTransports = new Map();
 const TASK_STORE_SYNC_DEBOUNCE_MS = 1800;
 const TASK_STORE_SYNC_MAX_TASKS = 100;
 const DIRECT_SESSION_LEGACY_STORAGE_KEY = 'mina_direct_owner_session';
@@ -466,6 +467,7 @@ async function directTaskStoreRequest(route, options = {}) {
     token,
     body: options.body,
     idempotent: options.idempotent !== false,
+    allowPopup: options.interactive === true,
     timeoutMs: options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS
   });
 }
@@ -564,6 +566,7 @@ async function getOwnerSessionToken(baseUrl) {
     body: { secret },
     skipAuth: true,
     idempotent: false,
+    allowPopup: true,
     timeoutMs: 10000
   });
 
@@ -860,6 +863,17 @@ async function directBridgeRequest(baseUrl, route, options = {}) {
 async function directBridgeRequestOnce(baseUrl, route, options = {}) {
   const headers = buildDirectBridgeHeaders(options);
 
+  if (options.allowPopup) {
+    try {
+      const targetOrigin = new URL(baseUrl).origin;
+      const transport = directBridgePopupTransports.get(targetOrigin);
+      if (transport && !transport.popup.closed) {
+        const popupResponse = await directBridgePopupRequest(baseUrl, route, options);
+        return parseDirectBridgeResponse(popupResponse, options);
+      }
+    } catch {}
+  }
+
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS);
 
@@ -876,6 +890,12 @@ async function directBridgeRequestOnce(baseUrl, route, options = {}) {
     });
   } catch (error) {
     error.retryable = true;
+    if (options.allowPopup) {
+      try {
+        const popupResponse = await directBridgePopupRequest(baseUrl, route, options);
+        return parseDirectBridgeResponse(popupResponse, options);
+      } catch {}
+    }
     if (shouldUseDirectBridgeFrame(baseUrl, options)) {
       const frameResponse = await directBridgeFrameRequest(baseUrl, route, options);
       return parseDirectBridgeResponse(frameResponse, options);
@@ -1021,6 +1041,142 @@ async function getDirectBridgeFrameTransport(baseUrl) {
   document.body.append(frame);
   await transport.ready;
   return transport;
+}
+
+function prepareDirectBridgePopupTransport(baseUrl) {
+  if (!baseUrl || !window.open) return null;
+  const targetOrigin = new URL(baseUrl).origin;
+  const existing = directBridgePopupTransports.get(targetOrigin);
+  if (existing && !existing.popup.closed) return existing;
+
+  const popup = window.open(
+    `${targetOrigin}${DIRECT_BRIDGE_FRAME_PATH}?mode=popup&v=1`,
+    'mina-direct-bridge',
+    'popup=yes,width=420,height=260,left=40,top=40'
+  );
+  if (!popup) return null;
+
+  const transport = createDirectBridgeWindowTransport(targetOrigin, popup, () => {
+    directBridgePopupTransports.delete(targetOrigin);
+  });
+  directBridgePopupTransports.set(targetOrigin, transport);
+  try {
+    popup.blur();
+    window.focus();
+  } catch {}
+  return transport;
+}
+
+async function directBridgePopupRequest(baseUrl, route, options = {}) {
+  const targetOrigin = new URL(baseUrl).origin;
+  let transport = directBridgePopupTransports.get(targetOrigin);
+  if (!transport || transport.popup.closed) {
+    transport = prepareDirectBridgePopupTransport(baseUrl);
+  }
+  if (!transport) throw new Error('Bridge popup was blocked.');
+  await transport.ready;
+  return directBridgeWindowRequest(transport, route, options);
+}
+
+function createDirectBridgeWindowTransport(targetOrigin, popup, cleanup) {
+  const transport = {
+    popup,
+    targetOrigin,
+    pending: new Map(),
+    ready: null,
+    cleanup
+  };
+
+  transport.ready = new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      cleanup?.();
+      reject(new Error('Bridge window did not become ready.'));
+    }, DIRECT_BRIDGE_FRAME_READY_TIMEOUT_MS);
+
+    const handleMessage = (event) => {
+      if (event.origin !== targetOrigin) return;
+      const message = event.data || {};
+      if (message.source !== DIRECT_BRIDGE_FRAME_SOURCE) return;
+
+      if (message.type === 'ready') {
+        window.clearTimeout(timer);
+        transport.handleMessage = handleMessage;
+        resolve();
+        return;
+      }
+
+      if (message.type === 'response' && message.requestId) {
+        const pending = transport.pending.get(message.requestId);
+        if (!pending) return;
+        transport.pending.delete(message.requestId);
+        if (message.ok) {
+          pending.resolve({
+            status: message.status,
+            ok: message.status >= 200 && message.status < 300,
+            text: message.text || ''
+          });
+        } else {
+          const error = new Error(message.message || message.errorName || 'Bridge window request failed.');
+          error.retryable = true;
+          pending.reject(error);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+  });
+
+  return transport;
+}
+
+async function directBridgeWindowRequest(transport, route, options = {}) {
+  const requestId = createClientCommandId();
+  const timeoutMs = options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS;
+
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      transport.pending.delete(requestId);
+      const error = new Error('Bridge window request timed out.');
+      error.retryable = true;
+      reject(error);
+    }, timeoutMs + 1000);
+
+    transport.pending.set(requestId, {
+      resolve: (value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      reject: (error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      }
+    });
+
+    transport.popup.postMessage({
+      source: DIRECT_BRIDGE_RPC_SOURCE,
+      requestId,
+      method: options.method || 'GET',
+      route,
+      headers: buildDirectBridgeHeaders(options, requestId),
+      body: options.body,
+      timeoutMs
+    }, transport.targetOrigin);
+  });
+}
+
+function closeDirectBridgePopupTransport(baseUrl) {
+  try {
+    const targetOrigin = new URL(baseUrl).origin;
+    const transport = directBridgePopupTransports.get(targetOrigin);
+    if (!transport) return;
+    if (transport.handleMessage) {
+      window.removeEventListener('message', transport.handleMessage);
+    }
+    transport.pending.forEach((pending) => pending.reject(new Error('Bridge popup transport closed.')));
+    transport.pending.clear();
+    if (transport.popup && !transport.popup.closed) transport.popup.close();
+    directBridgePopupTransports.delete(targetOrigin);
+  } catch {}
 }
 
 function cleanupDirectBridgeFrameTransport(targetOrigin) {
@@ -4055,6 +4211,10 @@ const App = {
       return { ok: false, reason: 'bridge_unconfigured' };
     }
 
+    if (interactive) {
+      prepareDirectBridgePopupTransport(baseUrl);
+    }
+
     let token = null;
     try {
       token = interactive
@@ -4097,6 +4257,7 @@ const App = {
           token,
           body: { task },
           idempotent: true,
+          interactive,
           timeoutMs: 45000
         });
         if (result?.task) {
@@ -4115,6 +4276,7 @@ const App = {
       const remote = await directTaskStoreRequest('/tasks?full=1', {
         method: 'GET',
         token,
+        interactive,
         timeoutMs: 45000
       });
       const remoteTasks = Array.isArray(remote?.tasks)
@@ -4157,6 +4319,9 @@ const App = {
       return { ok: false, reason: 'sync_failed', error };
     } finally {
       this.taskStoreSyncRunning = false;
+      if (interactive) {
+        window.setTimeout(() => closeDirectBridgePopupTransport(baseUrl), 1500);
+      }
     }
   },
 

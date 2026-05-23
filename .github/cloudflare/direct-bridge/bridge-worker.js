@@ -1472,7 +1472,18 @@ function bridgeFrameResponse(env) {
     }
   });
 
-  window.parent.postMessage({ source: SOURCE_OUT, type: "ready" }, "*");
+  function postReady() {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ source: SOURCE_OUT, type: "ready" }, "*");
+    }
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ source: SOURCE_OUT, type: "ready" }, "*");
+    }
+  }
+
+  postReady();
+  const readyInterval = window.setInterval(postReady, 250);
+  window.setTimeout(() => window.clearInterval(readyInterval), 5000);
 })();
 </script>
 </body>
