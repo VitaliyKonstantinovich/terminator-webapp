@@ -567,6 +567,7 @@ async function getOwnerSessionToken(baseUrl) {
     skipAuth: true,
     idempotent: false,
     allowPopup: true,
+    preferFrame: true,
     timeoutMs: 10000
   });
 
@@ -862,6 +863,18 @@ async function directBridgeRequest(baseUrl, route, options = {}) {
 
 async function directBridgeRequestOnce(baseUrl, route, options = {}) {
   const headers = buildDirectBridgeHeaders(options);
+  const shouldPreferFrame = options.preferFrame
+    && shouldUseDirectBridgeFrame(baseUrl, options)
+    && new URL(baseUrl).origin !== window.location.origin;
+
+  if (shouldPreferFrame) {
+    try {
+      const frameResponse = await directBridgeFrameRequest(baseUrl, route, options);
+      return parseDirectBridgeResponse(frameResponse, options);
+    } catch (error) {
+      error.retryable = true;
+    }
+  }
 
   if (options.allowPopup) {
     try {
