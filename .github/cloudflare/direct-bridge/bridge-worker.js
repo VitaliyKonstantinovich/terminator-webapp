@@ -1278,10 +1278,7 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
       "x-terminator-app-origin": "direct-bridge",
       "x-terminator-asset-mode": "static-html-buffer-v3",
     });
-    return new Response(request.method === "HEAD" ? null : body, {
-      status: 200,
-      headers: htmlHeaders,
-    });
+    return fixedLengthResponse(request.method === "HEAD" ? null : body, 200, htmlHeaders);
   }
 
   if (relativePath === "/app.js" || relativePath === "/styles.css") {
@@ -1293,6 +1290,24 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
     status: upstream.status,
     headers,
   });
+}
+
+function fixedLengthResponse(body, status, headers) {
+  if (!body) {
+    return new Response(null, { status, headers });
+  }
+
+  if (typeof FixedLengthStream !== "undefined") {
+    const stream = new FixedLengthStream(body.byteLength);
+    const writer = stream.writable.getWriter();
+    writer.write(body).then(() => writer.close()).catch((error) => {
+      console.error("[bridge] fixed length response write failed", error);
+      writer.abort(error).catch(() => {});
+    });
+    return new Response(stream.readable, { status, headers });
+  }
+
+  return new Response(body, { status, headers });
 }
 
 function injectSameOriginBridgeConfig(html, origin) {
