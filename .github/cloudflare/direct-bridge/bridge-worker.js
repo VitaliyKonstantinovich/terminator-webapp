@@ -53,7 +53,7 @@ export default {
         return Response.redirect(`${url.origin}/app/`, 302);
       }
 
-      if ((url.pathname === "/app" || url.pathname.startsWith("/app/")) && request.method === "GET") {
+      if ((url.pathname === "/app" || url.pathname.startsWith("/app/")) && (request.method === "GET" || request.method === "HEAD")) {
         return await serveWebAppAsset(request, env, requestId, startedAt);
       }
 
@@ -1266,11 +1266,21 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
 
   if (relativePath === "/index.html") {
     const html = await upstream.text();
-    headers.set("content-type", "text/html; charset=utf-8");
-    headers.set("cache-control", "no-store");
-    return new Response(injectSameOriginBridgeConfig(html, url.origin), {
+    const body = new TextEncoder().encode(injectSameOriginBridgeConfig(html, url.origin));
+    const htmlHeaders = new Headers({
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store, no-cache, must-revalidate",
+      "pragma": "no-cache",
+      "expires": "0",
+      "alt-svc": "clear",
+      "content-length": String(body.byteLength),
+      "x-request-id": requestId,
+      "x-terminator-app-origin": "direct-bridge",
+      "x-terminator-asset-mode": "static-html-buffer-v3",
+    });
+    return new Response(request.method === "HEAD" ? null : body, {
       status: 200,
-      headers,
+      headers: htmlHeaders,
     });
   }
 
