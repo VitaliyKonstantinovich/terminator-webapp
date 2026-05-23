@@ -1249,6 +1249,9 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
   const headers = new Headers(upstream.headers);
   headers.set("x-request-id", requestId);
   headers.set("x-terminator-app-origin", "direct-bridge");
+  headers.delete("content-length");
+  headers.delete("content-encoding");
+  headers.delete("transfer-encoding");
   headers.delete("content-security-policy");
   headers.delete("content-security-policy-report-only");
 
@@ -1266,7 +1269,8 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
     headers.set("cache-control", "no-store");
   }
 
-  return new Response(upstream.body, {
+  const body = await upstream.arrayBuffer();
+  return new Response(body, {
     status: upstream.status,
     headers,
   });
