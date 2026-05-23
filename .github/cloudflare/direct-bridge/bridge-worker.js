@@ -1483,6 +1483,7 @@ function bridgeFrameResponse(env) {
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "no-store",
+      "alt-svc": "clear",
       "content-security-policy": `default-src 'none'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors ${frameAncestors}; base-uri 'none'; form-action 'none'`,
       "referrer-policy": "no-referrer",
     },
@@ -1514,6 +1515,7 @@ function responseHeaders(origin, env, requestId) {
   return {
     "content-type": "application/json; charset=utf-8",
     "x-request-id": requestId,
+    "alt-svc": "clear",
     ...corsHeaders(origin, env),
   };
 }
