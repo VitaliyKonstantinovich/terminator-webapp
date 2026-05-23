@@ -1228,6 +1228,12 @@ async function serveWebAppAsset(request, env, requestId, startedAt) {
     return tracedJson({ ok: false, error: "INVALID_APP_ASSET" }, 400, "", env, requestId, startedAt);
   }
 
+  if (relativePath !== "/index.html") {
+    const redirectUrl = new URL(`${WEBAPP_UPSTREAM_BASE}${relativePath}`);
+    url.searchParams.forEach((value, key) => redirectUrl.searchParams.set(key, value));
+    return Response.redirect(redirectUrl.toString(), 302);
+  }
+
   const upstreamUrl = new URL(`${WEBAPP_UPSTREAM_BASE}${relativePath}`);
   url.searchParams.forEach((value, key) => upstreamUrl.searchParams.set(key, value));
   const upstream = await fetch(upstreamUrl.toString(), {
@@ -1285,8 +1291,11 @@ window.MINA_DIRECT_BRIDGE_URL = ${JSON.stringify(origin)};
 window.MINA_DIRECT_BRIDGE = { baseUrl: ${JSON.stringify(origin)}, transportMode: "direct" };
 window.MINA_RUNTIME_ENTRY = "direct-bridge-app";
 </script>`;
-  if (html.includes("window.MINA_DIRECT_BRIDGE_URL")) return html;
-  return html.replace("</head>", `${config}\n</head>`);
+  const withAbsoluteAssets = html
+    .replace(/href="styles\.css/g, `href="${WEBAPP_UPSTREAM_BASE}/styles.css`)
+    .replace(/src="app\.js/g, `src="${WEBAPP_UPSTREAM_BASE}/app.js`);
+  if (withAbsoluteAssets.includes("window.MINA_DIRECT_BRIDGE_URL")) return withAbsoluteAssets;
+  return withAbsoluteAssets.replace("</head>", `${config}\n</head>`);
 }
 
 async function assertAllowedOrigin(origin, env, request = null) {
