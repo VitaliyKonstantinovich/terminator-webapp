@@ -1879,6 +1879,25 @@ button:not(:disabled) {
   line-height: 1.35;
 }
 
+.task-sync-card {
+  border-color: rgba(110, 231, 255, 0.42);
+  background:
+    linear-gradient(135deg, rgba(2, 43, 82, 0.92), rgba(1, 14, 34, 0.9)),
+    rgba(2, 14, 32, 0.82);
+}
+
+.task-sync-card--synced,
+.task-sync-banner--synced {
+  border-color: rgba(58, 249, 165, 0.58);
+  box-shadow: 0 0 18px rgba(58, 249, 165, 0.12);
+}
+
+.task-sync-card--failed,
+.task-sync-banner--failed {
+  border-color: rgba(255, 111, 111, 0.58);
+  box-shadow: 0 0 18px rgba(255, 111, 111, 0.1);
+}
+
 .mission-layout,
 .system-layout {
   display: grid;
@@ -2118,6 +2137,26 @@ button:not(:disabled) {
   border: 1px solid rgba(110, 231, 255, 0.18);
   border-radius: 8px;
   background: rgba(2, 14, 32, 0.58);
+}
+
+.task-sync-banner {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(110, 231, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 24, 52, 0.74);
+}
+
+.task-sync-banner strong {
+  color: #f1fbff;
+  font-size: 15px;
+}
+
+.task-sync-banner span {
+  color: #a8cdf1;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .diagnost-actions {

@@ -132,6 +132,7 @@ const WORK_STATUSES = [
 const WORK_STORAGE_KEY = 'mina_work_tasks_v1';
 const WORK_COUNTER_KEY = 'mina_work_task_counter_v1';
 const SYSTEM_DIAGNOSTICS_STORAGE_KEY = 'mina_system_diagnostics_v1';
+const TASK_STORE_SYNC_STATE_KEY = 'mina_task_store_sync_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 5;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -667,6 +668,35 @@ function logoutOwnerSession() {
 function showOwnerSessionExpired() {
   clearStoredOwnerSession();
   showAppToast(OWNER_SESSION_EXPIRED_MESSAGE, 3600);
+}
+
+function loadTaskStoreSyncState() {
+  try {
+    const raw = window.localStorage?.getItem(TASK_STORE_SYNC_STATE_KEY);
+    if (!raw) return {};
+    const state = JSON.parse(raw);
+    return {
+      status: String(state.status || ''),
+      lastSyncAt: String(state.lastSyncAt || ''),
+      error: String(state.error || ''),
+      taskCount: Number.isFinite(Number(state.taskCount)) ? Number(state.taskCount) : null,
+      updatedAt: String(state.updatedAt || '')
+    };
+  } catch {
+    return {};
+  }
+}
+
+function storeTaskStoreSyncState(state) {
+  try {
+    window.localStorage?.setItem(TASK_STORE_SYNC_STATE_KEY, JSON.stringify({
+      status: state.status || 'not_connected',
+      lastSyncAt: state.lastSyncAt || '',
+      error: state.error || '',
+      taskCount: Number.isFinite(Number(state.taskCount)) ? Number(state.taskCount) : null,
+      updatedAt: state.updatedAt || new Date().toISOString()
+    }));
+  } catch {}
 }
 
 function getOwnerSessionErrorMessage(error) {
@@ -1443,15 +1473,18 @@ function openTaskRuntimeDatabase() {
   });
 }
 
+const INITIAL_TASK_STORE_SYNC_STATE = loadTaskStoreSyncState();
+
 const App = {
   current: 'start',
   selectedModel: 'chatgpt',
   taskRuntimeDb: null,
   taskRuntimeReady: false,
   taskRuntimeFallback: false,
-  taskStoreSyncStatus: 'not_connected',
-  taskStoreLastSyncAt: '',
-  taskStoreSyncError: '',
+  taskStoreSyncStatus: INITIAL_TASK_STORE_SYNC_STATE.status || 'not_connected',
+  taskStoreLastSyncAt: INITIAL_TASK_STORE_SYNC_STATE.lastSyncAt || '',
+  taskStoreSyncError: INITIAL_TASK_STORE_SYNC_STATE.error || '',
+  taskStoreLastTaskCount: INITIAL_TASK_STORE_SYNC_STATE.taskCount,
   taskStoreSyncRunning: false,
   taskStoreSyncTimer: null,
   workProjects: [],
@@ -2891,6 +2924,81 @@ const App = {
     };
   },
 
+  taskStoreStatusSnapshot() {
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    const session = baseUrl ? getStoredOwnerSession(baseUrl) : null;
+    const lastSync = this.taskStoreLastSyncAt ? this.formatTaskTime(this.taskStoreLastSyncAt) : '';
+    const taskCount = Number.isFinite(Number(this.taskStoreLastTaskCount))
+      ? Number(this.taskStoreLastTaskCount)
+      : (this.workTasks || []).length;
+
+    if (this.taskStoreSyncRunning || this.taskStoreSyncStatus === 'syncing') {
+      return {
+        status: 'идёт синхронизация',
+        tone: 'syncing',
+        note: 'Идёт обмен с общим хранилищем задач. Подождите несколько секунд.'
+      };
+    }
+
+    if (this.taskStoreSyncStatus === 'synced') {
+      return {
+        status: 'активна',
+        tone: 'synced',
+        note: lastSync
+          ? `Последняя синхронизация: ${lastSync}. Задач в контуре: ${taskCount}.`
+          : `Общее хранилище задач подключено. Задач в контуре: ${taskCount}.`
+      };
+    }
+
+    if (session?.token) {
+      return {
+        status: 'вход активен',
+        tone: 'session',
+        note: 'Пароль принят, сессия владельца активна. Нажмите «Синхронизировать задачи», чтобы обновить TaskStore.'
+      };
+    }
+
+    if (this.taskStoreSyncStatus === 'owner_session_required') {
+      return {
+        status: 'ждёт вход',
+        tone: 'waiting',
+        note: this.taskStoreSyncError || 'Нажмите «Синхронизировать задачи» и введите пароль владельца.'
+      };
+    }
+
+    if (this.taskStoreSyncStatus === 'failed') {
+      return {
+        status: 'ошибка',
+        tone: 'failed',
+        note: this.taskStoreSyncError || 'Синхронизация не прошла. Нажмите «Синхронизировать задачи» повторно.'
+      };
+    }
+
+    if (!baseUrl) {
+      return {
+        status: 'не настроена',
+        tone: 'failed',
+        note: 'Direct Bridge URL не найден в конфигурации WebApp.'
+      };
+    }
+
+    return {
+      status: 'не проверялась',
+      tone: 'waiting',
+      note: 'Нажмите «Синхронизировать задачи». После успеха здесь появится время последней синхронизации.'
+    };
+  },
+
+  persistTaskStoreSyncState() {
+    storeTaskStoreSyncState({
+      status: this.taskStoreSyncStatus,
+      lastSyncAt: this.taskStoreLastSyncAt,
+      error: this.taskStoreSyncError,
+      taskCount: this.taskStoreLastTaskCount,
+      updatedAt: new Date().toISOString()
+    });
+  },
+
   renderSystemStatus() {
     const host = document.getElementById('system-summary');
     if (!host) return;
@@ -2900,7 +3008,9 @@ const App = {
     const trustedDevices = this.systemDevices.filter((device) => ['trusted', 'owner_device', 'system_device'].includes(device.trust_level)).length;
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
     const cards = [
+      ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
       ['Устройства', this.systemDevices.length, `${trustedDevices} доверенных или системных`],
@@ -2909,8 +3019,8 @@ const App = {
       ['Мост', direct.status, direct.note],
       ['Локальный агент', agent.status, agent.note]
     ];
-    host.innerHTML = cards.map(([title, value, note]) => `
-      <article class="mission-card">
+    host.innerHTML = cards.map(([title, value, note], index) => `
+      <article class="mission-card ${index === 0 ? `task-sync-card task-sync-card--${this.escapeHtml(taskStore.tone)}` : ''}">
         <span>${this.escapeHtml(title)}</span>
         <strong>${this.escapeHtml(value)}</strong>
         <p>${this.escapeHtml(note)}</p>
@@ -2930,6 +3040,7 @@ const App = {
     if (!host) return;
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
     const latest = this.systemDiagnostics[0] || null;
     const rows = [
       ['Хранилище задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? 'локальная база браузера доступна' : 'используется резерв localStorage'],
@@ -2949,6 +3060,10 @@ const App = {
     ];
     host.innerHTML = `
       <section class="diagnost-console">
+        <div class="task-sync-banner task-sync-banner--${this.escapeHtml(taskStore.tone)}">
+          <strong>Синхронизация задач: ${this.escapeHtml(taskStore.status)}</strong>
+          <span>${this.escapeHtml(taskStore.note)}</span>
+        </div>
         <div class="diagnost-actions">
           <button type="button" data-diagnost-action="run" ${this.diagnosticRunning ? 'disabled' : ''}>${this.diagnosticRunning ? 'Проверяю...' : 'Запустить диагностику'}</button>
           <button type="button" data-diagnost-action="refresh_runtime">Обновить панели</button>
@@ -4232,6 +4347,7 @@ const App = {
     const baseUrl = getConfiguredDirectBridgeBaseUrl();
     if (!baseUrl || !hasStoredOwnerSession(baseUrl)) {
       this.taskStoreSyncStatus = baseUrl ? 'owner_session_required' : 'not_configured';
+      this.persistTaskStoreSyncState();
       return;
     }
 
@@ -4247,6 +4363,7 @@ const App = {
     if (!baseUrl) {
       this.taskStoreSyncStatus = 'not_configured';
       this.taskStoreSyncError = 'Direct Bridge URL не задан';
+      this.persistTaskStoreSyncState();
       return { ok: false, reason: 'bridge_unconfigured' };
     }
 
@@ -4259,6 +4376,7 @@ const App = {
       console.warn('[MinaWebApp] Owner session failed', error);
       this.taskStoreSyncStatus = 'owner_session_required';
       this.taskStoreSyncError = getOwnerSessionErrorMessage(error);
+      this.persistTaskStoreSyncState();
       this.renderMissionControl();
       this.renderSystemStatus();
       if (interactive) this.toast(this.taskStoreSyncError, 5200);
@@ -4268,6 +4386,7 @@ const App = {
     if (!token) {
       this.taskStoreSyncStatus = 'owner_session_required';
       this.taskStoreSyncError = interactive ? OWNER_SESSION_REQUIRED_MESSAGE : '';
+      this.persistTaskStoreSyncState();
       this.renderMissionControl();
       this.renderSystemStatus();
       return { ok: false, reason: 'owner_session_required' };
@@ -4277,6 +4396,7 @@ const App = {
     this.taskStoreSyncRunning = true;
     this.taskStoreSyncStatus = 'syncing';
     this.taskStoreSyncError = '';
+    this.persistTaskStoreSyncState();
     this.renderMissionControl();
     this.renderSystemStatus();
 
@@ -4339,6 +4459,8 @@ const App = {
       this.taskStoreSyncStatus = 'synced';
       this.taskStoreLastSyncAt = new Date().toISOString();
       this.taskStoreSyncError = '';
+      this.taskStoreLastTaskCount = this.workTasks.length;
+      this.persistTaskStoreSyncState();
       this.renderWorkTaskCard();
       this.renderMissionControl();
       this.renderSystemStatus();
@@ -4348,12 +4470,16 @@ const App = {
       console.warn('[MinaWebApp] TaskStore sync failed', error);
       this.taskStoreSyncStatus = 'failed';
       this.taskStoreSyncError = error?.message || 'Синхронизация задач не прошла';
+      this.persistTaskStoreSyncState();
       this.renderMissionControl();
       this.renderSystemStatus();
       if (interactive) this.toast('Синхронизация задач не прошла');
       return { ok: false, reason: 'sync_failed', error };
     } finally {
       this.taskStoreSyncRunning = false;
+      this.persistTaskStoreSyncState();
+      this.renderMissionControl();
+      this.renderSystemStatus();
       if (interactive) {
         window.setTimeout(() => closeDirectBridgePopupTransport(baseUrl), 1500);
       }
