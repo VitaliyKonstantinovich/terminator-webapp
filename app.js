@@ -468,6 +468,7 @@ async function directTaskStoreRequest(route, options = {}) {
     body: options.body,
     idempotent: options.idempotent !== false,
     allowPopup: false,
+    preferFrame: true,
     timeoutMs: options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS
   });
 }
@@ -568,7 +569,7 @@ async function getOwnerSessionToken(baseUrl) {
     idempotent: false,
     allowPopup: false,
     preferPopup: false,
-    preferFrame: false,
+    preferFrame: true,
     timeoutMs: 10000
   });
 
