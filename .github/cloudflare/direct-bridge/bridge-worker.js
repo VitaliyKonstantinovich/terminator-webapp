@@ -1564,7 +1564,7 @@ function bridgeFrameResponse(env) {
 
     const route = safeRoute(message.route);
     if (!route) {
-      send(event, { type: "response", requestId: message.requestId, ok: false, status: 400, text: "{\"ok\":false,\"error\":\"INVALID_ROUTE\"}" });
+      send(event, { type: "response", requestId: message.requestId, ok: false, status: 400, text: "{\\\"ok\\\":false,\\\"error\\\":\\\"INVALID_ROUTE\\\"}" });
       return;
     }
 
