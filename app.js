@@ -66,6 +66,166 @@ const BRAIN_ROLES = [
 
 const BRAIN_ROLE_BY_ID = Object.fromEntries(BRAIN_ROLES.map((role) => [role.id, role]));
 
+const HEAD_BRAIN_ROLES = [
+  'Главный Стратег',
+  'Стратег',
+  'Аналитик длинного контекста',
+  'Критик / red team / код',
+  'Альтернативный взгляд',
+  'Исследователь источников',
+  'Премиальный архитектор',
+  'Fallback',
+  'Пользовательская роль'
+];
+
+const HEAD_BRAIN_CATALOG = [
+  {
+    brain_id: 'brain_chatgpt',
+    provider_name: 'OpenAI',
+    display_name: 'ChatGPT',
+    selected_model_name: 'ChatGPT',
+    official_url: 'https://chatgpt.com/',
+    role: 'Стратег',
+    default_role: 'Стратег / синтез / структура / финальная логика',
+    ready_phrase: 'READY_TERMINATOR_CHATGPT',
+    can_be_strategist: true,
+    enabled: true,
+    order: 10,
+    notes: 'Базовый стратегический мозг для синтеза и финальной логики.'
+  },
+  {
+    brain_id: 'brain_claude',
+    provider_name: 'Anthropic',
+    display_name: 'Claude',
+    selected_model_name: 'Claude Opus',
+    official_url: 'https://claude.ai/',
+    role: 'Премиальный архитектор',
+    default_role: 'Премиальный архитектор / стратег / длинный reasoning',
+    ready_phrase: 'READY_TERMINATOR_CLAUDE',
+    can_be_strategist: true,
+    enabled: false,
+    order: 20,
+    notes: 'Сильный кандидат на главного Стратега, если владелец выберет его вручную.'
+  },
+  {
+    brain_id: 'brain_gemini',
+    provider_name: 'Google',
+    display_name: 'Gemini',
+    selected_model_name: 'Gemini',
+    official_url: 'https://gemini.google.com/',
+    role: 'Аналитик длинного контекста',
+    default_role: 'Аналитик длинного контекста / документы / сравнение',
+    ready_phrase: 'READY_TERMINATOR_GEMINI',
+    can_be_strategist: true,
+    enabled: true,
+    order: 30,
+    notes: 'Разбор больших материалов, документов и длинных цепочек.'
+  },
+  {
+    brain_id: 'brain_deepseek',
+    provider_name: 'DeepSeek',
+    display_name: 'DeepSeek',
+    selected_model_name: 'DeepSeek',
+    official_url: 'https://chat.deepseek.com/',
+    role: 'Критик / red team / код',
+    default_role: 'Критик / инженер / red team / код / риски',
+    ready_phrase: 'READY_TERMINATOR_DEEPSEEK',
+    can_be_strategist: false,
+    enabled: true,
+    order: 40,
+    notes: 'Проверяет слабые места, инженерные риски и противоречия.'
+  },
+  {
+    brain_id: 'brain_qwen',
+    provider_name: 'Alibaba',
+    display_name: 'Qwen',
+    selected_model_name: 'Qwen',
+    official_url: 'https://chat.qwen.ai/',
+    role: 'Альтернативный взгляд',
+    default_role: 'Альтернативный взгляд / fallback / второе мнение',
+    ready_phrase: 'READY_TERMINATOR_QWEN',
+    can_be_strategist: false,
+    enabled: true,
+    order: 50,
+    notes: 'Даёт независимый вариант и запасной взгляд.'
+  },
+  {
+    brain_id: 'brain_perplexity',
+    provider_name: 'Perplexity',
+    display_name: 'Perplexity',
+    selected_model_name: 'Perplexity',
+    official_url: 'https://www.perplexity.ai/',
+    role: 'Исследователь источников',
+    default_role: 'Web-oriented исследователь источников',
+    ready_phrase: 'READY_TERMINATOR_PERPLEXITY',
+    can_be_strategist: false,
+    enabled: false,
+    order: 60,
+    notes: 'Опциональный source-aware помощник. Не является обязательным мозгом.'
+  },
+  {
+    brain_id: 'brain_kimi',
+    provider_name: 'Moonshot',
+    display_name: 'Kimi',
+    selected_model_name: 'Kimi',
+    official_url: 'https://kimi.moonshot.cn/',
+    role: 'Аналитик длинного контекста',
+    default_role: 'Длинный контекст / альтернативный аналитик',
+    ready_phrase: 'READY_TERMINATOR_KIMI',
+    can_be_strategist: true,
+    enabled: false,
+    order: 70,
+    notes: 'Опциональный длинноконтекстный аналитик.'
+  },
+  {
+    brain_id: 'brain_grok',
+    provider_name: 'xAI',
+    display_name: 'Grok',
+    selected_model_name: 'Grok',
+    official_url: 'https://grok.com/',
+    role: 'Альтернативный взгляд',
+    default_role: 'Альтернативный взгляд / социальный контекст',
+    ready_phrase: 'READY_TERMINATOR_GROK',
+    can_be_strategist: false,
+    enabled: false,
+    order: 80,
+    notes: 'Опциональный участник Совета.'
+  },
+  {
+    brain_id: 'brain_mistral',
+    provider_name: 'Mistral',
+    display_name: 'Mistral',
+    selected_model_name: 'Le Chat',
+    official_url: 'https://chat.mistral.ai/',
+    role: 'Fallback',
+    default_role: 'Европейский fallback / альтернативное reasoning',
+    ready_phrase: 'READY_TERMINATOR_MISTRAL',
+    can_be_strategist: true,
+    enabled: false,
+    order: 90,
+    notes: 'Опциональный fallback.'
+  }
+];
+
+const HEAD_SEARCH_AGENT_CATALOG = [
+  ['search_official_docs', 'Official Docs Agent', 'official_docs', 'Официальная документация', 'Ищет первичные документы и официальные источники.', true],
+  ['search_github', 'GitHub Agent', 'github', 'Код и issues', 'Ищет репозитории, issues, changelog и README.', true],
+  ['search_youtube', 'YouTube Agent', 'youtube', 'Видео и демонстрации', 'Собирает наблюдения из видео и обзоров вручную.', true],
+  ['search_reddit', 'Reddit Agent', 'reddit', 'Форумы и опыт пользователей', 'Фиксирует живой опыт и проблемы пользователей.', true],
+  ['search_4pda', '4PDA Agent', 'forum', 'Русскоязычные форумы', 'Полезен для устройств, Android, Windows и нестандартных кейсов.', true],
+  ['search_xda', 'XDA Agent', 'forum', 'Android / devices', 'Сильный источник для Android, ADB, устройств и прошивок.', true],
+  ['search_stackoverflow', 'StackOverflow Agent', 'qa_forum', 'Технические ответы', 'Ищет проверенные решения и типовые ошибки разработки.', true],
+  ['search_news', 'News Agent', 'news', 'Новости', 'Нужен для свежих изменений рынка и сервисов.', false],
+  ['search_academic', 'Academic / Papers Agent', 'papers', 'Исследования', 'Нужен для статей, papers и фундаментальных решений.', false],
+  ['search_product_reviews', 'Product Reviews Agent', 'reviews', 'Отзывы продуктов', 'Сравнивает практический пользовательский опыт.', false]
+];
+
+const HEAD_PROFILE_TYPES = {
+  default: 'Основной',
+  research: 'Максимальное исследование',
+  custom: 'Пользовательский'
+};
+
 const WORK_PROJECTS = [
   {
     id: 'terminator',
@@ -133,8 +293,9 @@ const WORK_STORAGE_KEY = 'mina_work_tasks_v1';
 const WORK_COUNTER_KEY = 'mina_work_task_counter_v1';
 const SYSTEM_DIAGNOSTICS_STORAGE_KEY = 'mina_system_diagnostics_v1';
 const TASK_STORE_SYNC_STATE_KEY = 'mina_task_store_sync_state_v1';
+const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
-const WORK_RUNTIME_DB_VERSION = 5;
+const WORK_RUNTIME_DB_VERSION = 6;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
 const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
 const WORK_PROJECT_BY_ID = Object.fromEntries(WORK_PROJECTS.map((project) => [project.id, project]));
@@ -154,7 +315,11 @@ const TASK_RUNTIME_STORES = {
   DEVICES: 'devices',
   DEVICE_CAPABILITIES: 'device_capabilities',
   DEVICE_EVENTS: 'device_events',
-  DIAGNOSTICS: 'diagnostics'
+  DIAGNOSTICS: 'diagnostics',
+  HEAD_BRAINS: 'head_brains',
+  HEAD_PROFILES: 'head_profiles',
+  HEAD_SEARCH_AGENTS: 'head_search_agents',
+  HEAD_EVENTS: 'head_events'
 };
 
 const DEFAULT_PROJECT_TYPE = 'custom';
@@ -298,7 +463,29 @@ const WORK_FILE_ROLES = [
 ];
 
 const WORK_FILE_ROLE_BY_ID = Object.fromEntries(WORK_FILE_ROLES.map((role) => [role.id, role]));
-const WORKSPACE_TABS = new Set(['files', 'artifacts', 'council', 'check', 'memory']);
+const WORKSPACE_TABS = new Set(['files', 'artifacts', 'research', 'council', 'check', 'memory']);
+const RESEARCH_SOURCE_TYPES = [
+  ['official_docs', 'Официальная документация'],
+  ['github', 'GitHub / код'],
+  ['youtube', 'YouTube / видео'],
+  ['reddit', 'Reddit / обсуждения'],
+  ['forum', 'Форум / сообщество'],
+  ['4pda', '4PDA'],
+  ['xda', 'XDA'],
+  ['stackoverflow', 'StackOverflow'],
+  ['news', 'Новости'],
+  ['papers', 'Papers / академические'],
+  ['product_review', 'Обзор продукта'],
+  ['manual_note', 'Ручная заметка']
+];
+const RESEARCH_SOURCE_TYPE_BY_ID = Object.fromEntries(RESEARCH_SOURCE_TYPES);
+const RESEARCH_TRUST_LEVELS = [
+  ['high', 'высокий'],
+  ['medium', 'средний'],
+  ['low', 'низкий'],
+  ['unknown', 'неизвестно']
+];
+const RESEARCH_TRUST_LEVEL_BY_ID = Object.fromEntries(RESEARCH_TRUST_LEVELS);
 const TEXT_PREVIEW_EXTENSIONS = new Set(['txt', 'md', 'json', 'log', 'js', 'ts', 'py', 'html', 'css', 'yaml', 'yml', 'xml', 'sql', 'mjs', 'cjs']);
 const IMAGE_PREVIEW_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif']);
 const ARCHIVE_EXTENSIONS = new Set(['zip', '7z', 'rar']);
@@ -340,11 +527,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 2 Full Runtime Sync',
-  date: '2026-05-22',
-  status: 'закрыт live: TaskStore ready',
-  previous: 'Phase 2 Local Runtime + Storage закрыт локально',
-  next: 'Phase 3 ResearchOps + BrainOps Runtime'
+  name: 'Phase 3: Голова и Совет мозгов',
+  date: '2026-05-25',
+  status: 'Phase 3.1 закрыта локально',
+  previous: 'Phase 2 Full Runtime Sync закрыт live',
+  next: 'Phase 3.2: Исследование и паспорт решения'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -363,9 +550,11 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 14, name: 'Restore Points + Storage Diagnostics', status: 'закрыт' },
   { id: 15, name: 'Phase 2 Local Runtime Acceptance', status: 'закрыт локально' },
   { id: 16, name: 'Bridge TaskStore + EventLog backend', status: 'закрыт live' },
-  { id: 17, name: 'WebApp TaskStore sync binding', status: 'закрыт live' },
-  { id: 18, name: 'Local Agent task status sync', status: 'закрыт' },
-  { id: 19, name: 'Phase 2 Full Runtime Live Acceptance', status: 'закрыт live' }
+  { id: 17, name: 'Голова: Стратег и Совет мозгов', status: 'закрыт локально' },
+  { id: 18, name: 'WebApp TaskStore sync binding', status: 'закрыт live' },
+  { id: 19, name: 'Local Agent task status sync', status: 'закрыт' },
+  { id: 20, name: 'Phase 2 Full Runtime Live Acceptance', status: 'закрыт live' },
+  { id: 21, name: 'ResearchOps + Brain Council Runtime V1', status: 'закрыт локально' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -1466,6 +1655,27 @@ function openTaskRuntimeDatabase() {
         store.createIndex('created_at', 'created_at', { unique: false });
         store.createIndex('status', 'status', { unique: false });
       }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.HEAD_BRAINS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.HEAD_BRAINS, { keyPath: 'brain_id' });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('enabled', 'enabled', { unique: false });
+        store.createIndex('order', 'order', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.HEAD_PROFILES)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.HEAD_PROFILES, { keyPath: 'profile_id' });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('is_default', 'is_default', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.HEAD_SEARCH_AGENTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.HEAD_SEARCH_AGENTS, { keyPath: 'agent_id' });
+        store.createIndex('enabled', 'enabled', { unique: false });
+        store.createIndex('source_type', 'source_type', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.HEAD_EVENTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.HEAD_EVENTS, { keyPath: 'event_id' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
+      }
     };
 
     request.onsuccess = () => resolve(request.result);
@@ -1490,9 +1700,15 @@ const App = {
   workProjects: [],
   workTasks: [],
   systemDevices: [],
+  headBrains: [],
+  headProfiles: [],
+  headSearchAgents: [],
+  headEvents: [],
   approvalRecords: [],
   systemDiagnostics: [],
   activeDeviceId: '',
+  activeHeadBrainId: '',
+  activeHeadProfileId: '',
   activeApprovalId: '',
   activeDiagnosticId: '',
   diagnosticRunning: false,
@@ -1533,6 +1749,7 @@ const App = {
     await this.loadWorkTasks();
     await this.syncTaskStore({ interactive: false, reason: 'init' });
     await this.loadSystemDevices();
+    await this.loadHeadRuntime();
     await this.loadApprovalRecords();
     await this.loadSystemDiagnostics();
     this.attachVerifierPanel();
@@ -1691,6 +1908,12 @@ const App = {
       const diagnostButton = event.target.closest('[data-diagnost-action]');
       if (diagnostButton) {
         this.handleDiagnostAction(diagnostButton.dataset.diagnostAction, diagnostButton);
+        return;
+      }
+
+      const headButton = event.target.closest('[data-head-action]');
+      if (headButton) {
+        this.handleHeadAction(headButton.dataset.headAction, headButton);
       }
     });
 
@@ -1706,6 +1929,18 @@ const App = {
         this.workspaceVoicePreview = this.buildVoiceIntentPreview(this.workspaceVoiceTranscript);
         this.workspaceVoiceState = 'preview_waiting';
         this.renderVoicePanel();
+        return;
+      }
+
+      const brainRoleSelect = event.target.closest('[data-head-role]');
+      if (brainRoleSelect) {
+        this.updateHeadBrainRole(brainRoleSelect.dataset.headRole, brainRoleSelect.value);
+        return;
+      }
+
+      const councilProfileSelect = event.target.closest('#workspace-council-profile-select');
+      if (councilProfileSelect) {
+        this.updateTaskCouncilProfile(councilProfileSelect.value);
       }
     });
 
@@ -2246,13 +2481,20 @@ const App = {
     const approvals = this.pendingApprovalRecords().length;
     const risks = tasks.filter((task) => this.workspaceRiskLevel(task) !== 'низкий').length;
     const active = tasks.filter((task) => !['accepted', 'saved', 'cancelled', 'rejected', 'failed'].includes(task.status)).length;
+    const researchActive = tasks.filter((task) => {
+      const status = this.ensureResearchOpsState(task).status;
+      return status && status !== 'not_started';
+    }).length;
+    const head = this.headStatusSnapshot();
     const cards = [
       ['Проекты', projects.length, 'активные проекты'],
       ['Активные задачи', active, 'в работе или ожидании'],
+      ['Исследование', researchActive, 'пакет исследования / источники'],
       ['Ждут отчёт', waiting, 'ожидание исполнителя'],
       ['Проверка', verifying, 'требуют Verifier'],
       ['Approval', approvals, 'требуют решения'],
-      ['Риски', risks, 'не низкий риск']
+      ['Риски', risks, 'не низкий риск'],
+      ['Голова', head.status, head.note]
     ];
     host.innerHTML = cards.map(([title, value, note]) => `
       <article class="mission-card">
@@ -2388,6 +2630,14 @@ const App = {
         tasks: tasks.filter((task) => ['created', 'context_ready', 'planning', 'ready_for_executor', 'assigned'].includes(task.status))
       },
       {
+        id: 'research',
+        title: 'Исследование',
+        tasks: tasks.filter((task) => {
+          const status = this.ensureResearchOpsState(task).status;
+          return status && status !== 'not_started' && status !== 'decision_ready';
+        })
+      },
+      {
         id: 'waiting',
         title: 'Ждут отчёт',
         tasks: tasks.filter((task) => task.status === 'waiting_executor_report')
@@ -2475,7 +2725,10 @@ const App = {
         return;
       }
       this.activeWorkTaskId = taskId;
-      this.workspaceActiveTab = this.taskNeedsVerification(this.getActiveWorkTask()) ? 'check' : 'artifacts';
+      const activeTask = this.getActiveWorkTask();
+      this.workspaceActiveTab = this.taskNeedsVerification(activeTask)
+        ? 'check'
+        : (activeTask && this.ensureResearchOpsState(activeTask).status !== 'not_started' ? 'research' : 'artifacts');
       this.renderWorkTaskCard();
       this.go('work');
     }
@@ -3009,9 +3262,11 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
+    const head = this.headStatusSnapshot();
     const cards = [
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
+      ['Голова', head.status, head.note],
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
       ['Устройства', this.systemDevices.length, `${trustedDevices} доверенных или системных`],
       ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'текстовый режим', 'без фонового прослушивания и без AI API'],
@@ -3030,6 +3285,7 @@ const App = {
     this.renderSystemStoragePolicy();
     this.renderSystemLastCheckpoint();
     this.renderSystemLegacyWarnings();
+    this.renderSystemHeadPanel();
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
@@ -3041,11 +3297,13 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
+    const head = this.headStatusSnapshot();
     const latest = this.systemDiagnostics[0] || null;
     const rows = [
       ['Хранилище задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? 'локальная база браузера доступна' : 'используется резерв localStorage'],
       ['Журнал событий', 'OK', 'события Рабочего окна сохраняются в задаче и локальной базе'],
       ['Модель задач', 'OK', 'поля под голос и устройства есть в новых задачах'],
+      ['Голова', head.status, head.note],
       ['Реестр устройств', this.systemDevices.length ? 'OK' : 'нет данных', `${this.systemDevices.length} устройств в локальном реестре`],
       ['Политика устройств', 'OK', 'только паспорта, доверие, риски и возможности; реальные команды устройствам не запускаются'],
       ['Голос Мины', this.workspaceVoiceSupported ? 'OK' : 'резерв', this.workspaceVoiceSupported ? 'режим по кнопке доступен' : 'доступен текстовый preview'],
@@ -3174,6 +3432,769 @@ const App = {
       ['Personal handlers', 'оставлены', 'код и Direct actions не удалялись; активный продуктовый путь заблокирован']
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  headStatusSnapshot() {
+    const strategist = this.mainStrategistBrain();
+    const readyBrains = (this.headBrains || []).filter((brain) => brain.status === 'ready' && !brain.archived);
+    const enabledBrains = (this.headBrains || []).filter((brain) => brain.enabled && !brain.archived);
+    const activeProfile = this.activeHeadProfile();
+    if (!strategist) {
+      return {
+        status: 'не настроена',
+        note: 'выберите главного Стратега вручную',
+        tone: 'review'
+      };
+    }
+    if (!readyBrains.length) {
+      return {
+        status: 'ждёт тест',
+        note: `${strategist.display_name}: выбран, но мозги ещё не проверены`,
+        tone: 'review'
+      };
+    }
+    return {
+      status: 'готова',
+      note: `${strategist.display_name}; профиль: ${activeProfile?.name || 'не выбран'}; мозгов: ${enabledBrains.length}`,
+      tone: 'pass'
+    };
+  },
+
+  defaultHeadBrains() {
+    const now = new Date().toISOString();
+    return HEAD_BRAIN_CATALOG.map((brain) => this.normalizeHeadBrain({
+      ...brain,
+      status: brain.enabled ? 'selected' : 'not_selected',
+      connection_status: brain.enabled ? 'selected' : 'not_selected',
+      test_passed: false,
+      is_main_strategist: false,
+      preset: true,
+      archived: false,
+      created_at: now,
+      updated_at: now
+    }));
+  },
+
+  defaultHeadSearchAgents() {
+    const now = new Date().toISOString();
+    return HEAD_SEARCH_AGENT_CATALOG.map(([agentId, name, sourceType, role, description, enabled], index) => this.normalizeHeadSearchAgent({
+      agent_id: agentId,
+      name,
+      source_type: sourceType,
+      role,
+      description,
+      enabled,
+      status: enabled ? 'enabled' : 'disabled',
+      order: (index + 1) * 10,
+      preset: true,
+      created_at: now,
+      updated_at: now
+    }));
+  },
+
+  defaultHeadProfiles(brains = this.defaultHeadBrains(), searchAgents = this.defaultHeadSearchAgents()) {
+    const now = new Date().toISOString();
+    const enabledBrainIds = brains.filter((brain) => brain.enabled && !brain.archived).map((brain) => brain.brain_id);
+    const researchBrainIds = brains.filter((brain) => !brain.archived && ['brain_chatgpt', 'brain_claude', 'brain_gemini', 'brain_deepseek', 'brain_qwen', 'brain_perplexity', 'brain_kimi'].includes(brain.brain_id)).map((brain) => brain.brain_id);
+    const enabledSearchIds = searchAgents.filter((agent) => agent.enabled && !agent.archived).map((agent) => agent.agent_id);
+    return [
+      this.normalizeHeadProfile({
+        profile_id: 'profile_main',
+        name: 'Основной',
+        type: 'default',
+        description: 'Базовый профиль Совета для рабочих задач Терминатора.',
+        main_strategist_id: '',
+        council_members: enabledBrainIds,
+        search_agent_ids: enabledSearchIds.slice(0, 2),
+        is_default: true,
+        status: 'needs_setup',
+        created_at: now,
+        updated_at: now
+      }),
+      this.normalizeHeadProfile({
+        profile_id: 'profile_research_max',
+        name: 'Максимальное исследование',
+        type: 'research',
+        description: 'Широкий профиль: мозги + исследователи для глубоких решений.',
+        main_strategist_id: '',
+        council_members: researchBrainIds,
+        search_agent_ids: enabledSearchIds,
+        is_default: false,
+        status: 'template',
+        created_at: now,
+        updated_at: now
+      })
+    ];
+  },
+
+  normalizeHeadBrain(brain) {
+    const now = new Date().toISOString();
+    const id = brain.brain_id || this.generateWorkspaceId('BRAIN');
+    const displayName = brain.display_name || brain.name || 'Новый мозг';
+    const providerName = brain.provider_name || brain.provider || displayName;
+    return {
+      brain_id: id,
+      provider_name: providerName,
+      display_name: displayName,
+      selected_model_name: brain.selected_model_name || brain.model || displayName,
+      official_url: brain.official_url || '',
+      role: brain.role || 'Пользовательская роль',
+      default_role: brain.default_role || brain.role || 'Пользовательская роль',
+      status: brain.archived ? 'archived' : (brain.status || brain.connection_status || 'not_selected'),
+      connection_status: brain.archived ? 'archived' : (brain.connection_status || brain.status || 'not_selected'),
+      ready_phrase: brain.ready_phrase || `READY_TERMINATOR_${displayName.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}`,
+      enabled: Boolean(brain.enabled),
+      can_be_strategist: brain.can_be_strategist !== false,
+      is_main_strategist: Boolean(brain.is_main_strategist),
+      order: Number(brain.order || 999),
+      test_passed: Boolean(brain.test_passed),
+      last_test_at: brain.last_test_at || '',
+      last_test_response: brain.last_test_response ? '[REDACTED]' : '',
+      preset: Boolean(brain.preset),
+      archived: Boolean(brain.archived || brain.status === 'archived'),
+      notes: brain.notes || '',
+      created_at: brain.created_at || now,
+      updated_at: brain.updated_at || now
+    };
+  },
+
+  normalizeHeadSearchAgent(agent) {
+    const now = new Date().toISOString();
+    return {
+      agent_id: agent.agent_id || this.generateWorkspaceId('SEARCH'),
+      name: agent.name || 'Новый исследователь',
+      source_type: agent.source_type || 'custom',
+      role: agent.role || 'Пользовательский источник',
+      description: agent.description || 'Источник добавлен владельцем.',
+      enabled: Boolean(agent.enabled),
+      status: agent.archived ? 'archived' : (agent.status || (agent.enabled ? 'enabled' : 'disabled')),
+      order: Number(agent.order || 999),
+      preset: Boolean(agent.preset),
+      archived: Boolean(agent.archived || agent.status === 'archived'),
+      created_at: agent.created_at || now,
+      updated_at: agent.updated_at || now
+    };
+  },
+
+  normalizeHeadProfile(profile) {
+    const now = new Date().toISOString();
+    return {
+      profile_id: profile.profile_id || this.generateWorkspaceId('PROFILE'),
+      name: profile.name || 'Профиль Совета',
+      type: profile.type || 'custom',
+      description: profile.description || 'Пользовательская сборка Совета.',
+      main_strategist_id: profile.main_strategist_id || '',
+      council_members: Array.isArray(profile.council_members) ? profile.council_members : [],
+      search_agent_ids: Array.isArray(profile.search_agent_ids) ? profile.search_agent_ids : [],
+      is_default: Boolean(profile.is_default),
+      status: profile.status || 'draft',
+      created_at: profile.created_at || now,
+      updated_at: profile.updated_at || now
+    };
+  },
+
+  normalizeHeadEvent(event) {
+    const now = new Date().toISOString();
+    return {
+      event_id: event.event_id || this.generateWorkspaceId('HEADEVT'),
+      type: event.type || 'head_event',
+      text: event.text || '',
+      target_id: event.target_id || '',
+      actor: event.actor || 'Владелец',
+      risk_level: event.risk_level || 'safe',
+      created_at: event.created_at || now
+    };
+  },
+
+  async loadHeadRuntime() {
+    const defaultsBrains = this.defaultHeadBrains();
+    const defaultsAgents = this.defaultHeadSearchAgents();
+    const defaultsProfiles = this.defaultHeadProfiles(defaultsBrains, defaultsAgents);
+    try {
+      if (this.taskRuntimeDb) {
+        const [brains, profiles, agents, events] = await Promise.all([
+          this.getAllRuntimeRecords(TASK_RUNTIME_STORES.HEAD_BRAINS),
+          this.getAllRuntimeRecords(TASK_RUNTIME_STORES.HEAD_PROFILES),
+          this.getAllRuntimeRecords(TASK_RUNTIME_STORES.HEAD_SEARCH_AGENTS),
+          this.getAllRuntimeRecords(TASK_RUNTIME_STORES.HEAD_EVENTS)
+        ]);
+        this.headBrains = brains.length ? brains.map((brain) => this.normalizeHeadBrain(brain)) : defaultsBrains;
+        this.headSearchAgents = agents.length ? agents.map((agent) => this.normalizeHeadSearchAgent(agent)) : defaultsAgents;
+        this.headProfiles = profiles.length ? profiles.map((profile) => this.normalizeHeadProfile(profile)) : this.defaultHeadProfiles(this.headBrains, this.headSearchAgents);
+        this.headEvents = events.length ? events.map((event) => this.normalizeHeadEvent(event)) : [];
+        if (!brains.length || !profiles.length || !agents.length) await this.saveHeadRuntime();
+      } else {
+        const fallback = this.readHeadFallback();
+        this.headBrains = fallback.brains?.length ? fallback.brains.map((brain) => this.normalizeHeadBrain(brain)) : defaultsBrains;
+        this.headSearchAgents = fallback.search_agents?.length ? fallback.search_agents.map((agent) => this.normalizeHeadSearchAgent(agent)) : defaultsAgents;
+        this.headProfiles = fallback.profiles?.length ? fallback.profiles.map((profile) => this.normalizeHeadProfile(profile)) : this.defaultHeadProfiles(this.headBrains, this.headSearchAgents);
+        this.headEvents = fallback.events?.length ? fallback.events.map((event) => this.normalizeHeadEvent(event)) : [];
+      }
+      this.reconcileHeadState();
+    } catch {
+      this.headBrains = defaultsBrains;
+      this.headSearchAgents = defaultsAgents;
+      this.headProfiles = defaultsProfiles;
+      this.headEvents = [];
+      this.reconcileHeadState();
+    }
+  },
+
+  readHeadFallback() {
+    try {
+      const raw = window.localStorage?.getItem(HEAD_RUNTIME_FALLBACK_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  },
+
+  reconcileHeadState() {
+    const strategistId = this.headProfiles.find((profile) => profile.is_default)?.main_strategist_id
+      || this.headProfiles.find((profile) => profile.main_strategist_id)?.main_strategist_id
+      || this.headBrains.find((brain) => brain.is_main_strategist && !brain.archived)?.brain_id
+      || '';
+    this.headBrains = this.headBrains.map((brain) => this.normalizeHeadBrain({
+      ...brain,
+      is_main_strategist: Boolean(strategistId && brain.brain_id === strategistId)
+    })).sort((a, b) => a.order - b.order || a.display_name.localeCompare(b.display_name, 'ru'));
+    this.activeHeadBrainId = this.headBrains.find((brain) => !brain.archived && brain.brain_id === this.activeHeadBrainId)?.brain_id
+      || strategistId
+      || this.headBrains.find((brain) => !brain.archived)?.brain_id
+      || '';
+    this.activeHeadProfileId = this.headProfiles.find((profile) => profile.profile_id === this.activeHeadProfileId)?.profile_id
+      || this.headProfiles.find((profile) => profile.is_default)?.profile_id
+      || this.headProfiles[0]?.profile_id
+      || '';
+  },
+
+  async saveHeadRuntime() {
+    this.reconcileHeadState();
+    try {
+      window.localStorage?.setItem(HEAD_RUNTIME_FALLBACK_KEY, JSON.stringify({
+        brains: this.headBrains,
+        profiles: this.headProfiles,
+        search_agents: this.headSearchAgents,
+        events: this.headEvents.slice(0, 80),
+        updated_at: new Date().toISOString()
+      }));
+    } catch {}
+    if (!this.taskRuntimeDb) return;
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.HEAD_BRAINS, this.headBrains);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.HEAD_PROFILES, this.headProfiles);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.HEAD_SEARCH_AGENTS, this.headSearchAgents);
+    await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.HEAD_EVENTS, this.headEvents.slice(0, 200));
+  },
+
+  addHeadEvent(type, text, targetId = '', riskLevel = 'safe') {
+    const event = this.normalizeHeadEvent({ type, text, target_id: targetId, risk_level: riskLevel });
+    this.headEvents.unshift(event);
+    this.headEvents = this.headEvents.slice(0, 200);
+    return event;
+  },
+
+  activeHeadProfile() {
+    return this.headProfiles.find((profile) => profile.profile_id === this.activeHeadProfileId)
+      || this.headProfiles.find((profile) => profile.is_default)
+      || this.headProfiles[0]
+      || null;
+  },
+
+  headProfileById(profileId) {
+    return this.headProfiles.find((profile) => profile.profile_id === profileId) || null;
+  },
+
+  headBrainById(brainId) {
+    return this.headBrains.find((brain) => brain.brain_id === brainId) || null;
+  },
+
+  mainStrategistBrain() {
+    const strategistId = this.activeHeadProfile()?.main_strategist_id
+      || this.headBrains.find((brain) => brain.is_main_strategist && !brain.archived)?.brain_id
+      || '';
+    return strategistId ? this.headBrainById(strategistId) : null;
+  },
+
+  activeHeadBrains(profile = this.activeHeadProfile()) {
+    const ids = new Set(profile?.council_members || []);
+    return (this.headBrains || [])
+      .filter((brain) => !brain.archived && brain.enabled && (!ids.size || ids.has(brain.brain_id)))
+      .sort((a, b) => a.order - b.order || a.display_name.localeCompare(b.display_name, 'ru'));
+  },
+
+  activeHeadSearchAgents(profile = this.activeHeadProfile()) {
+    const ids = new Set(profile?.search_agent_ids || []);
+    return (this.headSearchAgents || [])
+      .filter((agent) => !agent.archived && agent.enabled && (!ids.size || ids.has(agent.agent_id)))
+      .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'ru'));
+  },
+
+  renderSystemHeadPanel() {
+    const host = document.getElementById('system-head-panel');
+    if (!host) return;
+    const status = this.headStatusSnapshot();
+    const profile = this.activeHeadProfile();
+    const strategist = this.mainStrategistBrain();
+    const activeBrains = this.activeHeadBrains(profile);
+    const activeAgents = this.activeHeadSearchAgents(profile);
+    const selectedBrain = this.headBrainById(this.activeHeadBrainId) || activeBrains[0] || this.headBrains.find((brain) => !brain.archived);
+    host.innerHTML = `
+      <section class="head-status head-status--${this.escapeHtml(status.tone)}">
+        <div>
+          <span>Голова Терминатора</span>
+          <strong>${this.escapeHtml(status.status)}</strong>
+          <p>${this.escapeHtml(status.note)}</p>
+        </div>
+        <div>
+          <span>Главный Стратег</span>
+          <strong>${this.escapeHtml(strategist ? `${strategist.display_name} / ${strategist.selected_model_name}` : 'не выбран')}</strong>
+          <p>Стратег меняется только вручную владельцем.</p>
+        </div>
+        <div>
+          <span>Активный профиль</span>
+          <strong>${this.escapeHtml(profile?.name || 'не выбран')}</strong>
+          <p>${this.escapeHtml(`${activeBrains.length} мозгов, ${activeAgents.length} исследователей`)}</p>
+        </div>
+      </section>
+
+      <section class="head-wizard">
+        <div class="workspace-panel-head">
+          <strong>Первый запуск головы</strong>
+          <span>${strategist ? 'стратег выбран' : 'нужен выбор владельца'}</span>
+        </div>
+        <ol>
+          <li class="${strategist ? 'done' : ''}">Выбрать главного Стратега.</li>
+          <li class="${activeBrains.length ? 'done' : ''}">Собрать Совет мозгов.</li>
+          <li class="${activeAgents.length ? 'done' : ''}">Добавить исследователей.</li>
+          <li class="${this.headBrains.some((brain) => brain.status === 'ready') ? 'done' : ''}">Проверить готовность тестовым prompt.</li>
+        </ol>
+      </section>
+
+      <section class="head-grid">
+        <div class="head-column">
+          <div class="workspace-panel-head">
+            <strong>Мозги</strong>
+            <span>добавить, включить, роль, порядок</span>
+          </div>
+          <div class="head-brain-list">
+            ${(this.headBrains || []).filter((brain) => !brain.archived).map((brain) => this.renderHeadBrainCard(brain, strategist)).join('')}
+          </div>
+          <div class="head-add-form">
+            <label class="work-field"><span>Название</span><input id="head-new-brain-name" type="text" placeholder="Например: Claude Opus"></label>
+            <label class="work-field"><span>Провайдер</span><input id="head-new-brain-provider" type="text" placeholder="Например: Anthropic"></label>
+            <label class="work-field"><span>Модель</span><input id="head-new-brain-model" type="text" placeholder="Укажу вручную"></label>
+            <label class="work-field"><span>Сайт</span><input id="head-new-brain-url" type="url" placeholder="https://..."></label>
+            <button type="button" data-head-action="add_brain">+ Добавить мозг</button>
+          </div>
+        </div>
+
+        <div class="head-column">
+          <div class="workspace-panel-head">
+            <strong>Проверка готовности</strong>
+            <span>ручной тест без API</span>
+          </div>
+          ${selectedBrain ? this.renderHeadBrainTest(selectedBrain) : '<p class="mission-empty">Выберите мозг.</p>'}
+
+          <div class="workspace-panel-head head-profile-title">
+            <strong>Профили Совета</strong>
+            <span>сохранённые сборки</span>
+          </div>
+          <div class="head-profile-list">
+            ${(this.headProfiles || []).map((item) => this.renderHeadProfileCard(item)).join('')}
+          </div>
+          <div class="head-add-form">
+            <label class="work-field"><span>Новый профиль</span><input id="head-new-profile-name" type="text" placeholder="Например: Codex Review"></label>
+            <button type="button" data-head-action="create_profile">Создать профиль из текущего состава</button>
+          </div>
+        </div>
+
+        <div class="head-column">
+          <div class="workspace-panel-head">
+            <strong>Исследователи</strong>
+            <span>поисковые роли, не crawler-боты</span>
+          </div>
+          <div class="head-agent-list">
+            ${(this.headSearchAgents || []).filter((agent) => !agent.archived).map((agent) => this.renderHeadSearchAgentCard(agent)).join('')}
+          </div>
+          <div class="head-add-form">
+            <label class="work-field"><span>Источник</span><input id="head-new-agent-name" type="text" placeholder="Custom Source Agent"></label>
+            <label class="work-field"><span>Роль</span><input id="head-new-agent-role" type="text" placeholder="Что он ищет"></label>
+            <button type="button" data-head-action="add_search_agent">+ Добавить исследователя</button>
+          </div>
+          <div class="head-event-log">
+            <div class="workspace-panel-head">
+              <strong>История Головы</strong>
+              <span>${this.headEvents.length}</span>
+            </div>
+            ${(this.headEvents || []).slice(0, 5).map((event) => `
+              <article>
+                <time>${this.escapeHtml(this.formatTaskTime(event.created_at))}</time>
+                <strong>${this.escapeHtml(event.type)}</strong>
+                <p>${this.escapeHtml(event.text)}</p>
+              </article>
+            `).join('') || '<p class="mission-empty">История появится после настройки.</p>'}
+          </div>
+        </div>
+      </section>
+    `;
+  },
+
+  renderHeadBrainCard(brain, strategist) {
+    const isActive = brain.brain_id === this.activeHeadBrainId;
+    const isStrategist = strategist?.brain_id === brain.brain_id;
+    return `
+      <article class="head-brain-card ${isActive ? 'active' : ''} ${isStrategist ? 'strategist' : ''}">
+        <button type="button" class="head-card-select" data-head-action="select_brain" data-brain-id="${this.escapeHtml(brain.brain_id)}">
+          <strong>${this.escapeHtml(brain.display_name)}</strong>
+          <span>${this.escapeHtml(brain.selected_model_name)} · ${this.escapeHtml(this.headBrainStatusName(brain.status))}</span>
+        </button>
+        <label class="work-field">
+          <span>Роль</span>
+          <select data-head-role="${this.escapeHtml(brain.brain_id)}">
+            ${HEAD_BRAIN_ROLES.map((role) => `<option value="${this.escapeHtml(role)}"${role === brain.role ? ' selected' : ''}>${this.escapeHtml(role)}</option>`).join('')}
+          </select>
+        </label>
+        <div class="head-actions">
+          <button type="button" data-head-action="toggle_brain" data-brain-id="${this.escapeHtml(brain.brain_id)}">${brain.enabled ? 'Выключить' : 'Включить'}</button>
+          <button type="button" data-head-action="set_strategist" data-brain-id="${this.escapeHtml(brain.brain_id)}" ${brain.can_be_strategist ? '' : 'disabled'}>${isStrategist ? 'Стратег' : 'Сделать Стратегом'}</button>
+          <button type="button" data-head-action="move_up" data-brain-id="${this.escapeHtml(brain.brain_id)}">↑</button>
+          <button type="button" data-head-action="move_down" data-brain-id="${this.escapeHtml(brain.brain_id)}">↓</button>
+          <button type="button" data-head-action="remove_brain" data-brain-id="${this.escapeHtml(brain.brain_id)}">Удалить</button>
+        </div>
+      </article>
+    `;
+  },
+
+  renderHeadBrainTest(brain) {
+    return `
+      <section class="head-test">
+        <div class="head-test-target">
+          <strong>${this.escapeHtml(brain.display_name)}</strong>
+          <span>${this.escapeHtml(brain.official_url || 'сайт не задан')}</span>
+        </div>
+        <label class="work-field">
+          <span>Тестовый prompt</span>
+          <textarea readonly>${this.escapeHtml(this.headTestPrompt(brain))}</textarea>
+        </label>
+        <label class="work-field">
+          <span>Ответ из официального чата</span>
+          <textarea id="head-test-response" placeholder="Вставьте ответ мозга. Пароли, cookies и токены сюда не вставлять."></textarea>
+        </label>
+        <div class="head-actions">
+          <button type="button" data-head-action="copy_test" data-brain-id="${this.escapeHtml(brain.brain_id)}">Скопировать тест</button>
+          <button type="button" data-head-action="open_site" data-brain-id="${this.escapeHtml(brain.brain_id)}">Открыть сайт</button>
+          <button type="button" data-head-action="verify_test" data-brain-id="${this.escapeHtml(brain.brain_id)}">Проверить ответ</button>
+        </div>
+        <p class="runtime-note">Готовность ставится только после ручного теста. Пароли, cookies, API keys и платёжные данные Терминатор не хранит.</p>
+      </section>
+    `;
+  },
+
+  renderHeadProfileCard(profile) {
+    const isActive = profile.profile_id === this.activeHeadProfileId;
+    const strategist = this.headBrainById(profile.main_strategist_id);
+    return `
+      <article class="head-profile-card ${isActive ? 'active' : ''}">
+        <button type="button" data-head-action="activate_profile" data-profile-id="${this.escapeHtml(profile.profile_id)}">
+          <strong>${this.escapeHtml(profile.name)}</strong>
+          <span>${this.escapeHtml(HEAD_PROFILE_TYPES[profile.type] || profile.type)} · ${profile.council_members.length} мозгов · ${profile.search_agent_ids.length} исследователей</span>
+        </button>
+        <p>${this.escapeHtml(profile.description || 'профиль без описания')}</p>
+        <small>Стратег: ${this.escapeHtml(strategist?.display_name || 'не выбран')}</small>
+      </article>
+    `;
+  },
+
+  renderHeadSearchAgentCard(agent) {
+    return `
+      <article class="head-agent-card">
+        <div>
+          <strong>${this.escapeHtml(agent.name)}</strong>
+          <span>${this.escapeHtml(agent.role)} · ${this.escapeHtml(agent.source_type)}</span>
+          <p>${this.escapeHtml(agent.description)}</p>
+        </div>
+        <button type="button" data-head-action="toggle_agent" data-agent-id="${this.escapeHtml(agent.agent_id)}">${agent.enabled ? 'Включён' : 'Выключен'}</button>
+      </article>
+    `;
+  },
+
+  headBrainStatusName(status) {
+    const names = {
+      not_selected: 'не выбран',
+      selected: 'выбран',
+      site_opened: 'сайт открыт',
+      logged_in_by_user: 'пользователь вошёл',
+      test_waiting: 'ждёт тест',
+      ready: 'готов к задачам',
+      attention: 'требует внимания',
+      archived: 'удалён'
+    };
+    return names[status] || status || 'не выбран';
+  },
+
+  headTestPrompt(brain) {
+    return `Ответь строго одной строкой:\n${brain.ready_phrase}`;
+  },
+
+  async handleHeadAction(action, button) {
+    const brainId = button?.dataset?.brainId || this.activeHeadBrainId;
+    const profileId = button?.dataset?.profileId || this.activeHeadProfileId;
+    const agentId = button?.dataset?.agentId || '';
+    const brain = this.headBrainById(brainId);
+    if (action === 'select_brain' && brain) {
+      this.activeHeadBrainId = brain.brain_id;
+      this.renderSystemHeadPanel();
+      return;
+    }
+    if (action === 'toggle_brain' && brain) {
+      brain.enabled = !brain.enabled;
+      brain.status = brain.enabled ? (brain.test_passed ? 'ready' : 'selected') : 'not_selected';
+      brain.connection_status = brain.status;
+      brain.updated_at = new Date().toISOString();
+      this.addHeadEvent('brain_toggle', `${brain.display_name}: ${brain.enabled ? 'включён' : 'выключен'}.`, brain.brain_id);
+    } else if (action === 'set_strategist' && brain) {
+      if (!brain.can_be_strategist) {
+        this.toast('Этот мозг не назначается Стратегом');
+        return;
+      }
+      this.setMainStrategist(brain.brain_id);
+    } else if (action === 'move_up' && brain) {
+      brain.order -= 15;
+      brain.updated_at = new Date().toISOString();
+      this.addHeadEvent('brain_order_changed', `${brain.display_name}: выше в Совете.`, brain.brain_id);
+    } else if (action === 'move_down' && brain) {
+      brain.order += 15;
+      brain.updated_at = new Date().toISOString();
+      this.addHeadEvent('brain_order_changed', `${brain.display_name}: ниже в Совете.`, brain.brain_id);
+    } else if (action === 'remove_brain' && brain) {
+      brain.archived = true;
+      brain.enabled = false;
+      brain.status = 'archived';
+      brain.updated_at = new Date().toISOString();
+      this.headProfiles.forEach((profile) => {
+        profile.council_members = profile.council_members.filter((id) => id !== brain.brain_id);
+        if (profile.main_strategist_id === brain.brain_id) profile.main_strategist_id = '';
+      });
+      this.addHeadEvent('brain_removed', `${brain.display_name}: удалён из активного Совета.`, brain.brain_id, 'review');
+    } else if (action === 'open_site' && brain) {
+      if (brain.official_url) window.open(brain.official_url, '_blank', 'noopener,noreferrer');
+      brain.status = 'site_opened';
+      brain.connection_status = 'site_opened';
+      brain.updated_at = new Date().toISOString();
+      this.addHeadEvent('brain_site_opened', `${brain.display_name}: официальный сайт открыт владельцем.`, brain.brain_id);
+    } else if (action === 'copy_test' && brain) {
+      this.copyWorkspaceText(this.headTestPrompt(brain));
+      brain.status = 'test_waiting';
+      brain.connection_status = 'test_waiting';
+      brain.updated_at = new Date().toISOString();
+      this.addHeadEvent('brain_test_copied', `${brain.display_name}: тестовый prompt скопирован.`, brain.brain_id);
+    } else if (action === 'verify_test' && brain) {
+      this.verifyHeadBrainTest(brain);
+    } else if (action === 'add_brain') {
+      this.addCustomHeadBrain();
+    } else if (action === 'toggle_agent' && agentId) {
+      this.toggleHeadSearchAgent(agentId);
+    } else if (action === 'add_search_agent') {
+      this.addCustomHeadSearchAgent();
+    } else if (action === 'activate_profile' && profileId) {
+      this.activeHeadProfileId = profileId;
+      this.addHeadEvent('profile_selected', `Выбран профиль Совета: ${this.headProfileById(profileId)?.name || profileId}.`, profileId);
+    } else if (action === 'create_profile') {
+      this.createHeadProfileFromCurrent();
+    }
+    this.reindexHeadBrains();
+    await this.saveHeadRuntime();
+    this.renderSystemStatus();
+    this.renderMissionControl();
+    this.renderWorkTaskCard();
+  },
+
+  setMainStrategist(brainId) {
+    const brain = this.headBrainById(brainId);
+    if (!brain) return;
+    this.headBrains.forEach((item) => {
+      item.is_main_strategist = item.brain_id === brainId;
+      if (item.brain_id === brainId) {
+        item.enabled = true;
+        item.status = item.test_passed ? 'ready' : 'selected';
+        item.connection_status = item.status;
+      }
+    });
+    const activeProfile = this.activeHeadProfile();
+    if (activeProfile) {
+      activeProfile.main_strategist_id = brainId;
+      if (!activeProfile.council_members.includes(brainId)) activeProfile.council_members.unshift(brainId);
+      activeProfile.updated_at = new Date().toISOString();
+      activeProfile.status = brain.test_passed ? 'ready' : 'needs_test';
+    }
+    this.activeHeadBrainId = brainId;
+    this.addHeadEvent('strategist_selected', `${brain.display_name} выбран главным Стратегом вручную владельцем.`, brainId, 'review');
+    this.toast('Главный Стратег выбран');
+  },
+
+  reindexHeadBrains() {
+    this.headBrains = this.headBrains
+      .map((brain) => this.normalizeHeadBrain(brain))
+      .sort((a, b) => a.order - b.order || a.display_name.localeCompare(b.display_name, 'ru'))
+      .map((brain, index) => ({ ...brain, order: (index + 1) * 10 }));
+  },
+
+  async updateHeadBrainRole(brainId, role) {
+    const brain = this.headBrainById(brainId);
+    if (!brain) return;
+    brain.role = role;
+    brain.updated_at = new Date().toISOString();
+    this.addHeadEvent('brain_role_changed', `${brain.display_name}: роль изменена на ${role}.`, brain.brain_id);
+    await this.saveHeadRuntime();
+    this.renderSystemHeadPanel();
+    this.renderWorkTaskCard();
+  },
+
+  verifyHeadBrainTest(brain) {
+    const response = String(document.getElementById('head-test-response')?.value || '').trim();
+    if (!response) {
+      this.toast('Вставь ответ теста');
+      return;
+    }
+    const passed = response.includes(brain.ready_phrase);
+    brain.last_test_at = new Date().toISOString();
+    brain.test_passed = passed;
+    brain.status = passed ? 'ready' : 'attention';
+    brain.connection_status = brain.status;
+    brain.enabled = passed || brain.enabled;
+    brain.updated_at = brain.last_test_at;
+    this.addHeadEvent(
+      passed ? 'brain_test_passed' : 'brain_test_failed',
+      `${brain.display_name}: ${passed ? 'готов к задачам' : 'тест не пройден'}.`,
+      brain.brain_id,
+      passed ? 'safe' : 'review'
+    );
+    this.toast(passed ? 'Мозг готов к задачам' : 'Тест не пройден');
+  },
+
+  addCustomHeadBrain() {
+    const nameInput = document.getElementById('head-new-brain-name');
+    const providerInput = document.getElementById('head-new-brain-provider');
+    const modelInput = document.getElementById('head-new-brain-model');
+    const urlInput = document.getElementById('head-new-brain-url');
+    const name = String(nameInput?.value || '').trim();
+    if (!name) {
+      this.toast('Укажи название мозга');
+      nameInput?.focus();
+      return;
+    }
+    const now = new Date().toISOString();
+    const brain = this.normalizeHeadBrain({
+      brain_id: this.generateWorkspaceId('BRAIN'),
+      display_name: name,
+      provider_name: String(providerInput?.value || '').trim() || name,
+      selected_model_name: String(modelInput?.value || '').trim() || 'укажу вручную',
+      official_url: String(urlInput?.value || '').trim(),
+      role: 'Пользовательская роль',
+      default_role: 'Пользовательская роль',
+      enabled: true,
+      can_be_strategist: true,
+      status: 'selected',
+      connection_status: 'selected',
+      order: (this.headBrains.length + 1) * 10,
+      preset: false,
+      created_at: now,
+      updated_at: now
+    });
+    this.headBrains.push(brain);
+    const activeProfile = this.activeHeadProfile();
+    if (activeProfile && !activeProfile.council_members.includes(brain.brain_id)) {
+      activeProfile.council_members.push(brain.brain_id);
+      activeProfile.updated_at = now;
+    }
+    [nameInput, providerInput, modelInput, urlInput].forEach((input) => {
+      if (input) input.value = '';
+    });
+    this.activeHeadBrainId = brain.brain_id;
+    this.addHeadEvent('brain_added', `${brain.display_name}: добавлен в Совет.`, brain.brain_id);
+    this.toast('Мозг добавлен');
+  },
+
+  toggleHeadSearchAgent(agentId) {
+    const agent = this.headSearchAgents.find((item) => item.agent_id === agentId);
+    if (!agent) return;
+    agent.enabled = !agent.enabled;
+    agent.status = agent.enabled ? 'enabled' : 'disabled';
+    agent.updated_at = new Date().toISOString();
+    const activeProfile = this.activeHeadProfile();
+    if (activeProfile) {
+      if (agent.enabled && !activeProfile.search_agent_ids.includes(agent.agent_id)) {
+        activeProfile.search_agent_ids.push(agent.agent_id);
+      } else if (!agent.enabled) {
+        activeProfile.search_agent_ids = activeProfile.search_agent_ids.filter((id) => id !== agent.agent_id);
+      }
+      activeProfile.updated_at = agent.updated_at;
+    }
+    this.addHeadEvent('search_agent_toggle', `${agent.name}: ${agent.enabled ? 'включён' : 'выключен'}.`, agent.agent_id);
+  },
+
+  addCustomHeadSearchAgent() {
+    const nameInput = document.getElementById('head-new-agent-name');
+    const roleInput = document.getElementById('head-new-agent-role');
+    const name = String(nameInput?.value || '').trim();
+    if (!name) {
+      this.toast('Укажи источник');
+      nameInput?.focus();
+      return;
+    }
+    const now = new Date().toISOString();
+    const agent = this.normalizeHeadSearchAgent({
+      agent_id: this.generateWorkspaceId('SEARCH'),
+      name,
+      source_type: 'custom',
+      role: String(roleInput?.value || '').trim() || 'Пользовательский источник',
+      description: 'Добавлен владельцем. В Phase 3 это research slot, не автоматический crawler.',
+      enabled: true,
+      status: 'enabled',
+      order: (this.headSearchAgents.length + 1) * 10,
+      created_at: now,
+      updated_at: now
+    });
+    this.headSearchAgents.push(agent);
+    const activeProfile = this.activeHeadProfile();
+    if (activeProfile && !activeProfile.search_agent_ids.includes(agent.agent_id)) {
+      activeProfile.search_agent_ids.push(agent.agent_id);
+      activeProfile.updated_at = now;
+    }
+    if (nameInput) nameInput.value = '';
+    if (roleInput) roleInput.value = '';
+    this.addHeadEvent('search_agent_added', `${agent.name}: добавлен в исследователи.`, agent.agent_id);
+    this.toast('Исследователь добавлен');
+  },
+
+  createHeadProfileFromCurrent() {
+    const input = document.getElementById('head-new-profile-name');
+    const name = String(input?.value || '').trim();
+    if (!name) {
+      this.toast('Укажи название профиля');
+      input?.focus();
+      return;
+    }
+    const now = new Date().toISOString();
+    const profile = this.normalizeHeadProfile({
+      profile_id: this.generateWorkspaceId('PROFILE'),
+      name,
+      type: 'custom',
+      description: 'Профиль создан из текущего состава Головы.',
+      main_strategist_id: this.mainStrategistBrain()?.brain_id || '',
+      council_members: this.headBrains.filter((brain) => brain.enabled && !brain.archived).map((brain) => brain.brain_id),
+      search_agent_ids: this.headSearchAgents.filter((agent) => agent.enabled && !agent.archived).map((agent) => agent.agent_id),
+      is_default: false,
+      status: 'draft',
+      created_at: now,
+      updated_at: now
+    });
+    this.headProfiles.push(profile);
+    this.activeHeadProfileId = profile.profile_id;
+    if (input) input.value = '';
+    this.addHeadEvent('profile_created', `Создан профиль Совета: ${profile.name}.`, profile.profile_id);
+    this.toast('Профиль создан');
   },
 
   renderSystemDevicePreview() {
@@ -4240,6 +5261,7 @@ const App = {
         };
     task.brain_council.prompt_packages = Array.isArray(task.brain_council.prompt_packages) ? task.brain_council.prompt_packages : [];
     task.brain_council.answers = Array.isArray(task.brain_council.answers) ? task.brain_council.answers : [];
+    this.ensureResearchOpsState(task);
     task.project_id = task.project_id || 'terminator';
     task.input_source = task.input_source || 'keyboard';
     task.original_transcript = task.original_transcript || '';
@@ -4869,6 +5891,7 @@ const App = {
         integrity_status: 'not_checked',
         updated_at: ''
       },
+      research_ops: this.defaultResearchOpsState(),
       audit_log: []
     };
     this.ensureTaskStorageManifest(task);
@@ -5099,6 +6122,7 @@ const App = {
     this.renderWorkspaceTabs();
     this.renderWorkspaceFiles(task);
     this.renderWorkspaceArtifacts(task);
+    this.renderWorkspaceResearch(task);
     this.renderWorkspaceCouncil(task);
     this.renderWorkspaceMemory(task);
     this.renderVoicePanel();
@@ -5765,21 +6789,673 @@ const App = {
     }
   },
 
+  defaultResearchOpsState() {
+    return {
+      status: 'not_started',
+      brief: {
+        brief_id: '',
+        question: '',
+        scope: '',
+        required_sources: [],
+        open_questions: [],
+        success_criteria: [],
+        created_at: '',
+        updated_at: ''
+      },
+      source_notes: [],
+      source_cards: [],
+      evidence_cards: [],
+      research_pack: null,
+      contradiction_map: null,
+      rounds: [],
+      updated_at: ''
+    };
+  },
+
+  ensureResearchOpsState(task) {
+    task.research_ops = task.research_ops && typeof task.research_ops === 'object' ? task.research_ops : this.defaultResearchOpsState();
+    const research = task.research_ops;
+    research.status = research.status || 'not_started';
+    research.brief = research.brief && typeof research.brief === 'object' ? research.brief : this.defaultResearchOpsState().brief;
+    research.brief.required_sources = Array.isArray(research.brief.required_sources) ? research.brief.required_sources : [];
+    research.brief.open_questions = Array.isArray(research.brief.open_questions) ? research.brief.open_questions : [];
+    research.brief.success_criteria = Array.isArray(research.brief.success_criteria) ? research.brief.success_criteria : [];
+    research.source_notes = Array.isArray(research.source_notes) ? research.source_notes : [];
+    research.source_cards = Array.isArray(research.source_cards) ? research.source_cards : [];
+    research.evidence_cards = Array.isArray(research.evidence_cards) ? research.evidence_cards : [];
+    research.research_pack = research.research_pack || null;
+    research.contradiction_map = research.contradiction_map || null;
+    research.rounds = Array.isArray(research.rounds) ? research.rounds : [];
+    research.updated_at = research.updated_at || '';
+    return research;
+  },
+
+  renderWorkspaceResearch(task) {
+    const host = document.getElementById('workspace-research-panel');
+    if (!host || !task) return;
+    const research = this.ensureResearchOpsState(task);
+    const brief = research.brief || {};
+    const sourceCards = research.source_cards || [];
+    const evidenceCards = research.evidence_cards || [];
+    const pack = research.research_pack;
+    host.innerHTML = `
+      <section class="researchops-status-grid">
+        <article>
+          <span>Статус</span>
+          <strong>${this.escapeHtml(this.researchStatusName(research.status))}</strong>
+          <p>Автопоиск и скрытое чтение сайтов не выполняются.</p>
+        </article>
+        <article>
+          <span>Источники</span>
+          <strong>${sourceCards.length}</strong>
+          <p>карточки источников</p>
+        </article>
+        <article>
+          <span>Evidence</span>
+          <strong>${evidenceCards.length}</strong>
+          <p>карточки доказательств</p>
+        </article>
+        <article>
+          <span>Пакет исследования</span>
+          <strong>${pack ? 'готов' : 'не собран'}</strong>
+          <p>${this.escapeHtml(pack ? this.formatTaskTime(pack.created_at) : 'сначала добавь brief и источники')}</p>
+        </article>
+      </section>
+
+      <section class="researchops-block">
+        <div class="workspace-panel-head">
+          <strong>План исследования</strong>
+          <span>что ищем и по каким критериям</span>
+        </div>
+        <label class="work-field">
+          <span>Главный вопрос</span>
+          <textarea id="research-brief-question" placeholder="Что нужно выяснить для решения задачи?">${this.escapeHtml(brief.question || '')}</textarea>
+        </label>
+        <label class="work-field">
+          <span>Границы исследования</span>
+          <textarea id="research-brief-scope" placeholder="Что входит, что не входит, какие ограничения важны.">${this.escapeHtml(brief.scope || '')}</textarea>
+        </label>
+        <div class="researchops-form-grid">
+          <label class="work-field">
+            <span>Нужные источники</span>
+            <textarea id="research-required-sources" placeholder="Официальные docs&#10;GitHub issues&#10;Форумы владельцев">${this.escapeHtml((brief.required_sources || []).join('\n'))}</textarea>
+          </label>
+          <label class="work-field">
+            <span>Открытые вопросы</span>
+            <textarea id="research-open-questions" placeholder="Что пока непонятно?">${this.escapeHtml((brief.open_questions || []).join('\n'))}</textarea>
+          </label>
+          <label class="work-field">
+            <span>Критерии качества</span>
+            <textarea id="research-success-criteria" placeholder="Что должно быть доказано?">${this.escapeHtml((brief.success_criteria || []).join('\n'))}</textarea>
+          </label>
+        </div>
+        <div class="work-actions">
+          <button type="button" data-workspace-action="create_research_brief">Создать план из задачи</button>
+          <button type="button" data-workspace-action="save_research_brief">Сохранить план</button>
+          <button type="button" data-workspace-action="build_research_pack">Собрать пакет исследования</button>
+          <button type="button" data-workspace-action="copy_research_pack" ${pack ? '' : 'disabled'}>Скопировать пакет</button>
+        </div>
+      </section>
+
+      <section class="researchops-block">
+        <div class="workspace-panel-head">
+          <strong>Источник</strong>
+          <span>ручная заметка владельца</span>
+        </div>
+        <div class="researchops-form-grid">
+          <label class="work-field"><span>Название</span><input id="research-source-title" type="text" placeholder="Название источника"></label>
+          <label class="work-field"><span>Ссылка или описание</span><input id="research-source-url" type="text" placeholder="https://... или где найдено"></label>
+          <label class="work-field">
+            <span>Тип</span>
+            <select id="research-source-type">
+              ${RESEARCH_SOURCE_TYPES.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Доверие</span>
+            <select id="research-source-trust">
+              ${RESEARCH_TRUST_LEVELS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <label class="work-field">
+          <span>Краткий вывод источника</span>
+          <textarea id="research-source-summary" placeholder="Что источник говорит по задаче?"></textarea>
+        </label>
+        <div class="researchops-form-grid">
+          <label class="work-field"><span>Что подтверждает</span><textarea id="research-source-confirms" placeholder="Факт, решение, ограничение или риск"></textarea></label>
+          <label class="work-field"><span>Риски источника</span><textarea id="research-source-risks" placeholder="Что может быть ошибочным, устаревшим или спорным"></textarea></label>
+          <label class="work-field"><span>Проверить первым</span><textarea id="research-source-check" placeholder="Что основной ветке проверить первым"></textarea></label>
+        </div>
+        <label class="researchops-check">
+          <input id="research-source-evidence" type="checkbox" checked>
+          <span>Создать карточку доказательства</span>
+        </label>
+        <div class="work-actions">
+          <button type="button" data-workspace-action="add_source_card">Добавить источник</button>
+        </div>
+      </section>
+
+      <section class="researchops-block">
+        <div class="workspace-panel-head">
+          <strong>Карточки источников</strong>
+          <span>${sourceCards.length}</span>
+        </div>
+        <div class="researchops-card-list">
+          ${sourceCards.length ? sourceCards.map((card) => this.renderResearchSourceCard(card)).join('') : '<p class="workspace-empty">Источники появятся после ручного добавления.</p>'}
+        </div>
+      </section>
+
+      <section class="researchops-block">
+        <div class="workspace-panel-head">
+          <strong>Карточки доказательств</strong>
+          <span>${evidenceCards.length}</span>
+        </div>
+        <div class="researchops-card-list">
+          ${evidenceCards.length ? evidenceCards.map((card) => this.renderResearchEvidenceCard(card)).join('') : '<p class="workspace-empty">Карточки доказательств появятся из источников, которые что-то подтверждают.</p>'}
+        </div>
+      </section>
+
+      <section class="researchops-block">
+        <div class="workspace-panel-head">
+          <strong>Карта противоречий</strong>
+          <span>${research.contradiction_map ? 'готово' : 'ожидает пакет исследования'}</span>
+        </div>
+        ${research.contradiction_map ? this.renderResearchContradictionMap(research.contradiction_map) : '<p class="workspace-empty">Карта строится при сборке пакета исследования.</p>'}
+      </section>
+    `;
+  },
+
+  renderResearchSourceCard(card) {
+    return `
+      <article class="researchops-card">
+        <div>
+          <strong>${this.escapeHtml(card.title)}</strong>
+          <span>${this.escapeHtml(this.researchSourceTypeName(card.type))} · доверие: ${this.escapeHtml(this.researchTrustName(card.trust_level))}</span>
+          <p>${this.escapeHtml(card.summary || 'summary не задан')}</p>
+          <small>${this.escapeHtml(card.url || 'ссылка не задана')}</small>
+        </div>
+        <dl>
+          <div><dt>Подтверждает</dt><dd>${this.escapeHtml(card.confirms || 'не задано')}</dd></div>
+          <div><dt>Риски</dt><dd>${this.escapeHtml(card.risks || 'не задано')}</dd></div>
+          <div><dt>Проверить</dt><dd>${this.escapeHtml(card.check_first || 'не задано')}</dd></div>
+        </dl>
+      </article>
+    `;
+  },
+
+  renderResearchEvidenceCard(card) {
+    return `
+      <article class="researchops-card researchops-card--evidence">
+        <div>
+          <strong>${this.escapeHtml(card.title)}</strong>
+          <span>доверие: ${this.escapeHtml(this.researchTrustName(card.confidence))} · источник: ${this.escapeHtml(card.source_title || card.source_id)}</span>
+          <p>${this.escapeHtml(card.claim || 'claim не задан')}</p>
+        </div>
+        <small>${this.escapeHtml(card.use_in_decision ? 'использовать в решении' : 'требует проверки')}</small>
+      </article>
+    `;
+  },
+
+  renderResearchContradictionMap(map) {
+    return `
+      <dl class="researchops-map">
+        <div><dt>Сильные источники</dt><dd>${this.escapeHtml(this.listOrFallback(map.strong_sources, 'нет'))}</dd></div>
+        <div><dt>Слабые источники</dt><dd>${this.escapeHtml(this.listOrFallback(map.weak_sources, 'нет'))}</dd></div>
+        <div><dt>Противоречия</dt><dd>${this.escapeHtml(this.listOrFallback(map.contradictions, 'явных противоречий нет'))}</dd></div>
+        <div><dt>Пробелы</dt><dd>${this.escapeHtml(this.listOrFallback(map.source_gaps, 'нет'))}</dd></div>
+        <div><dt>Проверить первым</dt><dd>${this.escapeHtml(this.listOrFallback(map.what_to_check_first, 'не задано'))}</dd></div>
+      </dl>
+    `;
+  },
+
+  researchStatusName(status) {
+    const names = {
+      not_started: 'не начато',
+      brief_ready: 'план готов',
+      sources_collecting: 'источники собираются',
+      pack_ready: 'пакет готов',
+      decision_ready: 'решение готово'
+    };
+    return names[status] || status || 'не начато';
+  },
+
+  researchSourceTypeName(type) {
+    return RESEARCH_SOURCE_TYPE_BY_ID[type] || type || 'Источник';
+  },
+
+  researchTrustName(level) {
+    return RESEARCH_TRUST_LEVEL_BY_ID[level] || level || 'неизвестно';
+  },
+
+  parseResearchList(text) {
+    return String(text || '')
+      .split(/\r?\n|;/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  },
+
+  createResearchBriefFromTask(task) {
+    const research = this.ensureResearchOpsState(task);
+    const activeAgents = this.activeHeadSearchAgents(this.headProfileById(this.ensureBrainCouncilState(task).profile_id) || this.activeHeadProfile());
+    const now = new Date().toISOString();
+    research.brief = {
+      brief_id: research.brief.brief_id || this.generateWorkspaceId('RBRIEF'),
+      question: `Какое решение по задаче "${task.title}" будет самым качественным, безопасным и проверяемым?`,
+      scope: [
+        `Проект: ${this.projectName(task.project_id)}.`,
+        `Цель: ${task.goal || task.user_request}.`,
+        `Режим: ${this.modeName(task.mode)}.`,
+        `Качество: ${this.qualityName(task.quality_level)}.`,
+        'Автопоиск, AI API и скрытый браузерный контроль не используются.'
+      ].join('\n'),
+      required_sources: activeAgents.length
+        ? activeAgents.map((agent) => `${agent.name}: ${agent.role}`)
+        : ['Официальные источники', 'Практические кейсы', 'Риски и ограничения'],
+      open_questions: [
+        task.next_step || 'Что проверить первым?',
+        'Какие источники подтверждают решение?',
+        'Какие риски могут опровергнуть вывод?'
+      ],
+      success_criteria: [
+        'Есть карточки источников.',
+        'Есть карточки доказательств или честно указан их недостаток.',
+        'Есть пакет исследования.',
+        'Совет мозгов получил исследовательский контекст.',
+        'Паспорт решения содержит риски и проверки.'
+      ],
+      created_at: research.brief.created_at || now,
+      updated_at: now
+    };
+    research.status = 'brief_ready';
+    research.updated_at = now;
+    this.upsertResearchBriefArtifact(task);
+    this.addWorkspaceMessage(task, 'research_event', 'Исследование', 'План исследования создан из задачи.');
+    this.addWorkAudit(task, 'Research Brief created.');
+    this.toast('План исследования создан');
+  },
+
+  saveResearchBrief(task) {
+    const research = this.ensureResearchOpsState(task);
+    const now = new Date().toISOString();
+    const current = research.brief || {};
+    research.brief = {
+      brief_id: current.brief_id || this.generateWorkspaceId('RBRIEF'),
+      question: String(document.getElementById('research-brief-question')?.value || current.question || '').trim(),
+      scope: String(document.getElementById('research-brief-scope')?.value || current.scope || '').trim(),
+      required_sources: this.parseResearchList(document.getElementById('research-required-sources')?.value || current.required_sources?.join('\n') || ''),
+      open_questions: this.parseResearchList(document.getElementById('research-open-questions')?.value || current.open_questions?.join('\n') || ''),
+      success_criteria: this.parseResearchList(document.getElementById('research-success-criteria')?.value || current.success_criteria?.join('\n') || ''),
+      created_at: current.created_at || now,
+      updated_at: now
+    };
+    if (!research.brief.question) research.brief.question = `Что нужно выяснить для задачи: ${task.title}?`;
+    research.status = 'brief_ready';
+    research.updated_at = now;
+    this.upsertResearchBriefArtifact(task);
+    this.addWorkspaceMessage(task, 'research_event', 'Исследование', 'План исследования сохранён.');
+    this.toast('План исследования сохранён');
+  },
+
+  addResearchSourceCard(task) {
+    const research = this.ensureResearchOpsState(task);
+    const now = new Date().toISOString();
+    const title = String(document.getElementById('research-source-title')?.value || '').trim();
+    const url = String(document.getElementById('research-source-url')?.value || '').trim();
+    const summary = String(document.getElementById('research-source-summary')?.value || '').trim();
+    const confirms = String(document.getElementById('research-source-confirms')?.value || '').trim();
+    const risks = String(document.getElementById('research-source-risks')?.value || '').trim();
+    const checkFirst = String(document.getElementById('research-source-check')?.value || '').trim();
+    if (!title || !summary) {
+      this.toast('Укажи название и краткий вывод источника');
+      return;
+    }
+    const card = {
+      source_id: this.generateWorkspaceId('SOURCE'),
+      task_id: task.task_id,
+      project_id: task.project_id,
+      title,
+      type: document.getElementById('research-source-type')?.value || 'manual_note',
+      url,
+      added_at: now,
+      source_date: '',
+      trust_level: document.getElementById('research-source-trust')?.value || 'unknown',
+      summary,
+      confirms,
+      risks,
+      check_first: checkFirst,
+      status: 'added'
+    };
+    research.source_cards.unshift(card);
+    research.source_notes.unshift({
+      note_id: this.generateWorkspaceId('SNOTE'),
+      source_id: card.source_id,
+      text: summary,
+      inserted_by: 'owner',
+      created_at: now
+    });
+    const artifact = this.createArtifact(task, 'SOURCE_CARD', `Источник: ${title}`, summary, this.formatResearchSourceCard(card), 'researchops');
+    artifact.status = 'ready';
+    card.artifact_id = artifact.artifact_id;
+    if (document.getElementById('research-source-evidence')?.checked && confirms) {
+      const evidence = {
+        evidence_id: this.generateWorkspaceId('EVID'),
+        source_id: card.source_id,
+        source_title: card.title,
+        title: `Доказательство: ${title}`,
+        claim: confirms,
+        confidence: card.trust_level,
+        risks,
+        use_in_decision: card.trust_level !== 'low',
+        created_at: now
+      };
+      research.evidence_cards.unshift(evidence);
+      const evidenceArtifact = this.createArtifact(task, 'EVIDENCE_CARD', evidence.title, evidence.claim, this.formatResearchEvidenceCard(evidence), 'researchops');
+      evidenceArtifact.status = 'ready';
+      evidence.artifact_id = evidenceArtifact.artifact_id;
+    }
+    research.status = 'sources_collecting';
+    research.research_pack = null;
+    research.contradiction_map = null;
+    research.updated_at = now;
+    this.addWorkspaceMessage(task, 'research_event', 'Исследование', `Добавлен источник: ${title}.`, {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    ['research-source-title', 'research-source-url', 'research-source-summary', 'research-source-confirms', 'research-source-risks', 'research-source-check'].forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) element.value = '';
+    });
+    this.toast('Источник добавлен');
+  },
+
+  buildResearchPack(task) {
+    const research = this.ensureResearchOpsState(task);
+    if (!research.brief?.question) this.createResearchBriefFromTask(task);
+    const now = new Date().toISOString();
+    const sourceCards = research.source_cards || [];
+    const evidenceCards = research.evidence_cards || [];
+    const contradictionMap = this.buildResearchContradictionMap(task, sourceCards, evidenceCards);
+    const pack = {
+      research_pack_id: this.generateWorkspaceId('RPACK'),
+      task_id: task.task_id,
+      project_id: task.project_id,
+      brief: research.brief,
+      source_card_ids: sourceCards.map((card) => card.source_id),
+      evidence_card_ids: evidenceCards.map((card) => card.evidence_id),
+      facts: sourceCards.map((card) => card.confirms).filter(Boolean),
+      assumptions: research.brief.open_questions || [],
+      contradictions: contradictionMap.contradictions,
+      strong_sources: contradictionMap.strong_sources,
+      weak_sources: contradictionMap.weak_sources,
+      source_gaps: contradictionMap.source_gaps,
+      what_to_check_first: contradictionMap.what_to_check_first,
+      recommendations: this.researchRecommendations(task, contradictionMap),
+      created_at: now,
+      status: sourceCards.length ? 'ready' : 'needs_sources'
+    };
+    research.contradiction_map = contradictionMap;
+    research.research_pack = pack;
+    research.status = 'pack_ready';
+    research.updated_at = now;
+    research.rounds = [
+      ...research.rounds.filter((round) => round.type !== 'research_pack_created'),
+      { round_id: this.generateWorkspaceId('RROUND'), type: 'research_pack_created', text: 'Пакет исследования собран для Совета мозгов.', created_at: now }
+    ];
+    const artifact = this.createArtifact(task, 'RESEARCH_PACK', 'Пакет исследования', `${sourceCards.length} источников, ${evidenceCards.length} доказательств.`, this.formatResearchPack(task, pack), 'researchops');
+    artifact.status = pack.status === 'ready' ? 'ready' : 'needs_sources';
+    pack.artifact_id = artifact.artifact_id;
+    this.addWorkspaceMessage(task, 'research_event', 'Исследование', 'Пакет исследования собран и готов для Совета мозгов.', {
+      linked_artifact_id: artifact.artifact_id,
+      linked_artifacts: [artifact.artifact_id]
+    });
+    this.addWorkAudit(task, 'Research Pack created.');
+    this.toast('Пакет исследования собран');
+  },
+
+  copyResearchPack(task) {
+    const research = this.ensureResearchOpsState(task);
+    if (!research.research_pack) this.buildResearchPack(task);
+    const content = this.formatResearchPack(task, research.research_pack);
+    const scan = this.scanPrivacyText(content);
+    if (scan.findings.length) {
+      this.workspacePendingCopyText = content;
+      this.workspacePendingPrivacyFindings = scan.findings;
+      this.renderPrivacyGuardFindings(scan.findings);
+      const guard = document.getElementById('workspace-privacy-guard');
+      if (guard) guard.hidden = false;
+      this.addWorkspaceMessage(task, 'system_event', 'Privacy Guard', `Пакет исследования требует проверки: ${this.privacyScanSummary(scan)}.`);
+      this.toast('Privacy Guard требует проверки');
+      return;
+    }
+    this.copyWorkspaceText(content);
+    this.addWorkspaceMessage(task, 'research_event', 'Исследование', 'Пакет исследования скопирован вручную.');
+  },
+
+  buildResearchContradictionMap(task, sourceCards, evidenceCards) {
+    const activeAgents = this.activeHeadSearchAgents(this.headProfileById(this.ensureBrainCouncilState(task).profile_id) || this.activeHeadProfile());
+    const strongSources = sourceCards
+      .filter((card) => card.trust_level === 'high')
+      .map((card) => card.title);
+    const weakSources = sourceCards
+      .filter((card) => ['low', 'unknown'].includes(card.trust_level))
+      .map((card) => `${card.title}: ${this.researchTrustName(card.trust_level)}`);
+    const contradictions = sourceCards
+      .filter((card) => /противореч|не совпад|conflict|contradict|спорн/i.test([card.summary, card.risks, card.confirms].join(' ')))
+      .map((card) => `${card.title}: ${card.risks || card.summary}`);
+    const existingTypes = new Set(sourceCards.map((card) => card.type));
+    const sourceGaps = activeAgents
+      .filter((agent) => !this.researchAgentCovered(agent, existingTypes))
+      .map((agent) => `${agent.name}: источник ещё не добавлен`);
+    if (!sourceCards.length) sourceGaps.push('Нет карточек источников. Решение нельзя считать исследованным.');
+    if (!evidenceCards.length) sourceGaps.push('Нет карточек доказательств. Финальный вывод должен быть с риском.');
+    return {
+      map_id: this.generateWorkspaceId('RMAP'),
+      strong_sources: strongSources,
+      weak_sources: weakSources,
+      contradictions: contradictions.length ? contradictions : [],
+      source_gaps: sourceGaps,
+      what_to_check_first: [
+        ...sourceCards.map((card) => card.check_first).filter(Boolean).slice(0, 5),
+        task.next_step || ''
+      ].filter(Boolean),
+      created_at: new Date().toISOString()
+    };
+  },
+
+  researchAgentCovered(agent, existingTypes) {
+    const text = `${agent.name} ${agent.source_type || ''} ${agent.role || ''}`.toLowerCase();
+    if (/github/.test(text)) return existingTypes.has('github');
+    if (/youtube/.test(text)) return existingTypes.has('youtube');
+    if (/reddit/.test(text)) return existingTypes.has('reddit');
+    if (/4pda/.test(text)) return existingTypes.has('4pda') || existingTypes.has('forum');
+    if (/xda/.test(text)) return existingTypes.has('xda') || existingTypes.has('forum');
+    if (/stackoverflow/.test(text)) return existingTypes.has('stackoverflow');
+    if (/news/.test(text)) return existingTypes.has('news');
+    if (/paper|academic|академ/.test(text)) return existingTypes.has('papers');
+    if (/review|обзор/.test(text)) return existingTypes.has('product_review');
+    if (/official|docs|докум/.test(text)) return existingTypes.has('official_docs');
+    return existingTypes.size > 0;
+  },
+
+  researchRecommendations(task, map) {
+    const recommendations = [];
+    if (map.source_gaps.length) recommendations.push('Закрыть пробелы источников или явно принять решение с риском.');
+    if (map.contradictions.length) recommendations.push('Перед решением дать критику противоречий DeepSeek/критиком.');
+    if (!map.strong_sources.length) recommendations.push('Добавить хотя бы один источник высокого доверия.');
+    recommendations.push('Передать пакет исследования всем активным мозгам Совета.');
+    recommendations.push(task.next_step || 'Сформировать паспорт решения после сравнения ответов.');
+    return recommendations;
+  },
+
+  formatResearchSourceCard(card) {
+    return [
+      '# Карточка источника',
+      '',
+      `source_id: ${card.source_id}`,
+      `title: ${card.title}`,
+      `type: ${this.researchSourceTypeName(card.type)}`,
+      `trust_level: ${this.researchTrustName(card.trust_level)}`,
+      `url_or_description: ${card.url || 'не задано'}`,
+      `added_at: ${card.added_at}`,
+      '',
+      '## Summary',
+      card.summary || 'не задано',
+      '',
+      '## Confirms',
+      card.confirms || 'не задано',
+      '',
+      '## Risks',
+      card.risks || 'не задано',
+      '',
+      '## What To Check First',
+      card.check_first || 'не задано'
+    ].join('\n');
+  },
+
+  formatResearchEvidenceCard(card) {
+    return [
+      '# Карточка доказательства',
+      '',
+      `evidence_id: ${card.evidence_id}`,
+      `source_id: ${card.source_id}`,
+      `source_title: ${card.source_title}`,
+      `confidence: ${this.researchTrustName(card.confidence)}`,
+      `use_in_decision: ${card.use_in_decision ? 'yes' : 'needs_review'}`,
+      '',
+      '## Claim',
+      card.claim || 'не задано',
+      '',
+      '## Risks',
+      card.risks || 'не задано'
+    ].join('\n');
+  },
+
+  upsertResearchBriefArtifact(task) {
+    const research = this.ensureResearchOpsState(task);
+    const content = this.formatResearchBrief(task, research.brief);
+    const existing = (task.artifacts || []).find((artifact) => artifact.type === 'RESEARCH_BRIEF' && artifact.status !== 'archived');
+    const artifact = existing || this.createArtifact(task, 'RESEARCH_BRIEF', 'План исследования', 'Вопрос, границы и критерии исследования.', content, 'researchops');
+    artifact.content = content;
+    artifact.summary = research.brief.question || 'План исследования';
+    artifact.status = 'ready';
+    artifact.updated_at = new Date().toISOString();
+    research.brief.artifact_id = artifact.artifact_id;
+    return artifact;
+  },
+
+  formatResearchBrief(task, brief) {
+    return [
+      '# План исследования',
+      '',
+      `brief_id: ${brief?.brief_id || 'draft'}`,
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      '',
+      '## Главный вопрос',
+      brief?.question || 'не задано',
+      '',
+      '## Границы',
+      brief?.scope || 'не задано',
+      '',
+      '## Нужные источники',
+      this.listOrFallback(brief?.required_sources, 'не задано'),
+      '',
+      '## Открытые вопросы',
+      this.listOrFallback(brief?.open_questions, 'не задано'),
+      '',
+      '## Критерии качества',
+      this.listOrFallback(brief?.success_criteria, 'не задано')
+    ].join('\n');
+  },
+
+  formatResearchPack(task, pack) {
+    const research = this.ensureResearchOpsState(task);
+    const brief = pack?.brief || research.brief || {};
+    return [
+      '# Пакет исследования',
+      '',
+      `research_pack_id: ${pack?.research_pack_id || 'draft'}`,
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      `status: ${pack?.status || 'draft'}`,
+      `created_at: ${pack?.created_at || new Date().toISOString()}`,
+      '',
+      '## План исследования',
+      brief.question || 'не задано',
+      '',
+      '## Scope',
+      brief.scope || 'не задано',
+      '',
+      '## Required Sources',
+      this.listOrFallback(brief.required_sources, 'не задано'),
+      '',
+      '## Open Questions',
+      this.listOrFallback(brief.open_questions, 'не задано'),
+      '',
+      '## Карточки источников',
+      (research.source_cards || []).length ? research.source_cards.map((card) => `- ${card.title} (${this.researchSourceTypeName(card.type)}, доверие: ${this.researchTrustName(card.trust_level)}): ${card.summary}`).join('\n') : '- нет',
+      '',
+      '## Карточки доказательств',
+      (research.evidence_cards || []).length ? research.evidence_cards.map((card) => `- ${card.title}: ${card.claim}`).join('\n') : '- нет',
+      '',
+      '## Facts',
+      this.listOrFallback(pack?.facts, 'нет подтверждённых фактов'),
+      '',
+      '## Contradictions',
+      this.listOrFallback(pack?.contradictions, 'явных противоречий нет'),
+      '',
+      '## Source Gaps',
+      this.listOrFallback(pack?.source_gaps, 'нет'),
+      '',
+      '## What To Check First',
+      this.listOrFallback(pack?.what_to_check_first, task.next_step || 'не задано'),
+      '',
+      '## Research Recommendations',
+      this.listOrFallback(pack?.recommendations, 'передать Совету мозгов')
+    ].join('\n');
+  },
+
+  researchPackPromptBlock(task) {
+    const research = this.ensureResearchOpsState(task);
+    if (!research.research_pack) {
+      return [
+        'Пакет исследования:',
+        '- Пакет исследования ещё не собран.',
+        '- Финальное решение должно явно указать риск недостаточного исследования.'
+      ].join('\n');
+    }
+    return this.formatResearchPack(task, research.research_pack);
+  },
+
   renderWorkspaceCouncil(task) {
     const host = document.getElementById('workspace-council-panel');
     if (!host) return;
     this.ensureBrainCouncilState(task);
     const council = task.brain_council;
+    const profile = this.headProfileById(council.profile_id) || this.activeHeadProfile();
+    const roles = this.councilRolesForTask(task);
     const packages = council.prompt_packages || [];
     const answers = council.answers || [];
     const comparison = council.comparison;
     const synthesis = council.strategist_synthesis;
+    const research = this.ensureResearchOpsState(task);
     host.innerHTML = `
       <section class="brainops-status-grid">
         <article>
           <span>Режим</span>
           <strong>ручной совет</strong>
           <p>Терминатор готовит пакеты. Пользователь копирует их во внешние чаты и вставляет ответы обратно.</p>
+        </article>
+        <article>
+          <span>Профиль</span>
+          <strong>${this.escapeHtml(profile?.name || 'Основной')}</strong>
+          <p>Стратег сохраняется до ручного изменения владельцем.</p>
+        </article>
+        <article>
+          <span>Исследование</span>
+          <strong>${this.escapeHtml(this.researchStatusName(research.status))}</strong>
+          <p>${research.research_pack ? 'Пакет исследования включается в пакеты Совета.' : 'Можно собрать пакет исследования перед промптами.'}</p>
         </article>
         <article>
           <span>AI API</span>
@@ -5794,7 +7470,7 @@ const App = {
       </section>
 
       <section class="brainops-roles">
-        ${BRAIN_ROLES.map((role) => this.renderBrainRoleCard(role, packages, answers)).join('')}
+        ${roles.map((role) => this.renderBrainRoleCard(role, packages, answers)).join('') || '<p class="workspace-empty">В Голова -> Совет включите хотя бы один мозг.</p>'}
       </section>
 
       <section class="brainops-panel-block">
@@ -5803,14 +7479,20 @@ const App = {
           <span>Вставка вручную</span>
         </div>
         <label class="work-field">
+          <span>Профиль Совета</span>
+          <select id="workspace-council-profile-select">
+            ${(this.headProfiles || []).map((item) => `<option value="${this.escapeHtml(item.profile_id)}"${item.profile_id === profile?.profile_id ? ' selected' : ''}>${this.escapeHtml(item.name)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="work-field">
           <span>Мозг</span>
           <select id="workspace-brain-role">
-            ${BRAIN_ROLES.map((role) => `<option value="${this.escapeHtml(role.id)}">${this.escapeHtml(role.brain)} — ${this.escapeHtml(role.role)}</option>`).join('')}
+            ${roles.map((role) => `<option value="${this.escapeHtml(role.id)}">${this.escapeHtml(role.brain)} — ${this.escapeHtml(role.role)}</option>`).join('')}
           </select>
         </label>
         <label class="work-field">
           <span>Ответ</span>
-          <textarea id="workspace-brain-answer" placeholder="Вставьте ответ ChatGPT / Gemini / DeepSeek / Qwen."></textarea>
+          <textarea id="workspace-brain-answer" placeholder="Вставьте ответ выбранного мозга."></textarea>
         </label>
         <div class="work-actions">
           <button type="button" data-workspace-action="save_brain_answer">Сохранить ответ</button>
@@ -5847,6 +7529,60 @@ const App = {
     `;
   },
 
+  councilRolesForTask(task) {
+    const council = this.ensureBrainCouncilState(task);
+    const profile = this.headProfileById(council.profile_id) || this.activeHeadProfile();
+    const profileBrainIds = new Set(profile?.council_members || []);
+    const brains = (this.headBrains || [])
+      .filter((brain) => !brain.archived && brain.enabled && (!profileBrainIds.size || profileBrainIds.has(brain.brain_id)))
+      .sort((a, b) => a.order - b.order || a.display_name.localeCompare(b.display_name, 'ru'));
+    if (brains.length) {
+      return brains.map((brain) => ({
+        id: `head_${brain.brain_id}`,
+        brain_id: brain.brain_id,
+        brain: brain.display_name,
+        short: this.brainShortLabel(brain.display_name),
+        role: brain.role,
+        mission: brain.default_role || brain.notes || 'Дать самостоятельную позицию в Совете.',
+        focus: brain.notes || brain.default_role || brain.role,
+        artifact_title: `Ответ ${brain.display_name} / ${brain.role}`,
+        official_url: brain.official_url,
+        selected_model_name: brain.selected_model_name,
+        is_main_strategist: Boolean(brain.is_main_strategist || profile?.main_strategist_id === brain.brain_id)
+      }));
+    }
+    return BRAIN_ROLES;
+  },
+
+  brainRoleById(roleId, task = this.getActiveWorkTask()) {
+    return this.councilRolesForTask(task || {}).find((role) => role.id === roleId)
+      || BRAIN_ROLE_BY_ID[roleId]
+      || this.councilRolesForTask(task || {})[0]
+      || BRAIN_ROLES[0];
+  },
+
+  brainShortLabel(name) {
+    const clean = String(name || 'AI').replace(/[^A-Za-zА-Яа-я0-9 ]/g, '').trim();
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length > 1) return parts.map((part) => part[0]).join('').slice(0, 3).toUpperCase();
+    return clean.slice(0, 3).toUpperCase() || 'AI';
+  },
+
+  async updateTaskCouncilProfile(profileId) {
+    const task = this.getActiveWorkTask();
+    const profile = this.headProfileById(profileId);
+    if (!task || !profile) return;
+    const council = this.ensureBrainCouncilState(task);
+    council.profile_id = profile.profile_id;
+    council.profile_name = profile.name;
+    council.prompt_packages = [];
+    council.status = 'profile_selected';
+    council.updated_at = new Date().toISOString();
+    this.addWorkspaceMessage(task, 'brain_council', 'Голова', `Выбран профиль Совета: ${profile.name}.`);
+    await this.saveWorkTasks();
+    this.renderWorkTaskCard();
+  },
+
   renderBrainRoleCard(role, packages, answers) {
     const pack = packages.find((item) => item.role_id === role.id);
     const answer = answers.find((item) => item.role_id === role.id);
@@ -5868,13 +7604,14 @@ const App = {
   },
 
   renderBrainAnswerCard(answer) {
-    const role = BRAIN_ROLE_BY_ID[answer.role_id] || {};
+    const role = this.brainRoleById(answer.role_id) || {};
     return `
       <article class="brainops-answer-card">
         <div>
           <strong>${this.escapeHtml(role.brain || answer.brain || answer.role_id)}</strong>
           <span>${this.escapeHtml(role.role || answer.role || 'роль не задана')} · ${this.escapeHtml(this.brainIntegrityName(answer.integrity?.status))}</span>
           <p>${this.escapeHtml(answer.summary || 'краткое резюме не выделено')}</p>
+          <small>Уверенность: ${this.escapeHtml(answer.confidence || 'не указана')} · Проверить: ${this.escapeHtml(answer.what_to_check_first || 'не указано')}</small>
         </div>
         <small>${this.escapeHtml(this.formatTaskTime(answer.created_at))}</small>
       </article>
@@ -5886,6 +7623,12 @@ const App = {
       <dl class="brainops-comparison">
         <div><dt>Общее</dt><dd>${this.escapeHtml(comparison.consensus || 'не найдено')}</dd></div>
         <div><dt>Расхождения</dt><dd>${this.escapeHtml(this.listOrFallback(comparison.disagreements, 'нет данных'))}</dd></div>
+        <div><dt>Карта противоречий</dt><dd>${this.escapeHtml(this.listOrFallback([
+          ...(comparison.contradiction_map?.source_contradictions || []),
+          ...(comparison.contradiction_map?.answer_contradictions || []),
+          ...(comparison.contradiction_map?.source_gaps || [])
+        ], 'критичных противоречий нет'))}</dd></div>
+        <div><dt>Источники</dt><dd>${this.escapeHtml(comparison.source_support || 'Research Pack не собран')}</dd></div>
         <div><dt>Риски</dt><dd>${this.escapeHtml(this.listOrFallback(comparison.risks, 'нет данных'))}</dd></div>
         <div><dt>Лучший следующий шаг</dt><dd>${this.escapeHtml(comparison.next_step || 'не задано')}</dd></div>
       </dl>
@@ -5900,17 +7643,21 @@ const App = {
     task.brain_council.comparison = task.brain_council.comparison || null;
     task.brain_council.strategist_synthesis = task.brain_council.strategist_synthesis || null;
     task.brain_council.integrity_status = task.brain_council.integrity_status || 'not_checked';
+    task.brain_council.profile_id = task.brain_council.profile_id || this.activeHeadProfileId || 'profile_main';
+    task.brain_council.profile_name = task.brain_council.profile_name || this.headProfileById(task.brain_council.profile_id)?.name || 'Основной';
     return task.brain_council;
   },
 
   buildBrainPromptPackages(task) {
     const council = this.ensureBrainCouncilState(task);
     const createdAt = new Date().toISOString();
-    council.prompt_packages = BRAIN_ROLES.map((role) => {
+    const roles = this.councilRolesForTask(task);
+    council.prompt_packages = roles.map((role) => {
       const existing = council.prompt_packages.find((item) => item.role_id === role.id);
       return {
         package_id: existing?.package_id || this.generateWorkspaceId('BRAINPROMPT'),
         role_id: role.id,
+        brain_id: role.brain_id || '',
         brain: role.brain,
         role: role.role,
         content: this.buildBrainPromptText(task, role),
@@ -5925,7 +7672,7 @@ const App = {
       task,
       'BRAIN_PROMPT_PACKAGE',
       'Пакеты для Совета мозгов',
-      'Prompt packages для ChatGPT / Gemini / DeepSeek / Qwen. Отправка вручную.',
+      `Prompt packages для профиля ${this.headProfileById(council.profile_id)?.name || 'Совет'}. Отправка вручную.`,
       council.prompt_packages.map((pack) => `# ${pack.brain} — ${pack.role}\n\n${pack.content}`).join('\n\n---\n\n'),
       'brainops'
     );
@@ -5942,8 +7689,12 @@ const App = {
   buildBrainPromptText(task, role) {
     const evidence = (task.files || []).filter((file) => file.is_evidence || ['evidence', 'verifier_input', 'result_archive'].includes(file.role));
     const artifacts = (task.artifacts || []).filter((artifact) => ['SPEC', 'CONTEXT_PACK', 'EXECUTOR_REPORT', 'VERIFIER_VERDICT', 'CHECK_LOG', 'DECISION_RECORD'].includes(artifact.type));
+    const council = this.ensureBrainCouncilState(task);
+    const profile = this.headProfileById(council.profile_id) || this.activeHeadProfile();
+    const strategist = this.headBrainById(profile?.main_strategist_id || '');
+    const searchAgents = this.activeHeadSearchAgents(profile);
     return [
-      `Ты работаешь как ${role.brain}: ${role.role} в Совете мозгов проекта Терминатор.`,
+      `Ты работаешь как ${role.brain}: ${role.role} в Совете мозгов Терминатора.`,
       '',
       'Правила:',
       '- Не использовать AI API.',
@@ -5951,9 +7702,14 @@ const App = {
       '- Не просить секреты, токены, .env значения.',
       '- Дай самостоятельную позицию, но учитывай роль Совета.',
       '- Не пиши общие рассуждения без практического вывода.',
+      '- Финальный Стратег выбирается владельцем и не подменяется автоматически.',
       '',
+      `Профиль Совета: ${profile?.name || 'Основной'}.`,
+      `Главный Стратег владельца: ${strategist ? `${strategist.display_name} / ${strategist.selected_model_name}` : 'не выбран'}.`,
+      `Твой желаемый model label: ${role.selected_model_name || role.brain}.`,
       `Фокус роли: ${role.focus}.`,
       `Миссия роли: ${role.mission}`,
+      `Активные исследователи: ${searchAgents.length ? searchAgents.map((agent) => `${agent.name} (${agent.role})`).join('; ') : 'не заданы'}.`,
       '',
       'Задача:',
       `task_id: ${task.task_id}`,
@@ -5976,13 +7732,20 @@ const App = {
       'Evidence/files:',
       evidence.length ? evidence.map((file) => `- ${file.name} (${this.fileRoleName(file.role)}, ${file.hash_status || 'hash не задан'})`).join('\n') : '- нет evidence',
       '',
+      'Исследование:',
+      this.researchPackPromptBlock(task),
+      '',
       'Ответь строго в формате:',
       '1. Позиция роли.',
       '2. Лучшее решение.',
-      '3. Риски и слабые места.',
-      '4. Что проверить первым.',
-      '5. Что нельзя делать.',
-      '6. Итоговый verdict роли.'
+      '3. Аргументы.',
+      '4. Допущения.',
+      '5. Риски и слабые места.',
+      '6. Что может опровергнуть вывод.',
+      '7. Что проверить первым.',
+      '8. Что нельзя делать.',
+      '9. Уверенность.',
+      '10. Итоговый verdict роли.'
     ].join('\n');
   },
 
@@ -6007,10 +7770,11 @@ const App = {
   },
 
   saveBrainAnswer(task) {
-    const roleId = document.getElementById('workspace-brain-role')?.value || BRAIN_ROLES[0].id;
+    const roles = this.councilRolesForTask(task);
+    const roleId = document.getElementById('workspace-brain-role')?.value || roles[0]?.id || BRAIN_ROLES[0].id;
     const textarea = document.getElementById('workspace-brain-answer');
     const text = String(textarea?.value || '').trim();
-    const role = BRAIN_ROLE_BY_ID[roleId] || BRAIN_ROLES[0];
+    const role = this.brainRoleById(roleId, task) || roles[0] || BRAIN_ROLES[0];
     if (!text) {
       this.toast('Вставь ответ мозга');
       textarea?.focus();
@@ -6018,17 +7782,36 @@ const App = {
     }
     const council = this.ensureBrainCouncilState(task);
     const integrity = this.checkBrainAnswerIntegrity(text, role);
+    const passport = this.extractBrainAnswerPassport(text);
+    const promptPackage = (council.prompt_packages || []).find((item) => item.role_id === role.id);
+    const research = this.ensureResearchOpsState(task);
     const now = new Date().toISOString();
     const answer = {
       answer_id: this.generateWorkspaceId('BRAINANS'),
       role_id: role.id,
+      brain_id: role.brain_id || '',
       brain: role.brain,
       role: role.role,
       content: text,
       summary: this.summarizeBrainAnswer(text),
+      main_conclusion: passport.main_conclusion,
+      arguments: passport.arguments,
+      assumptions: passport.assumptions,
+      risks: passport.risks,
+      confidence: passport.confidence,
+      what_can_disprove: passport.what_can_disprove,
+      what_to_check_first: passport.what_to_check_first,
+      contradictions_with_others: [],
+      used_in_final_decision: false,
+      prompt_text: promptPackage?.content || '',
+      source_refs: research.research_pack?.source_card_ids || [],
+      research_pack_id: research.research_pack?.research_pack_id || '',
       integrity,
       created_at: now,
-      status: integrity.status === 'blocked' ? 'needs_review' : 'saved'
+      status: integrity.status === 'blocked' ? 'needs_review' : 'saved',
+      source_type: 'manual_web_chat',
+      api_used: false,
+      inserted_by: 'owner'
     };
     council.answers = (council.answers || []).filter((item) => item.role_id !== role.id);
     council.answers.push(answer);
@@ -6087,6 +7870,41 @@ const App = {
     return String(text || '').replace(/\s+/g, ' ').trim().slice(0, 220) || 'ответ без summary';
   },
 
+  extractBrainAnswerPassport(text) {
+    const source = String(text || '');
+    const lines = source.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const riskLines = lines.filter((line) => /риск|опас|слаб|ошиб|risk/i.test(line)).slice(0, 6);
+    const assumptionLines = lines.filter((line) => /допущ|предполож|assumption/i.test(line)).slice(0, 6);
+    const argumentLines = lines.filter((line) => /аргумент|потому|так как|следует|^\d+\.|^-|\*/i.test(line)).slice(0, 8);
+    const checkLine = lines.find((line) => /проверить первым|что проверить|first|check/i.test(line)) || '';
+    const disproveLine = lines.find((line) => /опроверг|disprove|сломает вывод|что может/i.test(line)) || '';
+    const confidenceMatch = source.match(/(?:уверенность|confidence)\s*[:=-]?\s*([А-Яа-яA-Za-z0-9% ]{3,30})/i);
+    return {
+      main_conclusion: lines.find((line) => /итог|вывод|решение|verdict/i.test(line)) || this.summarizeBrainAnswer(source),
+      arguments: argumentLines,
+      assumptions: assumptionLines,
+      risks: riskLines,
+      confidence: confidenceMatch ? confidenceMatch[1].trim() : 'не указана',
+      what_can_disprove: disproveLine || 'не указано',
+      what_to_check_first: checkLine || 'не указано'
+    };
+  },
+
+  detectBrainAnswerContradictions(answers) {
+    const contradictions = [];
+    const hasApprove = answers.filter((answer) => /принять|pass|готов|можно делать|accept/i.test(answer.content));
+    const hasReject = answers.filter((answer) => /отклон|reject|нельзя принимать|вернуть|needs_fix|опасно/i.test(answer.content));
+    if (hasApprove.length && hasReject.length) {
+      contradictions.push(`Разные verdict: ${hasApprove.map((answer) => answer.brain).join(', ')} склоняются принять; ${hasReject.map((answer) => answer.brain).join(', ')} видят блокер.`);
+    }
+    const noEvidence = answers.filter((answer) => /нет evidence|нет доказ|без evidence|missing evidence/i.test(answer.content));
+    const enoughEvidence = answers.filter((answer) => /evidence (?:есть|достат)|доказательств достаточно|скрин|лог|архив/i.test(answer.content));
+    if (noEvidence.length && enoughEvidence.length) {
+      contradictions.push(`Спор по evidence: ${noEvidence.map((answer) => answer.brain).join(', ')} считают evidence слабым; ${enoughEvidence.map((answer) => answer.brain).join(', ')} считают его достаточным.`);
+    }
+    return contradictions;
+  },
+
   buildBrainComparison(task) {
     const council = this.ensureBrainCouncilState(task);
     const answers = council.answers || [];
@@ -6094,21 +7912,37 @@ const App = {
       this.toast('Для сравнения нужно минимум два ответа');
       return;
     }
+    const research = this.ensureResearchOpsState(task);
     const riskAnswers = answers.filter((answer) => /(риск|опас|ошиб|слаб|risk)/i.test(answer.content));
     const checkAnswers = answers.filter((answer) => /(провер|verify|check|qa|тест)/i.test(answer.content));
+    const contradictionMap = research.contradiction_map || this.buildResearchContradictionMap(task, research.source_cards || [], research.evidence_cards || []);
+    const answerContradictions = this.detectBrainAnswerContradictions(answers);
     const consensus = answers.length >= 3
       ? 'Есть несколько независимых позиций. Стратег должен выбрать золотую середину качества, рисков и скорости.'
       : 'Есть начальное сравнение двух позиций. Для более сильного решения желательно добавить ещё один ответ.';
     council.comparison = {
       comparison_id: this.generateWorkspaceId('BRAINCOMP'),
       answer_ids: answers.map((answer) => answer.answer_id),
+      research_pack_id: research.research_pack?.research_pack_id || '',
       consensus,
       disagreements: answers.map((answer) => `${answer.brain}: ${answer.summary}`).slice(0, 4),
+      contradiction_map: {
+        source_contradictions: contradictionMap.contradictions || [],
+        answer_contradictions: answerContradictions,
+        source_gaps: contradictionMap.source_gaps || []
+      },
       risks: riskAnswers.length ? riskAnswers.map((answer) => `${answer.brain}: риски указаны`) : ['Не все ответы явно указали риски'],
       checks: checkAnswers.length ? checkAnswers.map((answer) => `${answer.brain}: есть проверочный фокус`) : ['Не все ответы указали проверки'],
-      next_step: 'Стратег формирует паспорт решения и список проверки первым.',
+      source_support: research.research_pack
+        ? `${(research.source_cards || []).length} источников, ${(research.evidence_cards || []).length} доказательств`
+        : 'Пакет исследования не собран',
+      next_step: contradictionMap.what_to_check_first?.[0] || 'Стратег формирует паспорт решения и список проверки первым.',
       created_at: new Date().toISOString()
     };
+    council.answers = answers.map((answer) => ({
+      ...answer,
+      contradictions_with_others: answerContradictions.filter((item) => item.includes(answer.brain))
+    }));
     council.status = 'comparison_ready';
     council.updated_at = council.comparison.created_at;
     const artifact = this.createArtifact(
@@ -6135,22 +7969,67 @@ const App = {
       return;
     }
     if (!council.comparison && answers.length >= 2) this.buildBrainComparison(task);
-    const strategist = answers.find((answer) => answer.role_id === 'chatgpt_strategy') || answers[0];
+    const profile = this.headProfileById(council.profile_id) || this.activeHeadProfile();
+    const mainStrategistId = profile?.main_strategist_id || this.mainStrategistBrain()?.brain_id || '';
+    const strategistBrain = this.headBrainById(mainStrategistId);
+    const strategist = answers.find((answer) => answer.brain_id && answer.brain_id === mainStrategistId)
+      || answers.find((answer) => strategistBrain && answer.brain === strategistBrain.display_name)
+      || answers[0];
+    const research = this.ensureResearchOpsState(task);
+    const decisionId = this.generateWorkspaceId('DECISION');
+    council.answers = answers.map((answer) => ({
+      ...answer,
+      used_in_final_decision: answer.answer_id === strategist.answer_id || Boolean(council.comparison?.answer_ids?.includes(answer.answer_id))
+    }));
     const content = [
-      '# Паспорт решения Совета мозгов',
+      '# Паспорт решения',
       '',
+      `decision_id: ${decisionId}`,
       `task_id: ${task.task_id}`,
+      `project_id: ${task.project_id}`,
       `project: ${this.projectName(task.project_id)}`,
+      `decision_title: ${task.title}`,
+      `council_profile: ${profile?.name || 'Основной'}`,
+      `main_strategist: ${strategistBrain ? `${strategistBrain.display_name} / ${strategistBrain.selected_model_name}` : 'не выбран'}`,
+      `research_pack_id: ${research.research_pack?.research_pack_id || 'не собран'}`,
       `created_at: ${new Date().toISOString()}`,
       '',
-      '## Стратегическая позиция',
+      '## Решение',
+      strategist.main_conclusion || strategist.summary,
+      '',
+      '## Почему выбрано',
       strategist.summary,
+      '',
+      '## Что отвергли',
+      this.listOrFallback(council.comparison?.disagreements, 'отклонённые альтернативы не выделены'),
+      '',
+      '## Стратегическая позиция',
+      strategist.content,
       '',
       '## Участники',
       ...answers.map((answer) => `- ${answer.brain} / ${answer.role}: ${this.brainIntegrityName(answer.integrity?.status)}`),
       '',
+      '## Пакет исследования',
+      research.research_pack ? `Источников: ${(research.source_cards || []).length}; доказательств: ${(research.evidence_cards || []).length}; статус: ${research.research_pack.status}` : 'Пакет исследования не собран. Решение требует ручной осторожности.',
+      '',
+      '## Source refs',
+      this.listOrFallback(research.research_pack?.source_card_ids, 'нет source refs'),
+      '',
+      '## Evidence refs',
+      this.listOrFallback(research.research_pack?.evidence_card_ids, 'нет evidence refs'),
+      '',
+      '## Brain answer refs',
+      this.listOrFallback(answers.map((answer) => `${answer.answer_id}: ${answer.brain}`), 'нет ответов'),
+      '',
       '## Сравнение',
       council.comparison?.consensus || 'Сравнение не создано.',
+      '',
+      '## Карта противоречий',
+      this.listOrFallback([
+        ...(council.comparison?.contradiction_map?.source_contradictions || []),
+        ...(council.comparison?.contradiction_map?.answer_contradictions || []),
+        ...(council.comparison?.contradiction_map?.source_gaps || [])
+      ], 'критичных противоречий не выделено'),
       '',
       '## Риски',
       council.comparison ? this.listOrFallback(council.comparison.risks, 'нет данных') : this.listOrFallback(task.risks, 'нет данных'),
@@ -6158,22 +8037,40 @@ const App = {
       '## Что проверить первым',
       council.comparison?.next_step || task.next_step || 'не задано',
       '',
+      '## Acceptance criteria',
+      this.listOrFallback(task.readiness_criteria, 'не заданы'),
+      '',
+      '## Можно выполнять сейчас?',
+      research.research_pack && !council.comparison?.contradiction_map?.source_gaps?.length ? 'да, после решения владельца и Verifier' : 'только после ручного принятия риска владельцем',
+      '',
+      '## Нужен Approval?',
+      this.taskRequiresApproval(task) ? 'да' : 'нет опасного действия в рамках паспорта',
+      '',
+      '## Verifier status',
+      this.verifierVerdictName(task.verifier_result),
+      '',
+      '## Memory candidate',
+      'да, после принятия владельцем сохранить вывод, риски, источники и следующий шаг.',
+      '',
       '## Запреты',
       this.listOrFallback(task.forbidden_actions, 'не задано'),
       '',
-      '## Decision',
-      'Решение требует подтверждения владельца. Автоматических действий не выполнялось.'
+      '## Следующий шаг',
+      council.comparison?.next_step || task.next_step || 'передать решение на Verifier / владельцу'
     ].join('\n');
     council.strategist_synthesis = {
       synthesis_id: this.generateWorkspaceId('BRAINSYN'),
+      decision_id: decisionId,
       content,
       strategist_answer_id: strategist.answer_id,
+      research_pack_id: research.research_pack?.research_pack_id || '',
       created_at: new Date().toISOString(),
       status: 'draft'
     };
     council.status = 'decision_passport_ready';
+    research.status = research.status === 'not_started' ? 'not_started' : 'decision_ready';
     council.updated_at = council.strategist_synthesis.created_at;
-    const artifact = this.createArtifact(task, 'STRATEGIST_SYNTHESIS', 'Паспорт решения Совета', 'Стратегический синтез ответов Совета мозгов.', content, 'brainops');
+    const artifact = this.createArtifact(task, 'DECISION_PASSPORT', 'Паспорт решения Совета', 'Стратегический синтез, источники, риски и проверки.', content, 'brainops');
     artifact.status = 'draft';
     this.addWorkspaceMessage(task, 'decision', 'Совет мозгов', 'Паспорт решения Совета создан и ждёт решения владельца.', {
       linked_artifact_id: artifact.artifact_id,
@@ -6184,11 +8081,12 @@ const App = {
 
   brainCouncilStatusText(task) {
     const council = this.ensureBrainCouncilState(task);
+    const research = this.ensureResearchOpsState(task);
     const answers = council.answers?.length || 0;
     if (council.status === 'decision_passport_ready') return 'паспорт решения готов';
     if (council.status === 'comparison_ready') return `сравнение готово, ответов: ${answers}`;
     if (answers) return `ответы собираются: ${answers}`;
-    if (council.prompt_packages?.length) return 'prompt packages готовы';
+    if (council.prompt_packages?.length) return research.research_pack ? 'пакеты готовы с исследованием' : 'пакеты готовы, исследование не собрано';
     return 'совет ещё не запускался';
   },
 
@@ -6209,6 +8107,7 @@ const App = {
         <div><dt>Риски</dt><dd>${this.escapeHtml(this.listOrFallback(memory.risks || task.risks, 'не задано'))}</dd></div>
         <div><dt>Следующий шаг</dt><dd>${this.escapeHtml(memory.next_step || task.next_step || 'не задано')}</dd></div>
         <div><dt>Verifier</dt><dd>${this.escapeHtml(this.verifierVerdictName(memory.verifier_result || task.verifier_result))}</dd></div>
+        <div><dt>Исследование</dt><dd>${this.escapeHtml(this.researchStatusName(memory.research_ops?.status || this.ensureResearchOpsState(task).status))} · источников: ${this.escapeHtml(String(memory.research_ops?.source_cards ?? this.ensureResearchOpsState(task).source_cards.length))}</dd></div>
         <div><dt>Совет</dt><dd>${this.escapeHtml(this.brainCouncilStatusText(task))} · ${this.escapeHtml(this.brainIntegrityName(council.integrity_status || memory.brain_council?.integrity))}</dd></div>
         <div><dt>Privacy</dt><dd>${this.escapeHtml(memory.privacy_status || task.privacy_guard?.status || task.verifier_privacy_scan?.status || 'not_checked')}</dd></div>
         <div><dt>Приёмка</dt><dd>${this.escapeHtml(gate.label)}</dd></div>
@@ -6263,6 +8162,11 @@ const App = {
       copy_phase2_runtime_package: () => this.copyPhase2RuntimePackage(task),
       send_storage_prepare: () => this.sendStoragePrepare(task),
       create_restore_point: () => this.createStorageRestorePoint(task),
+      create_research_brief: () => this.createResearchBriefFromTask(task),
+      save_research_brief: () => this.saveResearchBrief(task),
+      add_source_card: () => this.addResearchSourceCard(task),
+      build_research_pack: () => this.buildResearchPack(task),
+      copy_research_pack: () => this.copyResearchPack(task),
       build_brain_prompts: () => this.buildBrainPromptPackages(task),
       copy_brain_prompt: () => this.copyBrainPromptPackage(task, sourceButton?.dataset?.brainRole || ''),
       save_brain_answer: () => this.saveBrainAnswer(task),
@@ -6466,18 +8370,30 @@ const App = {
         clarification: 'clarification',
         command: 'system_event',
         codex: 'clarification',
-        research: 'memory_event',
+        research: 'research_event',
         decision: 'decision'
       };
       const authorByMode = {
         clarification: 'Владелец',
         command: 'Команда',
         codex: 'Для Codex',
-        research: 'Research',
+        research: 'Исследование',
         decision: 'Решение'
       };
       this.addWorkspaceMessage(task, typeByMode[mode] || 'user_message', authorByMode[mode] || 'Владелец', text);
       if (mode === 'codex') this.createFollowupArtifact(task, text);
+      if (mode === 'research') {
+        const research = this.ensureResearchOpsState(task);
+        research.source_notes.unshift({
+          note_id: this.generateWorkspaceId('SNOTE'),
+          source_id: '',
+          text,
+          inserted_by: 'owner',
+          created_at: new Date().toISOString()
+        });
+        research.status = research.status === 'not_started' ? 'sources_collecting' : research.status;
+        this.switchWorkspaceTab('research');
+      }
       if (mode === 'decision') this.createArtifact(task, 'DECISION_RECORD', 'Решение владельца', text.slice(0, 160), text, 'console');
     }
 
@@ -6581,6 +8497,7 @@ const App = {
     const memory = task.memory_preview?.status
       ? `${task.memory_preview.status}: ${task.memory_preview.summary || task.goal || task.user_request || 'не задано'}`
       : 'memory preview ещё не обработан';
+    const research = this.ensureResearchOpsState(task);
     const privacy = this.privacyScanSummary(this.scanPrivacyText([
       task.title,
       task.user_request,
@@ -6619,6 +8536,9 @@ const App = {
       '',
       '## Artifacts',
       artifacts,
+      '',
+      '## Исследование',
+      research.research_pack ? this.formatResearchPack(task, research.research_pack) : `Статус: ${this.researchStatusName(research.status)}. Пакет исследования ещё не собран.`,
       '',
       '## Текущий Verifier',
       verifier,
@@ -6878,12 +8798,18 @@ const App = {
         'RESULT_ARCHIVE',
         'CHECK_LOG',
         'CONTEXT_PACK',
+        'RESEARCH_BRIEF',
+        'SOURCE_CARD',
+        'EVIDENCE_CARD',
+        'RESEARCH_PACK',
         'BRAIN_ANSWER',
         'BRAIN_COMPARISON',
-        'STRATEGIST_SYNTHESIS'
+        'STRATEGIST_SYNTHESIS',
+        'DECISION_PASSPORT'
       ].includes(artifact.type))
       .map((artifact) => artifact.artifact_id);
     const council = task.brain_council || {};
+    const research = this.ensureResearchOpsState(task);
     return {
       ...(task.memory_preview || {}),
       status,
@@ -6902,11 +8828,18 @@ const App = {
       verifier_risks: this.normalizedVerifierRisks(task),
       privacy_status: task.privacy_guard?.status || task.verifier_privacy_scan?.status || 'not_checked',
       acceptance_gate: this.acceptanceGateStatus(task).label,
+      research_ops: {
+        status: research.status || 'not_started',
+        source_cards: research.source_cards?.length || 0,
+        evidence_cards: research.evidence_cards?.length || 0,
+        research_pack_id: research.research_pack?.research_pack_id || null,
+        source_gaps: research.contradiction_map?.source_gaps || []
+      },
       brain_council: {
         status: council.status || 'not_started',
         answers: Array.isArray(council.answers) ? council.answers.length : 0,
         integrity: council.integrity_status || 'not_checked',
-        decision_passport: council.strategist_synthesis?.synthesis_id || null
+        decision_passport: council.strategist_synthesis?.decision_id || council.strategist_synthesis?.synthesis_id || null
       },
       linked_artifact_ids: [...new Set([...(task.memory_preview?.linked_artifact_ids || []), ...linkedArtifacts])],
       linked_file_ids: (task.files || []).filter((file) => file.is_evidence).map((file) => file.file_id),
@@ -7078,8 +9011,13 @@ const App = {
       CHECK_LOG: 'Лог проверки',
       VERIFIER_VERDICT: 'Вердикт проверки',
       RESEARCH_REPORT: 'Исследование',
+      RESEARCH_BRIEF: 'План исследования',
+      SOURCE_CARD: 'Источник',
+      EVIDENCE_CARD: 'Доказательство',
+      RESEARCH_PACK: 'Пакет исследования',
       MEMORY_SUMMARY: 'Память',
       DECISION_RECORD: 'Решение',
+      DECISION_PASSPORT: 'Паспорт решения',
       FOLLOWUP_PACKAGE: 'Follow-up',
       FIX_REQUEST: 'Запрос доработки',
       RESTORE_POINT: 'Restore point',
@@ -7104,6 +9042,7 @@ const App = {
       verifier_result: 'проверка',
       memory_event: 'память',
       approval_event: 'подтверждение',
+      research_event: 'исследование',
       brain_answer: 'ответ мозга',
       brain_council: 'совет',
       audit: 'аудит',
@@ -7623,7 +9562,11 @@ const App = {
       },
       assign_codex: () => this.showWorkSafeOutput(task, 'Отдать Codex', this.buildCodexTaskPreview(task), 'ready_for_executor'),
       check_result: () => this.openVerifierPanel(task),
-      research: () => this.showWorkSafeOutput(task, 'Исследовать', 'ResearchOps v1 будет реализован следующим этапом.', 'planning'),
+      research: () => {
+        if (!this.ensureResearchOpsState(task).brief.question) this.createResearchBriefFromTask(task);
+        task.status = task.status === 'created' ? 'planning' : task.status;
+        this.switchWorkspaceTab('research');
+      },
       save_memory: () => this.saveWorkMemoryDraft(task),
       accept: () => this.attemptAcceptTask(task),
       needs_fix: () => this.showWorkSafeOutput(task, 'Вернуть на доработку', this.buildNeedsFixTemplate(task), 'needs_fix'),
@@ -7649,7 +9592,7 @@ const App = {
     const labels = {
       tasks: `Локально сохранено задач: ${this.workTasks.length}`,
       verify: 'Сначала создай задачу для проверки результата.',
-      research: 'ResearchOps v1 будет реализован следующим этапом.',
+      research: 'Создай или открой задачу, затем используй вкладку Исследование.',
       council: 'Создай или открой задачу, затем используй вкладку Совет в Рабочем окне.'
     };
     this.toast(labels[action] || 'Действие будет реализовано следующим этапом', 3600);

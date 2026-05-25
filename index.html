@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260522-16">
+  <link rel="stylesheet" href="styles.css?v=20260525-research-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -274,6 +274,7 @@
                   <nav class="workspace-tabs" aria-label="Вкладки рабочего окна">
                     <button type="button" class="active" data-workspace-tab="files">Файлы</button>
                     <button type="button" data-workspace-tab="artifacts">Артефакты</button>
+                    <button type="button" data-workspace-tab="research">Исследование</button>
                     <button type="button" data-workspace-tab="council">Совет</button>
                     <button type="button" data-workspace-tab="check">Проверка</button>
                     <button type="button" data-workspace-tab="memory">Память</button>
@@ -304,6 +305,14 @@
 
                   <section id="workspace-tab-check" class="workspace-tab-panel" hidden>
                   </section>
+
+      <section id="workspace-tab-research" class="workspace-tab-panel" hidden>
+        <div class="workspace-panel-head">
+          <strong>Исследование</strong>
+          <button type="button" data-workspace-action="build_research_pack">Собрать пакет исследования</button>
+        </div>
+        <div id="workspace-research-panel" class="researchops-panel"></div>
+      </section>
 
                   <section id="workspace-tab-council" class="workspace-tab-panel" hidden>
                     <div class="workspace-panel-head">
@@ -340,7 +349,7 @@
                     <option value="command">Команда</option>
                     <option value="codex">Для Codex</option>
                     <option value="report">Отчёт</option>
-                    <option value="research">Research</option>
+                    <option value="research">Исследование</option>
                     <option value="decision">Решение</option>
                   </select>
                 </label>
@@ -490,7 +499,7 @@
               <div class="runtime-panel-head">
                 <div>
                   <strong>Контур</strong>
-                  <span>Runtime, Direct Mode и Local Agent</span>
+                  <span>Локальная система, мост и агент</span>
                 </div>
               </div>
               <div id="mission-runtime-health" class="system-list"></div>
@@ -512,7 +521,7 @@
               <div class="runtime-panel-head">
                 <div>
                   <strong>Очереди задач</strong>
-                  <span>Активные состояния из Task Runtime</span>
+                  <span>Активные состояния задач</span>
                 </div>
               </div>
               <div id="mission-task-queues" class="mission-queues"></div>
@@ -536,7 +545,7 @@
                 <span>Центр управления не выполняет опасные действия</span>
               </div>
             </div>
-            <p class="runtime-note">Экран показывает локальное состояние Task Runtime V1: проекты, задачи, очереди, риски и последние события. Direct Bridge, Local Agent и deploy здесь не запускаются.</p>
+            <p class="runtime-note">Экран показывает локальное состояние проектов, задач, очередей, рисков и последних событий. Мост, агент и deploy здесь не запускаются.</p>
           </section>
         </article>
       </div>
@@ -577,7 +586,7 @@
             <section class="runtime-panel">
               <div class="runtime-panel-head">
                 <div>
-                  <strong>Storage policy</strong>
+                  <strong>Политика хранения</strong>
                   <span>Где живут рабочие данные</span>
                 </div>
               </div>
@@ -608,7 +617,17 @@
           <section class="runtime-panel">
             <div class="runtime-panel-head">
               <div>
-                <strong>Approval Center</strong>
+                <strong>Голова</strong>
+                <span>Стратег, Совет мозгов, исследователи и профили</span>
+              </div>
+            </div>
+            <div id="system-head-panel" class="head-panel"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Подтверждение действий</strong>
                 <span>Риски, подтверждения и безопасные решения</span>
               </div>
             </div>
@@ -629,7 +648,7 @@
             <div class="runtime-panel-head">
               <div>
                 <strong>Голос</strong>
-                <span>Mina Voice hook без фонового прослушивания</span>
+                <span>Голос Мины без фонового прослушивания</span>
               </div>
             </div>
             <div id="system-voice-hooks" class="voice-system-panel"></div>
@@ -853,6 +872,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260525-sync-visible"></script>
+  <script src="app.js?v=20260525-research-v1"></script>
 </body>
 </html>
