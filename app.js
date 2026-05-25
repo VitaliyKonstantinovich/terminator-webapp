@@ -467,7 +467,7 @@ async function directTaskStoreRequest(route, options = {}) {
     token,
     body: options.body,
     idempotent: options.idempotent !== false,
-    allowPopup: options.interactive === true,
+    allowPopup: false,
     timeoutMs: options.timeoutMs || DIRECT_REQUEST_TIMEOUT_MS
   });
 }
@@ -566,9 +566,9 @@ async function getOwnerSessionToken(baseUrl) {
     body: { secret },
     skipAuth: true,
     idempotent: false,
-    allowPopup: true,
-    preferPopup: true,
-    preferFrame: true,
+    allowPopup: false,
+    preferPopup: false,
+    preferFrame: false,
     timeoutMs: 10000
   });
 
@@ -4247,10 +4247,6 @@ const App = {
       this.taskStoreSyncStatus = 'not_configured';
       this.taskStoreSyncError = 'Direct Bridge URL не задан';
       return { ok: false, reason: 'bridge_unconfigured' };
-    }
-
-    if (interactive) {
-      prepareDirectBridgePopupTransport(baseUrl);
     }
 
     let token = null;
