@@ -292,11 +292,14 @@ const WORK_STATUSES = [
 const WORK_STORAGE_KEY = 'mina_work_tasks_v1';
 const WORK_COUNTER_KEY = 'mina_work_task_counter_v1';
 const SYSTEM_DIAGNOSTICS_STORAGE_KEY = 'mina_system_diagnostics_v1';
+const GUARDIAN_STATE_STORAGE_KEY = 'mina_guardian_state_v1';
+const GUARDIAN_INCIDENTS_STORAGE_KEY = 'mina_guardian_incidents_v1';
 const TASK_STORE_SYNC_STATE_KEY = 'mina_task_store_sync_state_v1';
 const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
-const WORK_RUNTIME_DB_VERSION = 6;
+const WORK_RUNTIME_DB_VERSION = 7;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
+const GUARDIAN_STATE_META_KEY = 'guardian_state_v1';
 const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
 const WORK_PROJECT_BY_ID = Object.fromEntries(WORK_PROJECTS.map((project) => [project.id, project]));
 const WORK_MODE_BY_ID = Object.fromEntries(WORK_MODES.map((mode) => [mode.id, mode]));
@@ -316,6 +319,8 @@ const TASK_RUNTIME_STORES = {
   DEVICE_CAPABILITIES: 'device_capabilities',
   DEVICE_EVENTS: 'device_events',
   DIAGNOSTICS: 'diagnostics',
+  INCIDENTS: 'incidents',
+  GUARDIAN_EVENTS: 'guardian_events',
   HEAD_BRAINS: 'head_brains',
   HEAD_PROFILES: 'head_profiles',
   HEAD_SEARCH_AGENTS: 'head_search_agents',
@@ -346,6 +351,95 @@ const TASK_STORAGE_FOLDER_LABELS = {
 
 const LEGACY_PERSONAL_SCREENS = new Set(['personal', 'brain', 'remote', 'complete']);
 const LEGACY_PERSONAL_ACCESS_KEY = 'mina_allow_legacy_personal';
+
+const GUARDIAN_DEFAULT_STATE = {
+  status: 'active',
+  safe_mode: false,
+  emergency_stop_active: false,
+  autonomy_level: 2,
+  paid_services_allowed: false,
+  ai_api_allowed: false,
+  browser_automation_allowed: false,
+  active_policy: 'owner_controlled',
+  last_event: 'Phase 4 Guardian foundation initialized',
+  updated_at: ''
+};
+
+const GUARDIAN_STATUS_LABELS = {
+  active: 'активен',
+  safe_mode: 'безопасный режим',
+  emergency_stop: 'стоп действия',
+  review: 'требует проверки'
+};
+
+const INCIDENT_STATUS_LABELS = {
+  detected: 'обнаружен',
+  triaged: 'разобран',
+  user_notified: 'показан владельцу',
+  safe_action_suggested: 'есть безопасное действие',
+  approval_required: 'нужно подтверждение',
+  fixed: 'исправлен',
+  ignored_by_user: 'проигнорирован',
+  closed: 'закрыт',
+  reopened: 'переоткрыт'
+};
+
+const INCIDENT_SEVERITY_LABELS = {
+  info: 'информация',
+  warning: 'внимание',
+  error: 'ошибка',
+  critical: 'критично'
+};
+
+const COST_GUARD_SERVICES = [
+  ['cloudflare_billing', 'Cloudflare billing', 'unknown', 'Проверять перед Worker/Storage/paid features.'],
+  ['github_actions_usage', 'GitHub Actions usage', 'unknown', 'Бесплатные лимиты возможны, платные runner запрещены без Cost Approval.'],
+  ['amvera', 'Amvera', 'legacy', 'Не является активным путём. Не развивать и не оплачивать без отдельного решения.'],
+  ['n8n', 'n8n', 'legacy', 'Legacy automation. Не возвращать как основной путь.'],
+  ['ai_subscriptions', 'AI subscriptions', 'owner_manual', 'Только ручные web-chat подписки владельца. API не включать.'],
+  ['paid_api', 'Paid API risk', 'blocked', 'OpenAI/Gemini/DeepSeek/OpenRouter API заблокированы по умолчанию.'],
+  ['paid_runners', 'Paid runners', 'blocked', 'Платные runners/VPS запрещены без Cost Approval.'],
+  ['cloud_storage', 'Future cloud storage', 'blocked', 'Тяжёлые файлы живут на D, облако только после отдельного решения.']
+];
+
+const GUARDIAN_CAPABILITY_MATRIX = [
+  ['user', 'Владелец', 'все разрешённые данные', 'после осознанного решения', 'ручные подтверждения', 'только через Approval', 'критичные действия', 'owner-approved paths', 'critical'],
+  ['system', 'Система', 'runtime state', 'events/artifacts metadata', 'нет', 'нет', 'secrets/delete/deploy', 'IndexedDB / TaskStore metadata', 'medium'],
+  ['guardian', 'Guardian', 'policies/incidents', 'incident/status', 'нет', 'нет', 'опасные действия без Approval', 'system policy state', 'high'],
+  ['diagnost', 'Диагност', 'health/status/log summaries', 'diagnostic reports/incidents', 'read-only checks', 'нет', 'repair/delete/network', 'diagnostic records', 'review'],
+  ['local_agent', 'Local Agent', 'allowlisted local metadata', 'D storage task outputs после разрешения', 'только allowlist', 'нет', '.env/secrets/network/security', 'D:\\TerminatorStorage allowlist', 'high'],
+  ['codex_repair_operator', 'Codex Repair Operator', 'selected project files', 'repair workspace only', 'limited checks', 'нет', '.env/secrets/deploy/push main/network', 'D:\\TerminatorStorage\\repair_workspaces', 'high'],
+  ['verifier', 'Verifier', 'reports/evidence/artifacts', 'verdict/check logs', 'нет', 'нет', 'apply fixes/accept for owner', 'task artifacts/evidence', 'review'],
+  ['file_worker', 'File Worker', 'allowlisted task files', 'task storage after Approval', 'safe metadata checks', 'только explicit Approval', 'unknown files/archives/secrets', 'D:\\TerminatorStorage\\tasks', 'high'],
+  ['browser_worker', 'Browser Worker', 'approved browser surface', 'screenshots/evidence', 'approved automation later', 'нет', 'login/cookies/payments', 'future browser sandbox', 'critical'],
+  ['system_worker', 'System Worker', 'system health metadata', 'approved system reports', 'approved safe commands later', 'нет', 'firewall/Defender/network/.env', 'future system sandbox', 'critical'],
+  ['code_worker', 'Code Worker', 'selected repo files', 'repair workspace/diff only', 'tests after Approval', 'нет', 'push/deploy/secrets', 'repair workspace', 'high'],
+  ['memory_worker', 'Memory Worker', 'accepted memory candidates', 'Memory records after preview', 'нет', 'destructive edit only Approval', 'secrets/raw noise', 'memory store/index', 'medium'],
+  ['device_worker', 'Device Worker', 'trusted device status', 'device events', 'safe capabilities only', 'нет', 'pairing/settings/smart home without Approval', 'Device Mesh allowlist', 'high']
+];
+
+const PHASE4_WORKER_FOUNDATION = [
+  ['eyes', 'Глаза', 'наблюдение', 'скриншоты, DOM, visual diff позже', 'только evidence, без автоконтроля браузера'],
+  ['file_worker', 'File Worker', 'файлы', 'metadata, hash, task storage', 'без удаления, auto-run и auto-extract'],
+  ['browser_worker', 'Browser Worker', 'браузер', 'future QA screenshots / DOM checks', 'нет логинов, cookies, payments без Approval'],
+  ['code_worker', 'Code Worker', 'код', 'repair workspace, diff, tests', 'не пушит и не деплоит'],
+  ['system_worker', 'System Worker', 'система', 'health/status later', 'нет firewall/Defender/network без critical Approval'],
+  ['memory_worker', 'Memory Worker', 'память', 'Memory Preview / search index', 'не сохраняет raw noise и secrets'],
+  ['device_worker', 'Device Worker', 'устройства', 'Device Mesh capabilities', 'не меняет pairing/settings без Approval']
+];
+
+const FIRST_RUN_SAFETY_CHECKS = [
+  ['storage', 'D:\\TerminatorStorage', 'обязательное хранилище тяжёлых данных'],
+  ['local_agent', 'Local Agent', 'локальный исполнитель и future repair helper'],
+  ['direct_bridge', 'Direct Bridge', 'мост между сайтом и ПК'],
+  ['task_store', 'TaskStore', 'общее хранилище задач и статусов'],
+  ['guardian', 'Guardian', 'защитник опасных действий'],
+  ['codex_repair', 'Codex Repair Operator', 'ремонт через Codex в изоляции'],
+  ['verifier', 'Verifier', 'проверка результата перед принятием'],
+  ['cost_guard', 'Cost Guard', 'защита от платных сервисов'],
+  ['head', 'Голова / Стратег', 'настройка мозгов и профилей'],
+  ['restore_point', 'Первый restore point', 'точка восстановления перед крупными изменениями']
+];
 
 const DEVICE_TYPES = {
   windows_pc: 'ПК Windows',
@@ -1655,6 +1749,18 @@ function openTaskRuntimeDatabase() {
         store.createIndex('created_at', 'created_at', { unique: false });
         store.createIndex('status', 'status', { unique: false });
       }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.INCIDENTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.INCIDENTS, { keyPath: 'incident_id' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('severity', 'severity', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.GUARDIAN_EVENTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.GUARDIAN_EVENTS, { keyPath: 'event_id' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('incident_id', 'incident_id', { unique: false });
+      }
       if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.HEAD_BRAINS)) {
         const store = db.createObjectStore(TASK_RUNTIME_STORES.HEAD_BRAINS, { keyPath: 'brain_id' });
         store.createIndex('status', 'status', { unique: false });
@@ -1706,11 +1812,14 @@ const App = {
   headEvents: [],
   approvalRecords: [],
   systemDiagnostics: [],
+  guardianState: null,
+  guardianIncidents: [],
   activeDeviceId: '',
   activeHeadBrainId: '',
   activeHeadProfileId: '',
   activeApprovalId: '',
   activeDiagnosticId: '',
+  activeIncidentId: '',
   diagnosticRunning: false,
   activeWorkTaskId: '',
   workPreview: null,
@@ -1752,6 +1861,7 @@ const App = {
     await this.loadHeadRuntime();
     await this.loadApprovalRecords();
     await this.loadSystemDiagnostics();
+    await this.loadGuardianRuntime();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
     this.renderProjectRuntimePanel();
@@ -1908,6 +2018,12 @@ const App = {
       const diagnostButton = event.target.closest('[data-diagnost-action]');
       if (diagnostButton) {
         this.handleDiagnostAction(diagnostButton.dataset.diagnostAction, diagnostButton);
+        return;
+      }
+
+      const guardianButton = event.target.closest('[data-guardian-action]');
+      if (guardianButton) {
+        this.handleGuardianAction(guardianButton.dataset.guardianAction, guardianButton);
         return;
       }
 
@@ -2486,6 +2602,7 @@ const App = {
       return status && status !== 'not_started';
     }).length;
     const head = this.headStatusSnapshot();
+    const guardian = this.guardianSnapshot();
     const cards = [
       ['Проекты', projects.length, 'активные проекты'],
       ['Активные задачи', active, 'в работе или ожидании'],
@@ -2494,6 +2611,7 @@ const App = {
       ['Проверка', verifying, 'требуют Verifier'],
       ['Approval', approvals, 'требуют решения'],
       ['Риски', risks, 'не низкий риск'],
+      ['Guardian', guardian.label, `${guardian.openIncidents.length} открытых incidents`],
       ['Голова', head.status, head.note]
     ];
     host.innerHTML = cards.map(([title, value, note]) => `
@@ -2559,8 +2677,10 @@ const App = {
     if (!host) return;
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
+    const guardian = this.guardianSnapshot();
     const rows = [
       ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
+      ['Guardian', guardian.label, guardian.note],
       ['Общее хранилище задач', this.taskStoreSyncStatus || 'не проверен', this.taskStoreLastSyncAt ? `синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'ожидает вход владельца')],
       ['Direct Mode', direct.status, direct.note],
       ['Local Agent', agent.status, agent.note],
@@ -2577,12 +2697,20 @@ const App = {
     const verification = tasks.filter((task) => this.taskNeedsVerification(task));
     const approval = tasks.filter((task) => this.taskRequiresApproval(task));
     const draft = tasks.filter((task) => ['created', 'context_ready', 'ready_for_executor'].includes(task.status));
+    const guardian = this.guardianSnapshot();
+    const activeIncident = guardian.openIncidents[0];
     let title = 'Создать первую задачу';
     let body = 'Task Runtime готов. Следующий шаг — создать задачу в Рабочем окне.';
     let action = 'open_work';
     let taskId = '';
 
-    if (approval.length) {
+    if (guardian.state.emergency_stop_active || activeIncident?.severity === 'critical') {
+      title = 'Разобрать инцидент Guardian';
+      body = activeIncident
+        ? `${activeIncident.title}: ${activeIncident.summary || 'требуется проверка владельца'}`
+        : 'Стоп действия включён. Новые risky actions заблокированы.';
+      action = 'open_system';
+    } else if (approval.length) {
       const task = approval[0];
       title = 'Решить Approval';
       body = `${task.title}: есть действие, которое нельзя выполнять автоматически.`;
@@ -2718,6 +2846,10 @@ const App = {
       this.go('work');
       return;
     }
+    if (action === 'open_system') {
+      this.go('system');
+      return;
+    }
     if (action === 'open_task') {
       const taskId = button?.dataset?.taskId || '';
       if (!taskId) {
@@ -2815,6 +2947,299 @@ const App = {
     } catch {}
     if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.DIAGNOSTICS, normalized);
     return normalized;
+  },
+
+  async loadGuardianRuntime() {
+    const fallbackState = this.readJsonStorage(GUARDIAN_STATE_STORAGE_KEY, null);
+    const fallbackIncidents = this.readJsonStorage(GUARDIAN_INCIDENTS_STORAGE_KEY, []);
+    try {
+      const storedState = this.taskRuntimeDb
+        ? await this.getRuntimeRecord(TASK_RUNTIME_STORES.META, GUARDIAN_STATE_META_KEY)
+        : fallbackState;
+      const storedIncidents = this.taskRuntimeDb
+        ? await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.INCIDENTS)
+        : fallbackIncidents;
+      this.guardianState = this.normalizeGuardianState(storedState || fallbackState || {});
+      this.guardianIncidents = Array.isArray(storedIncidents)
+        ? storedIncidents.map((incident) => this.normalizeIncident(incident)).sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)).slice(0, 40)
+        : [];
+      this.activeIncidentId = this.guardianIncidents[0]?.incident_id || '';
+    } catch {
+      this.guardianState = this.normalizeGuardianState(fallbackState || {});
+      this.guardianIncidents = Array.isArray(fallbackIncidents) ? fallbackIncidents.map((incident) => this.normalizeIncident(incident)).slice(0, 40) : [];
+      this.activeIncidentId = this.guardianIncidents[0]?.incident_id || '';
+    }
+    await this.saveGuardianState(this.guardianState, { silent: true });
+  },
+
+  normalizeGuardianState(state = {}) {
+    const now = new Date().toISOString();
+    const safeMode = Boolean(state.safe_mode || state.emergency_stop_active);
+    const status = state.emergency_stop_active ? 'emergency_stop' : safeMode ? 'safe_mode' : (state.status || 'active');
+    return {
+      key: GUARDIAN_STATE_META_KEY,
+      status,
+      safe_mode: safeMode,
+      emergency_stop_active: Boolean(state.emergency_stop_active),
+      autonomy_level: Number.isFinite(Number(state.autonomy_level)) ? Number(state.autonomy_level) : GUARDIAN_DEFAULT_STATE.autonomy_level,
+      paid_services_allowed: Boolean(state.paid_services_allowed),
+      ai_api_allowed: Boolean(state.ai_api_allowed),
+      browser_automation_allowed: Boolean(state.browser_automation_allowed),
+      active_policy: state.active_policy || GUARDIAN_DEFAULT_STATE.active_policy,
+      last_event: state.last_event || GUARDIAN_DEFAULT_STATE.last_event,
+      created_at: state.created_at || now,
+      updated_at: state.updated_at || now
+    };
+  },
+
+  async saveGuardianState(state, options = {}) {
+    this.guardianState = this.normalizeGuardianState({
+      ...(this.guardianState || {}),
+      ...(state || {}),
+      updated_at: new Date().toISOString()
+    });
+    this.writeJsonStorage(GUARDIAN_STATE_STORAGE_KEY, this.guardianState);
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.META, this.guardianState);
+    if (!options.silent) {
+      this.renderMissionControl();
+      this.renderSystemStatus();
+    }
+    return this.guardianState;
+  },
+
+  normalizeIncident(incident = {}) {
+    const now = new Date().toISOString();
+    const severity = incident.severity || 'warning';
+    const repair = incident.repair && typeof incident.repair === 'object' ? incident.repair : {};
+    return {
+      incident_id: incident.incident_id || this.generateWorkspaceId('INCIDENT'),
+      title: incident.title || 'Инцидент',
+      summary: incident.summary || incident.note || '',
+      source: incident.source || 'guardian',
+      source_ref: incident.source_ref || '',
+      severity,
+      status: incident.status || 'detected',
+      risk_level: incident.risk_level || (severity === 'critical' ? 'critical' : severity === 'error' ? 'high' : 'review'),
+      affected_area: incident.affected_area || 'system',
+      safe_action: incident.safe_action || '',
+      approval_required: Boolean(incident.approval_required || ['high', 'critical', 'approval_required'].includes(incident.risk_level)),
+      diagnostic_pack: incident.diagnostic_pack || null,
+      repair_workspace: incident.repair_workspace || null,
+      diff_review: incident.diff_review || null,
+      rollback_point: incident.rollback_point || null,
+      repair: {
+        status: repair.status || 'not_started',
+        executor: repair.executor || 'codex_repair_operator',
+        autonomy_level: Number.isFinite(Number(repair.autonomy_level)) ? Number(repair.autonomy_level) : 1,
+        verifier_status: repair.verifier_status || 'not_checked',
+        apply_allowed: Boolean(repair.apply_allowed),
+        apply_status: repair.apply_status || 'not_allowed'
+      },
+      created_at: incident.created_at || now,
+      updated_at: incident.updated_at || incident.created_at || now
+    };
+  },
+
+  async saveGuardianIncident(incident) {
+    const normalized = this.normalizeIncident(incident);
+    const index = this.guardianIncidents.findIndex((item) => item.incident_id === normalized.incident_id);
+    if (index >= 0) this.guardianIncidents[index] = normalized;
+    else this.guardianIncidents.unshift(normalized);
+    this.guardianIncidents = this.guardianIncidents
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .slice(0, 40);
+    this.activeIncidentId = normalized.incident_id;
+    this.writeJsonStorage(GUARDIAN_INCIDENTS_STORAGE_KEY, this.guardianIncidents.slice(0, 40));
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.INCIDENTS, normalized);
+    return normalized;
+  },
+
+  async createGuardianIncident(data) {
+    const incident = await this.saveGuardianIncident({
+      ...data,
+      incident_id: data.incident_id || this.generateWorkspaceId('INCIDENT'),
+      created_at: data.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+    await this.saveGuardianState({
+      status: this.guardianState?.emergency_stop_active ? 'emergency_stop' : this.guardianState?.safe_mode ? 'safe_mode' : 'review',
+      last_event: `Incident created: ${incident.title}`
+    }, { silent: true });
+    return incident;
+  },
+
+  guardianSnapshot() {
+    const state = this.normalizeGuardianState(this.guardianState || {});
+    const openIncidents = (this.guardianIncidents || []).filter((incident) => !['closed', 'fixed', 'ignored_by_user'].includes(incident.status));
+    const critical = openIncidents.filter((incident) => incident.severity === 'critical').length;
+    const warnings = openIncidents.filter((incident) => ['warning', 'error'].includes(incident.severity)).length;
+    return {
+      status: state.status,
+      label: GUARDIAN_STATUS_LABELS[state.status] || state.status,
+      tone: state.emergency_stop_active ? 'danger' : state.safe_mode ? 'review' : critical ? 'danger' : warnings ? 'review' : 'safe',
+      note: state.emergency_stop_active
+        ? 'Стоп действия включён. Новые risky actions заблокированы.'
+        : state.safe_mode
+          ? 'Safe Mode включён. Автоматические действия ограничены.'
+          : 'Guardian контролирует риски, стоимость и dangerous actions.',
+      openIncidents,
+      critical,
+      warnings,
+      state
+    };
+  },
+
+  incidentFromDiagnosticCheck(run, check) {
+    const severity = check.severity === 'blocked' || check.status === 'blocked'
+      ? 'critical'
+      : check.severity === 'approval_required' || check.status === 'fail'
+        ? 'error'
+        : check.severity === 'review' || check.status === 'review' || check.status === 'manual_check'
+          ? 'warning'
+          : 'info';
+    return {
+      incident_id: this.generateWorkspaceId('INCIDENT'),
+      title: check.name,
+      summary: check.note,
+      source: 'diagnost',
+      source_ref: `${run.diagnostic_id}:${check.check_id}`,
+      severity,
+      status: severity === 'info' ? 'closed' : 'detected',
+      risk_level: check.severity || 'review',
+      affected_area: check.name,
+      safe_action: check.safe_action || '',
+      approval_required: check.severity === 'approval_required' || check.severity === 'blocked',
+      created_at: run.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  },
+
+  async createIncidentsFromDiagnosticRun(run) {
+    const existingRefs = new Set((this.guardianIncidents || []).map((incident) => incident.source_ref).filter(Boolean));
+    const relevant = (run.checks || [])
+      .filter((check) => ['review', 'manual_check', 'fail', 'blocked'].includes(check.status) || ['review', 'approval_required', 'blocked', 'dangerous'].includes(check.severity))
+      .filter((check) => !existingRefs.has(`${run.diagnostic_id}:${check.check_id}`))
+      .slice(0, 8);
+    for (const check of relevant) {
+      await this.saveGuardianIncident(this.incidentFromDiagnosticCheck(run, check));
+    }
+    if (relevant.length) {
+      await this.saveGuardianState({
+        status: this.guardianState?.emergency_stop_active ? 'emergency_stop' : this.guardianState?.safe_mode ? 'safe_mode' : 'review',
+        last_event: `Диагност создал incidents: ${relevant.length}`
+      }, { silent: true });
+    }
+  },
+
+  repairWorkspacePath(incident) {
+    const id = this.safeStorageSegment(incident?.incident_id || 'incident');
+    return `${TERMINATOR_STORAGE_ROOT}\\repair_workspaces\\${id}`;
+  },
+
+  buildDiagnosticPack(incident) {
+    const guardian = this.guardianSnapshot();
+    return [
+      '# Diagnostic Pack',
+      '',
+      `incident_id: ${incident.incident_id}`,
+      `title: ${incident.title}`,
+      `severity: ${incident.severity}`,
+      `status: ${incident.status}`,
+      `affected_area: ${incident.affected_area}`,
+      '',
+      '## Симптом',
+      incident.summary || 'Симптом не описан.',
+      '',
+      '## Безопасные ограничения',
+      '- Не использовать AI API.',
+      '- Не читать и не менять .env, secrets, tokens, cookies.',
+      '- Не делать deploy, push main, network/firewall/DNS/VPN/proxy.',
+      '- Не удалять файлы.',
+      '- Работать только в repair workspace.',
+      '- Вернуть diff, список файлов, проверки, риски и rollback plan.',
+      '',
+      '## Runtime facts',
+      `Guardian: ${guardian.label}`,
+      `Safe Mode: ${guardian.state.safe_mode ? 'on' : 'off'}`,
+      `Emergency Stop: ${guardian.state.emergency_stop_active ? 'on' : 'off'}`,
+      `Task Runtime: ${this.taskRuntimeReady ? 'IndexedDB active' : 'localStorage fallback'}`,
+      `TaskStore sync: ${this.taskStoreSyncStatus || 'unknown'}`,
+      `Storage root: ${TERMINATOR_STORAGE_ROOT}`,
+      '',
+      '## Expected Codex output',
+      '- что найдено;',
+      '- какие файлы предложено изменить;',
+      '- diff summary;',
+      '- проверки;',
+      '- риски;',
+      '- rollback instructions;',
+      '- что не проверено.'
+    ].join('\n');
+  },
+
+  buildRepairWorkspaceMetadata(incident) {
+    const root = this.repairWorkspacePath(incident);
+    return {
+      root,
+      input: `${root}\\input`,
+      diagnostic_pack: `${root}\\diagnostic_pack`,
+      working_copy: `${root}\\working_copy`,
+      codex_output: `${root}\\codex_output`,
+      diff: `${root}\\diff`,
+      verifier: `${root}\\verifier`,
+      evidence: `${root}\\evidence`,
+      rollback: `${root}\\rollback`,
+      report: `${root}\\report.md`,
+      status: 'planned',
+      created_at: new Date().toISOString()
+    };
+  },
+
+  buildDiffReviewPlaceholder(incident) {
+    return {
+      title: 'Исправление готовится',
+      changed_files: [],
+      summary: 'Diff появится после работы Codex Repair Operator.',
+      risk_level: incident.risk_level || 'review',
+      checks: [
+        { name: 'syntax', status: 'not_run' },
+        { name: 'no secrets', status: 'not_run' },
+        { name: 'no AI API', status: 'not_run' },
+        { name: 'smoke', status: 'not_run' }
+      ],
+      unknowns: ['Codex ещё не вернул diff.'],
+      created_at: new Date().toISOString()
+    };
+  },
+
+  buildRollbackPointMetadata(incident) {
+    const root = this.repairWorkspacePath(incident);
+    return {
+      rollback_id: this.generateWorkspaceId('ROLLBACK'),
+      incident_id: incident.incident_id,
+      affected_files: [],
+      previous_file_hashes: [],
+      backup_path: `${root}\\rollback`,
+      approval_id: '',
+      instructions: 'Rollback создаётся до применения diff. Пока применение запрещено.',
+      status: 'planned',
+      created_at: new Date().toISOString()
+    };
+  },
+
+  readJsonStorage(key, fallback) {
+    try {
+      const raw = window.localStorage?.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  },
+
+  writeJsonStorage(key, value) {
+    try {
+      window.localStorage?.setItem(key, JSON.stringify(value));
+    } catch {}
   },
 
   diagnosticCheck(name, status, severity, note, safeAction = '') {
@@ -3027,6 +3452,7 @@ const App = {
         suggestions,
         summary: this.diagnosticSummaryText(checks)
       });
+      await this.createIncidentsFromDiagnosticRun(run);
       this.toast(`Диагностика: ${this.diagnosticStatusName(run.status)}`);
     } finally {
       this.diagnosticRunning = false;
@@ -3263,7 +3689,9 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
     const head = this.headStatusSnapshot();
+    const guardian = this.guardianSnapshot();
     const cards = [
+      ['Guardian', guardian.label, guardian.note],
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
       ['Голова', head.status, head.note],
@@ -3282,6 +3710,7 @@ const App = {
       </article>
     `).join('');
     this.renderSystemDiagnostics();
+    this.renderGuardianPanel();
     this.renderSystemStoragePolicy();
     this.renderSystemLastCheckpoint();
     this.renderSystemLegacyWarnings();
@@ -3298,8 +3727,10 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
     const head = this.headStatusSnapshot();
+    const guardian = this.guardianSnapshot();
     const latest = this.systemDiagnostics[0] || null;
     const rows = [
+      ['Guardian', guardian.label, `${guardian.note}; incidents: ${guardian.openIncidents.length}`],
       ['Хранилище задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? 'локальная база браузера доступна' : 'используется резерв localStorage'],
       ['Журнал событий', 'OK', 'события Рабочего окна сохраняются в задаче и локальной базе'],
       ['Модель задач', 'OK', 'поля под голос и устройства есть в новых задачах'],
@@ -3386,6 +3817,344 @@ const App = {
       manual_review: 'Ручная проверка'
     };
     return names[action] || 'Открыть';
+  },
+
+  renderGuardianPanel() {
+    const host = document.getElementById('system-guardian-panel');
+    if (!host) return;
+    const snapshot = this.guardianSnapshot();
+    const state = snapshot.state;
+    const incidents = this.guardianIncidents || [];
+    const openIncidents = snapshot.openIncidents;
+    const active = incidents.find((incident) => incident.incident_id === this.activeIncidentId) || openIncidents[0] || incidents[0] || null;
+    if (active) this.activeIncidentId = active.incident_id;
+    host.innerHTML = `
+      <section class="guardian-hero guardian-hero--${this.escapeHtml(snapshot.tone)}">
+        <div>
+          <span>Состояние защиты</span>
+          <strong>${this.escapeHtml(snapshot.label)}</strong>
+          <p>${this.escapeHtml(snapshot.note)}</p>
+        </div>
+        <dl>
+          <div><dt>Safe Mode</dt><dd>${state.safe_mode ? 'включён' : 'выключен'}</dd></div>
+          <div><dt>Стоп</dt><dd>${state.emergency_stop_active ? 'активен' : 'нет'}</dd></div>
+          <div><dt>Autonomy</dt><dd>Level ${state.autonomy_level}</dd></div>
+          <div><dt>Incidents</dt><dd>${openIncidents.length}</dd></div>
+        </dl>
+      </section>
+
+      <div class="guardian-actions">
+        <button type="button" class="guardian-danger" data-guardian-action="emergency_stop">Стоп действия</button>
+        <button type="button" data-guardian-action="${state.safe_mode ? 'safe_mode_off' : 'safe_mode_on'}">${state.safe_mode ? 'Снять Safe Mode' : 'Включить Safe Mode'}</button>
+        <button type="button" data-guardian-action="create_manual_incident">Создать incident</button>
+        <button type="button" data-guardian-action="refresh_guardian">Обновить Guardian</button>
+      </div>
+
+      <section class="guardian-layout">
+        <div class="guardian-queue">
+          <div class="approval-center-head">
+            <strong>Incident Log</strong>
+            <span>${openIncidents.length} открытых</span>
+          </div>
+          ${incidents.slice(0, 10).map((incident) => this.renderGuardianIncidentItem(incident, active)).join('') || '<p class="mission-empty">Инцидентов пока нет. Диагност создаст их при проблемах.</p>'}
+        </div>
+        <div class="guardian-detail">
+          ${active ? this.renderGuardianIncidentDetail(active) : '<p class="mission-empty">Выберите incident или запустите диагностику.</p>'}
+        </div>
+      </section>
+
+      <section class="guardian-two-col">
+        <div>
+          <div class="diagnost-subtitle">Cost Guard</div>
+          <div class="guardian-cost-grid">${this.renderCostGuardRows()}</div>
+        </div>
+        <div>
+          <div class="diagnost-subtitle">Capability Matrix</div>
+          <div class="guardian-capability-grid">${this.renderCapabilityMatrixRows()}</div>
+        </div>
+      </section>
+
+      <section class="guardian-two-col">
+        <div>
+          <div class="diagnost-subtitle">Eyes / Hands Foundation</div>
+          <div class="guardian-cost-grid">${this.renderWorkerFoundationRows()}</div>
+        </div>
+        <div>
+          <div class="diagnost-subtitle">First Run Safety Wizard</div>
+          <div class="guardian-cost-grid">${this.renderSafetyWizardRows()}</div>
+        </div>
+      </section>
+    `;
+  },
+
+  renderGuardianIncidentItem(incident, active) {
+    return `
+      <button type="button" class="approval-item guardian-incident ${active?.incident_id === incident.incident_id ? 'active' : ''}" data-guardian-action="select_incident" data-incident-id="${this.escapeHtml(incident.incident_id)}">
+        <span>${this.escapeHtml(INCIDENT_STATUS_LABELS[incident.status] || incident.status)}</span>
+        <strong>${this.escapeHtml(incident.title)}</strong>
+        <small>${this.escapeHtml(INCIDENT_SEVERITY_LABELS[incident.severity] || incident.severity)} · ${this.escapeHtml(incident.source)}</small>
+      </button>
+    `;
+  },
+
+  renderGuardianIncidentDetail(incident) {
+    const repair = incident.repair || {};
+    const packReady = Boolean(incident.diagnostic_pack);
+    const repairReady = Boolean(incident.repair_workspace);
+    return `
+      <div class="approval-detail-head guardian-detail-head">
+        <div>
+          <span>${this.escapeHtml(INCIDENT_SEVERITY_LABELS[incident.severity] || incident.severity)}</span>
+          <h3>${this.escapeHtml(incident.title)}</h3>
+          <p>${this.escapeHtml(incident.summary || 'Описание не задано.')}</p>
+        </div>
+        <strong>${this.escapeHtml(INCIDENT_STATUS_LABELS[incident.status] || incident.status)}</strong>
+      </div>
+      <dl class="approval-grid">
+        <div><dt>incident_id</dt><dd>${this.escapeHtml(incident.incident_id)}</dd></div>
+        <div><dt>Область</dt><dd>${this.escapeHtml(incident.affected_area)}</dd></div>
+        <div><dt>Риск</dt><dd>${this.escapeHtml(incident.risk_level)}</dd></div>
+        <div><dt>Approval</dt><dd>${incident.approval_required ? 'требуется' : 'не требуется'}</dd></div>
+        <div><dt>Codex Repair</dt><dd>${this.escapeHtml(repair.status || 'not_started')}</dd></div>
+        <div><dt>Verifier</dt><dd>${this.escapeHtml(repair.verifier_status || 'not_checked')}</dd></div>
+      </dl>
+      <section class="guardian-repair">
+        <strong>Codex Repair Operator</strong>
+        <p>${packReady ? 'Diagnostic Pack готов. ' : 'Diagnostic Pack ещё не собран. '} ${repairReady ? 'Repair workspace metadata создан.' : 'Repair workspace будет создан на D перед ремонтом.'}</p>
+        ${incident.repair_workspace ? `<code>${this.escapeHtml(incident.repair_workspace.root)}</code>` : ''}
+        ${incident.diff_review ? this.renderDiffReview(incident.diff_review) : '<p class="mission-empty">Diff review появится после работы Codex в repair workspace.</p>'}
+      </section>
+      <div class="approval-actions">
+        <button type="button" data-guardian-action="build_diagnostic_pack" data-incident-id="${this.escapeHtml(incident.incident_id)}">Собрать Diagnostic Pack</button>
+        <button type="button" data-guardian-action="prepare_codex_repair" data-incident-id="${this.escapeHtml(incident.incident_id)}">Починить через Codex</button>
+        <button type="button" data-guardian-action="return_codex" data-incident-id="${this.escapeHtml(incident.incident_id)}">Вернуть Codex</button>
+        <button type="button" data-guardian-action="close_incident" data-incident-id="${this.escapeHtml(incident.incident_id)}">Закрыть</button>
+        <button type="button" disabled title="Применение появится только после Verifier и rollback point">Применить</button>
+      </div>
+    `;
+  },
+
+  renderDiffReview(diffReview) {
+    return `
+      <div class="diff-review">
+        <strong>${this.escapeHtml(diffReview.title || 'Diff review')}</strong>
+        <p>${this.escapeHtml(diffReview.summary || '')}</p>
+        <dl class="approval-grid">
+          <div><dt>Файлы</dt><dd>${this.escapeHtml((diffReview.changed_files || []).join(', ') || 'нет')}</dd></div>
+          <div><dt>Риск</dt><dd>${this.escapeHtml(diffReview.risk_level || 'review')}</dd></div>
+        </dl>
+        <div class="guardian-checks">
+          ${(diffReview.checks || []).map((check) => `<span>${this.escapeHtml(check.name)}: ${this.escapeHtml(check.status)}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  renderCostGuardRows() {
+    return COST_GUARD_SERVICES.map(([id, name, status, note]) => {
+      const blocked = ['blocked', 'unknown', 'legacy'].includes(status);
+      return `
+        <article class="guardian-mini-card guardian-mini-card--${blocked ? 'review' : 'safe'}" data-cost-id="${this.escapeHtml(id)}">
+          <strong>${this.escapeHtml(name)}</strong>
+          <span>${this.escapeHtml(status)}</span>
+          <p>${this.escapeHtml(note)}</p>
+        </article>
+      `;
+    }).join('');
+  },
+
+  renderCapabilityMatrixRows() {
+    return GUARDIAN_CAPABILITY_MATRIX.map(([actor, title, canRead, canWrite, canExecute, canDelete, forbidden, allowedPaths, risk]) => `
+      <article class="guardian-mini-card guardian-capability" data-actor="${this.escapeHtml(actor)}">
+        <strong>${this.escapeHtml(title)}</strong>
+        <span>risk: ${this.escapeHtml(risk)}</span>
+        <p><b>read:</b> ${this.escapeHtml(canRead)}</p>
+        <p><b>write:</b> ${this.escapeHtml(canWrite)}</p>
+        <p><b>execute:</b> ${this.escapeHtml(canExecute)}</p>
+        <p><b>delete:</b> ${this.escapeHtml(canDelete)}</p>
+        <p><b>forbidden:</b> ${this.escapeHtml(forbidden)}</p>
+        <p><b>paths:</b> ${this.escapeHtml(allowedPaths)}</p>
+      </article>
+    `).join('');
+  },
+
+  renderWorkerFoundationRows() {
+    return PHASE4_WORKER_FOUNDATION.map(([id, title, area, capability, rule]) => `
+      <article class="guardian-mini-card" data-worker="${this.escapeHtml(id)}">
+        <strong>${this.escapeHtml(title)}</strong>
+        <span>${this.escapeHtml(area)}</span>
+        <p>${this.escapeHtml(capability)}</p>
+        <p><b>Правило:</b> ${this.escapeHtml(rule)}</p>
+      </article>
+    `).join('');
+  },
+
+  renderSafetyWizardRows() {
+    return FIRST_RUN_SAFETY_CHECKS.map(([id, title, note]) => {
+      const status = id === 'cost_guard'
+        ? 'платное заблокировано'
+        : id === 'codex_repair'
+          ? 'metadata ready'
+          : id === 'restore_point'
+            ? 'нужен перед apply'
+            : 'готов к проверке';
+      return `
+        <article class="guardian-mini-card" data-safety-check="${this.escapeHtml(id)}">
+          <strong>${this.escapeHtml(title)}</strong>
+          <span>${this.escapeHtml(status)}</span>
+          <p>${this.escapeHtml(note)}</p>
+        </article>
+      `;
+    }).join('');
+  },
+
+  async handleGuardianAction(action, button) {
+    const incidentId = button?.dataset?.incidentId || this.activeIncidentId;
+    const incident = this.guardianIncidents.find((item) => item.incident_id === incidentId);
+    const now = new Date().toISOString();
+
+    if (action === 'select_incident') {
+      if (incident) this.activeIncidentId = incident.incident_id;
+      this.renderGuardianPanel();
+      return;
+    }
+
+    if (action === 'refresh_guardian') {
+      await this.loadGuardianRuntime();
+      this.renderSystemStatus();
+      this.toast('Guardian обновлён');
+      return;
+    }
+
+    if (action === 'safe_mode_on') {
+      await this.saveGuardianState({ safe_mode: true, status: 'safe_mode', last_event: 'Safe Mode enabled by owner' });
+      await this.createGuardianIncident({
+        title: 'Safe Mode включён',
+        summary: 'Автоматические рискованные действия ограничены. Данные не удалялись, сеть не менялась.',
+        source: 'guardian',
+        severity: 'warning',
+        status: 'user_notified',
+        risk_level: 'review',
+        affected_area: 'guardian'
+      });
+      this.renderSystemStatus();
+      this.toast('Safe Mode включён');
+      return;
+    }
+
+    if (action === 'safe_mode_off') {
+      await this.saveGuardianState({ safe_mode: false, emergency_stop_active: false, status: 'active', last_event: 'Safe Mode disabled by owner' });
+      this.toast('Safe Mode снят');
+      return;
+    }
+
+    if (action === 'emergency_stop') {
+      await this.saveGuardianState({
+        safe_mode: true,
+        emergency_stop_active: true,
+        status: 'emergency_stop',
+        last_event: 'Emergency Stop activated'
+      }, { silent: true });
+      for (const approval of this.pendingApprovalRecords()) {
+        approval.blocked_by_guardian = true;
+        approval.execution_allowed = false;
+        approval.execution_result = 'blocked_by_emergency_stop';
+        approval.updated_at = now;
+        await this.saveApprovalRecord(approval);
+      }
+      await this.createGuardianIncident({
+        title: 'Стоп действия активирован',
+        summary: 'Новые risky actions заблокированы. Pending approvals помечены как заблокированные Guardian. Данные не удалялись, сеть не менялась.',
+        source: 'guardian',
+        severity: 'critical',
+        status: 'user_notified',
+        risk_level: 'critical',
+        affected_area: 'all_actions',
+        approval_required: true
+      });
+      this.renderSystemStatus();
+      this.toast('Стоп действия включён');
+      return;
+    }
+
+    if (action === 'create_manual_incident') {
+      await this.createGuardianIncident({
+        title: 'Ручной incident Guardian',
+        summary: 'Создан владельцем/системой для проверки контура Phase 4.',
+        source: 'guardian',
+        severity: 'warning',
+        status: 'detected',
+        risk_level: 'review',
+        affected_area: 'manual_check'
+      });
+      this.renderSystemStatus();
+      this.toast('Incident создан');
+      return;
+    }
+
+    if (!incident) return;
+
+    if (action === 'build_diagnostic_pack') {
+      incident.diagnostic_pack = {
+        pack_id: this.generateWorkspaceId('DIAGPACK'),
+        text: this.buildDiagnosticPack(incident),
+        created_at: now
+      };
+      incident.status = 'safe_action_suggested';
+      incident.updated_at = now;
+      await this.saveGuardianIncident(incident);
+      this.renderSystemStatus();
+      this.toast('Diagnostic Pack готов');
+      return;
+    }
+
+    if (action === 'prepare_codex_repair') {
+      incident.diagnostic_pack = incident.diagnostic_pack || {
+        pack_id: this.generateWorkspaceId('DIAGPACK'),
+        text: this.buildDiagnosticPack(incident),
+        created_at: now
+      };
+      incident.repair_workspace = incident.repair_workspace || this.buildRepairWorkspaceMetadata(incident);
+      incident.diff_review = incident.diff_review || this.buildDiffReviewPlaceholder(incident);
+      incident.rollback_point = incident.rollback_point || this.buildRollbackPointMetadata(incident);
+      incident.repair = {
+        status: 'diagnostic_pack_ready',
+        executor: 'codex_repair_operator',
+        autonomy_level: Math.min(this.guardianState?.autonomy_level || 2, 2),
+        verifier_status: 'not_checked',
+        apply_allowed: false,
+        apply_status: 'blocked_until_verifier_and_approval'
+      };
+      incident.status = 'triaged';
+      incident.updated_at = now;
+      await this.saveGuardianIncident(incident);
+      this.renderSystemStatus();
+      this.toast('Repair workspace подготовлен');
+      return;
+    }
+
+    if (action === 'return_codex') {
+      incident.repair = {
+        ...(incident.repair || {}),
+        status: 'returned_to_codex',
+        apply_allowed: false,
+        apply_status: 'not_allowed'
+      };
+      incident.status = 'triaged';
+      incident.updated_at = now;
+      await this.saveGuardianIncident(incident);
+      this.renderSystemStatus();
+      this.toast('Возврат Codex зафиксирован');
+      return;
+    }
+
+    if (action === 'close_incident') {
+      incident.status = 'closed';
+      incident.updated_at = now;
+      await this.saveGuardianIncident(incident);
+      this.renderSystemStatus();
+      this.toast('Incident закрыт');
+    }
   },
 
   renderSystemStoragePolicy() {
