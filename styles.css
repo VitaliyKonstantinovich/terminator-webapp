@@ -6285,6 +6285,8 @@ button:not(:disabled) {
   filter:
     drop-shadow(0 0 12px rgba(66, 216, 255, 0.72))
     drop-shadow(0 0 36px rgba(0, 112, 255, 0.42));
+  -webkit-mask-image: radial-gradient(ellipse at 50% 49%, #000 0 63%, rgba(0, 0, 0, 0.9) 70%, transparent 80%);
+  mask-image: radial-gradient(ellipse at 50% 49%, #000 0 63%, rgba(0, 0, 0, 0.9) 70%, transparent 80%);
   pointer-events: none;
   user-select: none;
 }

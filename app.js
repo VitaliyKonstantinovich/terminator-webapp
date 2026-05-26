@@ -5620,23 +5620,36 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
     const savedMemory = tasks.filter((task) => ['saved_local', 'memory_saved'].includes(task.memory_preview?.status || task.memory_status)).length;
+    const memoryCandidates = tasks.filter((task) => task.memory_preview || task.memory_status || task.memory_candidate).length;
     const researchTasks = tasks.filter((task) => this.ensureResearchOpsState(task).status !== 'not_started').length;
     const devicePhone = (this.systemDevices || []).find((device) => device.device_id === 'device_owner_phone');
     const workerReports = this.guardianWorkerReports || [];
+    const repairIncidents = guardian.openIncidents.filter((incident) => incident.repair_workspace || incident.diagnostic_pack || incident.repair?.status !== 'not_started');
     const criticalIncident = guardian.openIncidents.find((incident) => incident.severity === 'critical');
-    const bodyScore = this.taskRuntimeReady ? (taskStore.tone === 'synced' ? 88 : 76) : 45;
-    const directReady = direct.status === 'сессия активна' || direct.status === 'ожидает вход';
+    const costUnknown = COST_GUARD_SERVICES.some(([, , status]) => status === 'unknown');
+    const directReady = direct.status === 'сессия активна';
+    const directNeedsOwner = direct.status === 'ожидает вход';
+    const localAgentReady = /на связи|доверено|системное|готов/i.test(agent.status) && !/не проверено|не найден/i.test(agent.status);
     const localAgentKnown = !/не найден/i.test(agent.status);
-    const bodyStatus = this.taskRuntimeReady && directReady && localAgentKnown ? 'ready' : (this.taskRuntimeReady ? 'partial' : 'error');
+    const bodyScore = this.taskRuntimeReady
+      ? 54 + (taskStore.tone === 'synced' ? 14 : 0) + (directReady ? 12 : directNeedsOwner ? 6 : 0) + (localAgentReady ? 10 : localAgentKnown ? 4 : 0)
+      : 36;
+    const bodyStatus = this.taskRuntimeReady && directReady && localAgentReady
+      ? 'ready'
+      : this.taskRuntimeReady && (directReady || directNeedsOwner || localAgentKnown)
+        ? 'partial'
+        : 'error';
     const guardianStatus = criticalIncident || guardian.state.emergency_stop_active
       ? 'error'
       : guardian.state.safe_mode
         ? 'partial'
-        : 'ready';
+        : costUnknown
+          ? 'partial'
+          : 'ready';
     const headStatus = head.tone === 'pass' ? 'ready' : (this.mainStrategistBrain() ? 'partial' : 'waiting');
-    const memoryStatus = savedMemory || tasks.length || this.taskRuntimeReady ? 'partial' : 'waiting';
-    const handsStatus = workerReports.length || guardian.state.status ? 'partial' : 'waiting';
-    const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) ? 'partial' : 'waiting';
+    const memoryStatus = savedMemory || memoryCandidates ? 'partial' : (this.taskRuntimeReady ? 'partial' : 'waiting');
+    const handsStatus = workerReports.length || repairIncidents.length ? 'partial' : (guardian.state.status ? 'waiting' : 'waiting');
+    const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) || document.getElementById('screen-scheme') ? 'partial' : 'waiting';
     const voiceStatus = this.workspaceVoiceSupported ? 'partial' : 'waiting';
     const legsStatus = devicePhone?.status === 'connected' ? 'ready' : ((this.systemDevices || []).length ? 'partial' : 'waiting');
 
@@ -5657,10 +5670,10 @@ const App = {
       },
       eyes: {
         status: eyesStatus,
-        readiness: eyesStatus === 'partial' ? 58 : 35,
+        readiness: eyesStatus === 'partial' ? 61 : 35,
         summary: eyesStatus === 'partial' ? 'визуальные доказательства частично готовы' : 'ожидает настройки',
         note: 'Глаза только фиксируют доказательства: скриншоты, визуальную проверку и состояние интерфейса.',
-        snapshot_source: workerReports.length ? 'Guardian worker reports' : 'Phase 4 worker catalog',
+        snapshot_source: workerReports.length ? 'Guardian worker reports' : 'UI smoke / visual evidence support',
         is_mock: !workerReports.length,
         checks: [
           ['Скриншоты', 'ручные доказательства'],
@@ -5685,29 +5698,31 @@ const App = {
       },
       hands: {
         status: handsStatus,
-        readiness: handsStatus === 'partial' ? 68 : 44,
-        summary: 'Codex Repair foundation',
+        readiness: repairIncidents.length ? 72 : (workerReports.length ? 68 : 48),
+        summary: repairIncidents.length ? `${repairIncidents.length} ремонтных инцидентов` : 'Codex Repair foundation',
         note: 'Руки не применяют изменения напрямую. Рабочая область ремонта, проверка, откат и подтверждение обязательны.',
-        snapshot_source: workerReports.length ? 'Guardian worker reports' : 'Guardian / Phase 4 foundation',
-        is_mock: !workerReports.length,
+        snapshot_source: workerReports.length || repairIncidents.length ? 'Guardian incidents / worker reports' : 'Guardian / Phase 4 foundation',
+        is_mock: !workerReports.length && !repairIncidents.length,
         checks: [
           ['Codex-ремонтник', 'foundation готов'],
           ['Рабочая область ремонта', `${TERMINATOR_STORAGE_ROOT}\\repair_workspaces`],
+          ['Repair incidents', repairIncidents.length ? `${repairIncidents.length} активных` : 'нет активных'],
           ['Auto-fix LOW', guardian.state.autonomy_level >= 3 ? 'разрешён политикой' : 'ручной контроль'],
           ['Помощники', `${PHASE4_WORKER_FOUNDATION.length} в матрице возможностей`]
         ]
       },
       memory: {
         status: memoryStatus,
-        readiness: memoryStatus === 'partial' ? 66 : 36,
-        summary: savedMemory ? `${savedMemory} записей памяти` : 'поиск по памяти требует индекса',
+        readiness: savedMemory ? 72 : (memoryCandidates ? 64 : this.taskRuntimeReady ? 56 : 36),
+        summary: savedMemory ? `${savedMemory} записей памяти` : (memoryCandidates ? `${memoryCandidates} кандидатов памяти` : 'поиск по памяти требует индекса'),
         note: 'Предпросмотр памяти работает; быстрый поиск и индекс контекста должны стать следующим усилением.',
-        snapshot_source: 'Task Runtime memory previews',
-        is_mock: true,
+        snapshot_source: 'Task Runtime memory previews / Memory Search plan',
+        is_mock: !savedMemory && !memoryCandidates,
         checks: [
           ['Хранилище', `${TERMINATOR_STORAGE_ROOT}\\memory`],
-          ['Memory Preview', tasks.length ? 'работает в задачах' : 'нет задач'],
-          ['Индекс поиска', 'требует реализации'],
+          ['Memory Preview', memoryCandidates ? `${memoryCandidates} кандидатов` : 'нет кандидатов'],
+          ['Записи памяти', savedMemory ? `${savedMemory} сохранено` : 'не сохранено'],
+          ['Индекс поиска', savedMemory ? 'частичный индекс' : 'ожидает записей'],
           ['Файлы', 'только refs, не raw huge data']
         ]
       },
@@ -5741,7 +5756,7 @@ const App = {
       },
       diagnost: {
         status: guardianStatus,
-        readiness: guardianStatus === 'ready' ? 90 : (guardianStatus === 'partial' ? 70 : 30),
+        readiness: guardianStatus === 'ready' ? 90 : (guardianStatus === 'partial' ? 68 : 30),
         summary: guardian.label,
         note: guardian.state.emergency_stop_active
           ? 'Стоп действия включён. Новые рискованные действия заблокированы.'
@@ -5754,7 +5769,8 @@ const App = {
           ['Guardian', guardian.label],
           ['Безопасный режим', guardian.state.safe_mode ? 'включён' : 'выключен'],
           ['Инциденты', `${guardian.openIncidents.length} открытых`],
-          ['Платные сервисы', guardian.state.paid_services_allowed ? 'требуют проверки' : 'заблокированы']
+          ['Платные сервисы', guardian.state.paid_services_allowed ? 'требуют проверки' : 'заблокированы'],
+          ['Billing status', costUnknown ? 'не проверен' : 'проверен']
         ]
       }
     };
