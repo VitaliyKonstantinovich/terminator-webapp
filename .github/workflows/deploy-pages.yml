@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -35,6 +35,7 @@ jobs:
           rsync -av \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='android/terminator-mina/build' \
             --exclude='_site' \
             ./ _site/
 
@@ -46,3 +47,74 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Sync static gh-pages mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf gh-pages-worktree
+          if git ls-remote --exit-code --heads "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" gh-pages >/dev/null 2>&1; then
+            git clone --single-branch --branch gh-pages "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" gh-pages-worktree
+          else
+            git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" gh-pages-worktree
+            cd gh-pages-worktree
+            git checkout --orphan gh-pages
+            git rm -rf . >/dev/null 2>&1 || true
+            cd ..
+          fi
+          rsync -av --delete --exclude='.git' _site/ gh-pages-worktree/
+          cd gh-pages-worktree
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then
+            echo "gh-pages mirror already up to date."
+          else
+            git commit -m "deploy: sync static pages mirror [skip ci]"
+            git push origin gh-pages
+          fi
+
+      - name: Live smoke
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const pageUrl = process.env.PAGE_URL || 'https://vitaliykonstantinovich.github.io/terminator-webapp/';
+          const root = pageUrl.endsWith('/') ? pageUrl : `${pageUrl}/`;
+          const checks = [
+            {
+              name: 'html',
+              url: `${root}?force=workflow-smoke-${Date.now()}`,
+              validate: (text) => text.includes('20260526-phase5') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),
+            },
+            {
+              name: 'manifest',
+              url: `${root}manifest.webmanifest?force=workflow-smoke-${Date.now()}`,
+              validate: (text) => {
+                const manifest = JSON.parse(text);
+                return manifest.name === 'Terminator Mina UI' && manifest.display === 'standalone' && Array.isArray(manifest.icons) && manifest.icons.length >= 3;
+              },
+            },
+            {
+              name: 'service-worker',
+              url: `${root}sw.js?force=workflow-smoke-${Date.now()}`,
+              validate: (text) => text.includes('terminator-mina-pwa-20260526-phase5'),
+            },
+          ];
+
+          for (const check of checks) {
+            const response = await fetch(check.url, { cache: 'no-store' });
+            if (!response.ok) {
+              throw new Error(`${check.name} returned HTTP ${response.status}`);
+            }
+            const text = await response.text();
+            if (!check.validate(text)) {
+              throw new Error(`${check.name} validation failed`);
+            }
+            console.log(`${check.name}: PASS`);
+          }
+          NODE
