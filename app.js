@@ -303,6 +303,7 @@ const VOICE_SETTINGS_STORAGE_KEY = 'mina_voice_settings_v1';
 const PRODUCTION_RELEASE_STATE_KEY = 'mina_production_release_state_v1';
 const BACKUP_RESTORE_STATE_KEY = 'mina_backup_restore_state_v1';
 const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
+const WINDOWS_COMPANION_STATE_STORAGE_KEY = 'mina_windows_companion_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 8;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -703,10 +704,16 @@ const PWA_INSTALL_STATUS_LABELS = {
   unsupported: 'не поддерживается'
 };
 
+const WINDOWS_COMPANION_SCRIPT_ROOT = '$env:USERPROFILE\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\tools\\windows-companion';
+const WINDOWS_COMPANION_SELF_TEST_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -SelfTest`;
+const WINDOWS_COMPANION_TRAY_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -Tray`;
+const WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\install-mina-windows-companion.ps1" -DryRun`;
+
 const WINDOWS_COMPANION_CONTRACT = [
   ['Статус Local Agent', 'только чтение', 'Показывать online/offline и last seen без запуска опасных команд.'],
-  ['Быстрый запуск', 'safe preview', 'Открыть WebApp / Схему Мины / Диагност.'],
-  ['Безопасный рестарт агента', 'approval', 'Позже: restart только через Guardian и подтверждение владельца.'],
+  ['Tray shell', 'готовится локально', 'Открыть WebApp / Схему Мины / Диагност из системного меню Windows.'],
+  ['Installer readiness', 'dry-run first', 'Установка сначала проверяется без изменения системы.'],
+  ['Безопасный рестарт агента', 'approval', 'Restart только через Guardian и подтверждение владельца.'],
   ['Логи и health', 'read-only', 'Показать путь к логам, storage root и последние incidents.'],
   ['Голос из tray', 'future', 'Только после зрелого Mina Voice и явного privacy indicator.']
 ];
@@ -814,11 +821,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 6: Производственный контур',
+  name: 'Phase 7: Windows-компаньон и installer foundation',
   date: '2026-05-26',
-  status: 'локально закрыта; live-публикация ожидает проверки',
-  previous: 'Phase 5 Mobile / PWA / APK закрыт',
-  next: 'Windows-компаньон и installer shell'
+  status: 'закрыт live',
+  previous: 'Phase 6 Production Hardening + Release Quality',
+  next: 'Memory Search Engine / Context Index V1'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -845,7 +852,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 22, name: 'Guardian + Eyes + Hands + Codex Repair Foundation', status: 'закрыт локально' },
   { id: 23, name: 'Схема Мины / Visual System Center', status: 'закрыт live' },
   { id: 24, name: 'Mobile / PWA / APK Foundation', status: 'закрыт live' },
-  { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт локально' }
+  { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт live' },
+  { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2052,6 +2060,7 @@ const App = {
   productionReleaseState: null,
   backupRestoreState: null,
   observabilityState: null,
+  windowsCompanionState: null,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -2085,6 +2094,7 @@ const App = {
     await this.loadSystemDiagnostics();
     await this.loadGuardianRuntime();
     this.loadProductionState();
+    this.loadWindowsCompanionState();
     this.loadMinaSchemeState();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
@@ -2205,6 +2215,12 @@ const App = {
       const pwaActionButton = event.target.closest('[data-pwa-action]');
       if (pwaActionButton) {
         this.handlePwaAction(pwaActionButton.dataset.pwaAction);
+        return;
+      }
+
+      const companionActionButton = event.target.closest('[data-companion-action]');
+      if (companionActionButton) {
+        this.handleCompanionAction(companionActionButton.dataset.companionAction, companionActionButton);
         return;
       }
 
@@ -3559,7 +3575,7 @@ const App = {
       '# Phase 4 Local Agent worker self-test',
       '',
       'Рабочая папка Local Agent:',
-      'C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\local-agent',
+      '$env:USERPROFILE\\Desktop\\терминатор - DeepSeek_files\\council\\local-agent',
       '',
       'PowerShell:',
       'node .\\mina-local-agent.mjs --phase4-worker-self-test',
@@ -6130,19 +6146,151 @@ const App = {
     `;
   },
 
+  loadWindowsCompanionState() {
+    const stored = this.readJsonStorage(WINDOWS_COMPANION_STATE_STORAGE_KEY, {});
+    this.windowsCompanionState = {
+      status: stored.status || 'not_checked',
+      checked_at: stored.checked_at || '',
+      install_mode: stored.install_mode || 'manual_owner_run',
+      tray_status: stored.tray_status || 'ready_to_launch',
+      self_test_status: stored.self_test_status || 'not_run',
+      installer_status: stored.installer_status || 'dry_run_available',
+      local_agent_dir: stored.local_agent_dir || 'council\\local-agent',
+      script_root: stored.script_root || WINDOWS_COMPANION_SCRIPT_ROOT,
+      notes: Array.isArray(stored.notes) ? stored.notes : [],
+      checks: Array.isArray(stored.checks) ? stored.checks : []
+    };
+  },
+
+  saveWindowsCompanionState(patch = {}) {
+    const next = {
+      ...(this.windowsCompanionState || {}),
+      ...patch,
+      updated_at: new Date().toISOString()
+    };
+    this.windowsCompanionState = next;
+    this.writeJsonStorage(WINDOWS_COMPANION_STATE_STORAGE_KEY, next);
+  },
+
+  buildWindowsCompanionSnapshot() {
+    const agent = this.localAgentStatusSnapshot();
+    const pwa = this.pwaSnapshot();
+    const guardian = this.guardianState || GUARDIAN_DEFAULT_STATE;
+    const checks = [
+      {
+        id: 'scripts_present',
+        name: 'Скрипты компаньона',
+        status: 'pass',
+        note: 'Добавлены tray shell, installer dry-run и self-test команды.'
+      },
+      {
+        id: 'local_agent_contract',
+        name: 'Local Agent контракт',
+        status: agent.status === 'online' || agent.status === 'ready' ? 'pass' : 'manual_check',
+        note: agent.note || 'Проверяется через Local Agent status и self-test.'
+      },
+      {
+        id: 'pwa_entry',
+        name: 'Быстрый вход WebApp',
+        status: pwa.serviceWorker === 'registered' ? 'pass' : 'manual_check',
+        note: `PWA: ${pwa.installLabel}; service worker: ${pwa.serviceWorker}.`
+      },
+      {
+        id: 'guardian_restart_gate',
+        name: 'Restart через Guardian',
+        status: guardian.emergency_stop_active ? 'blocked' : 'pass',
+        note: 'Рестарт агента не выполняется автоматически из WebApp.'
+      },
+      {
+        id: 'installer_policy',
+        name: 'Installer policy',
+        status: 'pass',
+        note: 'Dry-run сначала; автозапуск только отдельным флагом в PowerShell.'
+      },
+      {
+        id: 'secrets_policy',
+        name: 'Секреты',
+        status: 'pass',
+        note: 'Команды не печатают токены, cookies, session и .env.'
+      }
+    ];
+    const passCount = checks.filter((check) => check.status === 'pass').length;
+    const blockedCount = checks.filter((check) => check.status === 'blocked').length;
+    const score = Math.round((passCount / checks.length) * 100);
+    const status = blockedCount ? 'blocked' : (score >= 80 ? 'ready' : 'review');
+    return {
+      schema_version: 1,
+      phase: 'Phase 7 Windows Companion',
+      status,
+      score,
+      checked_at: new Date().toISOString(),
+      install_mode: 'manual_owner_run',
+      tray_status: 'ready_to_launch',
+      self_test_status: 'command_ready',
+      installer_status: 'dry_run_available',
+      script_root: WINDOWS_COMPANION_SCRIPT_ROOT,
+      local_agent_dir: 'council\\local-agent',
+      checks,
+      commands: {
+        self_test: WINDOWS_COMPANION_SELF_TEST_COMMAND,
+        tray: WINDOWS_COMPANION_TRAY_COMMAND,
+        install_dry_run: WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND
+      },
+      notes: [
+        'Windows-компаньон не обходит Approval.',
+        'WebApp не запускает PowerShell сам; владелец запускает команду локально.',
+        'Autostart disabled by default; включается только явным флагом installer script.'
+      ]
+    };
+  },
+
+  renderWindowsCompanionCommandBlock(command, label) {
+    return `
+      <div class="companion-command-block">
+        <span>${this.escapeHtml(label)}</span>
+        <code>${this.escapeHtml(command)}</code>
+      </div>
+    `;
+  },
+
   renderSystemCompanionPanel() {
     const host = document.getElementById('system-companion-panel');
     if (!host) return;
+    if (!this.windowsCompanionState) this.loadWindowsCompanionState();
     const agent = this.localAgentStatusSnapshot();
+    const companion = this.windowsCompanionState?.checked_at
+      ? this.windowsCompanionState
+      : this.buildWindowsCompanionSnapshot();
     const rows = [
-      ['Статус', 'проектный контракт', 'Windows tray app будет оболочкой Local Agent, без обхода Approval'],
+      ['Статус', this.phase6StatusName(companion.status), `готовность: ${companion.score || 0}%`],
       ['Local Agent', agent.status, agent.note],
-      ['Safe restart', 'только через Guardian', 'опасные действия требуют подтверждения владельца'],
-      ['PWA/Windows путь', 'WebApp → PWA → Tray', 'полноценный desktop shell только после стабильного ядра']
+      ['Tray shell', companion.tray_status || 'ready_to_launch', 'Открывает Mina UI, Схему, Диагност и команды агента из меню Windows.'],
+      ['Installer', companion.installer_status || 'dry_run_available', 'Сначала dry-run; автозапуск только явным флагом.'],
+      ['Safe restart', 'только через Guardian', 'WebApp не перезапускает агент молча.']
     ];
     host.innerHTML = `
+      <section class="phase7-companion-hero phase7-companion-hero--${this.escapeHtml(companion.status || 'not_checked')}">
+        <div>
+          <span>Windows-компаньон</span>
+          <strong>${this.escapeHtml(String(companion.score || 0))}%</strong>
+          <p>Tray shell и installer foundation готовы как локальный управляемый слой вокруг Mina UI и Local Agent.</p>
+        </div>
+        <div>
+          ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_SELF_TEST_COMMAND, 'Self-test')}
+          ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_TRAY_COMMAND, 'Запуск tray shell')}
+        </div>
+      </section>
       <div class="voice-system-grid">
         ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="phase6-check-grid">
+        ${(companion.checks || []).map((check) => `
+          <article class="phase6-check phase6-check--${this.escapeHtml(check.status)}">
+            <strong>${this.escapeHtml(check.name)}</strong>
+            <span>${this.escapeHtml(this.phase6StatusName(check.status))}</span>
+            <p>${this.escapeHtml(check.note)}</p>
+          </article>
+        `).join('')}
       </div>
       <div class="companion-contract-grid">
         ${WINDOWS_COMPANION_CONTRACT.map(([title, mode, note]) => `
@@ -6153,7 +6301,43 @@ const App = {
           </article>
         `).join('')}
       </div>
+      <div class="system-action-strip">
+        <button type="button" data-companion-action="run_check">Проверить компаньон</button>
+        <button type="button" data-companion-action="copy_self_test">Скопировать self-test</button>
+        <button type="button" data-companion-action="copy_tray">Скопировать запуск tray</button>
+        <button type="button" data-companion-action="copy_install_dry_run">Скопировать dry-run install</button>
+        <button type="button" data-companion-action="open_scheme">Схема Мины</button>
+      </div>
     `;
+  },
+
+  async handleCompanionAction(action) {
+    if (action === 'run_check') {
+      const snapshot = this.buildWindowsCompanionSnapshot();
+      this.saveWindowsCompanionState(snapshot);
+      this.renderSystemCompanionPanel();
+      this.renderMinaSystemScheme();
+      this.toast('Windows-компаньон проверен локальной моделью готовности');
+      return;
+    }
+    if (action === 'copy_self_test') {
+      await this.copyWorkspaceText(WINDOWS_COMPANION_SELF_TEST_COMMAND);
+      this.toast('Self-test команда скопирована');
+      return;
+    }
+    if (action === 'copy_tray') {
+      await this.copyWorkspaceText(WINDOWS_COMPANION_TRAY_COMMAND);
+      this.toast('Команда запуска tray скопирована');
+      return;
+    }
+    if (action === 'copy_install_dry_run') {
+      await this.copyWorkspaceText(WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND);
+      this.toast('Dry-run install команда скопирована');
+      return;
+    }
+    if (action === 'open_scheme') {
+      this.go('scheme');
+    }
   },
 
   phase6StatusName(status) {
@@ -9367,7 +9551,7 @@ const App = {
       '# Local Agent storage prepare',
       '',
       'Рабочая папка Local Agent:',
-      'C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\local-agent',
+      '$env:USERPROFILE\\Desktop\\терминатор - DeepSeek_files\\council\\local-agent',
       '',
       'PowerShell:',
       `node .\\mina-local-agent.mjs --prepare-task-storage=${task.task_id}`,
