@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260525-phase4-final">
+  <link rel="stylesheet" href="styles.css?v=20260526-phase45-scheme">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -474,6 +474,16 @@
           </div>
 
           <section id="mission-summary" class="mission-grid" aria-label="Сводка"></section>
+          <section class="runtime-panel mina-scheme-entry">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Схема Мины</strong>
+                <span>Визуальная карта готовности Терминатора</span>
+              </div>
+              <button type="button" data-nav="scheme">Открыть</button>
+            </div>
+            <p class="runtime-note">Показывает Голова / Память / Тело / Руки / Ноги / Голос / Глаза / Диагност и ведёт к следующему шагу настройки.</p>
+          </section>
           <section class="mission-status-board" aria-label="Runtime обзор">
             <section class="runtime-panel">
               <div class="runtime-panel-head">
@@ -571,6 +581,17 @@
             <p>Runtime, безопасность и будущие устройства</p>
           </div>
 
+          <section class="runtime-panel mina-scheme-entry">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Схема Мины</strong>
+                <span>Визуальная настройка и readiness Терминатора</span>
+              </div>
+              <button type="button" data-nav="scheme">Открыть схему</button>
+            </div>
+            <p class="runtime-note">Один экран показывает, что работает, что требует настройки и куда двигаться дальше.</p>
+          </section>
+
           <section id="system-summary" class="mission-grid" aria-label="Состояние системы"></section>
           <section class="system-layout" aria-label="Системные панели">
             <section class="runtime-panel">
@@ -663,6 +684,26 @@
             </div>
             <div id="system-voice-hooks" class="voice-system-panel"></div>
           </section>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-scheme" class="screen screen--blue screen--scheme" data-screen="scheme">
+      <div class="telemetry telemetry--left" aria-hidden="true"></div>
+      <div class="telemetry telemetry--right" aria-hidden="true"></div>
+      <div class="screen-inner screen-inner--scheme">
+        <article class="command-shell command-shell--scheme">
+          <nav class="topbar" aria-label="Навигация">
+            <button class="icon-button" type="button" data-nav="system" aria-label="Назад">
+              <span aria-hidden="true">←</span>
+            </button>
+            <span class="topbar-title">MINA UI</span>
+            <button class="icon-button" type="button" data-close aria-label="Закрыть">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+
+          <div id="mina-system-scheme" class="mina-system-scheme" aria-label="Схема Мины"></div>
         </article>
       </div>
     </section>
@@ -882,6 +923,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260525-phase4-final"></script>
+  <script src="app.js?v=20260526-phase45-scheme"></script>
 </body>
 </html>

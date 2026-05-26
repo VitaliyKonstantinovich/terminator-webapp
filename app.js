@@ -297,6 +297,7 @@ const GUARDIAN_INCIDENTS_STORAGE_KEY = 'mina_guardian_incidents_v1';
 const GUARDIAN_WORKER_REPORTS_STORAGE_KEY = 'mina_guardian_worker_reports_v1';
 const TASK_STORE_SYNC_STATE_KEY = 'mina_task_store_sync_state_v1';
 const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
+const MINA_SCHEME_STATE_KEY = 'mina_system_scheme_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 8;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -505,6 +506,110 @@ const FIRST_RUN_SAFETY_CHECKS = [
   ['head', 'Голова / Стратег', 'настройка мозгов и профилей'],
   ['restore_point', 'Первый restore point', 'точка восстановления перед крупными изменениями']
 ];
+
+const MINA_SCHEME_SUBSYSTEMS = [
+  {
+    id: 'head',
+    display: 'Голова / Мозги',
+    short: 'Голова',
+    side: 'left',
+    icon: '◎',
+    anchor: { x: 50, y: 12 },
+    card: { x: 8, y: 15 },
+    description: 'Стратег, Совет мозгов, исследователи и поисковики.',
+    required_for_comfort: true,
+    required_for_full: true
+  },
+  {
+    id: 'eyes',
+    display: 'Глаза',
+    short: 'Глаза',
+    side: 'left',
+    icon: '◉',
+    anchor: { x: 49, y: 18 },
+    card: { x: 7, y: 30 },
+    description: 'Наблюдение, скриншоты, visual evidence и UI smoke.',
+    required_for_full: true
+  },
+  {
+    id: 'voice',
+    display: 'Голос',
+    short: 'Голос',
+    side: 'left',
+    icon: '≋',
+    anchor: { x: 50, y: 23 },
+    card: { x: 7, y: 45 },
+    description: 'Push-to-talk, transcript, intent preview и безопасные голосовые команды.',
+    required_for_full: true
+  },
+  {
+    id: 'hands',
+    display: 'Руки',
+    short: 'Руки',
+    side: 'left',
+    icon: '✦',
+    anchor: { x: 35, y: 54 },
+    card: { x: 8, y: 68 },
+    description: 'Ремонт через Codex, рабочая область ремонта и будущие помощники под защитником.',
+    required_for_comfort: true,
+    required_for_full: true
+  },
+  {
+    id: 'memory',
+    display: 'Память',
+    short: 'Память',
+    side: 'right',
+    icon: '▣',
+    anchor: { x: 62, y: 30 },
+    card: { x: 69, y: 17 },
+    description: 'Memory Preview, записи решений, поиск и индекс контекста.',
+    required_for_comfort: true,
+    required_for_full: true
+  },
+  {
+    id: 'body',
+    display: 'Тело',
+    short: 'Тело',
+    side: 'right',
+    icon: '◆',
+    anchor: { x: 50, y: 44 },
+    card: { x: 70, y: 36 },
+    description: 'Контур задач, маршрутизация, локальный агент, мост и подтверждения.',
+    required_for_minimum: true,
+    required_for_full: true
+  },
+  {
+    id: 'legs',
+    display: 'Ноги',
+    short: 'Ноги',
+    side: 'right',
+    icon: '⌁',
+    anchor: { x: 50, y: 78 },
+    card: { x: 70, y: 55 },
+    description: 'Device Mesh, маршруты, handoff, continuity и перенос контекста.',
+    required_for_full: true
+  },
+  {
+    id: 'diagnost',
+    display: 'Диагност',
+    short: 'Диагност',
+    side: 'right',
+    icon: '◇',
+    anchor: { x: 58, y: 60 },
+    card: { x: 70, y: 73 },
+    description: 'Защитник, безопасный режим, инциденты, платные риски и восстановление.',
+    required_for_minimum: true,
+    required_for_full: true
+  }
+];
+
+const MINA_SCHEME_STATUS_LABELS = {
+  ready: 'готово',
+  partial: 'частично',
+  waiting: 'не настроено',
+  error: 'ошибка',
+  active: 'выбрано'
+};
 
 const DEVICE_TYPES = {
   windows_pc: 'ПК Windows',
@@ -1892,6 +1997,10 @@ const App = {
   activeApprovalId: '',
   activeDiagnosticId: '',
   activeIncidentId: '',
+  activeMinaSchemeZone: 'body',
+  minaSchemeMode: 'normal',
+  minaSchemeExpertOpen: false,
+  minaSchemeDismissedHints: [],
   diagnosticRunning: false,
   activeWorkTaskId: '',
   workPreview: null,
@@ -1910,7 +2019,7 @@ const App = {
   toastTimer: null,
   commandPollTimer: null,
   tg: null,
-  order: ['start', 'menu', 'work', 'mission', 'system'],
+  order: ['start', 'menu', 'work', 'mission', 'system', 'scheme'],
   anydesk: {
     id: '',
     status: 'не проверен',
@@ -1934,6 +2043,7 @@ const App = {
     await this.loadApprovalRecords();
     await this.loadSystemDiagnostics();
     await this.loadGuardianRuntime();
+    this.loadMinaSchemeState();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
     this.renderProjectRuntimePanel();
@@ -2099,6 +2209,18 @@ const App = {
         return;
       }
 
+      const schemeButton = event.target.closest('[data-scheme-action]');
+      if (schemeButton) {
+        this.handleMinaSchemeAction(schemeButton.dataset.schemeAction, schemeButton);
+        return;
+      }
+
+      const schemeZone = event.target.closest('[data-scheme-zone]');
+      if (schemeZone) {
+        this.selectMinaSchemeZone(schemeZone.dataset.schemeZone);
+        return;
+      }
+
       const headButton = event.target.closest('[data-head-action]');
       if (headButton) {
         this.handleHeadAction(headButton.dataset.headAction, headButton);
@@ -2129,6 +2251,12 @@ const App = {
       const councilProfileSelect = event.target.closest('#workspace-council-profile-select');
       if (councilProfileSelect) {
         this.updateTaskCouncilProfile(councilProfileSelect.value);
+        return;
+      }
+
+      const schemeStrategist = event.target.closest('#mina-scheme-strategist-select');
+      if (schemeStrategist) {
+        this.updateMinaSchemeStrategist(schemeStrategist.value);
       }
     });
 
@@ -2303,6 +2431,7 @@ const App = {
     document.body.dataset.screen = name;
     if (name === 'mission') this.renderMissionControl();
     if (name === 'system') this.renderSystemStatus();
+    if (name === 'scheme') this.renderMinaSystemScheme();
     this.updateTelegramControls();
   },
 
@@ -2313,6 +2442,7 @@ const App = {
       work: 'menu',
       mission: 'menu',
       system: 'menu',
+      scheme: 'system',
       personal: 'menu',
       brain: this.isLegacyPersonalAccessAllowed() ? 'personal' : 'menu',
       remote: this.isLegacyPersonalAccessAllowed() ? 'brain' : 'menu',
@@ -3976,6 +4106,7 @@ const App = {
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
+    this.renderMinaSystemScheme();
   },
 
   renderSystemDiagnostics() {
@@ -5432,6 +5563,638 @@ const App = {
     `;
   },
 
+  loadMinaSchemeState() {
+    const stored = this.readJsonStorage(MINA_SCHEME_STATE_KEY, {});
+    const validZones = new Set(MINA_SCHEME_SUBSYSTEMS.map((item) => item.id));
+    const validModes = new Set(['first_run', 'normal', 'expert']);
+    this.activeMinaSchemeZone = validZones.has(stored.selected_zone) ? stored.selected_zone : 'body';
+    this.minaSchemeMode = validModes.has(stored.mode) ? stored.mode : 'normal';
+    this.minaSchemeExpertOpen = Boolean(stored.expert_open);
+    this.minaSchemeDismissedHints = Array.isArray(stored.dismissed_hints) ? stored.dismissed_hints : [];
+  },
+
+  saveMinaSchemeState() {
+    this.writeJsonStorage(MINA_SCHEME_STATE_KEY, {
+      selected_zone: this.activeMinaSchemeZone,
+      mode: this.minaSchemeMode,
+      expert_open: this.minaSchemeExpertOpen,
+      dismissed_hints: this.minaSchemeDismissedHints,
+      updated_at: new Date().toISOString()
+    });
+  },
+
+  selectMinaSchemeZone(zoneId) {
+    if (!MINA_SCHEME_SUBSYSTEMS.some((item) => item.id === zoneId)) return;
+    this.activeMinaSchemeZone = zoneId;
+    this.saveMinaSchemeState();
+    this.renderMinaSystemScheme();
+  },
+
+  minaSchemeStatusClass(status) {
+    if (status === 'ready') return 'ready';
+    if (status === 'error') return 'error';
+    if (status === 'waiting') return 'waiting';
+    return 'partial';
+  },
+
+  minaSchemeStatusText(status) {
+    return MINA_SCHEME_STATUS_LABELS[status] || status || 'частично';
+  },
+
+  minaSchemeHealth() {
+    const tasks = this.workTasks || [];
+    const head = this.headStatusSnapshot();
+    const guardian = this.guardianSnapshot();
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const savedMemory = tasks.filter((task) => ['saved_local', 'memory_saved'].includes(task.memory_preview?.status || task.memory_status)).length;
+    const researchTasks = tasks.filter((task) => this.ensureResearchOpsState(task).status !== 'not_started').length;
+    const devicePhone = (this.systemDevices || []).find((device) => device.device_id === 'device_owner_phone');
+    const workerReports = this.guardianWorkerReports || [];
+    const criticalIncident = guardian.openIncidents.find((incident) => incident.severity === 'critical');
+    const bodyScore = this.taskRuntimeReady ? (taskStore.tone === 'synced' ? 88 : 76) : 45;
+    const directReady = direct.status === 'сессия активна' || direct.status === 'ожидает вход';
+    const localAgentKnown = !/не найден/i.test(agent.status);
+    const bodyStatus = this.taskRuntimeReady && directReady && localAgentKnown ? 'ready' : (this.taskRuntimeReady ? 'partial' : 'error');
+    const guardianStatus = criticalIncident || guardian.state.emergency_stop_active
+      ? 'error'
+      : guardian.state.safe_mode
+        ? 'partial'
+        : 'ready';
+    const headStatus = head.tone === 'pass' ? 'ready' : (this.mainStrategistBrain() ? 'partial' : 'waiting');
+    const memoryStatus = savedMemory || tasks.length || this.taskRuntimeReady ? 'partial' : 'waiting';
+    const handsStatus = workerReports.length || guardian.state.status ? 'partial' : 'waiting';
+    const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) ? 'partial' : 'waiting';
+    const voiceStatus = this.workspaceVoiceSupported ? 'partial' : 'waiting';
+    const legsStatus = devicePhone?.status === 'connected' ? 'ready' : ((this.systemDevices || []).length ? 'partial' : 'waiting');
+
+    const subsystems = {
+      head: {
+        status: headStatus,
+        readiness: headStatus === 'ready' ? 92 : (headStatus === 'partial' ? 62 : 25),
+        summary: head.status,
+        note: head.note,
+        snapshot_source: 'Head / BrainOps',
+        is_mock: false,
+        checks: [
+          ['Главный Стратег', this.mainStrategistBrain() ? 'готово' : 'нужно выбрать'],
+          ['Совет мозгов', this.activeHeadBrains().length ? `${this.activeHeadBrains().length} активных` : 'пусто'],
+          ['Исследователи', this.activeHeadSearchAgents().length ? `${this.activeHeadSearchAgents().length} активных` : 'не добавлены'],
+          ['Тесты подключения', (this.headBrains || []).some((brain) => brain.status === 'ready') ? 'есть готовый мозг' : 'ждут ручного теста']
+        ]
+      },
+      eyes: {
+        status: eyesStatus,
+        readiness: eyesStatus === 'partial' ? 58 : 35,
+        summary: eyesStatus === 'partial' ? 'визуальные доказательства частично готовы' : 'ожидает настройки',
+        note: 'Глаза только фиксируют доказательства: скриншоты, визуальную проверку и состояние интерфейса.',
+        snapshot_source: workerReports.length ? 'Guardian worker reports' : 'Phase 4 worker catalog',
+        is_mock: !workerReports.length,
+        checks: [
+          ['Скриншоты', 'ручные доказательства'],
+          ['Визуальная проверка', 'готова к ручному smoke'],
+          ['Мобильная проверка', 'через QA smoke'],
+          ['Чтение интерфейса', 'позже через Eyes runtime']
+        ]
+      },
+      voice: {
+        status: voiceStatus,
+        readiness: this.workspaceVoiceSupported ? 64 : 38,
+        summary: this.workspaceVoiceSupported ? 'режим “нажать и говорить” доступен' : 'ручной ввод доступен',
+        note: 'Фонового прослушивания нет. Опасные голосовые команды блокируются Approval.',
+        snapshot_source: 'Workspace voice hooks',
+        is_mock: false,
+        checks: [
+          ['Режим', 'Нажать и говорить'],
+          ['Язык', 'Русский'],
+          ['Распознавание речи', this.workspaceVoiceSupported ? 'доступно в браузере' : 'ручной ввод'],
+          ['Опасные команды', 'заблокированы']
+        ]
+      },
+      hands: {
+        status: handsStatus,
+        readiness: handsStatus === 'partial' ? 68 : 44,
+        summary: 'Codex Repair foundation',
+        note: 'Руки не применяют изменения напрямую. Рабочая область ремонта, проверка, откат и подтверждение обязательны.',
+        snapshot_source: workerReports.length ? 'Guardian worker reports' : 'Guardian / Phase 4 foundation',
+        is_mock: !workerReports.length,
+        checks: [
+          ['Codex-ремонтник', 'foundation готов'],
+          ['Рабочая область ремонта', `${TERMINATOR_STORAGE_ROOT}\\repair_workspaces`],
+          ['Auto-fix LOW', guardian.state.autonomy_level >= 3 ? 'разрешён политикой' : 'ручной контроль'],
+          ['Помощники', `${PHASE4_WORKER_FOUNDATION.length} в матрице возможностей`]
+        ]
+      },
+      memory: {
+        status: memoryStatus,
+        readiness: memoryStatus === 'partial' ? 66 : 36,
+        summary: savedMemory ? `${savedMemory} записей памяти` : 'поиск по памяти требует индекса',
+        note: 'Предпросмотр памяти работает; быстрый поиск и индекс контекста должны стать следующим усилением.',
+        snapshot_source: 'Task Runtime memory previews',
+        is_mock: true,
+        checks: [
+          ['Хранилище', `${TERMINATOR_STORAGE_ROOT}\\memory`],
+          ['Memory Preview', tasks.length ? 'работает в задачах' : 'нет задач'],
+          ['Индекс поиска', 'требует реализации'],
+          ['Файлы', 'только refs, не raw huge data']
+        ]
+      },
+      body: {
+        status: bodyStatus,
+        readiness: Math.min(92, bodyScore),
+        summary: this.taskRuntimeReady ? 'контур задач активен' : 'контур задач требует внимания',
+        note: `Мост: ${direct.status}; локальный агент: ${agent.status}; хранилище задач: ${taskStore.status}.`,
+        snapshot_source: 'Task Runtime / Bridge / Local Agent / TaskStore',
+        is_mock: false,
+        checks: [
+          ['Контур задач', this.taskRuntimeReady ? 'локальная база активна' : 'резервный режим'],
+          ['Мост', direct.status],
+          ['Локальный агент', agent.status],
+          ['Подтверждения', 'включены']
+        ]
+      },
+      legs: {
+        status: legsStatus,
+        readiness: legsStatus === 'ready' ? 90 : (legsStatus === 'partial' ? 52 : 28),
+        summary: legsStatus === 'ready' ? 'связь устройств готова' : 'связь устройств частично',
+        note: 'Ноги маршрутизируют задачи и контекст. Они не выполняют действия вместо Рук.',
+        snapshot_source: 'Device Registry / Device Mesh placeholders',
+        is_mock: true,
+        checks: [
+          ['Основное устройство', 'ПК Терминатора'],
+          ['Телефон', devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен'],
+          ['Передача задачи', 'локальный слой статуса'],
+          ['Перенос контекста', 'будущий слой маршрутов']
+        ]
+      },
+      diagnost: {
+        status: guardianStatus,
+        readiness: guardianStatus === 'ready' ? 90 : (guardianStatus === 'partial' ? 70 : 30),
+        summary: guardian.label,
+        note: guardian.state.emergency_stop_active
+          ? 'Стоп действия включён. Новые рискованные действия заблокированы.'
+          : guardian.state.safe_mode
+            ? 'Безопасный режим включён. Автоматические действия ограничены.'
+            : 'Защитник контролирует риски, стоимость и опасные действия. Платные сервисы не разрешены.',
+        snapshot_source: 'Guardian / Diagnost / Cost Guard',
+        is_mock: false,
+        checks: [
+          ['Guardian', guardian.label],
+          ['Безопасный режим', guardian.state.safe_mode ? 'включён' : 'выключен'],
+          ['Инциденты', `${guardian.openIncidents.length} открытых`],
+          ['Платные сервисы', guardian.state.paid_services_allowed ? 'требуют проверки' : 'заблокированы']
+        ]
+      }
+    };
+
+    if (researchTasks) {
+      subsystems.head.note += ` ResearchOps активен в ${researchTasks} задачах.`;
+    }
+
+    const minimumReady = ['body', 'diagnost'].every((id) => ['ready', 'partial'].includes(subsystems[id].status) && subsystems[id].readiness >= 65);
+    const comfortReady = minimumReady && ['head', 'memory', 'hands'].every((id) => subsystems[id].readiness >= 60);
+    const fullReady = comfortReady && ['eyes', 'voice', 'legs'].every((id) => subsystems[id].status === 'ready');
+    const readinessPercent = fullReady
+      ? 100
+      : comfortReady
+        ? Math.min(88, 70 + Math.round((subsystems.eyes.readiness + subsystems.voice.readiness + subsystems.legs.readiness) / 15))
+        : minimumReady
+          ? Math.min(69, 35 + Math.round((subsystems.head.readiness + subsystems.memory.readiness + subsystems.hands.readiness) / 12))
+          : Math.max(12, Math.round((subsystems.body.readiness + subsystems.diagnost.readiness) / 4));
+    const next = this.minaSchemeNextAction(subsystems, fullReady);
+    return { subsystems, minimumReady, comfortReady, fullReady, readinessPercent, next };
+  },
+
+  minaSchemeNextAction(subsystems, fullReady = false) {
+    if (subsystems.body.readiness < 65) return { zone: 'body', label: 'Проверить Тело', action: 'select_body', note: 'Проверить контур задач, мост, локальный агент и хранилище задач.' };
+    if (subsystems.diagnost.readiness < 65) return { zone: 'diagnost', label: 'Запустить Диагност', action: 'run_diagnostics', note: 'Проверить защитник, инциденты и платные риски.' };
+    if (subsystems.head.readiness < 65) return { zone: 'head', label: 'Настроить Голову', action: 'select_head', note: 'Выбрать Стратега и проверить мозги.' };
+    if (subsystems.memory.readiness < 70) return { zone: 'memory', label: 'Проверить Память', action: 'select_memory', note: 'Подготовить поиск по памяти и индекс.' };
+    if (subsystems.hands.readiness < 70) return { zone: 'hands', label: 'Проверить ремонт через Codex', action: 'select_hands', note: 'Проверить рабочую область ремонта и отчёты помощников.' };
+    if (subsystems.legs.readiness < 70) return { zone: 'legs', label: 'Настроить Ноги', action: 'select_legs', note: 'Проверить Device Mesh и handoff.' };
+    if (subsystems.voice.readiness < 70) return { zone: 'voice', label: 'Настроить Голос', action: 'select_voice', note: 'Проверить push-to-talk и intent preview.' };
+    if (subsystems.eyes.readiness < 70) return { zone: 'eyes', label: 'Проверить Глаза', action: 'select_eyes', note: 'Проверить visual smoke и evidence capture.' };
+    return { zone: 'body', label: fullReady ? 'Запустить Терминатор' : 'Продолжить настройку', action: 'launch', note: 'Минимальный и комфортный контур готовы.' };
+  },
+
+  renderMinaSystemScheme() {
+    const host = document.getElementById('mina-system-scheme');
+    if (!host) return;
+    const health = this.minaSchemeHealth();
+    const activeMeta = MINA_SCHEME_SUBSYSTEMS.find((item) => item.id === this.activeMinaSchemeZone) || MINA_SCHEME_SUBSYSTEMS[0];
+    const active = health.subsystems[activeMeta.id] || health.subsystems.body;
+    const modeLabel = this.minaSchemeMode === 'first_run' ? 'Первый запуск' : this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen ? 'Экспертный режим' : 'Обычный режим';
+    host.innerHTML = `
+      <header class="scheme-hero">
+        <div>
+          <span class="scheme-kicker">Схема Мины</span>
+          <h2>Визуальная настройка Терминатора</h2>
+          <p>Силуэт показывает состояние подсистем. Правая панель объясняет, что работает, что требует настройки и какой следующий шаг.</p>
+        </div>
+        <div class="scheme-readiness scheme-readiness--${this.escapeHtml(this.minaSchemeStatusClass(active.status))}">
+          <strong>${health.readinessPercent}%</strong>
+          <span>${this.escapeHtml(modeLabel)}</span>
+        </div>
+      </header>
+
+      <section class="scheme-modebar" aria-label="Режим схемы">
+        <button type="button" data-scheme-action="set_mode" data-mode="first_run" class="${this.minaSchemeMode === 'first_run' ? 'active' : ''}">Первый запуск</button>
+        <button type="button" data-scheme-action="set_mode" data-mode="normal" class="${this.minaSchemeMode === 'normal' && !this.minaSchemeExpertOpen ? 'active' : ''}">Обычный</button>
+        <button type="button" data-scheme-action="set_mode" data-mode="expert" class="${this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen ? 'active' : ''}">Экспертный</button>
+      </section>
+
+      <section class="scheme-layout">
+        <div class="scheme-map" aria-label="Интерактивная карта подсистем Мины">
+          ${this.renderMinaSchemeLines()}
+          ${this.renderMinaSchemeSilhouette(health.subsystems)}
+          ${MINA_SCHEME_SUBSYSTEMS.map((meta) => this.renderMinaSchemeZoneCard(meta, health.subsystems[meta.id])).join('')}
+        </div>
+        <aside class="scheme-panel" aria-label="Настройка выбранной зоны">
+          ${this.renderMinaSchemePanel(activeMeta, active, health)}
+        </aside>
+      </section>
+
+      <footer class="scheme-nextbar">
+        <div>
+          <strong>${this.escapeHtml(health.next.label)}</strong>
+          <span>${this.escapeHtml(health.next.note)}</span>
+        </div>
+        <div class="scheme-next-actions">
+          <button type="button" data-scheme-action="run_diagnostics">Проверить систему</button>
+          <button type="button" data-scheme-action="continue_setup">Продолжить настройку</button>
+          <button type="button" data-scheme-action="save_state">Сохранить</button>
+          <button type="button" data-scheme-action="launch">Запустить Терминатор</button>
+        </div>
+      </footer>
+    `;
+  },
+
+  renderMinaSchemeLines() {
+    const active = this.activeMinaSchemeZone;
+    const lines = MINA_SCHEME_SUBSYSTEMS.map((meta) => {
+      const startX = meta.side === 'left' ? meta.card.x + 18 : meta.card.x;
+      const startY = meta.card.y + 7;
+      const className = meta.id === active ? 'active' : '';
+      return `<line class="${className}" x1="${startX}" y1="${startY}" x2="${meta.anchor.x}" y2="${meta.anchor.y}" />`;
+    }).join('');
+    return `
+      <svg class="scheme-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        ${lines}
+      </svg>
+    `;
+  },
+
+  renderMinaSchemeSilhouette(subsystems) {
+    const anchorDots = MINA_SCHEME_SUBSYSTEMS.map((meta) => {
+      const status = this.minaSchemeStatusClass(subsystems[meta.id]?.status);
+      const active = meta.id === this.activeMinaSchemeZone ? 'active' : '';
+      return `<circle class="scheme-anchor-dot ${status} ${active}" cx="${meta.anchor.x}" cy="${meta.anchor.y}" r="${active ? 1.85 : 1.25}" />`;
+    }).join('');
+    return `
+      <div class="scheme-silhouette" aria-hidden="true">
+        <svg viewBox="0 0 240 640" role="img" aria-label="Стилизованный силуэт Мины">
+          <defs>
+            <linearGradient id="minaBodyGlow" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#7feeff" stop-opacity="0.95" />
+              <stop offset="0.5" stop-color="#227cff" stop-opacity="0.7" />
+              <stop offset="1" stop-color="#6af7ff" stop-opacity="0.9" />
+            </linearGradient>
+            <filter id="minaGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <path class="scheme-aura" d="M120 14 C176 52 205 136 195 247 C186 347 171 465 120 620 C69 465 54 347 45 247 C35 136 64 52 120 14 Z" />
+          <circle class="scheme-head" cx="120" cy="72" r="34" />
+          <path class="scheme-hair" d="M82 76 C83 30 109 11 120 10 C159 21 172 56 160 112 C150 91 141 76 120 76 C99 76 90 91 82 112 C79 99 78 88 82 76 Z" />
+          <path class="scheme-body" d="M87 118 C101 103 139 103 153 118 C167 151 164 204 150 239 C144 257 145 292 158 331 C171 373 176 433 158 499 C150 531 141 581 128 616 L112 616 C99 581 90 531 82 499 C64 433 69 373 82 331 C95 292 96 257 90 239 C76 204 73 151 87 118 Z" />
+          <path class="scheme-core" d="M97 142 C107 136 133 136 143 142 C150 181 146 219 137 250 C132 267 132 291 140 317 L100 317 C108 291 108 267 103 250 C94 219 90 181 97 142 Z" />
+          <path class="scheme-arm scheme-arm-left" d="M88 143 C59 184 47 262 52 351 C55 402 43 430 30 456" />
+          <path class="scheme-arm scheme-arm-right" d="M152 143 C181 184 193 262 188 351 C185 402 197 430 210 456" />
+          <path class="scheme-leg scheme-leg-left" d="M104 318 C91 382 88 475 96 616" />
+          <path class="scheme-leg scheme-leg-right" d="M136 318 C149 382 152 475 144 616" />
+          <path class="scheme-line-detail" d="M120 109 L120 604 M91 170 C111 183 129 183 149 170 M88 246 C108 258 132 258 152 246 M95 356 C110 366 130 366 145 356" />
+        </svg>
+        <svg class="scheme-anchor-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          ${anchorDots}
+        </svg>
+      </div>
+    `;
+  },
+
+  renderMinaSchemeZoneCard(meta, subsystem) {
+    const status = this.minaSchemeStatusClass(subsystem?.status || 'waiting');
+    const active = meta.id === this.activeMinaSchemeZone;
+    const aria = `Открыть настройку ${meta.display}. Статус: ${this.minaSchemeStatusText(subsystem?.status || 'waiting')}.`;
+    return `
+      <button
+        type="button"
+        class="scheme-zone-card ${status} ${active ? 'active' : ''} scheme-zone-card--${this.escapeHtml(meta.side)}"
+        style="--zone-x:${meta.card.x}%; --zone-y:${meta.card.y}%;"
+        data-scheme-zone="${this.escapeHtml(meta.id)}"
+        aria-label="${this.escapeHtml(aria)}">
+        <span class="scheme-zone-icon" aria-hidden="true">${this.escapeHtml(meta.icon)}</span>
+        <span>
+          <strong>${this.escapeHtml(meta.display)}</strong>
+          <small>${this.escapeHtml(this.minaSchemeStatusText(subsystem?.status || 'waiting'))} · ${this.escapeHtml(String(subsystem?.readiness || 0))}%</small>
+        </span>
+      </button>
+    `;
+  },
+
+  renderMinaSchemePanel(meta, subsystem, health) {
+    const statusClass = this.minaSchemeStatusClass(subsystem.status);
+    const expert = this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen;
+    return `
+      <div class="scheme-panel-head">
+        <div>
+          <span>${this.escapeHtml(meta.short)}</span>
+          <h3>${this.escapeHtml(meta.display)}</h3>
+          <p>${this.escapeHtml(subsystem.note || meta.description)}</p>
+        </div>
+        <strong class="scheme-status-badge ${statusClass}">${this.escapeHtml(this.minaSchemeStatusText(subsystem.status))}</strong>
+      </div>
+
+      <div class="scheme-panel-summary">
+        <div><span>Готовность</span><strong>${this.escapeHtml(String(subsystem.readiness))}%</strong></div>
+        <div><span>Источник</span><strong>${this.escapeHtml(expert ? subsystem.snapshot_source : 'состояние системы')}</strong></div>
+      </div>
+
+      ${this.renderMinaSchemePanelBody(meta.id, subsystem, health)}
+
+      <section class="scheme-checklist">
+        <strong>Готовность</strong>
+        ${subsystem.checks.map(([name, value]) => `
+          <article>
+            <span>${this.escapeHtml(name)}</span>
+            <b>${this.escapeHtml(value)}</b>
+          </article>
+        `).join('')}
+      </section>
+
+      <section class="scheme-panel-actions">
+        ${this.renderMinaSchemeActions(meta.id)}
+      </section>
+
+      ${expert ? this.renderMinaSchemeExpert(meta, subsystem, health) : ''}
+    `;
+  },
+
+  renderMinaSchemePanelBody(zoneId, subsystem, health) {
+    if (zoneId === 'head') {
+      const strategist = this.mainStrategistBrain();
+      const brains = (this.headBrains || []).filter((brain) => !brain.archived);
+      const activeBrains = this.activeHeadBrains();
+      const activeAgents = this.activeHeadSearchAgents();
+      return `
+        <section class="scheme-config-block">
+          <label class="work-field">
+            <span>Главный Стратег</span>
+            <select id="mina-scheme-strategist-select">
+              <option value="">Не выбран</option>
+              ${brains.filter((brain) => brain.can_be_strategist).map((brain) => `<option value="${this.escapeHtml(brain.brain_id)}"${strategist?.brain_id === brain.brain_id ? ' selected' : ''}>${this.escapeHtml(brain.display_name)} / ${this.escapeHtml(brain.selected_model_name)}</option>`).join('')}
+            </select>
+          </label>
+          <div class="scheme-chip-list">
+            ${activeBrains.slice(0, 5).map((brain) => `<span>${this.escapeHtml(brain.display_name)} · ${this.escapeHtml(brain.role)}</span>`).join('') || '<span>Совет не собран</span>'}
+          </div>
+          <div class="scheme-chip-list">
+            ${activeAgents.slice(0, 5).map((agent) => `<span>${this.escapeHtml(agent.name)}</span>`).join('') || '<span>Исследователи не выбраны</span>'}
+          </div>
+        </section>
+      `;
+    }
+
+    if (zoneId === 'memory') {
+      const memoryTasks = (this.workTasks || []).filter((task) => task.memory_preview || task.memory_status);
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\memory</div>
+          <p>Предпросмотр памяти уже связан с задачами. Быстрый индекс поиска должен стать следующим усилением, без хранения тяжёлых файлов и секретов.</p>
+          <div class="scheme-chip-list">
+            <span>${memoryTasks.length} кандидатов памяти</span>
+            <span>Индекс: частично</span>
+            <span>Внешние API не включены</span>
+          </div>
+        </section>
+      `;
+    }
+
+    if (zoneId === 'diagnost') {
+      const guardian = this.guardianSnapshot();
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-chip-list">
+            <span>Безопасный режим: ${guardian.state.safe_mode ? 'включён' : 'выключен'}</span>
+            <span>Стоп: ${guardian.state.emergency_stop_active ? 'активен' : 'нет'}</span>
+            <span>Инциденты: ${guardian.openIncidents.length}</span>
+            <span>Платное: заблокировано</span>
+          </div>
+        </section>
+      `;
+    }
+
+    if (zoneId === 'hands') {
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\repair_workspaces\\&lt;incident_id&gt;</div>
+          <p>Ремонт через Codex работает только через пакет диагностики, изолированную рабочую область, просмотр изменений, проверку и подтверждение.</p>
+          <div class="scheme-chip-list">
+            <span>Файловый помощник: метаданные</span>
+            <span>Кодовый помощник: исправления</span>
+            <span>Браузерный помощник: позже</span>
+          </div>
+        </section>
+      `;
+    }
+
+    if (zoneId === 'legs') {
+      const devices = this.systemDevices || [];
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-chip-list">
+            ${devices.slice(0, 5).map((device) => `<span>${this.escapeHtml(String(device.name || '').replace(/Local Agent/g, 'Локальный агент'))} · ${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)}</span>`).join('')}
+          </div>
+          <p>Ноги доставляют задачу и контекст между средами. Исполнение остаётся за Руками и требует Guardian.</p>
+        </section>
+      `;
+    }
+
+    if (zoneId === 'voice') {
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-chip-list">
+            <span>Нажать и говорить</span>
+            <span>Русский</span>
+            <span>${this.workspaceVoiceSupported ? 'Речь распознаётся' : 'ручной fallback'}</span>
+            <span>Опасное заблокировано</span>
+          </div>
+          <p>Мина сначала показывает “Я поняла так”, затем ждёт подтверждение. Опасные слова не выполняются.</p>
+        </section>
+      `;
+    }
+
+    if (zoneId === 'eyes') {
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-chip-list">
+            <span>Скриншоты</span>
+            <span>Визуальная проверка</span>
+            <span>Мобильная проверка</span>
+            <span>Только доказательства</span>
+          </div>
+          <p>Глаза не кликают и не входят в аккаунты. Только наблюдение и доказательства.</p>
+        </section>
+      `;
+    }
+
+    return `
+      <section class="scheme-config-block">
+        <div class="scheme-chip-list">
+          <span>Контур задач: ${this.taskRuntimeReady ? 'локальная база' : 'резервный режим'}</span>
+          <span>Хранилище задач: ${this.escapeHtml(this.taskStoreStatusSnapshot().status)}</span>
+          <span>Мост: ${this.escapeHtml(this.directModeStatusSnapshot().status)}</span>
+          <span>Локальный агент: ${this.escapeHtml(this.localAgentStatusSnapshot().status)}</span>
+        </div>
+        <p>Тело держит маршрут задачи, политики, статусы и next best action.</p>
+      </section>
+    `;
+  },
+
+  renderMinaSchemeActions(zoneId) {
+    const actions = {
+      head: [
+        ['open_system_head', 'Открыть полную настройку Головы'],
+        ['select_memory', 'Проверить Память']
+      ],
+      memory: [
+        ['select_head', 'Связать с Головой'],
+        ['open_work_memory', 'Открыть Рабочее']
+      ],
+      diagnost: [
+        ['run_diagnostics', 'Быстрая проверка'],
+        ['emergency_stop', 'Остановить действия']
+      ],
+      hands: [
+        ['open_guardian', 'Открыть Guardian'],
+        ['run_worker_check', 'Проверить Eyes/Hands']
+      ],
+      legs: [
+        ['open_devices', 'Открыть устройства'],
+        ['select_body', 'Проверить Тело']
+      ],
+      voice: [
+        ['open_voice', 'Открыть голосовые hooks'],
+        ['open_work_voice', 'Проверить в Рабочем']
+      ],
+      eyes: [
+        ['run_worker_check', 'Проверить Eyes/Hands'],
+        ['open_guardian', 'Открыть Guardian']
+      ],
+      body: [
+        ['run_diagnostics', 'Проверить систему'],
+        ['open_work', 'Открыть Рабочее']
+      ]
+    }[zoneId] || [];
+    return actions.map(([action, label]) => `<button type="button" data-scheme-action="${this.escapeHtml(action)}">${this.escapeHtml(label)}</button>`).join('');
+  },
+
+  renderMinaSchemeExpert(meta, subsystem, health) {
+    return `
+      <section class="scheme-expert">
+        <div class="workspace-panel-head">
+          <strong>Экспертный режим</strong>
+          <span>${subsystem.is_mock ? 'partial/mock state' : 'real snapshot'}</span>
+        </div>
+        <dl>
+          <div><dt>subsystem_id</dt><dd>${this.escapeHtml(meta.id)}</dd></div>
+          <div><dt>snapshot_source</dt><dd>${this.escapeHtml(subsystem.snapshot_source)}</dd></div>
+          <div><dt>status</dt><dd>${this.escapeHtml(subsystem.status)}</dd></div>
+          <div><dt>readiness</dt><dd>${this.escapeHtml(String(subsystem.readiness))}%</dd></div>
+          <div><dt>global</dt><dd>${health.readinessPercent}% · minimum=${health.minimumReady} · comfort=${health.comfortReady} · full=${health.fullReady}</dd></div>
+        </dl>
+      </section>
+    `;
+  },
+
+  async updateMinaSchemeStrategist(brainId) {
+    if (!brainId) return;
+    this.setMainStrategist(brainId);
+    await this.saveHeadRuntime();
+    this.renderSystemHeadPanel();
+    this.renderMissionControl();
+    this.renderMinaSystemScheme();
+  },
+
+  async handleMinaSchemeAction(action, button) {
+    const mode = button?.dataset?.mode;
+    if (action === 'set_mode' && mode) {
+      this.minaSchemeMode = mode;
+      this.minaSchemeExpertOpen = mode === 'expert';
+      this.saveMinaSchemeState();
+      this.renderMinaSystemScheme();
+      return;
+    }
+
+    if (action === 'continue_setup') {
+      const next = this.minaSchemeHealth().next;
+      if (next.action === 'launch') {
+        this.go('work');
+        return;
+      }
+      this.selectMinaSchemeZone(next.zone);
+      return;
+    }
+
+    if (action.startsWith('select_')) {
+      this.selectMinaSchemeZone(action.replace('select_', ''));
+      return;
+    }
+
+    if (action === 'save_state') {
+      this.saveMinaSchemeState();
+      this.toast('Схема Мины сохранена');
+      return;
+    }
+
+    if (action === 'launch' || action === 'open_work' || action === 'open_work_memory' || action === 'open_work_voice') {
+      this.go('work');
+      return;
+    }
+
+    if (action === 'open_system_head' || action === 'open_guardian' || action === 'open_devices' || action === 'open_voice') {
+      this.go('system');
+      return;
+    }
+
+    if (action === 'run_diagnostics') {
+      this.activeMinaSchemeZone = 'diagnost';
+      this.saveMinaSchemeState();
+      await this.runSystemDiagnostics();
+      this.renderMinaSystemScheme();
+      return;
+    }
+
+    if (action === 'run_worker_check') {
+      this.activeMinaSchemeZone = 'hands';
+      this.saveMinaSchemeState();
+      await this.handleGuardianAction('run_worker_check', button);
+      this.renderMinaSystemScheme();
+      return;
+    }
+
+    if (action === 'emergency_stop') {
+      this.activeMinaSchemeZone = 'diagnost';
+      this.saveMinaSchemeState();
+      await this.handleGuardianAction('emergency_stop', button);
+      this.renderMinaSystemScheme();
+    }
+  },
+
   toggleWorkspaceVoice() {
     this.workspaceVoiceOpen = true;
     const panel = document.getElementById('workspace-voice-panel');
@@ -6546,6 +7309,7 @@ const App = {
     this.persistTaskStoreSyncState();
     this.renderMissionControl();
     this.renderSystemStatus();
+    this.renderMinaSystemScheme();
 
     try {
       await this.flushRuntimeSave();
