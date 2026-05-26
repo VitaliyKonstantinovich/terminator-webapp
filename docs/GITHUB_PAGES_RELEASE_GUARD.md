@@ -22,6 +22,8 @@ GitHub can keep an old `pages/builds/latest` legacy status even after the site i
 
 - GitHub Pages must remain `build_type=workflow`.
 - The deploy workflow syncs a static `gh-pages` mirror after a successful Pages deploy.
+- The public Pages artifact is a whitelist:
+  `index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, `sw.js`, `.nojekyll`, and `assets/`.
 - The deploy workflow runs a live smoke check for:
   - HTML Phase 5 marker;
   - PWA manifest;
