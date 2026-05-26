@@ -1,7 +1,7 @@
 # Phase 7: Windows Companion + Installer Foundation
 
 ## Status
-Live-ready on 2026-05-26. Phase 7 adds a safe Windows companion foundation without changing Direct Bridge, Cloudflare Worker, Local Agent runtime code, secrets, network settings, paid services or AI API.
+Live PASS on 2026-05-26. Phase 7 adds a safe Windows companion foundation without changing Direct Bridge, Cloudflare Worker, Local Agent runtime code, secrets, network settings, paid services or AI API.
 
 ## User Meaning
 - Windows-компаньон = локальная Windows-оболочка рядом с сайтом Терминатора.
@@ -47,7 +47,15 @@ Live-ready on 2026-05-26. Phase 7 adds a safe Windows companion foundation witho
 - `D:\TerminatorStorage\evidence_backups\phase7_windows_companion\phase7-mobile.png`
 
 ## Live Acceptance
-Final live acceptance is tied to the GitHub Pages deploy for marker `20260526-phase7` and `terminator-mina-pwa-20260526-phase7`.
+- Commit `42765a1 feat: add phase 7 windows companion foundation`: pushed.
+- GitHub Actions `Deploy GitHub Pages` run `26475453305`: success.
+- `scripts/check-pages-health.ps1`: PASS.
+- Live HTML marker `20260526-phase7`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260526-phase7`: PASS.
+- Live System DOM smoke:
+  - `Windows-компаньон`: PASS;
+  - `Проверить компаньон`: PASS;
+  - `Скопировать self-test`: PASS.
 
 ## Next Layer
 Memory Search Engine / Context Index V1.
