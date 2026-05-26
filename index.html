@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260526-phase7">
+  <link rel="stylesheet" href="styles.css?v=20260526-memory-search-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -662,6 +662,16 @@
             <div id="system-head-panel" class="head-panel"></div>
           </section>
 
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Память / Поиск</strong>
+                <span>Локальный индекс задач, решений, evidence и артефактов</span>
+              </div>
+            </div>
+            <div id="system-memory-search-panel" class="memory-search-panel"></div>
+          </section>
+
           <section class="runtime-panel">
             <div class="runtime-panel-head">
               <div>
@@ -980,6 +990,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260526-phase7"></script>
+  <script src="app.js?v=20260526-memory-search-v1"></script>
 </body>
 </html>

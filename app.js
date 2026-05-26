@@ -304,8 +304,9 @@ const PRODUCTION_RELEASE_STATE_KEY = 'mina_production_release_state_v1';
 const BACKUP_RESTORE_STATE_KEY = 'mina_backup_restore_state_v1';
 const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
 const WINDOWS_COMPANION_STATE_STORAGE_KEY = 'mina_windows_companion_state_v1';
+const MEMORY_SEARCH_STATE_STORAGE_KEY = 'mina_memory_search_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
-const WORK_RUNTIME_DB_VERSION = 8;
+const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
 const GUARDIAN_STATE_META_KEY = 'guardian_state_v1';
 const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
@@ -333,8 +334,32 @@ const TASK_RUNTIME_STORES = {
   HEAD_BRAINS: 'head_brains',
   HEAD_PROFILES: 'head_profiles',
   HEAD_SEARCH_AGENTS: 'head_search_agents',
-  HEAD_EVENTS: 'head_events'
+  HEAD_EVENTS: 'head_events',
+  MEMORY_INDEX: 'memory_index'
 };
+
+const MEMORY_SEARCH_SCHEMA_VERSION = 1;
+const MEMORY_SEARCH_INDEX_VERSION = 'context-index-keyword-v1';
+const MEMORY_SEARCH_MAX_RECORDS = 1200;
+const MEMORY_SEARCH_MAX_PREVIEW_CHARS = 900;
+const MEMORY_SEARCH_RESULT_LIMIT = 24;
+const MEMORY_SEARCH_TYPE_LABELS = {
+  project: 'Проект',
+  task: 'Задача',
+  memory: 'Память',
+  artifact: 'Артефакт',
+  evidence: 'Доказательство',
+  file_ref: 'Файл',
+  source: 'Источник',
+  research: 'Исследование',
+  brain_answer: 'Ответ мозга',
+  decision: 'Решение',
+  message: 'Событие'
+};
+const MEMORY_SEARCH_STOP_WORDS = new Set([
+  'и', 'в', 'во', 'на', 'по', 'для', 'что', 'это', 'как', 'или', 'но', 'из', 'с', 'со', 'к', 'ко', 'а',
+  'the', 'and', 'or', 'to', 'of', 'in', 'for', 'with', 'is', 'are'
+]);
 
 const DEFAULT_PROJECT_TYPE = 'custom';
 const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
@@ -821,11 +846,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 7: Windows-компаньон и installer foundation',
+  name: 'Memory Search Engine / Context Index V1',
   date: '2026-05-26',
   status: 'закрыт live',
-  previous: 'Phase 6 Production Hardening + Release Quality',
-  next: 'Memory Search Engine / Context Index V1'
+  previous: 'Phase 7: Windows-компаньон и installer foundation',
+  next: 'следующий автономный слой после Memory Search live acceptance'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -853,7 +878,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 23, name: 'Схема Мины / Visual System Center', status: 'закрыт live' },
   { id: 24, name: 'Mobile / PWA / APK Foundation', status: 'закрыт live' },
   { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт live' },
-  { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' }
+  { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' },
+  { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -1884,6 +1910,17 @@ function openTaskRuntimeDatabase() {
 
   return new Promise((resolve, reject) => {
     const request = window.indexedDB.open(WORK_RUNTIME_DB_NAME, WORK_RUNTIME_DB_VERSION);
+    let settled = false;
+    const finish = (ok, value) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(openTimeout);
+      ok ? resolve(value) : reject(value);
+    };
+    const openTimeout = window.setTimeout(() => {
+      console.warn('[MinaWebApp] Task Runtime IndexedDB open timed out, using fallback');
+      finish(true, null);
+    }, 5000);
 
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -1993,10 +2030,27 @@ function openTaskRuntimeDatabase() {
         store.createIndex('created_at', 'created_at', { unique: false });
         store.createIndex('type', 'type', { unique: false });
       }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.MEMORY_INDEX)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.MEMORY_INDEX, { keyPath: 'record_id' });
+        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('task_id', 'task_id', { unique: false });
+        store.createIndex('project_id', 'project_id', { unique: false });
+        store.createIndex('updated_at', 'updated_at', { unique: false });
+      }
     };
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
+    request.onblocked = () => {
+      console.warn('[MinaWebApp] Task Runtime IndexedDB upgrade blocked, using fallback');
+      finish(true, null);
+    };
+    request.onsuccess = () => {
+      if (settled) {
+        try { request.result?.close?.(); } catch {}
+        return;
+      }
+      finish(true, request.result);
+    };
+    request.onerror = () => finish(false, request.error || new Error('IndexedDB open failed'));
   });
 }
 
@@ -2061,6 +2115,7 @@ const App = {
   backupRestoreState: null,
   observabilityState: null,
   windowsCompanionState: null,
+  memorySearchState: null,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -2087,7 +2142,6 @@ const App = {
     await this.initTaskRuntime();
     await this.loadWorkProjects();
     await this.loadWorkTasks();
-    await this.syncTaskStore({ interactive: false, reason: 'init' });
     await this.loadSystemDevices();
     await this.loadHeadRuntime();
     await this.loadApprovalRecords();
@@ -2095,6 +2149,7 @@ const App = {
     await this.loadGuardianRuntime();
     this.loadProductionState();
     this.loadWindowsCompanionState();
+    await this.loadMemorySearchState();
     this.loadMinaSchemeState();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
@@ -2107,6 +2162,7 @@ const App = {
     this.startWorkspaceTimer();
     this.go(this.initialScreenFromUrl(), { immediate: true });
     this.retryTelegramInit();
+    this.startBackgroundTaskStoreSync('init');
   },
 
   initialScreenFromUrl() {
@@ -2221,6 +2277,12 @@ const App = {
       const companionActionButton = event.target.closest('[data-companion-action]');
       if (companionActionButton) {
         this.handleCompanionAction(companionActionButton.dataset.companionAction, companionActionButton);
+        return;
+      }
+
+      const memorySearchButton = event.target.closest('[data-memory-search-action]');
+      if (memorySearchButton) {
+        this.handleMemorySearchAction(memorySearchButton.dataset.memorySearchAction, memorySearchButton);
         return;
       }
 
@@ -2348,6 +2410,13 @@ const App = {
     });
 
     document.addEventListener('input', (event) => {
+      const memorySearchInput = event.target.closest('#system-memory-search-query');
+      if (memorySearchInput) {
+        if (!this.memorySearchState) this.memorySearchState = this.defaultMemorySearchState();
+        this.memorySearchState.query = memorySearchInput.value;
+        return;
+      }
+
       const voiceTranscript = event.target.closest('#workspace-voice-transcript');
       if (!voiceTranscript) return;
       this.workspaceVoiceTranscript = voiceTranscript.value;
@@ -3741,6 +3810,526 @@ const App = {
     this.writeJsonStorage(OBSERVABILITY_STATE_KEY, this.observabilityState || {});
   },
 
+  defaultMemorySearchState() {
+    return {
+      schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
+      index_version: MEMORY_SEARCH_INDEX_VERSION,
+      status: 'not_indexed',
+      records: [],
+      results: [],
+      query: '',
+      context_pack: '',
+      stats: {
+        total_records: 0,
+        projects: 0,
+        tasks: 0,
+        artifacts: 0,
+        evidence: 0,
+        memory: 0,
+        research: 0,
+        brain_answers: 0
+      },
+      warnings: [],
+      last_indexed_at: '',
+      last_query_at: ''
+    };
+  },
+
+  normalizeMemorySearchState(state) {
+    const fallback = this.defaultMemorySearchState();
+    const source = state && typeof state === 'object' ? state : {};
+    return {
+      ...fallback,
+      ...source,
+      schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
+      index_version: MEMORY_SEARCH_INDEX_VERSION,
+      records: Array.isArray(source.records) ? source.records.slice(0, MEMORY_SEARCH_MAX_RECORDS) : [],
+      results: Array.isArray(source.results) ? source.results.slice(0, MEMORY_SEARCH_RESULT_LIMIT) : [],
+      warnings: Array.isArray(source.warnings) ? source.warnings.slice(0, 40) : [],
+      stats: { ...fallback.stats, ...(source.stats || {}) },
+      query: String(source.query || ''),
+      context_pack: String(source.context_pack || '')
+    };
+  },
+
+  async loadMemorySearchState() {
+    const fallback = this.normalizeMemorySearchState(this.readJsonStorage(MEMORY_SEARCH_STATE_STORAGE_KEY, null));
+    try {
+      const indexedRecords = this.taskRuntimeDb
+        ? await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.MEMORY_INDEX)
+        : [];
+      this.memorySearchState = this.normalizeMemorySearchState({
+        ...fallback,
+        records: indexedRecords.length ? indexedRecords : fallback.records
+      });
+    } catch {
+      this.memorySearchState = fallback;
+    }
+
+    if (!this.memorySearchState.records.length) {
+      await this.refreshMemorySearchIndex({ silent: true, render: false });
+    }
+  },
+
+  async saveMemorySearchState() {
+    const state = this.normalizeMemorySearchState(this.memorySearchState);
+    this.memorySearchState = state;
+    const storageCopy = {
+      ...state,
+      records: state.records.slice(0, this.taskRuntimeDb ? 80 : 160),
+      context_pack: state.context_pack.slice(0, 10000)
+    };
+    this.writeJsonStorage(MEMORY_SEARCH_STATE_STORAGE_KEY, storageCopy);
+    if (this.taskRuntimeDb) {
+      await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.MEMORY_INDEX, state.records);
+    }
+  },
+
+  memorySearchSnapshot() {
+    const state = this.memorySearchState || this.defaultMemorySearchState();
+    const count = state.records?.length || 0;
+    const status = count ? (state.warnings?.length ? 'review' : 'ready') : 'not_indexed';
+    const indexAge = state.last_indexed_at ? Date.now() - new Date(state.last_indexed_at).getTime() : Number.POSITIVE_INFINITY;
+    const stale = Number.isFinite(indexAge) && indexAge > 24 * 60 * 60 * 1000;
+    return {
+      status: stale && count ? 'stale' : status,
+      label: count ? `${count} записей` : 'индекс не собран',
+      note: stale
+        ? 'индекс старше суток, лучше пересобрать'
+        : count
+          ? `последняя сборка: ${this.formatTaskTime(state.last_indexed_at)}`
+          : 'нажмите “Пересобрать индекс”',
+      tone: status === 'ready' && !stale ? 'pass' : 'review',
+      count,
+      stats: state.stats || {},
+      warnings: state.warnings || []
+    };
+  },
+
+  memorySearchSafePreview(parts, warnings, contextLabel) {
+    const source = (Array.isArray(parts) ? parts : [parts])
+      .flatMap((part) => Array.isArray(part) ? part : [part])
+      .filter((part) => part !== null && part !== undefined)
+      .map((part) => typeof part === 'string' ? part : JSON.stringify(part))
+      .join('\n')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!source) return { text: '', privacy_status: 'empty' };
+    const scan = this.scanPrivacyText(source);
+    if (scan.findings.length) {
+      warnings.push(`${contextLabel}: скрыто Privacy Guard (${this.privacyScanSummary(scan)})`);
+      return {
+        text: '[скрыто Privacy Guard: возможный секрет]',
+        privacy_status: 'redacted'
+      };
+    }
+    return {
+      text: source.slice(0, MEMORY_SEARCH_MAX_PREVIEW_CHARS),
+      privacy_status: 'ok'
+    };
+  },
+
+  memorySearchTokenize(text) {
+    return String(text || '')
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}_-]+/gu, ' ')
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length > 1 && !MEMORY_SEARCH_STOP_WORDS.has(token))
+      .slice(0, 80);
+  },
+
+  addMemorySearchRecord(records, warnings, data) {
+    const safeTitle = this.memorySearchSafePreview(data.title || data.record_id, warnings, `${data.type}:title`);
+    const safeSummary = this.memorySearchSafePreview([data.summary, data.content_preview], warnings, `${data.type}:${data.record_id}`);
+    const keywords = [...new Set(this.memorySearchTokenize([safeTitle.text, safeSummary.text, data.keywords || []].join(' ')))].slice(0, 40);
+    records.push({
+      schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
+      record_id: data.record_id,
+      type: data.type,
+      label: MEMORY_SEARCH_TYPE_LABELS[data.type] || data.type,
+      title: safeTitle.text || data.record_id,
+      summary: safeSummary.text || 'summary не задан',
+      project_id: data.project_id || '',
+      project_name: data.project_name || (data.project_id ? this.projectName(data.project_id) : ''),
+      task_id: data.task_id || '',
+      task_title: data.task_title || '',
+      source_id: data.source_id || '',
+      source_type: data.source_type || '',
+      refs: data.refs || {},
+      keywords,
+      confidence: data.confidence || 'metadata',
+      privacy_status: safeSummary.privacy_status === 'redacted' || safeTitle.privacy_status === 'redacted' ? 'redacted' : 'ok',
+      created_at: data.created_at || new Date().toISOString(),
+      updated_at: data.updated_at || data.created_at || new Date().toISOString(),
+      search_text: [safeTitle.text, safeSummary.text, keywords.join(' ')].join(' ').toLowerCase()
+    });
+  },
+
+  buildMemorySearchIndex() {
+    const records = [];
+    const warnings = [];
+    const projects = this.workProjects || [];
+    const projectById = new Map(projects.map((project) => [project.project_id, project]));
+
+    projects.forEach((project) => {
+      this.addMemorySearchRecord(records, warnings, {
+        record_id: `project:${project.project_id}`,
+        type: 'project',
+        title: `Проект: ${project.name}`,
+        summary: [project.goal, project.short_description, project.type, project.status].filter(Boolean).join(' · '),
+        project_id: project.project_id,
+        project_name: project.name,
+        source_id: project.project_id,
+        refs: { project_id: project.project_id },
+        keywords: ['project', project.type, project.status],
+        created_at: project.created_at,
+        updated_at: project.updated_at
+      });
+    });
+
+    (this.workTasks || []).forEach((task) => {
+      const project = projectById.get(task.project_id);
+      const projectName = project?.name || this.projectName(task.project_id);
+      const taskTitle = task.title || task.user_request || task.task_id;
+      const taskBase = {
+        project_id: task.project_id,
+        project_name: projectName,
+        task_id: task.task_id,
+        task_title: taskTitle,
+        created_at: task.created_at,
+        updated_at: task.updated_at || task.created_at
+      };
+
+      this.addMemorySearchRecord(records, warnings, {
+        ...taskBase,
+        record_id: `task:${task.task_id}`,
+        type: 'task',
+        title: `Задача: ${taskTitle}`,
+        summary: [
+          task.user_request,
+          task.goal,
+          `статус: ${this.statusName(task.status)}`,
+          `следующий шаг: ${task.next_step || 'не задан'}`,
+          `проект: ${projectName}`
+        ],
+        source_id: task.task_id,
+        refs: { task_id: task.task_id, project_id: task.project_id },
+        keywords: [task.status, task.mode, task.quality_level, projectName]
+      });
+
+      if (task.memory_preview || task.memory_status) {
+        const memory = task.memory_preview || {};
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `memory:${task.task_id}`,
+          type: 'memory',
+          title: `Память: ${taskTitle}`,
+          summary: [
+            memory.summary || task.goal || task.user_request,
+            this.listOrFallback(memory.decisions, ''),
+            this.listOrFallback(memory.risks || task.risks, ''),
+            memory.next_step || task.next_step,
+            memory.acceptance_gate
+          ],
+          source_id: task.memory_preview?.memory_id || task.task_id,
+          refs: {
+            task_id: task.task_id,
+            project_id: task.project_id,
+            artifact_ids: memory.linked_artifact_ids || [],
+            file_ids: memory.linked_file_ids || []
+          },
+          keywords: ['memory', 'decision', 'next_step', memory.status || task.memory_status],
+          updated_at: memory.updated_at || task.updated_at || task.created_at
+        });
+      }
+
+      (task.artifacts || []).forEach((artifact) => {
+        const type = artifact.type === 'EVIDENCE_CARD' ? 'evidence'
+          : artifact.type === 'SOURCE_CARD' ? 'source'
+            : artifact.type === 'RESEARCH_PACK' || artifact.type === 'RESEARCH_BRIEF' ? 'research'
+              : artifact.type === 'BRAIN_ANSWER' ? 'brain_answer'
+                : artifact.type === 'DECISION_RECORD' || artifact.type === 'DECISION_PASSPORT' || artifact.type === 'STRATEGIST_SYNTHESIS' ? 'decision'
+                  : 'artifact';
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `artifact:${artifact.artifact_id}`,
+          type,
+          title: `${this.artifactTypeName(artifact.type)}: ${artifact.title}`,
+          summary: [artifact.summary, artifact.content],
+          source_id: artifact.artifact_id,
+          source_type: artifact.type,
+          refs: {
+            artifact_id: artifact.artifact_id,
+            task_id: task.task_id,
+            project_id: task.project_id,
+            storage_ref: artifact.storage_ref?.planned_path || ''
+          },
+          keywords: [artifact.type, artifact.status, artifact.source],
+          created_at: artifact.created_at,
+          updated_at: artifact.updated_at || artifact.created_at || task.updated_at
+        });
+      });
+
+      (task.files || []).forEach((file) => {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `file:${file.file_id}`,
+          type: file.is_evidence ? 'evidence' : 'file_ref',
+          title: `Файл: ${file.name}`,
+          summary: [
+            `${this.fileKindLabel(file.extension)} · ${file.human_size || ''}`,
+            `роль: ${this.fileRoleName(file.role)}`,
+            file.is_evidence ? 'помечен как evidence' : '',
+            file.storage_ref?.planned_path || file.storage_path || ''
+          ],
+          source_id: file.file_id,
+          source_type: file.extension || 'file',
+          refs: {
+            file_id: file.file_id,
+            task_id: task.task_id,
+            project_id: task.project_id,
+            storage_ref: file.storage_ref?.planned_path || file.storage_path || ''
+          },
+          keywords: [file.extension, file.role, file.status, file.is_evidence ? 'evidence' : 'file'],
+          created_at: file.created_at,
+          updated_at: file.updated_at || file.created_at || task.updated_at
+        });
+      });
+
+      const research = task.research_ops || {};
+      (research.source_cards || []).forEach((card) => {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `source:${card.source_id}`,
+          type: 'source',
+          title: `Источник: ${card.title}`,
+          summary: [card.summary, card.confirms, card.risks, card.check_first, card.url],
+          source_id: card.source_id,
+          source_type: card.type,
+          refs: { source_id: card.source_id, task_id: task.task_id, url: card.url || '' },
+          keywords: [card.type, card.trust_level, 'research', 'source'],
+          created_at: card.created_at,
+          updated_at: card.updated_at || card.created_at || task.updated_at
+        });
+      });
+      (research.evidence_cards || []).forEach((card) => {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `research-evidence:${card.evidence_id}`,
+          type: 'evidence',
+          title: `Доказательство: ${card.title}`,
+          summary: [card.claim, card.source_title, card.confidence, card.notes],
+          source_id: card.evidence_id,
+          source_type: 'research_evidence',
+          refs: { evidence_id: card.evidence_id, source_id: card.source_id, task_id: task.task_id },
+          keywords: [card.confidence, card.use_in_decision ? 'decision' : 'review', 'evidence'],
+          created_at: card.created_at,
+          updated_at: card.updated_at || card.created_at || task.updated_at
+        });
+      });
+
+      const council = task.brain_council || {};
+      (council.answers || []).forEach((answer) => {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `brain-answer:${answer.answer_id}`,
+          type: 'brain_answer',
+          title: `Ответ мозга: ${answer.brain || answer.role}`,
+          summary: [answer.summary, answer.main_conclusion, answer.risks, answer.what_to_check_first, answer.content],
+          source_id: answer.answer_id,
+          source_type: answer.source_type || 'manual_web_chat',
+          refs: { answer_id: answer.answer_id, task_id: task.task_id, brain_id: answer.brain_id || '' },
+          keywords: [answer.brain, answer.role, answer.confidence, answer.integrity?.status],
+          created_at: answer.created_at,
+          updated_at: answer.updated_at || answer.created_at || task.updated_at
+        });
+      });
+      if (council.comparison) {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `brain-comparison:${council.comparison.comparison_id}`,
+          type: 'decision',
+          title: 'Сравнение Совета мозгов',
+          summary: [council.comparison.consensus, council.comparison.disagreements, council.comparison.risks, council.comparison.next_step],
+          source_id: council.comparison.comparison_id,
+          source_type: 'BRAIN_COMPARISON',
+          refs: { comparison_id: council.comparison.comparison_id, task_id: task.task_id },
+          keywords: ['brain_comparison', 'decision', 'risks'],
+          created_at: council.comparison.created_at,
+          updated_at: council.updated_at || council.comparison.created_at
+        });
+      }
+      if (council.strategist_synthesis) {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `decision:${council.strategist_synthesis.decision_id || council.strategist_synthesis.synthesis_id}`,
+          type: 'decision',
+          title: 'Паспорт решения',
+          summary: council.strategist_synthesis.content,
+          source_id: council.strategist_synthesis.decision_id || council.strategist_synthesis.synthesis_id,
+          source_type: 'DECISION_PASSPORT',
+          refs: {
+            decision_id: council.strategist_synthesis.decision_id || '',
+            synthesis_id: council.strategist_synthesis.synthesis_id || '',
+            task_id: task.task_id
+          },
+          keywords: ['decision_passport', 'strategist', 'memory_candidate'],
+          created_at: council.strategist_synthesis.created_at,
+          updated_at: council.updated_at || council.strategist_synthesis.created_at
+        });
+      }
+
+      (task.messages || [])
+        .filter((message) => ['decision', 'memory_event', 'verifier_result', 'executor_report_received', 'approval_event'].includes(message.type))
+        .slice(-12)
+        .forEach((message) => {
+          this.addMemorySearchRecord(records, warnings, {
+            ...taskBase,
+            record_id: `message:${message.message_id}`,
+            type: message.type === 'decision' ? 'decision' : 'message',
+            title: `${this.workspaceMessageLabel(message.type)}: ${message.author || 'Рабочее'}`,
+            summary: message.text,
+            source_id: message.message_id,
+            source_type: message.type,
+            refs: {
+              message_id: message.message_id,
+              task_id: task.task_id,
+              linked_artifacts: message.linked_artifacts || []
+            },
+            keywords: [message.type, message.author],
+            created_at: message.created_at,
+            updated_at: message.created_at
+          });
+        });
+    });
+
+    return records
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .slice(0, MEMORY_SEARCH_MAX_RECORDS)
+      .map((record) => ({ ...record, warnings: warnings.filter((warning) => warning.includes(record.record_id)).slice(0, 3) }));
+  },
+
+  memorySearchStats(records) {
+    return {
+      total_records: records.length,
+      projects: records.filter((record) => record.type === 'project').length,
+      tasks: records.filter((record) => record.type === 'task').length,
+      artifacts: records.filter((record) => record.type === 'artifact').length,
+      evidence: records.filter((record) => record.type === 'evidence').length,
+      memory: records.filter((record) => record.type === 'memory').length,
+      research: records.filter((record) => ['source', 'research'].includes(record.type)).length,
+      brain_answers: records.filter((record) => record.type === 'brain_answer').length
+    };
+  },
+
+  async refreshMemorySearchIndex(options = {}) {
+    const records = this.buildMemorySearchIndex();
+    const warnings = records.filter((record) => record.privacy_status === 'redacted').map((record) => `${record.label}: ${record.title}`).slice(0, 20);
+    const previousQuery = this.memorySearchState?.query || '';
+    this.memorySearchState = this.normalizeMemorySearchState({
+      ...(this.memorySearchState || {}),
+      status: records.length ? 'ready' : 'empty',
+      records,
+      stats: this.memorySearchStats(records),
+      warnings,
+      last_indexed_at: new Date().toISOString(),
+      query: previousQuery
+    });
+    if (previousQuery) this.runMemorySearch(previousQuery, { persist: false });
+    await this.saveMemorySearchState();
+    if (options.render !== false) {
+      this.renderSystemMemorySearchPanel();
+      this.renderMinaSystemScheme();
+    }
+    if (!options.silent) this.toast(`Индекс памяти собран: ${records.length} записей`);
+  },
+
+  runMemorySearch(query, options = {}) {
+    const state = this.normalizeMemorySearchState(this.memorySearchState || this.defaultMemorySearchState());
+    const normalizedQuery = String(query ?? state.query ?? '').trim();
+    const tokens = this.memorySearchTokenize(normalizedQuery);
+    const results = (state.records || [])
+      .map((record) => ({
+        ...record,
+        score: this.scoreMemorySearchRecord(record, normalizedQuery, tokens)
+      }))
+      .filter((record) => tokens.length ? record.score > 0 : true)
+      .sort((a, b) => b.score - a.score || new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
+      .slice(0, MEMORY_SEARCH_RESULT_LIMIT);
+    this.memorySearchState = this.normalizeMemorySearchState({
+      ...state,
+      query: normalizedQuery,
+      results,
+      context_pack: this.buildMemorySearchContextPack(results, normalizedQuery),
+      last_query_at: new Date().toISOString()
+    });
+    if (options.persist !== false) this.saveMemorySearchState();
+    return results;
+  },
+
+  scoreMemorySearchRecord(record, query, tokens) {
+    if (!tokens.length) return new Date(record.updated_at || record.created_at || 0).getTime() / 100000000000;
+    const title = String(record.title || '').toLowerCase();
+    const summary = String(record.summary || '').toLowerCase();
+    const text = String(record.search_text || '').toLowerCase();
+    const keywordText = (record.keywords || []).join(' ').toLowerCase();
+    const phrase = String(query || '').toLowerCase();
+    let score = phrase && text.includes(phrase) ? 18 : 0;
+    tokens.forEach((token) => {
+      if (title.includes(token)) score += 9;
+      if (keywordText.includes(token)) score += 6;
+      if (summary.includes(token)) score += 4;
+      if (text.includes(token)) score += 2;
+    });
+    if (['memory', 'decision', 'evidence'].includes(record.type)) score += 3;
+    if (record.privacy_status === 'redacted') score -= 2;
+    return score;
+  },
+
+  buildMemorySearchContextPack(results, query = '') {
+    const selected = (results || []).slice(0, 10);
+    if (!selected.length) return 'Context Pack не собран: результатов нет.';
+    return [
+      '# Context Pack из памяти Терминатора',
+      '',
+      `query: ${query || 'последние записи'}`,
+      `created_at: ${new Date().toISOString()}`,
+      'storage_policy: только summary и refs; raw files, secrets, cookies и tokens не включены',
+      'ai_api_used: false',
+      '',
+      '## Найденные записи',
+      ...selected.map((record, index) => [
+        `${index + 1}. ${record.label}: ${record.title}`,
+        `   summary: ${record.summary}`,
+        `   project: ${record.project_name || record.project_id || 'не задан'}`,
+        `   task_id: ${record.task_id || 'нет'}`,
+        `   refs: ${JSON.stringify(record.refs || {})}`,
+        `   privacy: ${record.privacy_status}`
+      ].join('\n')),
+      '',
+      '## Что проверить первым',
+      '- Открыть связанные task_id/artifact_id/evidence refs перед принятием решения.',
+      '- Если запись redacted, не копировать исходный текст во внешние чаты без Privacy Guard.',
+      '- Для больших файлов использовать путь на D и выборочный контекст, не raw dump.'
+    ].join('\n');
+  },
+
+  memorySearchTypeName(type) {
+    return MEMORY_SEARCH_TYPE_LABELS[type] || type || 'Запись';
+  },
+
+  memorySearchStatusName(status) {
+    const names = {
+      ready: 'готов',
+      review: 'требует проверки',
+      stale: 'устарел',
+      not_indexed: 'не собран',
+      empty: 'пусто'
+    };
+    return names[status] || status || 'не собран';
+  },
+
   phase6Check(name, status, note, severity = 'safe') {
     return {
       check_id: this.generateWorkspaceId('P6CHK'),
@@ -4441,9 +5030,11 @@ const App = {
     const guardian = this.guardianSnapshot();
     const pwa = this.pwaSnapshot();
     const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
+    const memorySearch = this.memorySearchSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
+      ['Поиск по памяти', this.memorySearchStatusName(memorySearch.status), memorySearch.note],
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
       ['Голова', head.status, head.note],
@@ -4468,6 +5059,7 @@ const App = {
     this.renderSystemLastCheckpoint();
     this.renderSystemLegacyWarnings();
     this.renderSystemHeadPanel();
+    this.renderSystemMemorySearchPanel();
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
@@ -5033,6 +5625,159 @@ const App = {
       ['Secrets', 'запрещено', 'не писать в docs/evidence/logs']
     ];
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
+  },
+
+  renderSystemMemorySearchPanel() {
+    const host = document.getElementById('system-memory-search-panel');
+    if (!host) return;
+    if (!this.memorySearchState) this.memorySearchState = this.defaultMemorySearchState();
+    const snapshot = this.memorySearchSnapshot();
+    const state = this.memorySearchState;
+    const results = state.results || [];
+    const query = state.query || '';
+    const stats = state.stats || {};
+    host.innerHTML = `
+      <section class="memory-search-hero memory-search-hero--${this.escapeHtml(snapshot.tone)}">
+        <div>
+          <span>Контекстный индекс</span>
+          <strong>${this.escapeHtml(this.memorySearchStatusName(snapshot.status))}</strong>
+          <p>${this.escapeHtml(snapshot.note)}</p>
+        </div>
+        <dl>
+          <div><dt>Записей</dt><dd>${this.escapeHtml(String(stats.total_records || snapshot.count || 0))}</dd></div>
+          <div><dt>Память</dt><dd>${this.escapeHtml(String(stats.memory || 0))}</dd></div>
+          <div><dt>Evidence</dt><dd>${this.escapeHtml(String(stats.evidence || 0))}</dd></div>
+          <div><dt>Решения</dt><dd>${this.escapeHtml(String(results.filter((item) => item.type === 'decision').length))}</dd></div>
+        </dl>
+      </section>
+
+      <div class="memory-search-console">
+        <label class="work-field">
+          <span>Найти в памяти</span>
+          <input id="system-memory-search-query" type="search" value="${this.escapeHtml(query)}" placeholder="Например: паспорт решения, отчёт Codex, evidence, голос, GitHub Pages">
+        </label>
+        <div class="system-action-strip">
+          <button type="button" data-memory-search-action="run_search">Найти</button>
+          <button type="button" data-memory-search-action="rebuild_index">Пересобрать индекс</button>
+          <button type="button" data-memory-search-action="copy_context_pack">Скопировать Context Pack</button>
+          <button type="button" data-memory-search-action="download_index_report">Скачать отчёт индекса</button>
+          <button type="button" data-memory-search-action="open_scheme_memory">Схема Мины: Память</button>
+          <button type="button" data-memory-search-action="clear_query">Очистить</button>
+        </div>
+      </div>
+
+      <div class="memory-search-grid">
+        <section class="memory-search-results" aria-label="Результаты поиска памяти">
+          <div class="runtime-panel-head">
+            <div>
+              <strong>Результаты</strong>
+              <span>${this.escapeHtml(results.length ? `${results.length} найдено` : 'поиск ещё не запускался')}</span>
+            </div>
+          </div>
+          ${results.length ? results.map((record) => `
+            <article class="memory-result memory-result--${this.escapeHtml(record.type)}">
+              <div>
+                <span>${this.escapeHtml(record.label)} · score ${this.escapeHtml(String(Math.round(record.score || 0)))}</span>
+                <strong>${this.escapeHtml(record.title)}</strong>
+                <p>${this.escapeHtml(record.summary)}</p>
+                <small>${this.escapeHtml(record.project_name || 'проект не задан')} ${record.task_id ? `· ${this.escapeHtml(record.task_id)}` : ''} · privacy: ${this.escapeHtml(record.privacy_status)}</small>
+              </div>
+              ${record.task_id ? `<button type="button" data-memory-search-action="open_result" data-task-id="${this.escapeHtml(record.task_id)}">Открыть задачу</button>` : ''}
+            </article>
+          `).join('') : '<p class="mission-empty">Введите запрос или пересоберите индекс. Поиск работает по задачам, артефактам, evidence, решениям и памяти.</p>'}
+        </section>
+
+        <section class="memory-context-pack" aria-label="Context Pack из памяти">
+          <div class="runtime-panel-head">
+            <div>
+              <strong>Context Pack</strong>
+              <span>summary + refs, без raw files</span>
+            </div>
+          </div>
+          <textarea readonly>${this.escapeHtml(state.context_pack || 'После поиска здесь появится компактный пакет контекста.')}</textarea>
+        </section>
+      </div>
+
+      <div class="memory-search-policy">
+        <span>Без AI API</span>
+        <span>Без raw/base64 файлов</span>
+        <span>Секреты скрывает Privacy Guard</span>
+        <span>D:\\TerminatorStorage остаётся источником тяжёлых файлов</span>
+      </div>
+    `;
+  },
+
+  async handleMemorySearchAction(action, button) {
+    const input = document.getElementById('system-memory-search-query');
+    if (!this.memorySearchState) this.memorySearchState = this.defaultMemorySearchState();
+
+    if (action === 'rebuild_index') {
+      this.memorySearchState.query = String(input?.value || this.memorySearchState.query || '').trim();
+      await this.refreshMemorySearchIndex({ silent: false });
+      this.renderSystemStatus();
+      return;
+    }
+
+    if (action === 'run_search') {
+      const query = String(input?.value || '').trim();
+      if (!this.memorySearchState.records?.length) await this.refreshMemorySearchIndex({ silent: true, render: false });
+      const results = this.runMemorySearch(query);
+      this.renderSystemMemorySearchPanel();
+      this.renderMinaSystemScheme();
+      this.toast(results.length ? `Найдено: ${results.length}` : 'Ничего не найдено');
+      return;
+    }
+
+    if (action === 'copy_context_pack') {
+      if (!this.memorySearchState.context_pack) {
+        this.runMemorySearch(String(input?.value || this.memorySearchState.query || ''));
+      }
+      this.copyWorkspaceText(this.memorySearchState.context_pack || 'Context Pack не собран.');
+      return;
+    }
+
+    if (action === 'download_index_report') {
+      const report = {
+        schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
+        index_version: MEMORY_SEARCH_INDEX_VERSION,
+        generated_at: new Date().toISOString(),
+        stats: this.memorySearchState.stats,
+        warnings: this.memorySearchState.warnings,
+        records: (this.memorySearchState.records || []).map(({ search_text, ...record }) => record)
+      };
+      const ok = this.downloadTextFile(`terminator-memory-index-${Date.now()}.json`, JSON.stringify(report, null, 2));
+      if (!ok) this.copyWorkspaceText(JSON.stringify(report, null, 2));
+      this.toast(ok ? 'Отчёт индекса скачан' : 'Отчёт индекса скопирован');
+      return;
+    }
+
+    if (action === 'open_scheme_memory') {
+      this.activeMinaSchemeZone = 'memory';
+      this.saveMinaSchemeState();
+      this.go('scheme');
+      return;
+    }
+
+    if (action === 'open_result') {
+      const taskId = button?.dataset?.taskId || '';
+      if (taskId) {
+        this.activeWorkTaskId = taskId;
+        this.workspaceActiveTab = 'memory';
+        this.go('work');
+      }
+      return;
+    }
+
+    if (action === 'clear_query') {
+      this.memorySearchState = this.normalizeMemorySearchState({
+        ...this.memorySearchState,
+        query: '',
+        results: [],
+        context_pack: ''
+      });
+      await this.saveMemorySearchState();
+      this.renderSystemMemorySearchPanel();
+    }
   },
 
   renderSystemLastCheckpoint() {
@@ -6589,6 +7334,7 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
     const pwa = this.pwaSnapshot();
+    const memorySearch = this.memorySearchSnapshot();
     const savedMemory = tasks.filter((task) => ['saved_local', 'memory_saved'].includes(task.memory_preview?.status || task.memory_status)).length;
     const memoryCandidates = tasks.filter((task) => task.memory_preview || task.memory_status || task.memory_candidate).length;
     const researchTasks = tasks.filter((task) => this.ensureResearchOpsState(task).status !== 'not_started').length;
@@ -6617,7 +7363,11 @@ const App = {
           ? 'partial'
           : 'ready';
     const headStatus = head.tone === 'pass' ? 'ready' : (this.mainStrategistBrain() ? 'partial' : 'waiting');
-    const memoryStatus = savedMemory || memoryCandidates ? 'partial' : (this.taskRuntimeReady ? 'partial' : 'waiting');
+    const memoryStatus = memorySearch.status === 'ready' && (savedMemory || memorySearch.count)
+      ? 'ready'
+      : savedMemory || memoryCandidates || memorySearch.count
+        ? 'partial'
+        : (this.taskRuntimeReady ? 'partial' : 'waiting');
     const handsStatus = workerReports.length || repairIncidents.length ? 'partial' : (guardian.state.status ? 'waiting' : 'waiting');
     const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) || document.getElementById('screen-scheme') ? 'partial' : 'waiting';
     const voiceStatus = this.workspaceVoiceSupported && this.voiceResponsesEnabled ? 'ready' : (this.workspaceVoiceSupported || this.voiceTtsSupported ? 'partial' : 'waiting');
@@ -6686,16 +7436,17 @@ const App = {
       },
       memory: {
         status: memoryStatus,
-        readiness: savedMemory ? 72 : (memoryCandidates ? 64 : this.taskRuntimeReady ? 56 : 36),
-        summary: savedMemory ? `${savedMemory} записей памяти` : (memoryCandidates ? `${memoryCandidates} кандидатов памяти` : 'поиск по памяти требует индекса'),
-        note: 'Предпросмотр памяти работает; быстрый поиск и индекс контекста должны стать следующим усилением.',
-        snapshot_source: 'Task Runtime memory previews / Memory Search plan',
-        is_mock: !savedMemory && !memoryCandidates,
+        readiness: memoryStatus === 'ready' ? 88 : (memorySearch.count ? 72 : (savedMemory ? 70 : (memoryCandidates ? 64 : this.taskRuntimeReady ? 56 : 36))),
+        summary: memorySearch.count ? `${memorySearch.count} записей индекса` : (savedMemory ? `${savedMemory} записей памяти` : (memoryCandidates ? `${memoryCandidates} кандидатов памяти` : 'поиск по памяти требует индекса')),
+        note: memorySearch.count ? `Контекстный индекс активен: ${memorySearch.note}.` : 'Предпросмотр памяти работает; индекс нужно собрать из задач, решений, evidence и артефактов.',
+        snapshot_source: 'Memory Search Engine / Task Runtime memory previews',
+        is_mock: false,
         checks: [
           ['Хранилище', `${TERMINATOR_STORAGE_ROOT}\\memory`],
           ['Memory Preview', memoryCandidates ? `${memoryCandidates} кандидатов` : 'нет кандидатов'],
           ['Записи памяти', savedMemory ? `${savedMemory} сохранено` : 'не сохранено'],
-          ['Индекс поиска', savedMemory ? 'частичный индекс' : 'ожидает записей'],
+          ['Индекс поиска', memorySearch.count ? `${memorySearch.count} записей` : 'ожидает сборки'],
+          ['Research/Brain refs', `${memorySearch.stats?.research || 0} research · ${memorySearch.stats?.brain_answers || 0} brain answers`],
           ['Файлы', 'только refs, не raw huge data']
         ]
       },
@@ -7059,14 +7810,16 @@ const App = {
 
     if (zoneId === 'memory') {
       const memoryTasks = (this.workTasks || []).filter((task) => task.memory_preview || task.memory_status);
+      const memorySearch = this.memorySearchSnapshot();
       return `
         <section class="scheme-config-block">
           <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\memory</div>
-          <p>Предпросмотр памяти уже связан с задачами. Быстрый индекс поиска должен стать следующим усилением, без хранения тяжёлых файлов и секретов.</p>
+          <p>Память хранит смысл, решения и ссылки. Индекс ищет по задачам, артефактам, evidence, Research Pack и ответам Совета без raw-файлов и без секретов.</p>
           <div class="scheme-chip-list">
             <span>${memoryTasks.length} кандидатов памяти</span>
-            <span>Индекс: частично</span>
-            <span>Внешние ИИ-интерфейсы не включены</span>
+            <span>Индекс: ${this.escapeHtml(this.memorySearchStatusName(memorySearch.status))}</span>
+            <span>${this.escapeHtml(String(memorySearch.count))} записей</span>
+            <span>AI API не включены</span>
           </div>
         </section>
       `;
@@ -7160,8 +7913,8 @@ const App = {
         ['select_memory', 'Проверить Память']
       ],
       memory: [
-        ['select_head', 'Связать с Головой'],
-        ['open_work_memory', 'Открыть Рабочее']
+        ['open_memory_search', 'Открыть поиск памяти'],
+        ['rebuild_memory_index', 'Пересобрать индекс']
       ],
       diagnost: [
         ['run_diagnostics', 'Быстрая проверка'],
@@ -7249,8 +8002,22 @@ const App = {
       return;
     }
 
-    if (action === 'launch' || action === 'open_work' || action === 'open_work_memory' || action === 'open_work_voice') {
+    if (action === 'launch' || action === 'open_work' || action === 'open_work_voice') {
       this.go('work');
+      return;
+    }
+
+    if (action === 'open_memory_search') {
+      this.go('system');
+      window.setTimeout(() => document.getElementById('system-memory-search-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'rebuild_memory_index') {
+      this.activeMinaSchemeZone = 'memory';
+      this.saveMinaSchemeState();
+      await this.refreshMemorySearchIndex({ silent: false });
+      this.renderMinaSystemScheme();
       return;
     }
 
@@ -8385,6 +9152,12 @@ const App = {
     this.taskStoreSyncTimer = window.setTimeout(() => {
       this.syncTaskStore({ interactive: false, reason: 'debounced_save' });
     }, TASK_STORE_SYNC_DEBOUNCE_MS);
+  },
+
+  startBackgroundTaskStoreSync(reason = 'background') {
+    window.setTimeout(() => {
+      void this.syncTaskStore({ interactive: false, reason });
+    }, 0);
   },
 
   async syncTaskStore(options = {}) {
@@ -11795,6 +12568,7 @@ const App = {
       linked_artifact_id: artifact.artifact_id,
       linked_artifacts: [artifact.artifact_id]
     });
+    this.refreshMemorySearchIndex({ silent: true, render: false });
     this.toast('Memory preview сохранён локально');
   },
 

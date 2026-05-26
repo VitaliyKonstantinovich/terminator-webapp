@@ -1,10 +1,10 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260526-phase7';
+const MINA_CACHE = 'terminator-mina-pwa-20260526-memory-search-v1';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260526-phase7',
-  './app.js?v=20260526-phase7',
+  './styles.css?v=20260526-memory-search-v1',
+  './app.js?v=20260526-memory-search-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
