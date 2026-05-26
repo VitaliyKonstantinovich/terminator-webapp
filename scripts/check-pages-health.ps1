@@ -1,6 +1,8 @@
 param(
   [string]$Repository = "VitaliyKonstantinovich/terminator-webapp",
-  [string]$Url = "https://vitaliykonstantinovich.github.io/terminator-webapp/"
+  [string]$Url = "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  [string]$ExpectedAssetMarker = "20260526-phase6",
+  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260526-phase6"
 )
 
 $ErrorActionPreference = "Stop"
@@ -35,14 +37,16 @@ $checks = [ordered]@{
   latest_workflow_run_id = $latestRun.databaseId
   latest_workflow_status = $latestRun.status
   latest_workflow_conclusion = $latestRun.conclusion
-  live_html_phase5_marker = $html.Contains("20260526-phase5")
+  expected_asset_marker = $ExpectedAssetMarker
+  expected_cache_marker = $ExpectedCacheMarker
+  live_html_asset_marker = $html.Contains($ExpectedAssetMarker)
   live_html_manifest_link = $html.Contains("manifest.webmanifest")
   live_html_start_screen = $html.Contains("screen-start")
   live_html_start_button = $html.Contains("btn-start")
   manifest_name = $manifest.name
   manifest_display = $manifest.display
   manifest_icon_count = @($manifest.icons).Count
-  service_worker_phase5_marker = $sw.Contains("terminator-mina-pwa-20260526-phase5")
+  service_worker_cache_marker = $sw.Contains($ExpectedCacheMarker)
 }
 
 $failures = @()
@@ -50,14 +54,14 @@ if ($checks.pages_status -ne "built") { $failures += "GitHub Pages status is $($
 if ($checks.build_type -ne "workflow") { $failures += "GitHub Pages build_type is $($checks.build_type), expected workflow." }
 if ($checks.latest_legacy_build_status -ne "built") { $failures += "Latest legacy Pages build is $($checks.latest_legacy_build_status), expected built." }
 if ($checks.latest_workflow_conclusion -ne "success") { $failures += "Latest Pages workflow conclusion is $($checks.latest_workflow_conclusion), expected success." }
-if (-not $checks.live_html_phase5_marker) { $failures += "Live HTML misses Phase 5 marker." }
+if (-not $checks.live_html_asset_marker) { $failures += "Live HTML misses expected asset marker: $ExpectedAssetMarker." }
 if (-not $checks.live_html_manifest_link) { $failures += "Live HTML misses manifest link." }
 if (-not $checks.live_html_start_screen) { $failures += "Live HTML misses start screen marker." }
 if (-not $checks.live_html_start_button) { $failures += "Live HTML misses start button marker." }
 if ($checks.manifest_name -ne "Terminator Mina UI") { $failures += "Manifest name is $($checks.manifest_name)." }
 if ($checks.manifest_display -ne "standalone") { $failures += "Manifest display is $($checks.manifest_display)." }
 if ($checks.manifest_icon_count -lt 3) { $failures += "Manifest has only $($checks.manifest_icon_count) icons." }
-if (-not $checks.service_worker_phase5_marker) { $failures += "Service worker misses Phase 5 cache marker." }
+if (-not $checks.service_worker_cache_marker) { $failures += "Service worker misses expected cache marker: $ExpectedCacheMarker." }
 
 $checks | ConvertTo-Json -Depth 4
 
