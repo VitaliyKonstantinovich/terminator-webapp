@@ -298,6 +298,8 @@ const GUARDIAN_WORKER_REPORTS_STORAGE_KEY = 'mina_guardian_worker_reports_v1';
 const TASK_STORE_SYNC_STATE_KEY = 'mina_task_store_sync_state_v1';
 const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
 const MINA_SCHEME_STATE_KEY = 'mina_system_scheme_state_v1';
+const PWA_STATE_STORAGE_KEY = 'mina_pwa_state_v1';
+const VOICE_SETTINGS_STORAGE_KEY = 'mina_voice_settings_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 8;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -660,6 +662,7 @@ const VOICE_STATES = {
   approval_required: 'требуется подтверждение',
   completed: 'выполнено',
   cancelled: 'отменено',
+  stopped: 'остановлено',
   failed: 'ошибка',
   permission_denied: 'микрофон недоступен',
   browser_not_supported: 'не поддерживается'
@@ -675,6 +678,8 @@ const VOICE_INTENT_LABELS = {
   mark_sent_to_executor: 'Отметить пакет отправленным',
   open_verifier: 'Открыть проверку',
   show_memory_preview: 'Показать память',
+  stop_listening: 'Остановить голос',
+  help: 'Подсказка',
   dangerous_command: 'Опасная команда',
   unknown: 'Не распознано'
 };
@@ -687,6 +692,21 @@ const VOICE_CONFIDENCE_LABELS = {
 };
 
 const VOICE_DANGEROUS_PATTERN = /\b(?:удали|delete|remove|деплой|deploy|push|main|force|\.env|secret|token|api\s*key|network|vpn|proxy|firewall|defender|route|hosts|format|wipe|reset|kill|password|cookie|session|cloudflare)\b/i;
+
+const PWA_INSTALL_STATUS_LABELS = {
+  installed: 'установлено',
+  installable: 'можно установить',
+  browser_only: 'браузерный режим',
+  unsupported: 'не поддерживается'
+};
+
+const WINDOWS_COMPANION_CONTRACT = [
+  ['Статус Local Agent', 'только чтение', 'Показывать online/offline и last seen без запуска опасных команд.'],
+  ['Быстрый запуск', 'safe preview', 'Открыть WebApp / Схему Мины / Диагност.'],
+  ['Безопасный рестарт агента', 'approval', 'Позже: restart только через Guardian и подтверждение владельца.'],
+  ['Логи и health', 'read-only', 'Показать путь к логам, storage root и последние incidents.'],
+  ['Голос из tray', 'future', 'Только после зрелого Mina Voice и явного privacy indicator.']
+];
 
 const VERIFIER_CHECKLIST = [
   { id: 'matches_task', label: 'отчет соответствует задаче', critical: false },
@@ -2013,6 +2033,15 @@ const App = {
   workspaceVoiceRecognition: null,
   workspaceVoiceSupported: false,
   workspaceVoiceOpen: false,
+  voiceResponsesEnabled: true,
+  voiceTtsSupported: false,
+  pwaInstallPrompt: null,
+  pwaInstallAvailable: false,
+  pwaInstalled: false,
+  pwaServiceWorkerStatus: 'not_checked',
+  pwaServiceWorkerScope: '',
+  pwaDisplayMode: 'browser',
+  pwaLastCheckedAt: '',
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -2033,7 +2062,9 @@ const App = {
     this.tg = window.Telegram?.WebApp || null;
     this.initTelegram();
     this.bindEvents();
+    this.loadVoiceSettings();
     this.initVoiceSupport();
+    this.initPwaRuntime();
     await this.initTaskRuntime();
     await this.loadWorkProjects();
     await this.loadWorkTasks();
@@ -2151,6 +2182,18 @@ const App = {
       const voiceActionButton = event.target.closest('[data-voice-action]');
       if (voiceActionButton) {
         this.handleVoiceAction(voiceActionButton.dataset.voiceAction);
+        return;
+      }
+
+      const voiceSettingButton = event.target.closest('[data-voice-setting]');
+      if (voiceSettingButton) {
+        this.handleVoiceSetting(voiceSettingButton.dataset.voiceSetting);
+        return;
+      }
+
+      const pwaActionButton = event.target.closest('[data-pwa-action]');
+      if (pwaActionButton) {
+        this.handlePwaAction(pwaActionButton.dataset.pwaAction);
         return;
       }
 
@@ -4089,6 +4132,7 @@ const App = {
     const taskStore = this.taskStoreStatusSnapshot();
     const head = this.headStatusSnapshot();
     const guardian = this.guardianSnapshot();
+    const pwa = this.pwaSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
       ['Синхронизация задач', taskStore.status, taskStore.note],
@@ -4096,6 +4140,7 @@ const App = {
       ['Голова', head.status, head.note],
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
       ['Устройства', this.systemDevices.length, `${trustedDevices} доверенных или системных`],
+      ['Мобильное приложение', pwa.installLabel, `offline shell: ${pwa.serviceWorker}`],
       ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'текстовый режим', 'без фонового прослушивания и без AI API'],
       ['Хранилище', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs и evidence на D'],
       ['Мост', direct.status, direct.note],
@@ -4117,6 +4162,8 @@ const App = {
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
+    this.renderSystemPwaPanel();
+    this.renderSystemCompanionPanel();
     this.renderMinaSystemScheme();
   },
 
@@ -5560,9 +5607,11 @@ const App = {
     if (!host) return;
     const voiceTasks = (this.workTasks || []).filter((task) => task.input_source === 'voice' || task.voice_event_type);
     const activeTask = this.getActiveWorkTask();
+    const repliesStatus = this.voiceResponsesEnabled && this.voiceTtsSupported ? 'включены' : (this.voiceTtsSupported ? 'выключены' : 'недоступны');
     const rows = [
       ['Режим', 'push-to-talk', 'фонового прослушивания нет'],
       ['STT', this.workspaceVoiceSupported ? 'доступен' : 'manual fallback', 'Browser Web Speech API, без AI API'],
+      ['Короткий ответ Мины', repliesStatus, 'TTS только короткими фразами, длинные данные остаются текстом'],
       ['Intent Preview', 'включён', 'команда сначала показывается владельцу'],
       ['Dangerous voice actions', 'blocked', 'опасные слова не выполняются автоматически'],
       ['Voice events', `${voiceTasks.length} задач`, activeTask ? `активная задача: ${activeTask.task_id}` : 'активная задача не выбрана']
@@ -5570,6 +5619,243 @@ const App = {
     host.innerHTML = `
       <div class="voice-system-grid">
         ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="system-action-strip">
+        <button type="button" data-voice-setting="toggle_responses">${this.voiceResponsesEnabled ? 'Отключить ответы' : 'Включить ответы'}</button>
+        <button type="button" data-voice-setting="test_reply">Тест ответа</button>
+        <button type="button" data-scheme-action="select_voice">Открыть в Схеме Мины</button>
+      </div>
+    `;
+  },
+
+  loadVoiceSettings() {
+    const stored = this.readJsonStorage(VOICE_SETTINGS_STORAGE_KEY, {});
+    this.voiceTtsSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    this.voiceResponsesEnabled = stored.voice_responses_enabled !== false;
+  },
+
+  saveVoiceSettings() {
+    this.writeJsonStorage(VOICE_SETTINGS_STORAGE_KEY, {
+      voice_responses_enabled: this.voiceResponsesEnabled,
+      tts_supported: this.voiceTtsSupported,
+      language: 'ru-RU',
+      mode: 'push-to-talk',
+      updated_at: new Date().toISOString()
+    });
+  },
+
+  handleVoiceSetting(action) {
+    if (action === 'toggle_responses') {
+      this.voiceResponsesEnabled = !this.voiceResponsesEnabled;
+      this.saveVoiceSettings();
+      this.renderSystemVoiceHooks();
+      this.renderVoicePanel();
+      this.renderMinaSystemScheme();
+      this.toast(this.voiceResponsesEnabled ? 'Голосовые ответы включены' : 'Голосовые ответы выключены');
+      return;
+    }
+    if (action === 'test_reply') {
+      this.speakMina('Голос Мины готов.');
+      this.toast(this.voiceTtsSupported ? 'Тестовый ответ отправлен' : 'TTS недоступен в браузере');
+    }
+  },
+
+  speakMina(text) {
+    const phrase = String(text || '').trim();
+    if (!phrase || !this.voiceResponsesEnabled || !this.voiceTtsSupported) return;
+    if (phrase.length > 120) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(phrase);
+      utterance.lang = 'ru-RU';
+      utterance.rate = 0.96;
+      utterance.pitch = 0.92;
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      this.voiceTtsSupported = false;
+      this.saveVoiceSettings();
+    }
+  },
+
+  loadPwaState() {
+    const stored = this.readJsonStorage(PWA_STATE_STORAGE_KEY, {});
+    this.pwaInstallAvailable = Boolean(stored.install_available);
+    this.pwaInstalled = Boolean(stored.installed_at);
+    this.pwaServiceWorkerStatus = stored.service_worker || this.pwaServiceWorkerStatus || 'not_checked';
+    this.pwaServiceWorkerScope = stored.scope || '';
+    this.pwaLastCheckedAt = stored.updated_at || stored.installed_at || '';
+    this.pwaDisplayMode = this.detectPwaDisplayMode();
+    if (this.pwaDisplayMode !== 'browser') this.pwaInstalled = true;
+  },
+
+  savePwaState(patch = {}) {
+    const current = this.readJsonStorage(PWA_STATE_STORAGE_KEY, {});
+    const next = {
+      ...current,
+      ...patch,
+      display_mode: this.pwaDisplayMode,
+      updated_at: new Date().toISOString()
+    };
+    this.writeJsonStorage(PWA_STATE_STORAGE_KEY, next);
+    this.pwaLastCheckedAt = next.updated_at;
+  },
+
+  detectPwaDisplayMode() {
+    if (window.matchMedia?.('(display-mode: standalone)').matches) return 'standalone';
+    if (window.navigator?.standalone) return 'standalone';
+    if (document.referrer.startsWith('android-app://')) return 'twa';
+    return 'browser';
+  },
+
+  initPwaRuntime() {
+    this.loadPwaState();
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      this.pwaInstallPrompt = event;
+      this.pwaInstallAvailable = true;
+      this.savePwaState({ install_available: true });
+      this.renderSystemPwaPanel();
+      this.renderMinaSystemScheme();
+    });
+    window.addEventListener('appinstalled', () => {
+      this.pwaInstalled = true;
+      this.pwaInstallAvailable = false;
+      this.pwaInstallPrompt = null;
+      this.savePwaState({ installed_at: new Date().toISOString(), install_available: false });
+      this.renderSystemPwaPanel();
+      this.renderMinaSystemScheme();
+      this.toast('Mina установлена как приложение');
+    });
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) {
+      this.pwaServiceWorkerStatus = 'unsupported';
+      this.savePwaState({ service_worker: 'unsupported' });
+      return;
+    }
+    navigator.serviceWorker.register('./sw.js')
+      .then((registration) => {
+        this.pwaServiceWorkerStatus = 'registered';
+        this.pwaServiceWorkerScope = registration.scope || '';
+        this.savePwaState({ service_worker: 'registered', scope: this.pwaServiceWorkerScope });
+        this.renderSystemPwaPanel();
+        this.renderMinaSystemScheme();
+      })
+      .catch(() => {
+        this.pwaServiceWorkerStatus = 'failed';
+        this.savePwaState({ service_worker: 'failed' });
+        this.renderSystemPwaPanel();
+        this.renderMinaSystemScheme();
+      });
+  },
+
+  pwaSnapshot() {
+    this.pwaDisplayMode = this.detectPwaDisplayMode();
+    const installed = this.pwaInstalled || this.pwaDisplayMode !== 'browser';
+    const installStatus = installed
+      ? 'installed'
+      : this.pwaInstallAvailable || this.pwaInstallPrompt
+        ? 'installable'
+        : ('serviceWorker' in navigator ? 'browser_only' : 'unsupported');
+    return {
+      installed,
+      installStatus,
+      installLabel: PWA_INSTALL_STATUS_LABELS[installStatus] || installStatus,
+      displayMode: this.pwaDisplayMode,
+      serviceWorker: this.pwaServiceWorkerStatus,
+      scope: this.pwaServiceWorkerScope || '',
+      lastCheckedAt: this.pwaLastCheckedAt
+    };
+  },
+
+  async handlePwaAction(action) {
+    if (action === 'install') {
+      if (!this.pwaInstallPrompt) {
+        this.toast('Установка доступна через меню браузера: установить приложение');
+        this.savePwaState({ install_attempted_at: new Date().toISOString() });
+        this.renderSystemPwaPanel();
+        return;
+      }
+      const prompt = this.pwaInstallPrompt;
+      this.pwaInstallPrompt = null;
+      prompt.prompt();
+      const choice = await prompt.userChoice.catch(() => ({ outcome: 'unknown' }));
+      this.pwaInstallAvailable = false;
+      if (choice?.outcome === 'accepted') this.pwaInstalled = true;
+      this.savePwaState({
+        install_choice: choice?.outcome || 'unknown',
+        installed_at: choice?.outcome === 'accepted' ? new Date().toISOString() : undefined,
+        install_available: false
+      });
+      this.renderSystemPwaPanel();
+      this.renderMinaSystemScheme();
+      this.toast(choice?.outcome === 'accepted' ? 'Установка принята' : 'Установка не выполнена');
+      return;
+    }
+    if (action === 'refresh') {
+      this.pwaDisplayMode = this.detectPwaDisplayMode();
+      this.savePwaState({ checked_at: new Date().toISOString(), service_worker: this.pwaServiceWorkerStatus });
+      this.renderSystemPwaPanel();
+      this.renderMinaSystemScheme();
+      this.toast('PWA статус обновлён');
+      return;
+    }
+    if (action === 'open_scheme') {
+      this.go('scheme');
+      return;
+    }
+    if (action === 'open_work') {
+      this.go('work');
+      return;
+    }
+    if (action === 'copy_link') {
+      await this.copyWorkspaceText(window.location.origin + window.location.pathname + '?screen=scheme');
+    }
+  },
+
+  renderSystemPwaPanel() {
+    const host = document.getElementById('system-pwa-panel');
+    if (!host) return;
+    const pwa = this.pwaSnapshot();
+    const rows = [
+      ['Установка', pwa.installLabel, pwa.installed ? 'открывается как приложение' : 'можно открыть в браузере и установить через prompt/меню'],
+      ['Offline shell', pwa.serviceWorker === 'registered' ? 'готов' : pwa.serviceWorker, pwa.scope || 'service worker проверяется'],
+      ['Display mode', pwa.displayMode, pwa.displayMode === 'browser' ? 'обычная вкладка браузера' : 'standalone / app mode'],
+      ['Mobile smoke', 'готов к проверке', 'адаптивная вёрстка и sticky console проверяются на 390/430px']
+    ];
+    host.innerHTML = `
+      <div class="voice-system-grid">
+        ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="system-action-strip">
+        <button type="button" data-pwa-action="install">Установить приложение</button>
+        <button type="button" data-pwa-action="refresh">Обновить статус</button>
+        <button type="button" data-pwa-action="copy_link">Скопировать ссылку</button>
+        <button type="button" data-pwa-action="open_scheme">Схема Мины</button>
+      </div>
+    `;
+  },
+
+  renderSystemCompanionPanel() {
+    const host = document.getElementById('system-companion-panel');
+    if (!host) return;
+    const agent = this.localAgentStatusSnapshot();
+    const rows = [
+      ['Статус', 'проектный контракт', 'Windows tray app будет оболочкой Local Agent, без обхода Approval'],
+      ['Local Agent', agent.status, agent.note],
+      ['Safe restart', 'только через Guardian', 'опасные действия требуют подтверждения владельца'],
+      ['PWA/Windows путь', 'WebApp → PWA → Tray', 'полноценный desktop shell только после стабильного ядра']
+    ];
+    host.innerHTML = `
+      <div class="voice-system-grid">
+        ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="companion-contract-grid">
+        ${WINDOWS_COMPANION_CONTRACT.map(([title, mode, note]) => `
+          <article>
+            <strong>${this.escapeHtml(title)}</strong>
+            <span>${this.escapeHtml(mode)}</span>
+            <p>${this.escapeHtml(note)}</p>
+          </article>
+        `).join('')}
       </div>
     `;
   },
@@ -5619,6 +5905,7 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
+    const pwa = this.pwaSnapshot();
     const savedMemory = tasks.filter((task) => ['saved_local', 'memory_saved'].includes(task.memory_preview?.status || task.memory_status)).length;
     const memoryCandidates = tasks.filter((task) => task.memory_preview || task.memory_status || task.memory_candidate).length;
     const researchTasks = tasks.filter((task) => this.ensureResearchOpsState(task).status !== 'not_started').length;
@@ -5650,8 +5937,10 @@ const App = {
     const memoryStatus = savedMemory || memoryCandidates ? 'partial' : (this.taskRuntimeReady ? 'partial' : 'waiting');
     const handsStatus = workerReports.length || repairIncidents.length ? 'partial' : (guardian.state.status ? 'waiting' : 'waiting');
     const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) || document.getElementById('screen-scheme') ? 'partial' : 'waiting';
-    const voiceStatus = this.workspaceVoiceSupported ? 'partial' : 'waiting';
-    const legsStatus = devicePhone?.status === 'connected' ? 'ready' : ((this.systemDevices || []).length ? 'partial' : 'waiting');
+    const voiceStatus = this.workspaceVoiceSupported && this.voiceResponsesEnabled ? 'ready' : (this.workspaceVoiceSupported || this.voiceTtsSupported ? 'partial' : 'waiting');
+    const legsStatus = devicePhone?.status === 'connected' || pwa.installed
+      ? 'ready'
+      : ((this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
 
     const subsystems = {
       head: {
@@ -5684,7 +5973,7 @@ const App = {
       },
       voice: {
         status: voiceStatus,
-        readiness: this.workspaceVoiceSupported ? 64 : 38,
+        readiness: voiceStatus === 'ready' ? 82 : (this.workspaceVoiceSupported ? 68 : 42),
         summary: this.workspaceVoiceSupported ? 'режим “нажать и говорить” доступен' : 'ручной ввод доступен',
         note: 'Фонового прослушивания нет. Опасные голосовые команды блокируются Approval.',
         snapshot_source: 'Workspace voice hooks',
@@ -5693,6 +5982,7 @@ const App = {
           ['Режим', 'Нажать и говорить'],
           ['Язык', 'Русский'],
           ['Распознавание речи', this.workspaceVoiceSupported ? 'доступно в браузере' : 'ручной ввод'],
+          ['Ответы Мины', this.voiceResponsesEnabled && this.voiceTtsSupported ? 'короткие ответы включены' : 'текстовый режим'],
           ['Опасные команды', 'заблокированы']
         ]
       },
@@ -5742,15 +6032,16 @@ const App = {
       },
       legs: {
         status: legsStatus,
-        readiness: legsStatus === 'ready' ? 90 : (legsStatus === 'partial' ? 52 : 28),
-        summary: legsStatus === 'ready' ? 'связь устройств готова' : 'связь устройств частично',
-        note: 'Ноги маршрутизируют задачи и контекст. Они не выполняют действия вместо Рук.',
-        snapshot_source: 'Device Registry / Device Mesh placeholders',
-        is_mock: true,
+        readiness: legsStatus === 'ready' ? 90 : (legsStatus === 'partial' ? 58 : 28),
+        summary: legsStatus === 'ready' ? 'мобильный контур готов' : 'связь устройств частично',
+        note: 'Ноги маршрутизируют задачи и контекст. PWA даёт мобильный вход без выполнения опасных действий.',
+        snapshot_source: 'Device Registry / PWA / Device Mesh placeholders',
+        is_mock: !pwa.installed && !devicePhone,
         checks: [
           ['Основное устройство', 'ПК Терминатора'],
           ['Телефон', devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен'],
-          ['Передача задачи', 'локальный слой статуса'],
+          ['PWA', `${pwa.installLabel}; service worker: ${pwa.serviceWorker}`],
+          ['Передача задачи', pwa.serviceWorker === 'registered' ? 'offline shell готов' : 'локальный слой статуса'],
           ['Перенос контекста', 'будущий слой маршрутов']
         ]
       },
@@ -5820,7 +6111,7 @@ const App = {
             <div>
               <span class="scheme-kicker">Настройка системы</span>
               <h2>Схема Мины</h2>
-              <p>Настройте ключевые подсистемы Мины — ядра вашей системы Терминатор.</p>
+              <p>Настройте ключевые подсистемы Мины.</p>
             </div>
             <div class="scheme-top-actions">
               <span class="scheme-system-pill"><i></i> Система активна</span>
@@ -6354,6 +6645,7 @@ const App = {
         <p>Голос не выполняет действия напрямую. Сначала будет preview намерения, риск и подтверждение.</p>
         <div class="voice-actions">
           <button type="button" data-voice-action="preview_manual">Показать preview</button>
+          <button type="button" data-voice-setting="toggle_responses">${this.voiceResponsesEnabled ? 'Ответы: вкл' : 'Ответы: выкл'}</button>
           <button type="button" data-voice-action="cancel">Закрыть</button>
         </div>
       `;
@@ -6427,6 +6719,12 @@ const App = {
         command: raw
       }, 'Опасная команда не будет выполнена автоматически. Можно только подготовить предупреждение/approval.');
     }
+    if (/(^|\s)(стоп|отмена|не выполняй|останови|остановить|закрой голос|хватит)(\s|$)/i.test(raw)) {
+      return this.voiceIntent(raw, 'stop_listening', 'high', 'safe', {}, 'Голосовой режим будет остановлен. Никаких действий не выполняется.');
+    }
+    if (/(помощь|что умеешь|команды|подсказка)/i.test(raw)) {
+      return this.voiceIntent(raw, 'help', 'high', 'safe', {}, 'Покажу подсказку по безопасным голосовым командам.');
+    }
     if (/(создай|создать|новая|новую).{0,24}задач/i.test(raw)) {
       const request = raw.replace(/^(мина[, ]*)?/i, '').replace(/создай|создать|новая|новую|задачу|задача/gi, '').trim() || raw;
       const preview = this.buildWorkPreview(request, { project_id: 'terminator', mode: 'auto', quality_level: 'auto' });
@@ -6489,8 +6787,10 @@ const App = {
         this.recordVoiceEvent('voice_approval_required', preview.transcript, preview);
         this.saveWorkTasks();
         this.renderWorkTaskCard();
+        this.speakMina('Нужно подтверждение владельца.');
       } else {
         this.toast('Опасная команда заблокирована');
+        this.speakMina('Команда заблокирована.');
       }
       this.renderVoicePanel();
       return;
@@ -6498,6 +6798,25 @@ const App = {
     if (preview.intent === 'unknown') {
       this.workspaceVoiceState = 'failed';
       this.toast('Команда не распознана');
+      this.speakMina('Я не уверена.');
+      this.renderVoicePanel();
+      return;
+    }
+    if (preview.intent === 'stop_listening') {
+      this.workspaceVoiceOpen = false;
+      this.workspaceVoiceState = 'stopped';
+      try {
+        this.workspaceVoiceRecognition?.stop();
+      } catch {}
+      this.recordVoiceEvent('voice_stopped', preview.transcript, preview);
+      this.renderVoicePanel();
+      this.speakMina('Голос остановлен.');
+      return;
+    }
+    if (preview.intent === 'help') {
+      this.toast('Голос: создать задачу, добавить уточнение, открыть Рабочее, Центр управления, Систему, проверку или память.', 5200);
+      this.recordVoiceEvent('voice_help_shown', preview.transcript, preview);
+      this.speakMina('Показываю подсказку.');
       this.renderVoicePanel();
       return;
     }
@@ -6548,6 +6867,10 @@ const App = {
     this.renderSystemStatus();
     this.renderVoicePanel();
     this.toast('Voice action обработан безопасно');
+    if (preview.intent === 'create_task') this.speakMina('Показываю preview задачи.');
+    else if (preview.intent === 'add_note') this.speakMina('Уточнение добавлено.');
+    else if (preview.intent.startsWith('open_')) this.speakMina('Открываю.');
+    else this.speakMina('Готово.');
   },
 
   recordVoiceEvent(type, transcript, preview) {

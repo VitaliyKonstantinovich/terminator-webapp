@@ -5,11 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>TERMINATOR MINA UI</title>
   <meta name="description" content="Telegram Mini App Терминатор — Mina UI">
+  <meta name="theme-color" content="#020710">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Mina">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/pwa/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260526-phase45-tail-final">
+  <link rel="stylesheet" href="styles.css?v=20260526-phase5">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -684,6 +691,26 @@
             </div>
             <div id="system-voice-hooks" class="voice-system-panel"></div>
           </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Мобильное приложение</strong>
+                <span>PWA, установка на телефон, offline shell и быстрый вход</span>
+              </div>
+            </div>
+            <div id="system-pwa-panel" class="pwa-system-panel"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Windows-компаньон</strong>
+                <span>Будущий tray app: статус агента, запуск, диагностика и безопасный рестарт</span>
+              </div>
+            </div>
+            <div id="system-companion-panel" class="companion-system-panel"></div>
+          </section>
         </article>
       </div>
     </section>
@@ -923,6 +950,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260526-phase45-tail-final"></script>
+  <script src="app.js?v=20260526-phase5"></script>
 </body>
 </html>
