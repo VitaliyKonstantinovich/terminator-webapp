@@ -1,0 +1,55 @@
+{
+  "name": "Terminator Mina UI",
+  "short_name": "Mina",
+  "description": "Персональная ИИ-операционная система работы: задачи, память, проверка, голос и управление.",
+  "lang": "ru-RU",
+  "dir": "ltr",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#020710",
+  "background_color": "#020710",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Рабочее",
+      "short_name": "Рабочее",
+      "description": "Открыть рабочее окно задач",
+      "url": "./?screen=work",
+      "icons": [{ "src": "assets/pwa/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Центр управления",
+      "short_name": "Центр",
+      "description": "Открыть состояние проектов и задач",
+      "url": "./?screen=mission",
+      "icons": [{ "src": "assets/pwa/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Схема Мины",
+      "short_name": "Схема",
+      "description": "Открыть визуальную настройку Терминатора",
+      "url": "./?screen=scheme",
+      "icons": [{ "src": "assets/pwa/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
