@@ -2789,6 +2789,26 @@ button:not(:disabled) {
   max-height: 420px;
   overflow: auto;
   padding-right: 4px;
+  scrollbar-color: rgba(110, 231, 255, 0.62) rgba(3, 20, 43, 0.72);
+  scrollbar-width: thin;
+}
+
+.guardian-cost-grid::-webkit-scrollbar,
+.guardian-capability-grid::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.guardian-cost-grid::-webkit-scrollbar-track,
+.guardian-capability-grid::-webkit-scrollbar-track {
+  background: rgba(3, 20, 43, 0.72);
+}
+
+.guardian-cost-grid::-webkit-scrollbar-thumb,
+.guardian-capability-grid::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(3, 20, 43, 0.72);
+  border-radius: 999px;
+  background: rgba(110, 231, 255, 0.62);
 }
 
 .guardian-mini-card {
@@ -2827,6 +2847,24 @@ button:not(:disabled) {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
+}
+
+.guardian-worker-console {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.guardian-worker-report button {
+  justify-self: start;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(110, 231, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(8, 46, 91, 0.82);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .approval-center-grid {

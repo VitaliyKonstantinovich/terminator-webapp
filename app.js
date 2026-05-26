@@ -294,10 +294,11 @@ const WORK_COUNTER_KEY = 'mina_work_task_counter_v1';
 const SYSTEM_DIAGNOSTICS_STORAGE_KEY = 'mina_system_diagnostics_v1';
 const GUARDIAN_STATE_STORAGE_KEY = 'mina_guardian_state_v1';
 const GUARDIAN_INCIDENTS_STORAGE_KEY = 'mina_guardian_incidents_v1';
+const GUARDIAN_WORKER_REPORTS_STORAGE_KEY = 'mina_guardian_worker_reports_v1';
 const TASK_STORE_SYNC_STATE_KEY = 'mina_task_store_sync_state_v1';
 const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
-const WORK_RUNTIME_DB_VERSION = 7;
+const WORK_RUNTIME_DB_VERSION = 8;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
 const GUARDIAN_STATE_META_KEY = 'guardian_state_v1';
 const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
@@ -321,6 +322,7 @@ const TASK_RUNTIME_STORES = {
   DIAGNOSTICS: 'diagnostics',
   INCIDENTS: 'incidents',
   GUARDIAN_EVENTS: 'guardian_events',
+  GUARDIAN_WORKER_REPORTS: 'guardian_worker_reports',
   HEAD_BRAINS: 'head_brains',
   HEAD_PROFILES: 'head_profiles',
   HEAD_SEARCH_AGENTS: 'head_search_agents',
@@ -426,6 +428,69 @@ const PHASE4_WORKER_FOUNDATION = [
   ['system_worker', 'System Worker', 'система', 'health/status later', 'нет firewall/Defender/network без critical Approval'],
   ['memory_worker', 'Memory Worker', 'память', 'Memory Preview / search index', 'не сохраняет raw noise и secrets'],
   ['device_worker', 'Device Worker', 'устройства', 'Device Mesh capabilities', 'не меняет pairing/settings без Approval']
+];
+
+const PHASE4_WORKER_ACTIONS = [
+  {
+    id: 'eyes_visual_snapshot',
+    worker: 'Eyes',
+    title: 'Визуальное наблюдение UI',
+    mode: 'read_only',
+    risk_level: 'safe',
+    output: 'SCREENSHOT / VISUAL_CHECK evidence',
+    status: 'ready_with_manual_capture',
+    rule: 'Скриншот создаётся только как evidence; логины, cookies и платежи не трогаются.'
+  },
+  {
+    id: 'eyes_dom_snapshot',
+    worker: 'Eyes',
+    title: 'DOM / layout snapshot',
+    mode: 'read_only',
+    risk_level: 'safe',
+    output: 'CHECK_LOG',
+    status: 'ready',
+    rule: 'Читает только видимую структуру UI и overflow-состояние.'
+  },
+  {
+    id: 'file_worker_metadata',
+    worker: 'Hands / File Worker',
+    title: 'Файловая metadata',
+    mode: 'read_only',
+    risk_level: 'review',
+    output: 'FILE_METADATA report',
+    status: 'approval_gate',
+    rule: 'Только allowlist-пути на D; .env/secrets/archives skipped.'
+  },
+  {
+    id: 'code_worker_repair_diff',
+    worker: 'Hands / Code Worker',
+    title: 'Repair diff',
+    mode: 'isolated_workspace',
+    risk_level: 'approval_required',
+    output: 'DIFF_REVIEW',
+    status: 'blocked_until_verifier',
+    rule: 'Пишет только в repair workspace; apply в active project запрещён до Verifier/Approval.'
+  },
+  {
+    id: 'browser_worker_qa',
+    worker: 'Hands / Browser Worker',
+    title: 'Browser QA action',
+    mode: 'guarded_future',
+    risk_level: 'approval_required',
+    output: 'QA_EVIDENCE',
+    status: 'blocked_for_phase4',
+    rule: 'Нет автологина, cookies, платежей, account actions и hidden browser control.'
+  },
+  {
+    id: 'system_worker_health',
+    worker: 'Hands / System Worker',
+    title: 'System health',
+    mode: 'read_only',
+    risk_level: 'review',
+    output: 'DIAGNOSTIC_REPORT',
+    status: 'safe_checks_only',
+    rule: 'Разрешены только health/status; firewall/Defender/network запрещены.'
+  }
 ];
 
 const FIRST_RUN_SAFETY_CHECKS = [
@@ -1761,6 +1826,12 @@ function openTaskRuntimeDatabase() {
         store.createIndex('type', 'type', { unique: false });
         store.createIndex('incident_id', 'incident_id', { unique: false });
       }
+      if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.GUARDIAN_WORKER_REPORTS)) {
+        const store = db.createObjectStore(TASK_RUNTIME_STORES.GUARDIAN_WORKER_REPORTS, { keyPath: 'report_id' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('risk_level', 'risk_level', { unique: false });
+      }
       if (!db.objectStoreNames.contains(TASK_RUNTIME_STORES.HEAD_BRAINS)) {
         const store = db.createObjectStore(TASK_RUNTIME_STORES.HEAD_BRAINS, { keyPath: 'brain_id' });
         store.createIndex('status', 'status', { unique: false });
@@ -1814,6 +1885,7 @@ const App = {
   systemDiagnostics: [],
   guardianState: null,
   guardianIncidents: [],
+  guardianWorkerReports: [],
   activeDeviceId: '',
   activeHeadBrainId: '',
   activeHeadProfileId: '',
@@ -2952,6 +3024,7 @@ const App = {
   async loadGuardianRuntime() {
     const fallbackState = this.readJsonStorage(GUARDIAN_STATE_STORAGE_KEY, null);
     const fallbackIncidents = this.readJsonStorage(GUARDIAN_INCIDENTS_STORAGE_KEY, []);
+    const fallbackWorkerReports = this.readJsonStorage(GUARDIAN_WORKER_REPORTS_STORAGE_KEY, []);
     try {
       const storedState = this.taskRuntimeDb
         ? await this.getRuntimeRecord(TASK_RUNTIME_STORES.META, GUARDIAN_STATE_META_KEY)
@@ -2959,14 +3032,21 @@ const App = {
       const storedIncidents = this.taskRuntimeDb
         ? await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.INCIDENTS)
         : fallbackIncidents;
+      const storedWorkerReports = this.taskRuntimeDb
+        ? await this.getAllRuntimeRecords(TASK_RUNTIME_STORES.GUARDIAN_WORKER_REPORTS)
+        : fallbackWorkerReports;
       this.guardianState = this.normalizeGuardianState(storedState || fallbackState || {});
       this.guardianIncidents = Array.isArray(storedIncidents)
         ? storedIncidents.map((incident) => this.normalizeIncident(incident)).sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)).slice(0, 40)
+        : [];
+      this.guardianWorkerReports = Array.isArray(storedWorkerReports)
+        ? storedWorkerReports.map((report) => this.normalizeGuardianWorkerReport(report)).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 20)
         : [];
       this.activeIncidentId = this.guardianIncidents[0]?.incident_id || '';
     } catch {
       this.guardianState = this.normalizeGuardianState(fallbackState || {});
       this.guardianIncidents = Array.isArray(fallbackIncidents) ? fallbackIncidents.map((incident) => this.normalizeIncident(incident)).slice(0, 40) : [];
+      this.guardianWorkerReports = Array.isArray(fallbackWorkerReports) ? fallbackWorkerReports.map((report) => this.normalizeGuardianWorkerReport(report)).slice(0, 20) : [];
       this.activeIncidentId = this.guardianIncidents[0]?.incident_id || '';
     }
     await this.saveGuardianState(this.guardianState, { silent: true });
@@ -3051,6 +3131,52 @@ const App = {
     this.activeIncidentId = normalized.incident_id;
     this.writeJsonStorage(GUARDIAN_INCIDENTS_STORAGE_KEY, this.guardianIncidents.slice(0, 40));
     if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.INCIDENTS, normalized);
+    return normalized;
+  },
+
+  normalizeGuardianWorkerReport(report = {}) {
+    const now = new Date().toISOString();
+    const checks = Array.isArray(report.checks) ? report.checks.map((check) => ({
+      check_id: check.check_id || this.generateWorkspaceId('WCHK'),
+      worker_id: check.worker_id || check.worker || 'worker',
+      title: check.title || 'Worker check',
+      status: check.status || 'manual_check',
+      risk_level: check.risk_level || 'review',
+      note: check.note || '',
+      evidence_type: check.evidence_type || '',
+      requires_approval: Boolean(check.requires_approval),
+      created_at: check.created_at || report.created_at || now
+    })) : [];
+    const blocked = checks.filter((check) => ['blocked', 'approval_required'].includes(check.status) || check.requires_approval);
+    const warnings = checks.filter((check) => ['review', 'manual_check'].includes(check.status) || check.risk_level === 'review');
+    return {
+      report_id: report.report_id || this.generateWorkspaceId('WORKERREP'),
+      title: report.title || 'Phase 4 worker readiness report',
+      status: report.status || (blocked.length ? 'guarded' : warnings.length ? 'review' : 'pass'),
+      risk_level: report.risk_level || (blocked.length ? 'approval_required' : warnings.length ? 'review' : 'safe'),
+      summary: report.summary || '',
+      source: report.source || 'guardian_worker_console',
+      checks,
+      blocked_actions: Array.isArray(report.blocked_actions) ? report.blocked_actions : blocked.map((check) => check.title),
+      local_agent_command: report.local_agent_command || this.buildPhase4WorkerLocalAgentCommand(),
+      created_at: report.created_at || now,
+      updated_at: report.updated_at || report.created_at || now
+    };
+  },
+
+  async saveGuardianWorkerReport(report) {
+    const normalized = this.normalizeGuardianWorkerReport(report);
+    const index = this.guardianWorkerReports.findIndex((item) => item.report_id === normalized.report_id);
+    if (index >= 0) this.guardianWorkerReports[index] = normalized;
+    else this.guardianWorkerReports.unshift(normalized);
+    this.guardianWorkerReports = this.guardianWorkerReports
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, 20);
+    this.writeJsonStorage(GUARDIAN_WORKER_REPORTS_STORAGE_KEY, this.guardianWorkerReports.slice(0, 20));
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.GUARDIAN_WORKER_REPORTS, normalized);
+    await this.saveGuardianState({
+      last_event: `Worker report: ${normalized.status}`
+    }, { silent: true });
     return normalized;
   },
 
@@ -3225,6 +3351,138 @@ const App = {
       status: 'planned',
       created_at: new Date().toISOString()
     };
+  },
+
+  buildPhase4WorkerLocalAgentCommand() {
+    return [
+      '# Phase 4 Local Agent worker self-test',
+      '',
+      'Рабочая папка Local Agent:',
+      'C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\local-agent',
+      '',
+      'PowerShell:',
+      'node .\\mina-local-agent.mjs --phase4-worker-self-test',
+      '',
+      'Что делает:',
+      '- создаёт read-only worker report на D;',
+      '- проверяет policy Guardian / Eyes / Hands;',
+      '- не читает .env/secrets/cookies/tokens;',
+      '- не запускает неизвестные файлы;',
+      '- не меняет сеть, firewall, Defender, DNS, VPN или proxy;',
+      '- не применяет repair diff к active project.',
+      '',
+      'Future Direct Bridge payload:',
+      JSON.stringify({
+        type: 'storage_action',
+        action: 'run_phase4_worker_selftest',
+        storage_root: TERMINATOR_STORAGE_ROOT,
+        dry_run: false
+      }, null, 2)
+    ].join('\n');
+  },
+
+  buildPhase4WorkerReadinessReport() {
+    const now = new Date().toISOString();
+    const guardian = this.guardianSnapshot();
+    const checks = [
+      {
+        worker_id: 'guardian',
+        title: 'Guardian policy state',
+        status: guardian.state.emergency_stop_active ? 'blocked' : 'pass',
+        risk_level: guardian.state.emergency_stop_active ? 'critical' : 'safe',
+        note: guardian.state.emergency_stop_active ? 'Emergency Stop активен; worker actions не запускаются.' : 'Guardian активен, dangerous actions gated.',
+        evidence_type: 'GUARDIAN_STATE',
+        requires_approval: false
+      },
+      {
+        worker_id: 'eyes',
+        title: 'Eyes read-only readiness',
+        status: 'pass',
+        risk_level: 'safe',
+        note: 'Глаза готовы создавать screenshot/DOM/layout evidence без логинов и без hidden browser control.',
+        evidence_type: 'VISUAL_CHECK',
+        requires_approval: false
+      },
+      {
+        worker_id: 'file_worker',
+        title: 'File Worker metadata gate',
+        status: 'approval_required',
+        risk_level: 'review',
+        note: 'Реальные файлы только через allowlist на D; .env/secrets/archives skipped.',
+        evidence_type: 'FILE_METADATA',
+        requires_approval: true
+      },
+      {
+        worker_id: 'code_worker',
+        title: 'Code Worker repair gate',
+        status: 'blocked',
+        risk_level: 'approval_required',
+        note: 'Пишет только в repair workspace. Active project apply запрещён до Verifier/rollback/Approval.',
+        evidence_type: 'DIFF_REVIEW',
+        requires_approval: true
+      },
+      {
+        worker_id: 'browser_worker',
+        title: 'Browser Worker automation gate',
+        status: 'blocked',
+        risk_level: 'approval_required',
+        note: 'Автологин, cookies, payments, account actions и скрытая browser automation заблокированы.',
+        evidence_type: 'QA_EVIDENCE',
+        requires_approval: true
+      },
+      {
+        worker_id: 'system_worker',
+        title: 'System Worker health gate',
+        status: 'manual_check',
+        risk_level: 'review',
+        note: 'Разрешены только health/status; network/firewall/Defender/system changes требуют critical Approval.',
+        evidence_type: 'DIAGNOSTIC_REPORT',
+        requires_approval: true
+      }
+    ].map((check) => ({
+      check_id: this.generateWorkspaceId('WCHK'),
+      created_at: now,
+      ...check
+    }));
+    return this.normalizeGuardianWorkerReport({
+      report_id: this.generateWorkspaceId('WORKERREP'),
+      title: 'Phase 4 Eyes / Hands worker readiness',
+      summary: 'Read-only readiness report: safe observations are available, action workers remain gated by Guardian/Approval/Verifier/rollback.',
+      source: 'guardian_worker_console',
+      checks,
+      created_at: now,
+      updated_at: now
+    });
+  },
+
+  buildPhase4WorkerReportText(report) {
+    return [
+      '# Phase 4 Worker Report',
+      '',
+      `report_id: ${report.report_id}`,
+      `status: ${report.status}`,
+      `risk_level: ${report.risk_level}`,
+      `created_at: ${report.created_at}`,
+      '',
+      '## Summary',
+      report.summary || 'не задано',
+      '',
+      '## Checks',
+      ...(report.checks || []).map((check) => [
+        `- ${check.title}`,
+        `  worker: ${check.worker_id}`,
+        `  status: ${check.status}`,
+        `  risk: ${check.risk_level}`,
+        `  approval: ${check.requires_approval ? 'required' : 'not_required'}`,
+        `  note: ${check.note}`
+      ].join('\n')),
+      '',
+      '## Blocked Actions',
+      ...((report.blocked_actions || []).length ? report.blocked_actions.map((item) => `- ${item}`) : ['- none']),
+      '',
+      '## Local Agent Command',
+      report.local_agent_command || this.buildPhase4WorkerLocalAgentCommand()
+    ].join('\n');
   },
 
   readJsonStorage(key, fallback) {
@@ -3884,6 +4142,24 @@ const App = {
           <div class="guardian-cost-grid">${this.renderSafetyWizardRows()}</div>
         </div>
       </section>
+
+      <section class="guardian-two-col">
+        <div>
+          <div class="diagnost-subtitle">Eyes / Hands Actions</div>
+          <div class="guardian-worker-console">
+            <div class="guardian-actions">
+              <button type="button" data-guardian-action="run_worker_check">Проверить Eyes/Hands</button>
+              <button type="button" data-guardian-action="copy_worker_command">Команда Local Agent</button>
+              <button type="button" data-guardian-action="create_worker_incident">Создать worker incident</button>
+            </div>
+            <div class="guardian-cost-grid">${this.renderWorkerActionRows()}</div>
+          </div>
+        </div>
+        <div>
+          <div class="diagnost-subtitle">Worker Reports</div>
+          <div class="guardian-cost-grid">${this.renderGuardianWorkerReportRows()}</div>
+        </div>
+      </section>
     `;
   },
 
@@ -3989,6 +4265,37 @@ const App = {
     `).join('');
   },
 
+  renderWorkerActionRows() {
+    return PHASE4_WORKER_ACTIONS.map((action) => {
+      const tone = action.risk_level === 'safe' ? 'safe' : 'review';
+      return `
+        <article class="guardian-mini-card guardian-mini-card--${tone}" data-worker-action="${this.escapeHtml(action.id)}">
+          <strong>${this.escapeHtml(action.title)}</strong>
+          <span>${this.escapeHtml(action.worker)} · ${this.escapeHtml(action.status)}</span>
+          <p><b>Режим:</b> ${this.escapeHtml(action.mode)}</p>
+          <p><b>Выход:</b> ${this.escapeHtml(action.output)}</p>
+          <p>${this.escapeHtml(action.rule)}</p>
+        </article>
+      `;
+    }).join('');
+  },
+
+  renderGuardianWorkerReportRows() {
+    const reports = (this.guardianWorkerReports || []).slice(0, 6);
+    if (!reports.length) {
+      return '<p class="mission-empty">Worker reports ещё не создавались. Нажмите «Проверить Eyes/Hands».</p>';
+    }
+    return reports.map((report) => `
+      <article class="guardian-mini-card guardian-worker-report" data-worker-report="${this.escapeHtml(report.report_id)}">
+        <strong>${this.escapeHtml(report.title)}</strong>
+        <span>${this.escapeHtml(report.status)} · ${this.escapeHtml(report.risk_level)}</span>
+        <p>${this.escapeHtml(report.summary || 'Readiness report')}</p>
+        <p><b>Checks:</b> ${this.escapeHtml(String((report.checks || []).length))}; <b>Blocked:</b> ${this.escapeHtml(String((report.blocked_actions || []).length))}</p>
+        <button type="button" data-guardian-action="copy_worker_report" data-report-id="${this.escapeHtml(report.report_id)}">Скопировать отчёт</button>
+      </article>
+    `).join('');
+  },
+
   renderSafetyWizardRows() {
     return FIRST_RUN_SAFETY_CHECKS.map(([id, title, note]) => {
       const status = id === 'cost_guard'
@@ -4089,6 +4396,55 @@ const App = {
       });
       this.renderSystemStatus();
       this.toast('Incident создан');
+      return;
+    }
+
+    if (action === 'run_worker_check') {
+      const report = await this.saveGuardianWorkerReport(this.buildPhase4WorkerReadinessReport());
+      await this.createGuardianIncident({
+        title: 'Eyes / Hands readiness report создан',
+        summary: `Создан worker report ${report.report_id}. Safe observations доступны; action workers остаются под Guardian/Approval.`,
+        source: 'guardian_worker_console',
+        severity: report.risk_level === 'safe' ? 'info' : 'warning',
+        status: 'safe_action_suggested',
+        risk_level: report.risk_level,
+        affected_area: 'phase4_workers',
+        approval_required: report.risk_level !== 'safe'
+      });
+      this.renderSystemStatus();
+      this.toast('Eyes/Hands report создан');
+      return;
+    }
+
+    if (action === 'copy_worker_command') {
+      this.copyWorkspaceText(this.buildPhase4WorkerLocalAgentCommand());
+      this.toast('Команда Local Agent скопирована');
+      return;
+    }
+
+    if (action === 'copy_worker_report') {
+      const reportId = button?.dataset?.reportId || '';
+      const report = (this.guardianWorkerReports || []).find((item) => item.report_id === reportId);
+      if (report) {
+        this.copyWorkspaceText(this.buildPhase4WorkerReportText(report));
+        this.toast('Worker report скопирован');
+      }
+      return;
+    }
+
+    if (action === 'create_worker_incident') {
+      await this.createGuardianIncident({
+        title: 'Phase 4 worker readiness требует проверки',
+        summary: 'Создан incident для проверки Eyes/Hands, repair workspace, Cost Guard, rollback и запрещённых действий.',
+        source: 'guardian_worker_console',
+        severity: 'warning',
+        status: 'detected',
+        risk_level: 'review',
+        affected_area: 'phase4_workers',
+        approval_required: true
+      });
+      this.renderSystemStatus();
+      this.toast('Worker incident создан');
       return;
     }
 
