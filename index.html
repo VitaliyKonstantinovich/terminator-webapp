@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260526-phase5">
+  <link rel="stylesheet" href="styles.css?v=20260526-phase6">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -711,6 +711,36 @@
             </div>
             <div id="system-companion-panel" class="companion-system-panel"></div>
           </section>
+
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Производственный контур</strong>
+                <span>Готовность релиза, публикации и безопасного отката</span>
+              </div>
+            </div>
+            <div id="system-release-center" class="release-center-panel"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Резервные копии</strong>
+                <span>Checkpoint, восстановление и экспорт состояния без секретов</span>
+              </div>
+            </div>
+            <div id="system-backup-center" class="backup-center-panel"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Наблюдаемость</strong>
+                <span>Метрики здоровья, задержек, очередей и последних проверок</span>
+              </div>
+            </div>
+            <div id="system-observability-panel" class="observability-panel"></div>
+          </section>
         </article>
       </div>
     </section>
@@ -950,6 +980,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260526-phase5"></script>
+  <script src="app.js?v=20260526-phase6"></script>
 </body>
 </html>
