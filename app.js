@@ -514,8 +514,8 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Голова',
     side: 'left',
     icon: '◎',
-    anchor: { x: 50, y: 12 },
-    card: { x: 8, y: 15 },
+    anchor: { x: 50, y: 17 },
+    card: { x: 5, y: 15 },
     description: 'Стратег, Совет мозгов, исследователи и поисковики.',
     required_for_comfort: true,
     required_for_full: true
@@ -526,9 +526,9 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Глаза',
     side: 'left',
     icon: '◉',
-    anchor: { x: 49, y: 18 },
-    card: { x: 7, y: 30 },
-    description: 'Наблюдение, скриншоты, visual evidence и UI smoke.',
+    anchor: { x: 49, y: 24 },
+    card: { x: 5, y: 31 },
+    description: 'Наблюдение, скриншоты, визуальные доказательства и проверка интерфейса.',
     required_for_full: true
   },
   {
@@ -537,9 +537,9 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Голос',
     side: 'left',
     icon: '≋',
-    anchor: { x: 50, y: 23 },
-    card: { x: 7, y: 45 },
-    description: 'Push-to-talk, transcript, intent preview и безопасные голосовые команды.',
+    anchor: { x: 50, y: 29 },
+    card: { x: 5, y: 47 },
+    description: 'Нажать и говорить, текст речи, предпросмотр намерения и безопасные голосовые команды.',
     required_for_full: true
   },
   {
@@ -548,8 +548,8 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Руки',
     side: 'left',
     icon: '✦',
-    anchor: { x: 35, y: 54 },
-    card: { x: 8, y: 68 },
+    anchor: { x: 38, y: 62 },
+    card: { x: 5, y: 71 },
     description: 'Ремонт через Codex, рабочая область ремонта и будущие помощники под защитником.',
     required_for_comfort: true,
     required_for_full: true
@@ -560,8 +560,8 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Память',
     side: 'right',
     icon: '▣',
-    anchor: { x: 62, y: 30 },
-    card: { x: 69, y: 17 },
+    anchor: { x: 61, y: 35 },
+    card: { x: 73, y: 26 },
     description: 'Memory Preview, записи решений, поиск и индекс контекста.',
     required_for_comfort: true,
     required_for_full: true
@@ -572,8 +572,8 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Тело',
     side: 'right',
     icon: '◆',
-    anchor: { x: 50, y: 44 },
-    card: { x: 70, y: 36 },
+    anchor: { x: 60, y: 51 },
+    card: { x: 73, y: 43 },
     description: 'Контур задач, маршрутизация, локальный агент, мост и подтверждения.',
     required_for_minimum: true,
     required_for_full: true
@@ -584,9 +584,9 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Ноги',
     side: 'right',
     icon: '⌁',
-    anchor: { x: 50, y: 78 },
-    card: { x: 70, y: 55 },
-    description: 'Device Mesh, маршруты, handoff, continuity и перенос контекста.',
+    anchor: { x: 52, y: 75 },
+    card: { x: 73, y: 59 },
+    description: 'Связь устройств, маршруты, передача задачи, непрерывность и перенос контекста.',
     required_for_full: true
   },
   {
@@ -595,8 +595,8 @@ const MINA_SCHEME_SUBSYSTEMS = [
     short: 'Диагност',
     side: 'right',
     icon: '◇',
-    anchor: { x: 58, y: 60 },
-    card: { x: 70, y: 73 },
+    anchor: { x: 57, y: 62 },
+    card: { x: 73, y: 75 },
     description: 'Защитник, безопасный режим, инциденты, платные риски и восстановление.',
     required_for_minimum: true,
     required_for_full: true
@@ -2053,8 +2053,19 @@ const App = {
     this.renderBrain();
     this.renderAnyDeskAccess();
     this.startWorkspaceTimer();
-    this.go('start', { immediate: true });
+    this.go(this.initialScreenFromUrl(), { immediate: true });
     this.retryTelegramInit();
+  },
+
+  initialScreenFromUrl() {
+    const params = new URLSearchParams(window.location.search || '');
+    const requested = `${params.get('screen') || ''} ${params.get('force') || ''} ${window.location.hash || ''}`.toLowerCase();
+    if (requested.includes('scheme')) return 'scheme';
+    if (requested.includes('system')) return 'system';
+    if (requested.includes('mission')) return 'mission';
+    if (requested.includes('work')) return 'work';
+    if (requested.includes('menu')) return 'menu';
+    return 'start';
   },
 
   initTelegram() {
@@ -5772,9 +5783,9 @@ const App = {
     if (subsystems.head.readiness < 65) return { zone: 'head', label: 'Настроить Голову', action: 'select_head', note: 'Выбрать Стратега и проверить мозги.' };
     if (subsystems.memory.readiness < 70) return { zone: 'memory', label: 'Проверить Память', action: 'select_memory', note: 'Подготовить поиск по памяти и индекс.' };
     if (subsystems.hands.readiness < 70) return { zone: 'hands', label: 'Проверить ремонт через Codex', action: 'select_hands', note: 'Проверить рабочую область ремонта и отчёты помощников.' };
-    if (subsystems.legs.readiness < 70) return { zone: 'legs', label: 'Настроить Ноги', action: 'select_legs', note: 'Проверить Device Mesh и handoff.' };
-    if (subsystems.voice.readiness < 70) return { zone: 'voice', label: 'Настроить Голос', action: 'select_voice', note: 'Проверить push-to-talk и intent preview.' };
-    if (subsystems.eyes.readiness < 70) return { zone: 'eyes', label: 'Проверить Глаза', action: 'select_eyes', note: 'Проверить visual smoke и evidence capture.' };
+    if (subsystems.legs.readiness < 70) return { zone: 'legs', label: 'Настроить Ноги', action: 'select_legs', note: 'Проверить связь устройств и передачу задач.' };
+    if (subsystems.voice.readiness < 70) return { zone: 'voice', label: 'Настроить Голос', action: 'select_voice', note: 'Проверить режим “нажать и говорить” и предпросмотр намерения.' };
+    if (subsystems.eyes.readiness < 70) return { zone: 'eyes', label: 'Проверить Глаза', action: 'select_eyes', note: 'Проверить визуальный контроль и сбор доказательств.' };
     return { zone: 'body', label: fullReady ? 'Запустить Терминатор' : 'Продолжить настройку', action: 'launch', note: 'Минимальный и комфортный контур готовы.' };
   },
 
@@ -5786,46 +5797,106 @@ const App = {
     const active = health.subsystems[activeMeta.id] || health.subsystems.body;
     const modeLabel = this.minaSchemeMode === 'first_run' ? 'Первый запуск' : this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen ? 'Экспертный режим' : 'Обычный режим';
     host.innerHTML = `
-      <header class="scheme-hero">
-        <div>
-          <span class="scheme-kicker">Схема Мины</span>
-          <h2>Визуальная настройка Терминатора</h2>
-          <p>Силуэт показывает состояние подсистем. Правая панель объясняет, что работает, что требует настройки и какой следующий шаг.</p>
-        </div>
-        <div class="scheme-readiness scheme-readiness--${this.escapeHtml(this.minaSchemeStatusClass(active.status))}">
-          <strong>${health.readinessPercent}%</strong>
-          <span>${this.escapeHtml(modeLabel)}</span>
-        </div>
-      </header>
+      <section class="scheme-console" aria-label="Схема Мины">
+        ${this.renderMinaSchemeSidebar(health)}
+        <main class="scheme-main">
+          <header class="scheme-topbar">
+            <div>
+              <span class="scheme-kicker">Настройка системы</span>
+              <h2>Схема Мины</h2>
+              <p>Настройте ключевые подсистемы Мины — ядра вашей системы Терминатор.</p>
+            </div>
+            <div class="scheme-top-actions">
+              <span class="scheme-system-pill"><i></i> Система активна</span>
+              <button type="button" data-scheme-action="run_diagnostics" aria-label="Проверить систему">⌁</button>
+              <button type="button" data-scheme-action="save_state" aria-label="Сохранить состояние">▣</button>
+            </div>
+          </header>
 
-      <section class="scheme-modebar" aria-label="Режим схемы">
-        <button type="button" data-scheme-action="set_mode" data-mode="first_run" class="${this.minaSchemeMode === 'first_run' ? 'active' : ''}">Первый запуск</button>
-        <button type="button" data-scheme-action="set_mode" data-mode="normal" class="${this.minaSchemeMode === 'normal' && !this.minaSchemeExpertOpen ? 'active' : ''}">Обычный</button>
-        <button type="button" data-scheme-action="set_mode" data-mode="expert" class="${this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen ? 'active' : ''}">Экспертный</button>
+          <section class="scheme-modebar" aria-label="Режим схемы">
+            <button type="button" data-scheme-action="set_mode" data-mode="first_run" class="${this.minaSchemeMode === 'first_run' ? 'active' : ''}">Первый запуск</button>
+            <button type="button" data-scheme-action="set_mode" data-mode="normal" class="${this.minaSchemeMode === 'normal' && !this.minaSchemeExpertOpen ? 'active' : ''}">Обычный</button>
+            <button type="button" data-scheme-action="set_mode" data-mode="expert" class="${this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen ? 'active' : ''}">Экспертный</button>
+            <span>${this.escapeHtml(modeLabel)}</span>
+          </section>
+
+          <section class="scheme-workbench">
+            <div class="scheme-map" aria-label="Интерактивная карта подсистем Мины">
+              ${this.renderMinaSchemeLines()}
+              ${this.renderMinaSchemeSilhouette(health.subsystems)}
+              ${MINA_SCHEME_SUBSYSTEMS.map((meta) => this.renderMinaSchemeZoneCard(meta, health.subsystems[meta.id])).join('')}
+            </div>
+            <aside class="scheme-panel" aria-label="Настройка выбранной зоны">
+              ${this.renderMinaSchemePanel(activeMeta, active, health)}
+            </aside>
+          </section>
+
+          ${this.renderMinaSchemeBottomActions(health)}
+        </main>
       </section>
+    `;
+  },
 
-      <section class="scheme-layout">
-        <div class="scheme-map" aria-label="Интерактивная карта подсистем Мины">
-          ${this.renderMinaSchemeLines()}
-          ${this.renderMinaSchemeSilhouette(health.subsystems)}
-          ${MINA_SCHEME_SUBSYSTEMS.map((meta) => this.renderMinaSchemeZoneCard(meta, health.subsystems[meta.id])).join('')}
+  renderMinaSchemeSidebar(health) {
+    const navItems = [
+      ['Обзор', 'overview'],
+      ['Схема Мины', 'scheme'],
+      ['Рабочее', 'work'],
+      ['Память', 'memory'],
+      ['Задачи', 'tasks'],
+      ['Диагност', 'diagnost'],
+      ['Инциденты', 'incidents'],
+      ['Настройки', 'settings']
+    ];
+    return `
+      <aside class="scheme-side-nav" aria-label="Навигация схемы Мины">
+        <div class="scheme-brand">
+          <span class="scheme-brand-mark">△</span>
+          <strong>TERMINATOR</strong>
+          <small>МИНА</small>
         </div>
-        <aside class="scheme-panel" aria-label="Настройка выбранной зоны">
-          ${this.renderMinaSchemePanel(activeMeta, active, health)}
-        </aside>
-      </section>
+        <nav>
+          ${navItems.map(([label, key]) => `
+            <button type="button" class="${key === 'scheme' ? 'active' : ''}" data-scheme-action="${key === 'work' ? 'open_work' : key === 'diagnost' ? 'run_diagnostics' : key === 'memory' ? 'select_memory' : key === 'scheme' ? 'select_body' : 'save_state'}">
+              <span aria-hidden="true">${key === 'scheme' ? '◇' : key === 'work' ? '▤' : key === 'memory' ? '▣' : key === 'diagnost' ? '◈' : '•'}</span>
+              ${this.escapeHtml(label)}
+            </button>
+          `).join('')}
+        </nav>
+        <div class="scheme-operator">
+          <div class="scheme-operator-avatar">M</div>
+          <div>
+            <strong>Оператор</strong>
+            <span>Главный пользователь</span>
+          </div>
+          <i></i>
+        </div>
+        <div class="scheme-mini-readiness">
+          <b>${health.readinessPercent}%</b>
+          <span>готовность</span>
+        </div>
+      </aside>
+    `;
+  },
 
-      <footer class="scheme-nextbar">
-        <div>
+  renderMinaSchemeBottomActions(health) {
+    return `
+      <footer class="scheme-bottom-grid">
+        <button type="button" data-scheme-action="run_diagnostics">
+          <span>◈</span>
+          <strong>Проверить систему</strong>
+          <small>Проверка целостности и статуса</small>
+        </button>
+        <button type="button" data-scheme-action="continue_setup">
+          <span>☷</span>
           <strong>${this.escapeHtml(health.next.label)}</strong>
-          <span>${this.escapeHtml(health.next.note)}</span>
-        </div>
-        <div class="scheme-next-actions">
-          <button type="button" data-scheme-action="run_diagnostics">Проверить систему</button>
-          <button type="button" data-scheme-action="continue_setup">Продолжить настройку</button>
-          <button type="button" data-scheme-action="save_state">Сохранить</button>
-          <button type="button" data-scheme-action="launch">Запустить Терминатор</button>
-        </div>
+          <small>${this.escapeHtml(health.next.note)}</small>
+        </button>
+        <button type="button" data-scheme-action="launch" class="scheme-launch-tile">
+          <span>▷</span>
+          <strong>Запустить Мину</strong>
+          <small>Активировать рабочий контур</small>
+        </button>
       </footer>
     `;
   },
@@ -5833,10 +5904,11 @@ const App = {
   renderMinaSchemeLines() {
     const active = this.activeMinaSchemeZone;
     const lines = MINA_SCHEME_SUBSYSTEMS.map((meta) => {
-      const startX = meta.side === 'left' ? meta.card.x + 18 : meta.card.x;
+      const startX = meta.side === 'left' ? meta.card.x + 22 : meta.card.x;
       const startY = meta.card.y + 7;
+      const elbowX = meta.side === 'left' ? Math.max(startX + 6, meta.anchor.x - 7) : Math.min(startX - 6, meta.anchor.x + 7);
       const className = meta.id === active ? 'active' : '';
-      return `<line class="${className}" x1="${startX}" y1="${startY}" x2="${meta.anchor.x}" y2="${meta.anchor.y}" />`;
+      return `<path class="${className}" d="M ${startX} ${startY} H ${elbowX} V ${meta.anchor.y} H ${meta.anchor.x}" />`;
     }).join('');
     return `
       <svg class="scheme-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -5853,31 +5925,51 @@ const App = {
     }).join('');
     return `
       <div class="scheme-silhouette" aria-hidden="true">
-        <svg viewBox="0 0 240 640" role="img" aria-label="Стилизованный силуэт Мины">
+        <svg viewBox="0 0 320 760" role="img" aria-label="Стилизованный силуэт Мины">
           <defs>
             <linearGradient id="minaBodyGlow" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="#7feeff" stop-opacity="0.95" />
-              <stop offset="0.5" stop-color="#227cff" stop-opacity="0.7" />
-              <stop offset="1" stop-color="#6af7ff" stop-opacity="0.9" />
+              <stop offset="0" stop-color="#bff7ff" stop-opacity="0.96" />
+              <stop offset="0.38" stop-color="#1d86ff" stop-opacity="0.82" />
+              <stop offset="0.74" stop-color="#0c2e92" stop-opacity="0.72" />
+              <stop offset="1" stop-color="#75f8ff" stop-opacity="0.94" />
+            </linearGradient>
+            <radialGradient id="minaCoreGlow" cx="50%" cy="43%" r="62%">
+              <stop offset="0" stop-color="#25d8ff" stop-opacity="0.72" />
+              <stop offset="0.48" stop-color="#073b8e" stop-opacity="0.28" />
+              <stop offset="1" stop-color="#020b1f" stop-opacity="0" />
             </linearGradient>
             <filter id="minaGlow" x="-40%" y="-40%" width="180%" height="180%">
-              <feGaussianBlur stdDeviation="3.2" result="blur" />
+              <feGaussianBlur stdDeviation="4.4" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
-          <path class="scheme-aura" d="M120 14 C176 52 205 136 195 247 C186 347 171 465 120 620 C69 465 54 347 45 247 C35 136 64 52 120 14 Z" />
-          <circle class="scheme-head" cx="120" cy="72" r="34" />
-          <path class="scheme-hair" d="M82 76 C83 30 109 11 120 10 C159 21 172 56 160 112 C150 91 141 76 120 76 C99 76 90 91 82 112 C79 99 78 88 82 76 Z" />
-          <path class="scheme-body" d="M87 118 C101 103 139 103 153 118 C167 151 164 204 150 239 C144 257 145 292 158 331 C171 373 176 433 158 499 C150 531 141 581 128 616 L112 616 C99 581 90 531 82 499 C64 433 69 373 82 331 C95 292 96 257 90 239 C76 204 73 151 87 118 Z" />
-          <path class="scheme-core" d="M97 142 C107 136 133 136 143 142 C150 181 146 219 137 250 C132 267 132 291 140 317 L100 317 C108 291 108 267 103 250 C94 219 90 181 97 142 Z" />
-          <path class="scheme-arm scheme-arm-left" d="M88 143 C59 184 47 262 52 351 C55 402 43 430 30 456" />
-          <path class="scheme-arm scheme-arm-right" d="M152 143 C181 184 193 262 188 351 C185 402 197 430 210 456" />
-          <path class="scheme-leg scheme-leg-left" d="M104 318 C91 382 88 475 96 616" />
-          <path class="scheme-leg scheme-leg-right" d="M136 318 C149 382 152 475 144 616" />
-          <path class="scheme-line-detail" d="M120 109 L120 604 M91 170 C111 183 129 183 149 170 M88 246 C108 258 132 258 152 246 M95 356 C110 366 130 366 145 356" />
+          <ellipse class="scheme-aura" cx="160" cy="404" rx="138" ry="318" />
+          <ellipse class="scheme-aura-ring" cx="160" cy="406" rx="116" ry="264" />
+          <ellipse class="scheme-aura-ring scheme-aura-ring--inner" cx="160" cy="402" rx="88" ry="198" />
+          <path class="scheme-hair" d="M108 103 C102 46 130 19 160 18 C194 23 221 56 211 129 C205 185 207 235 225 286 C194 266 184 216 186 165 C177 180 144 180 134 165 C136 218 125 264 95 286 C112 234 116 181 108 103 Z" />
+          <path class="scheme-head" d="M125 100 C126 64 144 44 161 44 C181 45 195 67 195 101 C195 138 179 160 160 160 C141 160 125 138 125 100 Z" />
+          <path class="scheme-neck" d="M145 156 L176 156 L184 199 C172 209 148 209 136 199 Z" />
+          <path class="scheme-body" d="M112 204 C126 181 194 181 208 204 C230 251 224 318 206 362 C192 398 204 450 219 512 C236 587 224 676 199 728 C186 664 176 588 169 512 C165 469 155 469 151 512 C144 588 133 664 121 728 C96 676 84 587 101 512 C116 450 128 398 114 362 C96 318 90 251 112 204 Z" />
+          <path class="scheme-core" d="M128 224 C140 211 180 211 192 224 C204 277 197 330 181 373 C174 392 176 428 189 465 L131 465 C144 428 146 392 139 373 C123 330 116 277 128 224 Z" />
+          <path class="scheme-arm scheme-arm-left" d="M116 214 C78 262 66 358 75 474 C79 530 59 575 43 619" />
+          <path class="scheme-arm scheme-arm-right" d="M204 214 C242 262 254 358 245 474 C241 530 261 575 277 619" />
+          <path class="scheme-leg scheme-leg-left" d="M143 463 C128 548 126 636 132 735" />
+          <path class="scheme-leg scheme-leg-right" d="M177 463 C192 548 194 636 188 735" />
+          <path class="scheme-hand-dot" d="M35 611 C52 608 58 624 44 635 C31 633 28 621 35 611 Z" />
+          <path class="scheme-hand-dot" d="M285 611 C268 608 262 624 276 635 C289 633 292 621 285 611 Z" />
+          <path class="scheme-foot" d="M119 727 C136 724 147 731 149 744 C132 750 114 748 105 742 C107 735 112 731 119 727 Z" />
+          <path class="scheme-foot" d="M201 727 C184 724 173 731 171 744 C188 750 206 748 215 742 C213 735 208 731 201 727 Z" />
+          <path class="scheme-line-detail" d="M160 164 L160 724 M119 250 C142 268 178 268 201 250 M112 337 C139 352 181 352 208 337 M129 450 C148 464 172 464 191 450 M135 574 C149 587 171 587 185 574" />
+          <circle class="scheme-face-dot scheme-face-dot--left" cx="149" cy="98" r="5" />
+          <circle class="scheme-face-dot scheme-face-dot--right" cx="172" cy="98" r="5" />
+          <circle class="scheme-face-dot scheme-face-dot--voice" cx="160" cy="126" r="5" />
+          <circle class="scheme-core-node" cx="160" cy="292" r="8" />
+          <circle class="scheme-core-node scheme-core-node--small" cx="122" cy="402" r="6" />
+          <circle class="scheme-core-node scheme-core-node--small" cx="198" cy="402" r="6" />
+          <circle class="scheme-core-node scheme-core-node--warn" cx="137" cy="658" r="7" />
         </svg>
         <svg class="scheme-anchor-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           ${anchorDots}
@@ -5978,7 +6070,7 @@ const App = {
           <div class="scheme-chip-list">
             <span>${memoryTasks.length} кандидатов памяти</span>
             <span>Индекс: частично</span>
-            <span>Внешние API не включены</span>
+            <span>Внешние ИИ-интерфейсы не включены</span>
           </div>
         </section>
       `;
@@ -6060,7 +6152,7 @@ const App = {
           <span>Мост: ${this.escapeHtml(this.directModeStatusSnapshot().status)}</span>
           <span>Локальный агент: ${this.escapeHtml(this.localAgentStatusSnapshot().status)}</span>
         </div>
-        <p>Тело держит маршрут задачи, политики, статусы и next best action.</p>
+        <p>Тело держит маршрут задачи, политики, статусы и следующий лучший шаг.</p>
       </section>
     `;
   },
