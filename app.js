@@ -300,6 +300,9 @@ const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
 const MINA_SCHEME_STATE_KEY = 'mina_system_scheme_state_v1';
 const PWA_STATE_STORAGE_KEY = 'mina_pwa_state_v1';
 const VOICE_SETTINGS_STORAGE_KEY = 'mina_voice_settings_v1';
+const PRODUCTION_RELEASE_STATE_KEY = 'mina_production_release_state_v1';
+const BACKUP_RESTORE_STATE_KEY = 'mina_backup_restore_state_v1';
+const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 8;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -811,11 +814,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 3: Голова и Совет мозгов',
-  date: '2026-05-25',
-  status: 'Phase 3.1 закрыта локально',
-  previous: 'Phase 2 Full Runtime Sync закрыт live',
-  next: 'Phase 3.2: Исследование и паспорт решения'
+  name: 'Phase 6: Производственный контур',
+  date: '2026-05-26',
+  status: 'локально закрыта; live-публикация ожидает проверки',
+  previous: 'Phase 5 Mobile / PWA / APK закрыт',
+  next: 'Windows-компаньон и installer shell'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -838,7 +841,11 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 18, name: 'WebApp TaskStore sync binding', status: 'закрыт live' },
   { id: 19, name: 'Local Agent task status sync', status: 'закрыт' },
   { id: 20, name: 'Phase 2 Full Runtime Live Acceptance', status: 'закрыт live' },
-  { id: 21, name: 'ResearchOps + Brain Council Runtime V1', status: 'закрыт локально' }
+  { id: 21, name: 'ResearchOps + Brain Council Runtime V1', status: 'закрыт локально' },
+  { id: 22, name: 'Guardian + Eyes + Hands + Codex Repair Foundation', status: 'закрыт локально' },
+  { id: 23, name: 'Схема Мины / Visual System Center', status: 'закрыт live' },
+  { id: 24, name: 'Mobile / PWA / APK Foundation', status: 'закрыт live' },
+  { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт локально' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2042,6 +2049,9 @@ const App = {
   pwaServiceWorkerScope: '',
   pwaDisplayMode: 'browser',
   pwaLastCheckedAt: '',
+  productionReleaseState: null,
+  backupRestoreState: null,
+  observabilityState: null,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -2074,6 +2084,7 @@ const App = {
     await this.loadApprovalRecords();
     await this.loadSystemDiagnostics();
     await this.loadGuardianRuntime();
+    this.loadProductionState();
     this.loadMinaSchemeState();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
@@ -2194,6 +2205,12 @@ const App = {
       const pwaActionButton = event.target.closest('[data-pwa-action]');
       if (pwaActionButton) {
         this.handlePwaAction(pwaActionButton.dataset.pwaAction);
+        return;
+      }
+
+      const phase6ActionButton = event.target.closest('[data-phase6-action]');
+      if (phase6ActionButton) {
+        this.handlePhase6Action(phase6ActionButton.dataset.phase6Action, phase6ActionButton);
         return;
       }
 
@@ -3684,6 +3701,271 @@ const App = {
     } catch {}
   },
 
+  loadProductionState() {
+    this.productionReleaseState = this.readJsonStorage(PRODUCTION_RELEASE_STATE_KEY, {
+      status: 'not_checked',
+      checks: [],
+      history: [],
+      last_checked_at: ''
+    });
+    this.backupRestoreState = this.readJsonStorage(BACKUP_RESTORE_STATE_KEY, {
+      checkpoints: [],
+      last_checkpoint_at: '',
+      last_export_at: ''
+    });
+    this.observabilityState = this.readJsonStorage(OBSERVABILITY_STATE_KEY, {
+      samples: [],
+      last_sample_at: ''
+    });
+  },
+
+  saveProductionState() {
+    this.writeJsonStorage(PRODUCTION_RELEASE_STATE_KEY, this.productionReleaseState || {});
+    this.writeJsonStorage(BACKUP_RESTORE_STATE_KEY, this.backupRestoreState || {});
+    this.writeJsonStorage(OBSERVABILITY_STATE_KEY, this.observabilityState || {});
+  },
+
+  phase6Check(name, status, note, severity = 'safe') {
+    return {
+      check_id: this.generateWorkspaceId('P6CHK'),
+      name,
+      status,
+      severity,
+      note,
+      checked_at: new Date().toISOString()
+    };
+  },
+
+  buildProductionReadinessSnapshot() {
+    const checks = [];
+    const guardian = this.guardianSnapshot();
+    const pwa = this.pwaSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const localText = this.localStorageSnapshotText();
+    const privacy = this.scanPrivacyText(this.safeLocalStorageAuditText());
+    const bodyText = document.body?.innerText || '';
+    const visibleMojibake = /(?:\u0420\u045E|\u0420\u045F|\u0420 \u0420\u00B0|\u0420\u045F\u0421\u0402)/.test(bodyText);
+    const rawStorage = RAW_FILE_STORAGE_PATTERN.test(localText);
+    const currentHost = window.location.host || 'local';
+    const isLive = /github\.io$/i.test(currentHost);
+
+    checks.push(this.phase6Check(
+      'Интерфейс',
+      document.getElementById('screen-system') && document.getElementById('screen-work') ? 'pass' : 'review',
+      'Рабочее, Центр управления, Система и Схема Мины присутствуют в WebApp.'
+    ));
+    checks.push(this.phase6Check(
+      'Публикация сайта',
+      isLive ? 'pass' : 'manual_check',
+      isLive ? 'Открыта live-версия GitHub Pages.' : 'Сейчас открыт локальный/preview URL. Live проверяется скриптом release guard.',
+      isLive ? 'safe' : 'review'
+    ));
+    checks.push(this.phase6Check(
+      'PWA shell',
+      pwa.serviceWorker === 'registered' ? 'pass' : 'review',
+      `Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`,
+      pwa.serviceWorker === 'registered' ? 'safe' : 'review'
+    ));
+    checks.push(this.phase6Check(
+      'Хранилище задач',
+      this.taskRuntimeReady ? 'pass' : 'review',
+      this.taskRuntimeReady ? 'IndexedDB активен; localStorage mirror остаётся fallback.' : 'IndexedDB недоступен, работает резерв localStorage.',
+      this.taskRuntimeReady ? 'safe' : 'review'
+    ));
+    checks.push(this.phase6Check(
+      'Синхронизация задач',
+      this.taskStoreSyncStatus === 'synced' ? 'pass' : 'manual_check',
+      taskStore.note,
+      this.taskStoreSyncStatus === 'failed' ? 'review' : 'safe'
+    ));
+    checks.push(this.phase6Check(
+      'Guardian',
+      guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'pass',
+      `${guardian.label}; открытых incidents: ${guardian.openIncidents.length}.`,
+      guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'safe'
+    ));
+    checks.push(this.phase6Check(
+      'Direct Bridge',
+      direct.status === 'сессия активна' ? 'pass' : 'manual_check',
+      direct.note,
+      'review'
+    ));
+    checks.push(this.phase6Check(
+      'Локальный агент',
+      /на связи|доверено|системное|готов/i.test(agent.status) && !/не проверено|не найден/i.test(agent.status) ? 'pass' : 'manual_check',
+      agent.note,
+      'review'
+    ));
+    checks.push(this.phase6Check(
+      'Секреты в локальном состоянии',
+      privacy.blocked ? 'blocked' : privacy.findings.length ? 'review' : 'pass',
+      privacy.findings.length ? `Privacy Guard: ${this.privacyScanSummary(privacy)}.` : 'Секреты в локальном состоянии не обнаружены.',
+      privacy.blocked ? 'blocked' : privacy.findings.length ? 'review' : 'safe'
+    ));
+    checks.push(this.phase6Check(
+      'Raw/base64 в браузерном storage',
+      rawStorage ? 'review' : 'pass',
+      rawStorage ? 'Найдены признаки raw/base64. Нужно проверить Files policy.' : 'Raw/base64 file data не обнаружены.',
+      rawStorage ? 'review' : 'safe'
+    ));
+    checks.push(this.phase6Check(
+      'Текст и кодировка',
+      visibleMojibake ? 'review' : 'pass',
+      visibleMojibake ? 'Видимый UI содержит признаки mojibake.' : 'Видимых кракозябр не найдено.',
+      visibleMojibake ? 'review' : 'safe'
+    ));
+    checks.push(this.phase6Check(
+      'AI API',
+      'pass',
+      'Phase 6 не добавляет AI API и не включает платные провайдеры.',
+      'safe'
+    ));
+
+    const blocked = checks.filter((check) => check.status === 'blocked' || check.severity === 'blocked').length;
+    const review = checks.filter((check) => ['review', 'manual_check'].includes(check.status) || check.severity === 'review').length;
+    const pass = checks.filter((check) => check.status === 'pass').length;
+    const score = Math.round((pass / checks.length) * 100);
+    return {
+      release_id: this.generateWorkspaceId('RELEASE'),
+      status: blocked ? 'blocked' : review ? 'review' : 'ready',
+      score,
+      checks,
+      summary: `${pass} pass, ${review} review/manual, ${blocked} blocked`,
+      checked_at: new Date().toISOString()
+    };
+  },
+
+  updateObservabilitySample() {
+    const tasks = this.workTasks || [];
+    const approvals = this.pendingApprovalRecords();
+    const incidents = this.guardianSnapshot().openIncidents || [];
+    const latestDiagnostic = this.systemDiagnostics?.[0] || null;
+    const now = new Date().toISOString();
+    const sample = {
+      sample_id: this.generateWorkspaceId('OBS'),
+      sampled_at: now,
+      task_count: tasks.length,
+      active_tasks: tasks.filter((task) => !['accepted', 'saved', 'cancelled', 'rejected'].includes(task.status)).length,
+      waiting_reports: tasks.filter((task) => task.status === 'waiting_executor_report').length,
+      approvals_pending: approvals.length,
+      open_incidents: incidents.length,
+      task_store_status: this.taskStoreSyncStatus || 'not_checked',
+      last_sync_at: this.taskStoreLastSyncAt || '',
+      last_diagnostic_at: latestDiagnostic?.created_at || '',
+      pwa_service_worker: this.pwaServiceWorkerStatus,
+      guardian_status: this.guardianSnapshot().label
+    };
+    const current = this.observabilityState || { samples: [] };
+    this.observabilityState = {
+      ...current,
+      last_sample_at: now,
+      samples: [sample, ...(current.samples || [])].slice(0, 20)
+    };
+    this.saveProductionState();
+    return sample;
+  },
+
+  safeLocalStorageAuditText() {
+    try {
+      const skip = new Set([
+        DIRECT_SESSION_TOKEN_KEY,
+        DIRECT_SESSION_EXPIRES_KEY,
+        DIRECT_SESSION_BRIDGE_KEY,
+        DIRECT_SESSION_LEGACY_STORAGE_KEY
+      ]);
+      const parts = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (skip.has(key)) {
+          parts.push(`owner_auth_redacted_${parts.length}: [REDACTED]`);
+          continue;
+        }
+        parts.push(`${key}: ${window.localStorage.getItem(key) || ''}`);
+      }
+      return parts.join('\n');
+    } catch {
+      return '';
+    }
+  },
+
+  createBrowserCheckpoint(reason = 'manual') {
+    const now = new Date().toISOString();
+    const release = this.productionReleaseState || {};
+    const checkpoint = {
+      checkpoint_id: this.generateWorkspaceId('CHECKPOINT'),
+      created_at: now,
+      reason,
+      storage_root: TERMINATOR_STORAGE_ROOT,
+      schema_version: TASK_STORAGE_SCHEMA_VERSION,
+      counts: {
+        projects: (this.activeWorkProjects() || []).length,
+        tasks: (this.workTasks || []).length,
+        approvals: (this.approvalRecords || []).length,
+        diagnostics: (this.systemDiagnostics || []).length,
+        incidents: (this.guardianIncidents || []).length,
+        head_brains: (this.headBrains || []).length,
+        council_profiles: (this.headProfiles || []).length,
+        search_agents: (this.headSearchAgents || []).length
+      },
+      release_status: release.status || 'not_checked',
+      task_store_status: this.taskStoreSyncStatus || 'not_checked',
+      pwa_service_worker: this.pwaServiceWorkerStatus,
+      secrets_policy: 'secrets are not exported'
+    };
+    const current = this.backupRestoreState || { checkpoints: [] };
+    this.backupRestoreState = {
+      ...current,
+      last_checkpoint_at: now,
+      checkpoints: [checkpoint, ...(current.checkpoints || [])].slice(0, 12)
+    };
+    this.saveProductionState();
+    return checkpoint;
+  },
+
+  buildSafeStateExport() {
+    return {
+      exported_at: new Date().toISOString(),
+      app: 'Terminator Mina UI',
+      phase: 'Phase 6 Production Hardening',
+      storage_root: TERMINATOR_STORAGE_ROOT,
+      release: this.productionReleaseState || {},
+      backup: this.backupRestoreState || {},
+      observability: this.observabilityState || {},
+      counters: {
+        tasks: (this.workTasks || []).length,
+        projects: (this.activeWorkProjects() || []).length,
+        approvals: (this.approvalRecords || []).length,
+        incidents: (this.guardianIncidents || []).length
+      },
+      policy: {
+        no_secrets: true,
+        no_ai_api: true,
+        no_heavy_files_in_export: true,
+        raw_files_not_included: true
+      }
+    };
+  },
+
+  downloadTextFile(filename, text, mimeType = 'application/json') {
+    try {
+      const blob = new Blob([text], { type: `${mimeType};charset=utf-8` });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.rel = 'noopener';
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
   diagnosticCheck(name, status, severity, note, safeAction = '') {
     return {
       check_id: this.generateWorkspaceId('CHECK'),
@@ -3869,6 +4151,14 @@ const App = {
             : '`Личное` скрыто и legacy-route заблокирован.'
       ));
 
+      const releaseSnapshot = this.buildProductionReadinessSnapshot();
+      checks.push(this.diagnosticCheck(
+        'Производственный контур',
+        releaseSnapshot.status === 'ready' ? 'pass' : releaseSnapshot.status === 'blocked' ? 'blocked' : 'review',
+        releaseSnapshot.status === 'blocked' ? 'blocked' : releaseSnapshot.status === 'review' ? 'review' : 'safe',
+        `Release readiness: ${releaseSnapshot.score}% (${releaseSnapshot.summary}).`
+      ));
+
       checks.push(this.diagnosticCheck(
         'Лишние окна Windows',
         'manual_check',
@@ -3884,6 +4174,7 @@ const App = {
       if (!activeTaskExists || !activeDeviceExists) suggestions.push(this.diagnosticSuggestion('Очистить stale selection', 'safe', 'clear_stale_selection', 'Сбросить несуществующий active task/device pointer.'));
       if (pendingApprovals.length) suggestions.push(this.diagnosticSuggestion('Разобрать Approval queue', 'approval_required', 'open_approval_center', 'Опасные действия не выполнять, только принять решение владельца.'));
       if (staleWaiting.length || staleManual.length) suggestions.push(this.diagnosticSuggestion('Подготовить recovery plan', 'review', 'create_recovery_plan', 'Сформировать план восстановления без выполнения команд.'));
+      if (releaseSnapshot.status !== 'ready') suggestions.push(this.diagnosticSuggestion('Проверить производственный контур', 'review', 'manual_review', 'Откройте панель Производственный контур: она покажет release, backup и observability readiness.'));
       suggestions.push(this.diagnosticSuggestion('Обновить runtime панели', 'safe', 'refresh_runtime', 'Безопасно перечитать локальное состояние и перерисовать Mission/System.'));
 
       const run = await this.saveSystemDiagnostic({
@@ -4133,8 +4424,10 @@ const App = {
     const head = this.headStatusSnapshot();
     const guardian = this.guardianSnapshot();
     const pwa = this.pwaSnapshot();
+    const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
+      ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
       ['Голова', head.status, head.note],
@@ -4164,6 +4457,9 @@ const App = {
     this.renderSystemVoiceHooks();
     this.renderSystemPwaPanel();
     this.renderSystemCompanionPanel();
+    this.renderSystemReleaseCenter();
+    this.renderSystemBackupCenter();
+    this.renderSystemObservabilityPanel();
     this.renderMinaSystemScheme();
   },
 
@@ -5858,6 +6154,209 @@ const App = {
         `).join('')}
       </div>
     `;
+  },
+
+  phase6StatusName(status) {
+    const names = {
+      ready: 'готово',
+      review: 'требует проверки',
+      blocked: 'заблокировано',
+      not_checked: 'не проверялось',
+      pass: 'OK',
+      manual_check: 'ручная проверка'
+    };
+    return names[status] || status || 'не проверялось';
+  },
+
+  renderSystemReleaseCenter() {
+    const host = document.getElementById('system-release-center');
+    if (!host) return;
+    const release = this.productionReleaseState?.checked_at
+      ? this.productionReleaseState
+      : this.buildProductionReadinessSnapshot();
+    const checks = release.checks || [];
+    const rows = [
+      ['Готовность', `${release.score || 0}%`, release.summary || 'проверка ещё не запускалась'],
+      ['Последняя проверка', release.checked_at ? this.formatTaskTime(release.checked_at) : 'не запускалась', 'Проверка выполняется локально в браузере, без deploy и без изменения файлов.'],
+      ['Статус релиза', this.phase6StatusName(release.status), release.status === 'ready' ? 'Можно готовить release package.' : 'Перед релизом разобрать review/blocked пункты.']
+    ];
+    host.innerHTML = `
+      <section class="phase6-hero phase6-hero--${this.escapeHtml(release.status || 'not_checked')}">
+        <div>
+          <span>Релиз-готовность</span>
+          <strong>${this.escapeHtml(String(release.score || 0))}%</strong>
+          <p>${this.escapeHtml(release.summary || 'Проверка не запускалась.')}</p>
+        </div>
+        <dl>
+          ${rows.map(([name, value, note]) => `
+            <div>
+              <dt>${this.escapeHtml(name)}</dt>
+              <dd>${this.escapeHtml(value)}</dd>
+              <small>${this.escapeHtml(note)}</small>
+            </div>
+          `).join('')}
+        </dl>
+      </section>
+      <div class="phase6-check-grid">
+        ${checks.map((check) => `
+          <article class="phase6-check phase6-check--${this.escapeHtml(check.status)}">
+            <strong>${this.escapeHtml(check.name)}</strong>
+            <span>${this.escapeHtml(this.phase6StatusName(check.status))}</span>
+            <p>${this.escapeHtml(check.note)}</p>
+          </article>
+        `).join('')}
+      </div>
+      <div class="system-action-strip">
+        <button type="button" data-phase6-action="run_release_check">Проверить релиз</button>
+        <button type="button" data-phase6-action="create_checkpoint">Создать checkpoint</button>
+        <button type="button" data-phase6-action="export_release_report">Скачать отчёт</button>
+        <button type="button" data-phase6-action="copy_pages_guard">Скопировать команду проверки сайта</button>
+      </div>
+    `;
+  },
+
+  renderSystemBackupCenter() {
+    const host = document.getElementById('system-backup-center');
+    if (!host) return;
+    const backup = this.backupRestoreState || { checkpoints: [] };
+    const checkpoints = backup.checkpoints || [];
+    const rows = [
+      ['Последний checkpoint', backup.last_checkpoint_at ? this.formatTaskTime(backup.last_checkpoint_at) : 'не создан', 'Создаётся metadata snapshot без файлов, секретов и cookies.'],
+      ['Где жить полным backup', `${TERMINATOR_STORAGE_ROOT}\\backups`, 'Тяжёлые архивы должны уходить на D через Local Agent/ручной экспорт.'],
+      ['Restore policy', 'только с подтверждением', 'Деструктивный restore требует Approval и rollback notes.']
+    ];
+    host.innerHTML = `
+      <div class="voice-system-grid">
+        ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="phase6-timeline">
+        ${checkpoints.slice(0, 5).map((checkpoint) => `
+          <article>
+            <strong>${this.escapeHtml(checkpoint.checkpoint_id)}</strong>
+            <span>${this.escapeHtml(this.formatTaskTime(checkpoint.created_at))}</span>
+            <p>${this.escapeHtml(`${checkpoint.reason}; задач: ${checkpoint.counts?.tasks ?? 0}; release: ${checkpoint.release_status || 'not_checked'}`)}</p>
+          </article>
+        `).join('') || '<p class="mission-empty">Checkpoint ещё не создан.</p>'}
+      </div>
+      <div class="system-action-strip">
+        <button type="button" data-phase6-action="create_checkpoint">Создать checkpoint</button>
+        <button type="button" data-phase6-action="export_safe_state">Скачать safe export</button>
+        <button type="button" data-phase6-action="copy_backup_policy">Скопировать policy</button>
+      </div>
+    `;
+  },
+
+  renderSystemObservabilityPanel() {
+    const host = document.getElementById('system-observability-panel');
+    if (!host) return;
+    if (!this.observabilityState?.last_sample_at) this.updateObservabilitySample();
+    const state = this.observabilityState || { samples: [] };
+    const sample = state.samples?.[0] || {};
+    const rows = [
+      ['Последний health sample', sample.sampled_at ? this.formatTaskTime(sample.sampled_at) : 'не снимался', 'Метрики собираются без сети и без отправки данных.'],
+      ['Задачи', `${sample.task_count ?? 0}`, `${sample.active_tasks ?? 0} активных; ждут отчёт: ${sample.waiting_reports ?? 0}`],
+      ['Approval / incidents', `${sample.approvals_pending ?? 0} / ${sample.open_incidents ?? 0}`, 'Открытые решения владельца и предупреждения Guardian.'],
+      ['Синхронизация', sample.task_store_status || 'not_checked', sample.last_sync_at ? `последняя: ${this.formatTaskTime(sample.last_sync_at)}` : 'последней синхронизации нет'],
+      ['PWA', sample.pwa_service_worker || this.pwaServiceWorkerStatus, 'offline shell и установка контролируются отдельно.']
+    ];
+    host.innerHTML = `
+      <div class="voice-system-grid">
+        ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="phase6-timeline">
+        ${(state.samples || []).slice(0, 5).map((item) => `
+          <article>
+            <strong>${this.escapeHtml(this.formatTaskTime(item.sampled_at))}</strong>
+            <span>${this.escapeHtml(item.guardian_status || 'Guardian')}</span>
+            <p>${this.escapeHtml(`tasks=${item.task_count}; approvals=${item.approvals_pending}; incidents=${item.open_incidents}; sync=${item.task_store_status}`)}</p>
+          </article>
+        `).join('')}
+      </div>
+      <div class="system-action-strip">
+        <button type="button" data-phase6-action="sample_observability">Обновить метрики</button>
+        <button type="button" data-phase6-action="run_release_check">Проверить релиз</button>
+        <button type="button" data-phase6-action="open_diagnostics">Открыть Диагност</button>
+      </div>
+    `;
+  },
+
+  async handlePhase6Action(action) {
+    if (action === 'run_release_check') {
+      const snapshot = this.buildProductionReadinessSnapshot();
+      this.productionReleaseState = {
+        ...snapshot,
+        history: [snapshot, ...((this.productionReleaseState?.history || []).slice(0, 9))]
+      };
+      this.updateObservabilitySample();
+      this.saveProductionState();
+      this.renderSystemStatus();
+      this.toast(`Релиз: ${this.phase6StatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'create_checkpoint') {
+      const checkpoint = this.createBrowserCheckpoint('manual_phase6_checkpoint');
+      this.renderSystemStatus();
+      this.toast(`Checkpoint создан: ${checkpoint.checkpoint_id}`);
+      return;
+    }
+
+    if (action === 'sample_observability') {
+      this.updateObservabilitySample();
+      this.renderSystemStatus();
+      this.toast('Метрики обновлены');
+      return;
+    }
+
+    if (action === 'open_diagnostics') {
+      await this.runSystemDiagnostics();
+      this.renderSystemStatus();
+      return;
+    }
+
+    if (action === 'export_release_report') {
+      const snapshot = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
+      const text = JSON.stringify({
+        type: 'release_report',
+        generated_at: new Date().toISOString(),
+        release: snapshot,
+        policy: { no_ai_api: true, no_secrets: true, no_deploy_from_browser: true }
+      }, null, 2);
+      const ok = this.downloadTextFile(`terminator-release-report-${Date.now()}.json`, text);
+      if (!ok) this.copyWorkspaceText(text);
+      this.toast(ok ? 'Отчёт скачан' : 'Отчёт скопирован');
+      return;
+    }
+
+    if (action === 'export_safe_state') {
+      const exportData = this.buildSafeStateExport();
+      this.backupRestoreState = {
+        ...(this.backupRestoreState || {}),
+        last_export_at: new Date().toISOString()
+      };
+      this.saveProductionState();
+      const text = JSON.stringify(exportData, null, 2);
+      const ok = this.downloadTextFile(`terminator-safe-state-${Date.now()}.json`, text);
+      if (!ok) this.copyWorkspaceText(text);
+      this.renderSystemStatus();
+      this.toast(ok ? 'Safe export скачан' : 'Safe export скопирован');
+      return;
+    }
+
+    if (action === 'copy_pages_guard') {
+      this.copyWorkspaceText('powershell -ExecutionPolicy Bypass -File .\\scripts\\check-pages-health.ps1');
+      return;
+    }
+
+    if (action === 'copy_backup_policy') {
+      this.copyWorkspaceText([
+        'Backup policy:',
+        `- metadata checkpoints: browser state / Task Runtime summary`,
+        `- full archives: ${TERMINATOR_STORAGE_ROOT}\\backups`,
+        '- secrets/cookies/tokens: never export',
+        '- destructive restore: only after Approval and rollback notes'
+      ].join('\n'));
+    }
   },
 
   loadMinaSchemeState() {
