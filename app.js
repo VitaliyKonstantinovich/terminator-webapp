@@ -5925,6 +5925,12 @@ const App = {
     }).join('');
     return `
       <div class="scheme-silhouette" aria-hidden="true">
+        <img
+          class="scheme-hologram-img"
+          src="assets/mina-ui/system-scheme/mina_hologram_silhouette.png"
+          alt=""
+          loading="eager"
+          decoding="async">
         <svg viewBox="0 0 320 760" role="img" aria-label="Стилизованный силуэт Мины">
           <defs>
             <linearGradient id="minaBodyGlow" x1="0" x2="1" y1="0" y2="1">
