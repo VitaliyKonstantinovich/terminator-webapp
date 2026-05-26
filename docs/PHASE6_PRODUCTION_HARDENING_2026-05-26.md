@@ -1,7 +1,7 @@
 # Phase 6: Production Hardening + Release Quality
 
 ## Status
-Local PASS on 2026-05-26. Live Pages deployment pending at the time of this note.
+Live PASS on 2026-05-26. GitHub Pages serves Phase 6 assets and the Pages health check passes.
 
 ## Implemented
 - System summary card: `Производственный контур`.
@@ -54,3 +54,13 @@ Local PASS on 2026-05-26. Live Pages deployment pending at the time of this note
 - Desktop headless screenshot: PASS.
 - Mobile 390px screenshot: PASS.
 - CDP DOM smoke: panels/buttons present, active `screen-system`, no horizontal overflow.
+
+## Live Checks
+- GitHub Pages workflow `Deploy GitHub Pages`: PASS.
+- `scripts/check-pages-health.ps1`: PASS.
+- Live HTML marker `20260526-phase6`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260526-phase6`: PASS.
+- Live panels:
+  - `system-release-center`: PASS;
+  - `system-backup-center`: PASS;
+  - `system-observability-panel`: PASS.
