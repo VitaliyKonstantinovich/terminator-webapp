@@ -1,6 +1,6 @@
 # Memory Search Engine / Context Index V1
 
-Status: local PASS, prepared for GitHub Pages live acceptance.
+Status: live PASS on 2026-05-26.
 
 ## Meaning
 
@@ -74,6 +74,17 @@ This layer is the first practical foundation for the approved zer0dex-like memor
   - Memory Search panel visible;
   - search field visible;
   - no horizontal overflow.
+- GitHub Actions `Deploy GitHub Pages` run `26478370505`: PASS.
+- Live health check:
+  - HTML marker `20260526-memory-search-v1`: PASS;
+  - service worker marker `terminator-mina-pwa-20260526-memory-search-v1`: PASS.
+- Live DOM smoke:
+  - System screen opens;
+  - Memory Search panel is present;
+  - index status is ready;
+  - search returns result;
+  - Context Pack is generated;
+  - mobile 390px has no horizontal overflow.
 
 ## Evidence
 
@@ -89,3 +100,7 @@ This layer is the first practical foundation for the approved zer0dex-like memor
 4. Search for `Codex evidence решение`.
 5. Confirm a result appears and Context Pack is generated.
 6. Open `Схема Мины: Память` and confirm memory status reflects the index.
+
+## Live URL
+
+`https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=memory-search-live-check`
