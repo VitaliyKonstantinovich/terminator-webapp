@@ -979,7 +979,8 @@ async function updateCommandStatus(commandId, request, env, origin, requestId, s
 async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
   const started = Date.now();
   const url = new URL(request.url);
-  const requestedAgentId = normalizeAgentId(url.searchParams.get("agent_id") || "");
+  const requestedAgentIdRaw = url.searchParams.get("agent_id");
+  const requestedAgentId = requestedAgentIdRaw ? normalizeAgentId(requestedAgentIdRaw) : "";
   const agentId = requestedAgentId || DEFAULT_PUBLIC_AGENT_ID;
   let commandQueue = {
     status: "unknown",
