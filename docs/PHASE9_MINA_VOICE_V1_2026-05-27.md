@@ -1,7 +1,7 @@
 # Phase 9 — Mina Voice / Safe Command Layer V1
 
 Дата: 2026-05-27
-Статус: local PASS, live pending
+Статус: live PASS
 
 ## Что реализовано
 
@@ -36,6 +36,13 @@
 - Dangerous voice command block: PASS.
 - System Mina Voice panel: PASS.
 - Mobile overflow check: PASS.
+- GitHub Actions deploy: PASS.
+- GitHub Pages health check: PASS, marker `20260527-phase9-mina-voice-v1-final` опубликован.
+- Live UI smoke: PASS.
+- Live voice create task: PASS, создан task_id из команды "Мина, создай задачу проверить отчёт Codex по рабочему окну".
+- Live dangerous voice command block: PASS, команда "Мина, пушни main" показала блокировку и не выполнилась.
+- Live System Mina Voice panel: PASS.
+- Live mobile screenshot 390px: PASS, визуально без горизонтального разъезда.
 - No AI API runtime calls added: PASS.
 - No secrets added: PASS; scanner false positives are existing DOM ids / privacy scanner patterns.
 
@@ -44,6 +51,13 @@
 - `D:\TerminatorStorage\evidence_backups\phase9_mina_voice\phase9-voice-local-workspace.png`
 - `D:\TerminatorStorage\evidence_backups\phase9_mina_voice\phase9-voice-local-system.png`
 - `D:\TerminatorStorage\evidence_backups\phase9_mina_voice\phase9-voice-local-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase9_mina_voice\phase9-voice-live-workspace.png`
+- `D:\TerminatorStorage\evidence_backups\phase9_mina_voice\phase9-voice-live-system.png`
+- `D:\TerminatorStorage\evidence_backups\phase9_mina_voice\phase9-voice-live-mobile.png`
+
+## Live URL
+
+https://vitaliykonstantinovich.github.io/terminator-webapp/?force=phase9-mina-voice-v1-final
 
 ## Что проверить первым
 
@@ -52,4 +66,3 @@
 3. Нажатие "Создать задачу" создаёт task_id.
 4. Команда "пушни main" не выполняется и показывает блокировку.
 5. Система -> Голос показывает Mina Voice V1, готовность, примеры и журнал.
-
