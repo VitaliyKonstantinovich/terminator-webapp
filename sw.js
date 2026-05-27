@@ -1,10 +1,10 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260526-phase6-closure-v2';
+const MINA_CACHE = 'terminator-mina-pwa-20260526-phase8-device-mesh-v1';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260526-phase6-closure-v2',
-  './app.js?v=20260526-phase6-closure-v2',
+  './styles.css?v=20260526-phase8-device-mesh-v1',
+  './app.js?v=20260526-phase8-device-mesh-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',

@@ -801,6 +801,9 @@ const MINA_SCHEME_STATUS_LABELS = {
 
 const DEVICE_TYPES = {
   windows_pc: 'ПК Windows',
+  webapp: 'WebApp Mina UI',
+  pwa_shell: 'PWA / мобильный вход',
+  windows_companion: 'Windows-компаньон',
   local_agent: 'Local Agent',
   android_phone: 'Android телефон',
   mission_display: 'Экран штаба',
@@ -825,6 +828,7 @@ const DEVICE_STATUSES = {
   pending_trust: 'ждёт доверия',
   trusted: 'доверено',
   connected: 'на связи',
+  ready: 'готово',
   degraded: 'ограничено',
   offline: 'не подключено',
   blocked: 'заблокировано',
@@ -1003,11 +1007,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 6 Closure + Settings / Policy Center V1',
+  name: 'Phase 8 Device Mesh / Legs Control Center V1',
   date: '2026-05-26',
   status: 'закрыт live',
-  previous: 'Service Inventory + Dependency Registry + Capability Matrix',
-  next: 'Phase 6 закрыта; следующий слой по roadmap'
+  previous: 'Phase 6 Closure + Settings / Policy Center V1',
+  next: 'Следующий крупный слой по roadmap'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1039,7 +1043,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' },
   { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' },
   { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' },
-  { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'закрыт live' }
+  { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'закрыт live' },
+  { id: 31, name: 'Device Mesh / Ноги Control Center V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -3127,6 +3132,7 @@ const App = {
     }).length;
     const head = this.headStatusSnapshot();
     const guardian = this.guardianSnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
     const cards = [
       ['Проекты', projects.length, 'активные проекты'],
       ['Активные задачи', active, 'в работе или ожидании'],
@@ -3135,6 +3141,7 @@ const App = {
       ['Проверка', verifying, 'требуют Verifier'],
       ['Approval', approvals, 'требуют решения'],
       ['Риски', risks, 'не низкий риск'],
+      ['Ноги', `${deviceMesh.readiness}%`, `${deviceMesh.trusted} доверенных · ${deviceMesh.routes.length} маршрутов`],
       ['Guardian', guardian.label, `${guardian.openIncidents.length} открытых incidents`],
       ['Голова', head.status, head.note]
     ];
@@ -3202,9 +3209,11 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const guardian = this.guardianSnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
     const rows = [
       ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
       ['Guardian', guardian.label, guardian.note],
+      ['Ноги / Device Mesh', `${deviceMesh.readiness}%`, `${deviceMesh.devices.length} устройств; следующий шаг: ${deviceMesh.next}`],
       ['Общее хранилище задач', this.taskStoreSyncStatus || 'не проверен', this.taskStoreLastSyncAt ? `синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'ожидает вход владельца')],
       ['Direct Mode', direct.status, direct.note],
       ['Local Agent', agent.status, agent.note],
@@ -5614,7 +5623,7 @@ const App = {
         pendingApprovals.length ? `${pendingApprovals.length} approval-запросов ждут владельца.` : 'Approval-очередь пуста.'
       ));
 
-      const requiredDevices = ['device_terminator_pc', 'device_local_agent', 'device_owner_phone', 'device_mission_display', 'device_home_assistant'];
+      const requiredDevices = ['device_terminator_pc', 'device_webapp_browser', 'device_pwa_shell', 'device_windows_companion', 'device_local_agent', 'device_owner_phone', 'device_mission_display', 'device_home_assistant'];
       const missingDevices = requiredDevices.filter((id) => !this.systemDevices.some((device) => device.device_id === id));
       const devicesWithoutCapabilities = this.systemDevices.filter((device) => !(device.capabilities || []).length);
       checks.push(this.diagnosticCheck(
@@ -5949,6 +5958,7 @@ const App = {
     const registry = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
     const policy = this.policyCenterState?.last_checked_at ? this.policyCenterState : this.buildPolicyCenterSnapshot();
     const memorySearch = this.memorySearchSnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
@@ -5960,7 +5970,7 @@ const App = {
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
       ['Голова', head.status, head.note],
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
-      ['Устройства', this.systemDevices.length, `${trustedDevices} доверенных или системных`],
+      ['Ноги / Устройства', `${deviceMesh.readiness}%`, `${trustedDevices} доверенных; ${deviceMesh.routes.length} маршрутов; ${deviceMesh.attention} требуют внимания`],
       ['Мобильное приложение', pwa.installLabel, `offline shell: ${pwa.serviceWorker}`],
       ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'текстовый режим', 'без фонового прослушивания и без AI API'],
       ['Хранилище', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs и evidence на D'],
@@ -7695,6 +7705,197 @@ const App = {
     this.toast('Профиль создан');
   },
 
+  buildDeviceMeshSnapshot() {
+    const devices = this.systemDevices || [];
+    const pwa = this.pwaSnapshot();
+    const direct = this.directModeStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const trusted = devices.filter((device) => ['trusted', 'owner_device', 'system_device'].includes(device.trust_level)).length;
+    const connected = devices.filter((device) => ['connected', 'ready', 'trusted'].includes(device.status)).length;
+    const attention = devices.filter((device) => ['unknown', 'offline', 'degraded', 'blocked', 'not_configured', 'pending_trust'].includes(device.status)).length;
+    const riskyCapabilities = devices.reduce((sum, device) => sum + (device.capabilities || []).filter((capability) => capability.requires_approval || ['approval_required', 'dangerous', 'blocked'].includes(capability.risk_level)).length, 0);
+    const readiness = Math.max(28, Math.min(94,
+      34
+      + (devices.length ? 10 : 0)
+      + Math.round((trusted / Math.max(devices.length, 1)) * 18)
+      + Math.round((connected / Math.max(devices.length, 1)) * 18)
+      + (pwa.serviceWorker === 'registered' ? 8 : 0)
+      + (taskStore.tone === 'synced' ? 6 : 0)
+      + (direct.status === 'сессия активна' ? 5 : 0)
+    ));
+    const status = readiness >= 80 ? 'ready' : readiness >= 55 ? 'partial' : attention ? 'review' : 'not_checked';
+    const routes = [
+      {
+        id: 'pc_webapp',
+        title: 'ПК → WebApp',
+        from: 'ПК Терминатора',
+        to: 'Mina UI',
+        status: devices.some((device) => device.device_id === 'device_terminator_pc' && device.status === 'connected') ? 'ready' : 'partial',
+        risk: 'safe',
+        note: 'Рабочий экран и локальный контур видимы владельцу.'
+      },
+      {
+        id: 'webapp_taskstore',
+        title: 'WebApp → Общее хранилище задач',
+        from: 'Mina UI',
+        to: 'общее хранилище задач',
+        status: taskStore.tone === 'synced' ? 'ready' : (taskStore.tone === 'session' ? 'partial' : 'review'),
+        risk: 'review',
+        note: taskStore.note
+      },
+      {
+        id: 'webapp_phone',
+        title: 'WebApp → Телефон / мобильная версия',
+        from: 'Mina UI',
+        to: 'Телефон владельца',
+        status: pwa.installed || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting',
+        risk: 'safe',
+        note: pwa.installed ? 'мобильная версия установлена.' : `Мобильная версия: ${pwa.installLabel}; работа без сети: ${pwa.serviceWorker}.`
+      },
+      {
+        id: 'diagnost_repair',
+        title: 'Диагност → Ремонт через Codex',
+        from: 'Защитник / Диагност',
+        to: 'Рабочая область ремонта',
+        status: 'partial',
+        risk: 'approval_required',
+        note: 'Ремонт не применяется без проверки, плана отката и подтверждения владельца.'
+      },
+      {
+        id: 'future_display',
+        title: 'Центр управления → Экран штаба',
+        from: 'Центр управления',
+        to: 'ТВ / внешний экран',
+        status: 'waiting',
+        risk: 'review',
+        note: 'Будущий маршрут. Сейчас только паспорт и правила, без команд трансляции.'
+      }
+    ];
+    const next = connected < 2
+      ? 'Проверить ПК, WebApp и локальный агент.'
+      : pwa.serviceWorker !== 'registered'
+        ? 'Проверить мобильную версию и работу без сети перед мобильным сценарием.'
+        : attention
+          ? 'Разобрать устройства со статусом “не проверено” или “не настроено”.'
+          : 'Связь устройств готова к следующему слою маршрутизации.';
+    return { devices, pwa, direct, taskStore, agent, trusted, connected, attention, riskyCapabilities, readiness, status, routes, next };
+  },
+
+  deviceMeshStatusText(status) {
+    return {
+      ready: 'готово',
+      partial: 'частично готово',
+      review: 'нужна проверка',
+      waiting: 'ожидает настройки',
+      not_checked: 'не проверено'
+    }[status] || status || 'не проверено';
+  },
+
+  renderDeviceMeshHero(mesh) {
+    const metrics = [
+      ['Устройств', mesh.devices.length, 'в локальном реестре'],
+      ['Доверенные', mesh.trusted, 'системные или подтверждённые'],
+      ['На связи', mesh.connected, 'видимы как активные'],
+      ['Требуют решения', mesh.attention, 'не проверены или ограничены'],
+      ['Подтверждение', mesh.riskyCapabilities, 'возможностей требуют решения владельца']
+    ];
+    return `
+      <section class="device-mesh-hero device-mesh-hero--${this.escapeHtml(mesh.status)}">
+        <div>
+          <span>Ноги / связь устройств</span>
+          <h3>Центр устройств и маршрутов</h3>
+          <p>Ноги не выполняют действия. Они показывают, куда можно безопасно передать задачу, контекст и статус: ПК, WebApp, телефон, мобильная версия, локальный агент и будущие устройства.</p>
+        </div>
+        <strong>${this.escapeHtml(String(mesh.readiness))}%<small>${this.escapeHtml(this.deviceMeshStatusText(mesh.status))}</small></strong>
+      </section>
+      <div class="device-mesh-metrics">
+        ${metrics.map(([name, value, note]) => `
+          <article>
+            <span>${this.escapeHtml(name)}</span>
+            <strong>${this.escapeHtml(String(value))}</strong>
+            <p>${this.escapeHtml(note)}</p>
+          </article>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  renderDeviceRoutePlanner(mesh) {
+    return `
+      <section class="device-route-panel">
+        <div class="device-route-head">
+          <div>
+            <strong>Маршруты задач</strong>
+            <span>Куда можно передать контекст без опасной автоматики</span>
+          </div>
+          <b>${this.escapeHtml(mesh.next)}</b>
+        </div>
+        <div class="device-route-grid">
+          ${mesh.routes.map((route) => `
+            <article class="device-route-card device-route-card--${this.escapeHtml(route.status)}">
+              <span>${this.escapeHtml(this.deviceMeshStatusText(route.status))} · ${this.escapeHtml(DEVICE_RISK_LEVELS[route.risk] || route.risk)}</span>
+              <strong>${this.escapeHtml(route.title)}</strong>
+              <p>${this.escapeHtml(route.from)} → ${this.escapeHtml(route.to)}</p>
+              <small>${this.escapeHtml(route.note)}</small>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  },
+
+  renderDeviceHandoffPanel(mesh) {
+    const steps = [
+      ['Создать задачу', 'Рабочее создаёт task_id и привязывает проект.'],
+      ['Собрать пакет', 'Context Pack передаётся исполнителю вручную, без скрытой автоматизации.'],
+      ['Ожидать отчёт', 'Терминатор честно показывает ожидание, не притворяется, что видит Codex.'],
+      ['Продолжить на телефоне', 'Телефон и мобильная версия получат задачу позже через безопасную связь устройств.'],
+      ['Вернуть в проверку', 'Проверка и Защитник оценивают результат перед памятью или действием.']
+    ];
+    return `
+      <section class="device-handoff-panel">
+        <div>
+          <strong>Передача работы</strong>
+          <p>Ноги отвечают за непрерывность: начал на ПК, проверил в WebApp, позже продолжил с телефона. Реальные действия остаются у Рук и проходят Защитник.</p>
+        </div>
+        <div class="device-handoff-steps">
+          ${steps.map(([name, note], index) => `
+            <article>
+              <span>${index + 1}</span>
+              <div>
+                <strong>${this.escapeHtml(name)}</strong>
+                <p>${this.escapeHtml(note)}</p>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+        <div class="device-policy-note">
+          <strong>Правило безопасности</strong>
+          <p>Нет ADB, сетевого сканирования, умного дома, трансляции экрана, подключения устройств или браузерной автоматики без отдельного подтверждения владельца.</p>
+        </div>
+      </section>
+    `;
+  },
+
+  buildDeviceMeshReport(mesh = this.buildDeviceMeshSnapshot()) {
+    return [
+      'Ноги / Связь устройств V1',
+      `Готовность: ${mesh.readiness}% (${this.deviceMeshStatusText(mesh.status)})`,
+      `Устройств: ${mesh.devices.length}`,
+      `Доверенные: ${mesh.trusted}`,
+      `На связи: ${mesh.connected}`,
+      `Требуют внимания: ${mesh.attention}`,
+      `Возможности через подтверждение владельца: ${mesh.riskyCapabilities}`,
+      '',
+      'Маршруты:',
+      ...mesh.routes.map((route) => `- ${route.title}: ${this.deviceMeshStatusText(route.status)}; риск: ${DEVICE_RISK_LEVELS[route.risk] || route.risk}; ${route.note}`),
+      '',
+      `Следующий шаг: ${mesh.next}`,
+      'Опасные действия устройствам не отправлялись.'
+    ].join('\n');
+  },
+
   renderSystemDevicePreview() {
     const host = document.getElementById('system-device-preview');
     if (!host) return;
@@ -7704,22 +7905,39 @@ const App = {
       host.innerHTML = '<p class="mission-empty">Device Registry пока пуст.</p>';
       return;
     }
+    const mesh = this.buildDeviceMeshSnapshot();
     host.innerHTML = `
-      <section class="device-hub">
-        <div class="device-list" aria-label="Список устройств">
-          ${devices.map((device) => this.renderDeviceCard(device)).join('')}
+      <section class="device-mesh-center">
+        ${this.renderDeviceMeshHero(mesh)}
+        <div class="device-mesh-actions">
+          <button type="button" data-device-action="refresh_mesh">Обновить состояние</button>
+          <button type="button" data-device-action="copy_mesh_report">Скопировать отчёт</button>
+          <button type="button" data-device-action="create_pairing_note" data-device-id="${this.escapeHtml(active.device_id)}">Создать заметку подключения</button>
+          <button type="button" data-device-action="open_legs_scheme">Открыть в Схеме Мины</button>
         </div>
-        <div class="device-passport" aria-label="Паспорт устройства">
-          ${this.renderDevicePassport(active)}
-        </div>
+        <section class="device-hub">
+          <div class="device-list" aria-label="Список устройств">
+            ${devices.map((device) => this.renderDeviceCard(device)).join('')}
+          </div>
+          <div class="device-passport" aria-label="Паспорт устройства">
+            ${this.renderDevicePassport(active)}
+          </div>
+        </section>
+        ${this.renderDeviceRoutePlanner(mesh)}
+        ${this.renderDeviceHandoffPanel(mesh)}
       </section>
     `;
   },
 
   renderDeviceCard(device) {
     const isActive = device.device_id === this.activeDeviceId;
+    const statusClass = ['connected', 'ready', 'trusted'].includes(device.status)
+      ? 'ready'
+      : ['unknown', 'degraded', 'offline', 'not_configured', 'pending_trust'].includes(device.status)
+        ? 'review'
+        : device.status === 'blocked' ? 'blocked' : 'partial';
     return `
-      <button type="button" class="device-card ${isActive ? 'active' : ''}" data-device-action="select" data-device-id="${this.escapeHtml(device.device_id)}">
+      <button type="button" class="device-card device-card--${this.escapeHtml(statusClass)} ${isActive ? 'active' : ''}" data-device-action="select" data-device-id="${this.escapeHtml(device.device_id)}">
         <span>${this.escapeHtml(DEVICE_TYPES[device.type] || device.type)}</span>
         <strong>${this.escapeHtml(device.name)}</strong>
         <small>${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)} · ${this.escapeHtml(DEVICE_TRUST_LEVELS[device.trust_level] || device.trust_level)}</small>
@@ -7740,19 +7958,23 @@ const App = {
         <strong>${this.escapeHtml(DEVICE_RISK_LEVELS[device.risk_level] || device.risk_level)}</strong>
       </div>
       <dl class="device-passport-grid">
-        <div><dt>device_id</dt><dd>${this.escapeHtml(device.device_id)}</dd></div>
+        <div><dt>ID устройства</dt><dd>${this.escapeHtml(device.device_id)}</dd></div>
         <div><dt>тип</dt><dd>${this.escapeHtml(DEVICE_TYPES[device.type] || device.type)}</dd></div>
         <div><dt>подключение</dt><dd>${this.escapeHtml(device.connection_type)}</dd></div>
         <div><dt>статус</dt><dd>${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)}</dd></div>
-        <div><dt>trust</dt><dd>${this.escapeHtml(DEVICE_TRUST_LEVELS[device.trust_level] || device.trust_level)}</dd></div>
-        <div><dt>last seen</dt><dd>${this.escapeHtml(device.last_seen ? this.formatTaskTime(device.last_seen) : 'не проверялось')}</dd></div>
-        <div><dt>fingerprint</dt><dd>${this.escapeHtml(device.fingerprint || 'не задано')}</dd></div>
-        <div><dt>owner confirmed</dt><dd>${device.owner_confirmed ? 'да' : 'нет'}</dd></div>
+        <div><dt>доверие</dt><dd>${this.escapeHtml(DEVICE_TRUST_LEVELS[device.trust_level] || device.trust_level)}</dd></div>
+        <div><dt>последний сигнал</dt><dd>${this.escapeHtml(device.last_seen ? this.formatTaskTime(device.last_seen) : 'не проверялось')}</dd></div>
+        <div><dt>роль маршрута</dt><dd>${this.escapeHtml(device.route_role || 'наблюдение и статус')}</dd></div>
+        <div><dt>передача работы</dt><dd>${this.escapeHtml(device.handoff_state || 'не запускалось')}</dd></div>
+        <div><dt>политика</dt><dd>${this.escapeHtml(device.safe_action_policy || 'только read-only')}</dd></div>
+        <div><dt>отпечаток</dt><dd>${this.escapeHtml(device.fingerprint || 'не задано')}</dd></div>
+        <div><dt>владелец подтвердил</dt><dd>${device.owner_confirmed ? 'да' : 'нет'}</dd></div>
       </dl>
       <div class="device-actions">
         <button type="button" data-device-action="check" data-device-id="${this.escapeHtml(device.device_id)}">Проверить</button>
         <button type="button" data-device-action="trust" data-device-id="${this.escapeHtml(device.device_id)}">Доверять</button>
         <button type="button" data-device-action="restrict" data-device-id="${this.escapeHtml(device.device_id)}">Ограничить</button>
+        <button type="button" data-device-action="create_pairing_note" data-device-id="${this.escapeHtml(device.device_id)}">Заметка подключения</button>
       </div>
       <section class="device-section">
         <h4>Возможности</h4>
@@ -7780,7 +8002,7 @@ const App = {
       <article class="capability-card">
         <strong>${this.escapeHtml(capability.name)}</strong>
         <p>${this.escapeHtml(capability.description)}</p>
-        <span>${this.escapeHtml(DEVICE_RISK_LEVELS[capability.risk_level] || capability.risk_level)}${capability.requires_approval ? ' · approval' : ''}</span>
+        <span>${this.escapeHtml(DEVICE_RISK_LEVELS[capability.risk_level] || capability.risk_level)}${capability.requires_approval ? ' · нужно подтверждение' : ''}</span>
         ${capability.requires_approval ? `<button type="button" data-device-action="request_capability_approval" data-device-id="${this.escapeHtml(device.device_id)}" data-capability-id="${this.escapeHtml(capability.capability_id)}">Запросить</button>` : ''}
       </article>
     `;
@@ -8705,9 +8927,10 @@ const App = {
     const handsStatus = workerReports.length || repairIncidents.length ? 'partial' : (guardian.state.status ? 'waiting' : 'waiting');
     const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) || document.getElementById('screen-scheme') ? 'partial' : 'waiting';
     const voiceStatus = this.workspaceVoiceSupported && this.voiceResponsesEnabled ? 'ready' : (this.workspaceVoiceSupported || this.voiceTtsSupported ? 'partial' : 'waiting');
-    const legsStatus = devicePhone?.status === 'connected' || pwa.installed
+    const deviceMesh = this.buildDeviceMeshSnapshot();
+    const legsStatus = deviceMesh.readiness >= 80 || devicePhone?.status === 'connected' || pwa.installed
       ? 'ready'
-      : ((this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
+      : (deviceMesh.readiness >= 50 || (this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
 
     const subsystems = {
       head: {
@@ -8800,17 +9023,18 @@ const App = {
       },
       legs: {
         status: legsStatus,
-        readiness: legsStatus === 'ready' ? 90 : (legsStatus === 'partial' ? 58 : 28),
-        summary: legsStatus === 'ready' ? 'мобильный контур готов' : 'связь устройств частично',
-        note: 'Ноги маршрутизируют задачи и контекст. PWA даёт мобильный вход без выполнения опасных действий.',
-        snapshot_source: 'Device Registry / PWA / Device Mesh placeholders',
-        is_mock: !pwa.installed && !devicePhone,
+        readiness: deviceMesh.readiness,
+        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных`,
+        note: `Ноги маршрутизируют задачи и контекст. ${deviceMesh.next}`,
+        snapshot_source: 'Центр связи устройств / мобильная версия / хранилище задач / реестр устройств',
+        is_mock: false,
         checks: [
           ['Основное устройство', 'ПК Терминатора'],
           ['Телефон', devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен'],
-          ['PWA', `${pwa.installLabel}; service worker: ${pwa.serviceWorker}`],
-          ['Передача задачи', pwa.serviceWorker === 'registered' ? 'offline shell готов' : 'локальный слой статуса'],
-          ['Перенос контекста', 'будущий слой маршрутов']
+          ['Мобильная версия', `${pwa.installLabel}; работа без сети: ${pwa.serviceWorker}`],
+          ['Маршруты', `${deviceMesh.routes.length} описано`],
+          ['Передача задачи', pwa.serviceWorker === 'registered' ? 'работа без сети готова' : 'локальный слой статуса'],
+          ['Подтверждение', `${deviceMesh.riskyCapabilities} возможностей требуют решения владельца`]
         ]
       },
       diagnost: {
@@ -9189,12 +9413,18 @@ const App = {
 
     if (zoneId === 'legs') {
       const devices = this.systemDevices || [];
+      const mesh = this.buildDeviceMeshSnapshot();
       return `
         <section class="scheme-config-block">
           <div class="scheme-chip-list">
             ${devices.slice(0, 5).map((device) => `<span>${this.escapeHtml(String(device.name || '').replace(/Local Agent/g, 'Локальный агент'))} · ${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)}</span>`).join('')}
           </div>
-          <p>Ноги доставляют задачу и контекст между средами. Исполнение остаётся за Руками и требует Guardian.</p>
+          <div class="scheme-chip-list">
+            <span>${this.escapeHtml(String(mesh.routes.length))} маршрутов</span>
+            <span>${this.escapeHtml(String(mesh.trusted))} доверенных</span>
+            <span>${this.escapeHtml(String(mesh.attention))} требуют внимания</span>
+          </div>
+          <p>Ноги доставляют задачу и контекст между средами. ${this.escapeHtml(mesh.next)} Исполнение остаётся за Руками и проходит через Защитник.</p>
         </section>
       `;
     }
@@ -9357,6 +9587,14 @@ const App = {
 
     if (action === 'open_system_head' || action === 'open_guardian' || action === 'open_devices' || action === 'open_voice') {
       this.go('system');
+      const target = action === 'open_devices'
+        ? 'system-device-preview'
+        : action === 'open_voice'
+          ? 'system-voice-hooks'
+          : action === 'open_system_head'
+            ? 'system-head-panel'
+            : 'system-guardian-panel';
+      window.setTimeout(() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
       return;
     }
 
@@ -9997,6 +10235,8 @@ const App = {
         owner_confirmed: true,
         last_seen: now,
         notes: 'Главная рабочая машина и будущий runtime/storage узел.',
+        route_role: 'основной runtime и рабочая станция',
+        handoff_state: 'активная точка старта',
         capabilities: [
           ['cap_pc_status', 'read_status', 'Показать состояние runtime', 'safe', false],
           ['cap_pc_storage', 'storage_policy', 'Показать storage policy', 'safe', false],
@@ -10004,8 +10244,63 @@ const App = {
         ]
       }),
       this.normalizeDevice({
+        device_id: 'device_webapp_browser',
+        name: 'WebApp Mina UI',
+        type: 'webapp',
+        connection_type: 'browser_session',
+        trust_level: 'system_device',
+        status: 'connected',
+        risk_level: 'safe',
+        owner_confirmed: true,
+        last_seen: now,
+        notes: 'Главный экран владельца: Рабочее, Центр управления, Система и Схема Мины.',
+        route_role: 'панель управления и точка просмотра статусов',
+        handoff_state: 'принимает задачи и показывает next best action',
+        capabilities: [
+          ['cap_webapp_workspace', 'open_workspace', 'Открыть Рабочее окно', 'safe', false],
+          ['cap_webapp_context', 'copy_context_pack', 'Копировать Context Pack вручную', 'safe', false],
+          ['cap_webapp_approval', 'approval_review', 'Показать предупреждение Approval', 'review', false]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_pwa_shell',
+        name: 'PWA / мобильный вход',
+        type: 'pwa_shell',
+        connection_type: 'browser_pwa',
+        trust_level: 'paired',
+        status: 'unknown',
+        risk_level: 'safe',
+        owner_confirmed: false,
+        notes: 'Будущий удобный вход с телефона. Сейчас проверяется оболочка и offline shell, без нативных команд.',
+        route_role: 'мобильный контроллер без выполнения опасных действий',
+        handoff_state: 'ожидает установки или проверки PWA',
+        capabilities: [
+          ['cap_pwa_open', 'open_webapp', 'Открыть Mina UI в браузере или PWA', 'safe', false],
+          ['cap_pwa_offline', 'offline_shell', 'Показать shell без сети после кеширования', 'safe', false],
+          ['cap_pwa_push', 'push_notifications', 'Уведомления позже и только после согласия владельца', 'review', true]
+        ]
+      }),
+      this.normalizeDevice({
+        device_id: 'device_windows_companion',
+        name: 'Windows-компаньон',
+        type: 'windows_companion',
+        connection_type: 'tray_companion',
+        trust_level: 'system_device',
+        status: 'not_configured',
+        risk_level: 'review',
+        owner_confirmed: true,
+        notes: 'Будущий tray/установщик: статус агента, быстрый вход, безопасный restart только через Approval.',
+        route_role: 'локальная панель статуса Windows',
+        handoff_state: 'foundation закрыт, runtime не запускается из WebApp',
+        capabilities: [
+          ['cap_tray_status', 'read_status', 'Показать статус Local Agent из tray позже', 'safe', false],
+          ['cap_tray_open_webapp', 'open_webapp', 'Открыть WebApp из tray', 'safe', false],
+          ['cap_tray_restart_agent', 'restart_agent', 'Перезапуск агента только через Guardian и Approval', 'approval_required', true]
+        ]
+      }),
+      this.normalizeDevice({
         device_id: 'device_local_agent',
-        name: 'Mina Local Agent',
+        name: 'Локальный агент Mina',
         type: 'local_agent',
         connection_type: 'bridge_polling',
         trust_level: 'system_device',
@@ -10013,6 +10308,8 @@ const App = {
         risk_level: 'review',
         owner_confirmed: true,
         notes: 'Runtime-исполнитель. В этом слое команды агенту не отправляются.',
+        route_role: 'локальный исполнитель только по разрешённым командам',
+        handoff_state: 'ожидает проверки health',
         capabilities: [
           ['cap_agent_health', 'read_status', 'Показать health/status позже', 'safe', false],
           ['cap_agent_file_meta', 'file_metadata', 'Файловая metadata через Local Agent позже', 'review', true]
@@ -10028,6 +10325,8 @@ const App = {
         risk_level: 'review',
         owner_confirmed: false,
         notes: 'Будущий первый реальный adapter: ADB USB для mobile QA.',
+        route_role: 'устройство владельца для мобильной проверки и продолжения задачи',
+        handoff_state: 'ожидает ручного подключения владельцем',
         capabilities: [
           ['cap_phone_status', 'read_status', 'Определить подключение телефона позже', 'safe', false],
           ['cap_phone_open_url', 'open_url', 'Открыть WebApp на телефоне после approval', 'review', true],
@@ -10044,6 +10343,8 @@ const App = {
         risk_level: 'review',
         owner_confirmed: false,
         notes: 'Будущий Mission Control display на ТВ или Chromecast.',
+        route_role: 'вывод Центра управления на внешний экран',
+        handoff_state: 'только будущий маршрут',
         capabilities: [
           ['cap_display_status', 'read_status', 'Показать доступность экрана позже', 'safe', false],
           ['cap_display_cast', 'cast_dashboard', 'Вывести Mission Control после approval', 'review', true]
@@ -10059,6 +10360,8 @@ const App = {
         risk_level: 'approval_required',
         owner_confirmed: false,
         notes: 'Будущий read-only smart home hub. Управление домом только через Approval.',
+        route_role: 'будущий read-only статус дома',
+        handoff_state: 'заблокировано до отдельного решения владельца',
         capabilities: [
           ['cap_ha_status', 'read_status', 'Read-only sensors/status позже', 'safe', false],
           ['cap_ha_scene', 'run_scene', 'Запустить сцену только через Approval', 'approval_required', true]
@@ -10074,6 +10377,8 @@ const App = {
         risk_level: 'review',
         owner_confirmed: false,
         notes: 'Будущий adapter для USB/COM. В v1 только паспорт и политика доверия.',
+        route_role: 'ручной allowlist USB/COM устройств',
+        handoff_state: 'не настроено',
         capabilities: [
           ['cap_usb_list', 'read_status', 'Показать trusted USB devices позже', 'safe', false],
           ['cap_usb_serial', 'usb_serial_readonly', 'Read-only COM telemetry позже', 'review', true]
@@ -10089,6 +10394,8 @@ const App = {
         risk_level: 'approval_required',
         owner_confirmed: false,
         notes: 'Никакого хаотичного network scan. Только ручной allowlist после approval.',
+        route_role: 'ручной allowlist сетевых устройств',
+        handoff_state: 'заблокировано без отдельного approval',
         capabilities: [
           ['cap_network_status', 'read_status', 'Показать allowlisted endpoints позже', 'safe', false],
           ['cap_network_connect', 'connect_allowlisted_device', 'Подключаться только к owner-approved устройствам', 'approval_required', true]
@@ -10114,6 +10421,9 @@ const App = {
       first_seen: device.first_seen || now,
       owner_confirmed: Boolean(device.owner_confirmed),
       notes: device.notes || 'не задано',
+      route_role: device.route_role || 'наблюдение и статус',
+      handoff_state: device.handoff_state || 'не запускалось',
+      safe_action_policy: device.safe_action_policy || 'только read-only и локальные заметки без реального выполнения',
       linked_project_ids: Array.isArray(device.linked_project_ids) ? device.linked_project_ids : [],
       linked_task_ids: Array.isArray(device.linked_task_ids) ? device.linked_task_ids : [],
       created_at: device.created_at || now,
@@ -10222,6 +10532,43 @@ const App = {
     const device = this.systemDevices.find((item) => item.device_id === deviceId);
     if (!device) return;
     this.activeDeviceId = device.device_id;
+    if (action === 'refresh_mesh') {
+      const now = new Date().toISOString();
+      this.systemDevices = (this.systemDevices || []).map((item) => {
+        const next = this.normalizeDevice(item);
+        if (['device_terminator_pc', 'device_webapp_browser'].includes(next.device_id)) {
+          next.status = 'connected';
+          next.last_seen = now;
+          next.handoff_state = next.device_id === 'device_webapp_browser'
+            ? 'готов показывать задачи и статусы'
+            : 'активная точка старта';
+        }
+        if (next.device_id === 'device_pwa_shell') {
+          const pwa = this.pwaSnapshot();
+          next.status = pwa.installed || pwa.serviceWorker === 'registered' ? 'ready' : 'unknown';
+          next.handoff_state = pwa.installed ? 'готов к мобильному входу' : 'ожидает установки или проверки PWA';
+        }
+        this.addDeviceEvent(next, 'mesh_refresh', 'Device Mesh обновлён безопасно: реальные команды устройствам не отправлялись.', 'safe');
+        return next;
+      });
+      await this.saveSystemDevices();
+      this.renderSystemStatus();
+      this.toast('Device Mesh обновлён без команд устройствам');
+      return;
+    }
+    if (action === 'copy_mesh_report') {
+      await this.copyWorkspaceText(this.buildDeviceMeshReport());
+      this.toast('Отчёт Device Mesh скопирован');
+      return;
+    }
+    if (action === 'open_legs_scheme') {
+      this.go('system');
+      this.activeMinaSchemeZone = 'legs';
+      this.saveMinaSchemeState();
+      this.renderMinaSystemScheme();
+      window.setTimeout(() => document.getElementById('mina-system-scheme')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
     if (action === 'select' || action === 'passport') {
       this.renderSystemDevicePreview();
       return;
@@ -10246,6 +10593,13 @@ const App = {
       device.trust_level = 'restricted';
       this.addDeviceEvent(device, 'device_trust_changed', 'Устройство переведено в ограниченный режим.', 'review');
       this.toast('Устройство ограничено');
+    }
+    if (action === 'create_pairing_note') {
+      device.handoff_state = device.device_id === 'device_owner_phone'
+        ? 'создана заметка: владелец подключит телефон вручную позже'
+        : 'создана заметка подключения без реального сопряжения';
+      this.addDeviceEvent(device, 'pairing_note_created', 'Создана локальная заметка подключения. Pairing, ADB, сеть и smart home не запускались.', 'safe');
+      this.toast('Заметка подключения создана');
     }
     if (action === 'request_capability_approval') {
       const capabilityId = button?.dataset?.capabilityId || '';
