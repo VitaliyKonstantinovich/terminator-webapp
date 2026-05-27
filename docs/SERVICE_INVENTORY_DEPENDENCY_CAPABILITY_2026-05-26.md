@@ -21,7 +21,7 @@ Status: closed live
   - `Скачать реестр`;
   - `Скопировать policy`.
 - Added System summary card `Реестр системы`.
-- Updated cache marker to `20260526-system-registry-v1`.
+- Updated cache marker to `20260526-system-registry-v2`.
 
 ## Registered Services
 
@@ -76,8 +76,8 @@ Status: closed live
 
 - GitHub Actions run `26486130046`: success.
 - Pages health check: PASS.
-- Live HTML marker `20260526-system-registry-v1`: PASS.
-- Live service worker marker `terminator-mina-pwa-20260526-system-registry-v1`: PASS.
+- Live HTML marker `20260526-system-registry-v2`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260526-system-registry-v2`: PASS.
 - Live System registry panel visible: PASS.
 - Live registry refresh action: PASS.
 - Live registry buttons visible: PASS.
