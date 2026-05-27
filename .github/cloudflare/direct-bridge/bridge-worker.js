@@ -16,6 +16,7 @@ const TASK_STORE_MAX_STRING_LENGTH = 30000;
 const TASK_STORE_MAX_ARRAY_LENGTH = 250;
 const TASK_STORE_MAX_DEPTH = 6;
 const DEFAULT_AGENT_HEARTBEAT_TTL_SECONDS = 120;
+const DEFAULT_PUBLIC_AGENT_ID = "Terminator-PC";
 const RAW_FILE_DATA_PATTERN = /(?:data:[^"'\\\s]+;base64,|;base64,)/i;
 const WEBAPP_UPSTREAM_BASE = "https://vitaliykonstantinovich.github.io/terminator-webapp";
 
@@ -978,7 +979,8 @@ async function updateCommandStatus(commandId, request, env, origin, requestId, s
 async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
   const started = Date.now();
   const url = new URL(request.url);
-  const agentId = normalizeAgentId(url.searchParams.get("agent_id") || "");
+  const requestedAgentId = normalizeAgentId(url.searchParams.get("agent_id") || "");
+  const agentId = requestedAgentId || DEFAULT_PUBLIC_AGENT_ID;
   let commandQueue = {
     status: "unknown",
     queue_depth: null,
@@ -990,11 +992,11 @@ async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
     status: "missing",
     stale: true,
     age_ms: null,
-    agent_id: agentId || null,
+    agent_id: agentId,
   };
 
   try {
-    const diagnostics = await queueRequest(env, `/internal/agent/diagnostics?agent_id=${encodeURIComponent(agentId || "public-health")}`);
+    const diagnostics = await queueRequest(env, `/internal/agent/diagnostics?agent_id=${encodeURIComponent(agentId)}`);
     commandQueue = {
       status: "ready",
       queue_depth: diagnostics.queue_depth,
@@ -1012,13 +1014,13 @@ async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
   }
 
   try {
-    heartbeat = await queueRequest(env, `/internal/agent/heartbeat${agentId ? `?agent_id=${encodeURIComponent(agentId)}` : ""}`);
+    heartbeat = await queueRequest(env, `/internal/agent/heartbeat?agent_id=${encodeURIComponent(agentId)}`);
   } catch (error) {
     heartbeat = {
       status: "missing",
       stale: true,
       age_ms: null,
-      agent_id: agentId || null,
+      agent_id: agentId,
       error: error?.code || "AGENT_HEARTBEAT_UNAVAILABLE",
     };
   }
@@ -1032,6 +1034,7 @@ async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
     service: "mina-direct-bridge",
     status,
     public: true,
+    default_agent_id_used: !requestedAgentId,
     bridge: {
       status: "ready",
       storage: "durable_object",
