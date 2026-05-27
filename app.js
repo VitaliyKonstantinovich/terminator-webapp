@@ -309,6 +309,7 @@ const MEMORY_SEARCH_STATE_STORAGE_KEY = 'mina_memory_search_state_v1';
 const SCHEMA_SAFETY_STATE_STORAGE_KEY = 'mina_schema_safety_state_v1';
 const SYSTEM_REGISTRY_STATE_STORAGE_KEY = 'mina_system_registry_state_v1';
 const POLICY_CENTER_STATE_STORAGE_KEY = 'mina_policy_center_state_v1';
+const LIVE_RUNTIME_STATE_STORAGE_KEY = 'mina_live_runtime_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -365,6 +366,86 @@ const MEMORY_SEARCH_STOP_WORDS = new Set([
   'the', 'and', 'or', 'to', 'of', 'in', 'for', 'with', 'is', 'are'
 ]);
 
+const EYES_VISUAL_SCHEMA_VERSION = 1;
+const EYES_VISUAL_STATE_STORAGE_KEY = 'mina_eyes_visual_state_v1';
+const EYES_VISUAL_MAX_CHECKS = 80;
+const EYES_VISUAL_MODES = [
+  ['desktop', 'Desktop'],
+  ['mobile', 'Mobile'],
+  ['workspace', 'Рабочее окно'],
+  ['scheme', 'Схема Мины'],
+  ['manual', 'Ручная фиксация']
+];
+const EYES_VISUAL_MODE_BY_ID = Object.fromEntries(EYES_VISUAL_MODES);
+const EYES_VISUAL_CHECKLIST = [
+  ['screenshot_ref', 'Есть ссылка или путь к скриншоту'],
+  ['layout_readable', 'Текст читается и не налезает'],
+  ['no_horizontal_overflow', 'Нет горизонтального разъезда'],
+  ['buttons_clickable', 'Кнопки кликабельны нормальными DOM-элементами'],
+  ['no_mojibake', 'Нет кракозябр'],
+  ['no_secret_visible', 'Секреты не попали в evidence']
+];
+
+const HANDS_SAFE_ACTION_SCHEMA_VERSION = 1;
+const HANDS_SAFE_ACTION_STORAGE_KEY = 'mina_hands_safe_actions_v1';
+const HANDS_SAFE_ACTION_MAX_PLANS = 60;
+const HANDS_WORKER_OPTIONS = [
+  ['file_worker', 'Файловый помощник', 'metadata, hash, task storage; без удаления и auto-run'],
+  ['code_worker', 'Кодовый помощник', 'repair workspace, diff, проверки; active project не меняет напрямую'],
+  ['browser_worker', 'Браузерный помощник', 'future QA actions; без логинов, cookies и платежей'],
+  ['system_worker', 'Системный помощник', 'только health/status; без network/firewall/Defender'],
+  ['memory_worker', 'Помощник памяти', 'Memory Preview и индекс; без raw noise и секретов'],
+  ['device_worker', 'Помощник устройств', 'Device Mesh events; без pairing/settings без Approval']
+];
+const HANDS_WORKER_BY_ID = Object.fromEntries(HANDS_WORKER_OPTIONS.map(([id, label, note]) => [id, { id, label, note }]));
+const HANDS_RISK_OPTIONS = [
+  ['safe', 'Безопасно'],
+  ['review', 'Нужна проверка'],
+  ['approval_required', 'Требуется подтверждение'],
+  ['dangerous', 'Опасно / блокировать']
+];
+const HANDS_RISK_LABELS = Object.fromEntries(HANDS_RISK_OPTIONS);
+const HANDS_STATUS_LABELS = {
+  draft: 'черновик',
+  plan_ready: 'план готов',
+  review_required: 'нужна проверка',
+  approval_required: 'нужно подтверждение',
+  blocked: 'заблокировано',
+  approval_created: 'approval создан',
+  copied: 'скопировано',
+  controlled_running: 'runtime выполняется',
+  controlled_completed: 'runtime выполнен',
+  controlled_blocked: 'runtime заблокирован'
+};
+const HANDS_BLOCKED_ACTIONS = [
+  'delete / remove / wipe',
+  'deploy / Cloudflare publish',
+  'push main / force push',
+  '.env / secrets / tokens / cookies',
+  'network / DNS / VPN / proxy / firewall',
+  'Defender / Windows security',
+  'account / payment actions',
+  'unknown executable / archive extraction'
+];
+const CONTROLLED_WORKER_RUNTIME_SCHEMA_VERSION = 1;
+const CONTROLLED_WORKER_RUNTIME_STORAGE_KEY = 'mina_controlled_worker_runtime_v1';
+const CONTROLLED_WORKER_RUNTIME_MAX_RUNS = 80;
+const CONTROLLED_RUNTIME_ACTION_OPTIONS = [
+  ['readiness_snapshot', 'Снимок готовности', 'Собрать read-only состояние Guardian, Рук, памяти, задач и approval.'],
+  ['memory_index_refresh', 'Обновить индекс памяти', 'Пересобрать локальный Memory Search index без внешних API и без чтения секретов.'],
+  ['task_metadata_stamp', 'Записать metadata в задачу', 'Добавить audit/event/artifact в выбранную задачу без изменения файлов проекта.'],
+  ['worker_readiness_report', 'Worker readiness report', 'Создать отчёт готовности workers через Guardian без запуска команд.']
+];
+const CONTROLLED_RUNTIME_ACTION_BY_ID = Object.fromEntries(CONTROLLED_RUNTIME_ACTION_OPTIONS.map(([id, label, note]) => [id, { id, label, note }]));
+const CONTROLLED_RUNTIME_STATUS_LABELS = {
+  not_started: 'не запускался',
+  gate_passed: 'допущен',
+  running: 'выполняется',
+  completed: 'выполнен',
+  blocked: 'заблокирован',
+  failed: 'ошибка'
+};
+
 const DATA_SCHEMA_VERSION = 1;
 const SAFE_BACKUP_PACKAGE_VERSION = 1;
 const SCHEMA_SAFETY_TARGETS = [
@@ -388,6 +469,7 @@ const DEFAULT_PROJECT_TYPE = 'custom';
 const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
 const DIAGNOSTIC_MANUAL_REVIEW_STALE_MS = 24 * 60 * 60 * 1000;
 const DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS = 6000;
+const LIVE_RUNTIME_CHECK_TIMEOUT_MS = 3500;
 const TASK_STORAGE_SCHEMA_VERSION = 3;
 const FILE_HASH_MAX_BYTES = 50 * 1024 * 1024;
 const TASK_STORAGE_SUBFOLDERS = ['files', 'evidence', 'artifacts', 'reports', 'logs', 'previews', 'restore_points', 'manifests', 'memory', 'incoming', 'quarantine'];
@@ -947,7 +1029,7 @@ const WORK_FILE_ROLES = [
 ];
 
 const WORK_FILE_ROLE_BY_ID = Object.fromEntries(WORK_FILE_ROLES.map((role) => [role.id, role]));
-const WORKSPACE_TABS = new Set(['files', 'artifacts', 'research', 'council', 'check', 'memory']);
+const WORKSPACE_TABS = new Set(['files', 'artifacts', 'research', 'council', 'eyes', 'hands', 'check', 'memory']);
 const RESEARCH_SOURCE_TYPES = [
   ['official_docs', 'Официальная документация'],
   ['github', 'GitHub / код'],
@@ -1011,11 +1093,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 9 Mina Voice / Safe Command Layer V1',
+  name: 'Phase 15 Real Health Endpoints + Agent Heartbeat V1',
   date: '2026-05-27',
-  status: 'закрыт live',
-  previous: 'Phase 8 Device Mesh / Legs Control Center V1',
-  next: 'Следующий крупный слой по roadmap'
+  status: 'закрыт локально',
+  previous: 'Phase 14 Live Runtime Binding V1',
+  next: 'Финальный QA Max остаётся последним после сборки всех слоёв'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1049,7 +1131,13 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' },
   { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'закрыт live' },
   { id: 31, name: 'Device Mesh / Ноги Control Center V1', status: 'закрыт live' },
-  { id: 32, name: 'Mina Voice / Safe Command Layer V1', status: 'закрыт live' }
+  { id: 32, name: 'Mina Voice / Safe Command Layer V1', status: 'закрыт live' },
+  { id: 33, name: 'Eyes / Visual Evidence V1', status: 'закрыт локально' },
+  { id: 34, name: 'Hands / Safe Workers V1', status: 'закрыт локально' },
+  { id: 35, name: 'Controlled Worker Runtime V1', status: 'закрыт локально' },
+  { id: 36, name: 'Integration Hardening V1', status: 'закрыт локально' },
+  { id: 37, name: 'Live Runtime Binding V1', status: 'закрыт локально' },
+  { id: 38, name: 'Real Health Endpoints + Agent Heartbeat V1', status: 'закрыт локально' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2288,10 +2376,18 @@ const App = {
   observabilityState: null,
   windowsCompanionState: null,
   memorySearchState: null,
+  eyesVisualState: null,
   schemaSafetyState: null,
   systemRegistryState: null,
   policyCenterState: null,
+  liveRuntimeState: null,
+  publicRuntimeHealth: null,
+  liveRuntimeChecking: false,
   workspaceFileRuntime: new Map(),
+  handsSafeState: null,
+  activeHandsPlanId: '',
+  controlledWorkerRuntimeState: null,
+  activeControlledRunId: '',
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -2324,8 +2420,12 @@ const App = {
     await this.loadSystemDiagnostics();
     await this.loadGuardianRuntime();
     this.loadProductionState();
+    this.loadLiveRuntimeState();
     this.loadWindowsCompanionState();
     await this.loadMemorySearchState();
+    this.loadEyesVisualState();
+    this.loadHandsSafeState();
+    this.loadControlledWorkerRuntimeState();
     this.loadMinaSchemeState();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
@@ -2462,6 +2562,18 @@ const App = {
         return;
       }
 
+      const eyesButton = event.target.closest('[data-eyes-action]');
+      if (eyesButton) {
+        this.handleEyesVisualAction(eyesButton.dataset.eyesAction, eyesButton);
+        return;
+      }
+
+      const handsButton = event.target.closest('[data-hands-action]');
+      if (handsButton) {
+        this.handleHandsAction(handsButton.dataset.handsAction, handsButton);
+        return;
+      }
+
       const phase6ActionButton = event.target.closest('[data-phase6-action]');
       if (phase6ActionButton) {
         this.handlePhase6Action(phase6ActionButton.dataset.phase6Action, phase6ActionButton);
@@ -2531,6 +2643,18 @@ const App = {
       const guardianButton = event.target.closest('[data-guardian-action]');
       if (guardianButton) {
         this.handleGuardianAction(guardianButton.dataset.guardianAction, guardianButton);
+        return;
+      }
+
+      const integrationButton = event.target.closest('[data-integration-action]');
+      if (integrationButton) {
+        this.handleIntegrationAction(integrationButton.dataset.integrationAction, integrationButton);
+        return;
+      }
+
+      const liveRuntimeButton = event.target.closest('[data-live-runtime-action]');
+      if (liveRuntimeButton) {
+        this.handleLiveRuntimeAction(liveRuntimeButton.dataset.liveRuntimeAction, liveRuntimeButton);
         return;
       }
 
@@ -3141,6 +3265,7 @@ const App = {
     const head = this.headStatusSnapshot();
     const guardian = this.guardianSnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
+    const integration = this.buildIntegrationSnapshot();
     const cards = [
       ['Проекты', projects.length, 'активные проекты'],
       ['Активные задачи', active, 'в работе или ожидании'],
@@ -3150,6 +3275,7 @@ const App = {
       ['Approval', approvals, 'требуют решения'],
       ['Риски', risks, 'не низкий риск'],
       ['Ноги', `${deviceMesh.readiness}%`, `${deviceMesh.trusted} доверенных · ${deviceMesh.routes.length} маршрутов`],
+      ['Интеграция', `${integration.score}%`, integration.summary],
       ['Guardian', guardian.label, `${guardian.openIncidents.length} открытых incidents`],
       ['Голова', head.status, head.note]
     ];
@@ -3218,7 +3344,11 @@ const App = {
     const agent = this.localAgentStatusSnapshot();
     const guardian = this.guardianSnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
+    const integration = this.buildIntegrationSnapshot();
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
     const rows = [
+      ['Интеграция контура', `${integration.score}%`, `${integration.summary}; следующий шаг: ${integration.next.name}`],
+      ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.summary}; следующий шаг: ${liveRuntime.next.name}`],
       ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
       ['Guardian', guardian.label, guardian.note],
       ['Ноги / Device Mesh', `${deviceMesh.readiness}%`, `${deviceMesh.devices.length} устройств; следующий шаг: ${deviceMesh.next}`],
@@ -4018,6 +4148,417 @@ const App = {
     this.writeJsonStorage(POLICY_CENTER_STATE_STORAGE_KEY, this.policyCenterState || {});
   },
 
+  defaultLiveRuntimeState() {
+    return {
+      schema_version: 1,
+      status: 'not_checked',
+      score: 0,
+      checked_at: '',
+      next_action: 'refresh',
+      next_label: 'Проверить живой контур',
+      checks: [],
+      history: [],
+      bridge_latency_ms: null,
+      task_count: null,
+      last_error: ''
+    };
+  },
+
+  normalizeLiveRuntimeCheck(check) {
+    const source = check && typeof check === 'object' ? check : {};
+    const allowed = new Set(['ready', 'partial', 'review', 'manual_check', 'blocked', 'failed', 'checking', 'not_checked']);
+    const status = allowed.has(source.status) ? source.status : 'not_checked';
+    const latencySource = source.latency_ms;
+    const taskCountSource = source.task_count;
+    return {
+      id: String(source.id || source.check_id || this.generateWorkspaceId('LIVECHK')),
+      name: String(source.name || 'Проверка'),
+      status,
+      severity: source.severity || (['blocked', 'failed'].includes(status) ? 'blocked' : ['review', 'manual_check'].includes(status) ? 'review' : 'safe'),
+      note: String(source.note || ''),
+      source: String(source.source || 'webapp'),
+      action: String(source.action || 'refresh'),
+      latency_ms: latencySource !== null && latencySource !== undefined && latencySource !== '' && Number.isFinite(Number(latencySource)) ? Number(latencySource) : null,
+      task_count: taskCountSource !== null && taskCountSource !== undefined && taskCountSource !== '' && Number.isFinite(Number(taskCountSource)) ? Number(taskCountSource) : null,
+      checked_at: source.checked_at || new Date().toISOString()
+    };
+  },
+
+  normalizeLiveRuntimeState(state) {
+    const fallback = this.defaultLiveRuntimeState();
+    const source = state && typeof state === 'object' ? state : {};
+    const checks = Array.isArray(source.checks)
+      ? source.checks.map((check) => this.normalizeLiveRuntimeCheck(check)).slice(0, 20)
+      : [];
+    const history = Array.isArray(source.history) ? source.history.slice(0, 20).map((item) => ({
+      checked_at: item?.checked_at || '',
+      status: item?.status || 'not_checked',
+      score: Number.isFinite(Number(item?.score)) ? Number(item.score) : 0,
+      summary: String(item?.summary || '')
+    })) : [];
+    return {
+      ...fallback,
+      ...source,
+      schema_version: 1,
+      status: source.status || fallback.status,
+      score: Number.isFinite(Number(source.score)) ? Number(source.score) : 0,
+      checks,
+      history,
+      bridge_latency_ms: source.bridge_latency_ms !== null && source.bridge_latency_ms !== undefined && source.bridge_latency_ms !== '' && Number.isFinite(Number(source.bridge_latency_ms)) ? Number(source.bridge_latency_ms) : null,
+      task_count: source.task_count !== null && source.task_count !== undefined && source.task_count !== '' && Number.isFinite(Number(source.task_count)) ? Number(source.task_count) : null,
+      checked_at: source.checked_at || '',
+      last_error: String(source.last_error || '')
+    };
+  },
+
+  loadLiveRuntimeState() {
+    this.liveRuntimeState = this.normalizeLiveRuntimeState(this.readJsonStorage(LIVE_RUNTIME_STATE_STORAGE_KEY, null));
+  },
+
+  saveLiveRuntimeState() {
+    this.liveRuntimeState = this.normalizeLiveRuntimeState(this.liveRuntimeState || this.defaultLiveRuntimeState());
+    this.writeJsonStorage(LIVE_RUNTIME_STATE_STORAGE_KEY, this.liveRuntimeState);
+  },
+
+  liveRuntimeCheck(id, name, status, note, options = {}) {
+    return this.normalizeLiveRuntimeCheck({
+      id,
+      name,
+      status,
+      note,
+      severity: options.severity,
+      source: options.source,
+      action: options.action,
+      latency_ms: options.latency_ms,
+      task_count: options.task_count,
+      checked_at: options.checked_at || new Date().toISOString()
+    });
+  },
+
+  liveRuntimeStatusName(status) {
+    const names = {
+      ready: 'готово',
+      partial: 'частично',
+      review: 'нужно проверить',
+      manual_check: 'нужен вход',
+      blocked: 'заблокировано',
+      failed: 'ошибка',
+      checking: 'проверяется',
+      not_checked: 'не проверено'
+    };
+    return names[status] || status || 'не проверено';
+  },
+
+  liveRuntimeCheckScore(status) {
+    if (status === 'ready') return 100;
+    if (status === 'partial') return 76;
+    if (status === 'checking') return 62;
+    if (status === 'review' || status === 'manual_check') return 54;
+    if (status === 'blocked' || status === 'failed') return 0;
+    return 35;
+  },
+
+  liveRuntimeSummaryFromChecks(checks) {
+    const ready = checks.filter((check) => check.status === 'ready').length;
+    const review = checks.filter((check) => ['partial', 'review', 'manual_check', 'checking', 'not_checked'].includes(check.status)).length;
+    const blocked = checks.filter((check) => ['blocked', 'failed'].includes(check.status)).length;
+    return `${ready}/${checks.length} готовы; ${review} требуют внимания; ${blocked} блокеров`;
+  },
+
+  liveRuntimeNextFromChecks(checks) {
+    return checks.find((check) => ['blocked', 'failed'].includes(check.status))
+      || checks.find((check) => ['review', 'manual_check', 'partial', 'not_checked'].includes(check.status))
+      || checks[0]
+      || this.liveRuntimeCheck('refresh', 'Проверить живой контур', 'not_checked', 'Запустите проверку живого контура.', { action: 'refresh' });
+  },
+
+  buildLiveRuntimeFallbackChecks() {
+    const direct = this.directModeStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const guardian = this.guardianSnapshot();
+    const pwa = this.pwaSnapshot();
+    const directReady = direct.status === 'сессия активна' || direct.status === 'активен' || direct.status === 'на связи';
+    const taskReady = ['активна', 'вход активен', 'идёт синхронизация'].includes(taskStore.status);
+    const agentReady = /на связи|доверено|системное|готов/i.test(agent.status) && !/не проверено|не найден/i.test(agent.status);
+    return [
+      this.liveRuntimeCheck('webapp', 'WebApp', 'ready', `${window.location.host || 'локально'} открыт; UI работает в браузере.`, { action: 'open_system' }),
+      this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', directReady ? 'partial' : 'manual_check', direct.note, { action: 'refresh', source: 'direct_mode_snapshot' }),
+      this.liveRuntimeCheck('task_store', 'Общее хранилище задач', taskReady ? 'partial' : 'manual_check', taskStore.note, { action: 'sync_taskstore', source: 'task_store_snapshot', task_count: this.taskStoreLastTaskCount }),
+      this.liveRuntimeCheck('local_agent', 'Локальный агент', agentReady ? 'partial' : 'manual_check', agent.note, { action: 'open_diagnostics', source: 'device_registry' }),
+      this.liveRuntimeCheck('pwa', 'PWA / offline shell', pwa.serviceWorker === 'registered' ? 'ready' : 'review', `Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`, { action: 'open_pwa', source: 'pwa_runtime' }),
+      this.liveRuntimeCheck('guardian', 'Guardian', guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'ready', guardian.note, { action: 'open_guardian', source: 'guardian_state' })
+    ];
+  },
+
+  buildLiveRuntimeSnapshot() {
+    const stored = this.normalizeLiveRuntimeState(this.liveRuntimeState || this.defaultLiveRuntimeState());
+    const checks = stored.checks.length ? stored.checks : this.buildLiveRuntimeFallbackChecks();
+    const next = this.liveRuntimeNextFromChecks(checks);
+    const blocked = checks.some((check) => ['blocked', 'failed'].includes(check.status));
+    const review = checks.some((check) => ['partial', 'review', 'manual_check', 'checking', 'not_checked'].includes(check.status));
+    const score = stored.checks.length
+      ? stored.score
+      : Math.round(checks.reduce((sum, check) => sum + this.liveRuntimeCheckScore(check.status), 0) / Math.max(1, checks.length));
+    return {
+      ...stored,
+      status: this.liveRuntimeChecking ? 'checking' : blocked ? 'blocked' : review ? 'review' : 'ready',
+      label: this.liveRuntimeChecking
+        ? 'проверяется'
+        : blocked
+          ? 'есть блокер'
+          : review
+            ? 'требует проверки'
+            : 'живой контур готов',
+      score,
+      summary: this.liveRuntimeSummaryFromChecks(checks),
+      next,
+      checks
+    };
+  },
+
+  async probePublicRuntimeHealth() {
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    if (!baseUrl) return null;
+    try {
+      const result = await directBridgeRequest(baseUrl, '/public/runtime-health', {
+        method: 'GET',
+        skipAuth: true,
+        idempotent: true,
+        preferFrame: true,
+        allowPopup: false,
+        timeoutMs: LIVE_RUNTIME_CHECK_TIMEOUT_MS
+      });
+      this.publicRuntimeHealth = result?.ok ? result : null;
+      return this.publicRuntimeHealth;
+    } catch {
+      this.publicRuntimeHealth = null;
+      return null;
+    }
+  },
+
+  publicRuntimeHeartbeatSummary() {
+    const heartbeat = this.publicRuntimeHealth?.agent_heartbeat;
+    if (!heartbeat || heartbeat.status === 'missing') return null;
+    const ageMs = Number.isFinite(Number(heartbeat.age_ms)) ? Number(heartbeat.age_ms) : null;
+    const ageText = ageMs === null ? 'возраст неизвестен' : `последний сигнал ${this.formatDuration(ageMs)} назад`;
+    const agent = heartbeat.agent_id || 'локальный агент';
+    return {
+      status: heartbeat.status,
+      stale: Boolean(heartbeat.stale),
+      note: `${agent}: ${heartbeat.status === 'online' ? 'heartbeat активен' : 'heartbeat устарел'}; ${ageText}; storage=${heartbeat.storage_root_status || 'unknown'}`,
+      age_ms: ageMs,
+      version: heartbeat.version || ''
+    };
+  },
+
+  async probeLiveBridgeHealth() {
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    if (!baseUrl) {
+      return this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', 'failed', 'Direct Bridge URL не задан в конфигурации WebApp.', { action: 'open_diagnostics', source: 'bridge_health' });
+    }
+    let host = baseUrl;
+    try { host = new URL(baseUrl).host; } catch {}
+    const started = performance.now();
+    const publicHealth = await this.probePublicRuntimeHealth();
+    const publicLatency = Math.round(performance.now() - started);
+    if (publicHealth?.ok) {
+      const queue = publicHealth.command_queue || {};
+      const taskStore = publicHealth.task_store || {};
+      const heartbeat = publicHealth.agent_heartbeat || {};
+      const bridgeStatus = publicHealth.status === 'ready' ? 'ready' : 'partial';
+      const note = `${host}: публичный read-only статус получен за ${publicLatency} мс; очередь=${queue.status || 'unknown'}; хранилище=${taskStore.status || 'unknown'}; агент=${heartbeat.status || 'missing'}.`;
+      return this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', bridgeStatus, note, { action: 'open_diagnostics', source: 'public_runtime_health', latency_ms: publicLatency });
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), LIVE_RUNTIME_CHECK_TIMEOUT_MS);
+    try {
+      const bridgeOrigin = (() => {
+        try { return new URL(baseUrl).origin; } catch { return ''; }
+      })();
+      const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/health`, {
+        method: 'GET',
+        mode: bridgeOrigin && bridgeOrigin !== window.location.origin ? 'no-cors' : 'cors',
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      const latency = Math.round(performance.now() - started);
+      if (response.type === 'opaque') {
+        return this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', 'partial', `${host}: браузер достучался до адреса проверки здоровья за ${latency} мс, но не может прочитать ответ из-за cross-origin режима. Глубокую проверку показывает Диагност.`, { action: 'open_diagnostics', source: 'bridge_health', latency_ms: latency });
+      }
+      if (!response.ok) {
+        return this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', 'review', `${host} ответил HTTP ${response.status}. Настройки не менялись.`, { action: 'open_diagnostics', source: 'bridge_health', latency_ms: latency });
+      }
+      let detail = '';
+      try {
+        const data = await response.clone().json();
+        detail = `${data?.service || 'bridge'}; storage=${data?.storage || 'unknown'}; TaskStore=${data?.task_store || 'unknown'}`;
+      } catch {
+        detail = 'health ответ получен, JSON не разобран';
+      }
+      return this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', 'ready', `${host}: ${latency} мс; ${detail}.`, { action: 'open_diagnostics', source: 'bridge_health', latency_ms: latency });
+    } catch (error) {
+      const latency = Math.round(performance.now() - started);
+      return this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', 'review', `${host}: read-only health check не завершился (${error?.name || 'fetch_error'}).`, { action: 'open_diagnostics', source: 'bridge_health', latency_ms: latency });
+    } finally {
+      window.clearTimeout(timer);
+    }
+  },
+
+  async probeLiveTaskStoreSummary() {
+    const baseUrl = getConfiguredDirectBridgeBaseUrl();
+    if (!baseUrl) {
+      return this.liveRuntimeCheck('task_store', 'Общее хранилище задач', 'failed', 'Нет Direct Bridge URL, поэтому TaskStore недоступен.', { action: 'open_diagnostics', source: 'task_store_live' });
+    }
+    const token = getStoredOwnerSession(baseUrl)?.token;
+    const publicTaskStore = this.publicRuntimeHealth?.task_store;
+    if (publicTaskStore?.status === 'ready' && !token) {
+      const publicCount = Number.isFinite(Number(publicTaskStore.task_count)) ? Number(publicTaskStore.task_count) : this.taskStoreLastTaskCount;
+      return this.liveRuntimeCheck('task_store', 'Общее хранилище задач', 'partial', `Хранилище задач отвечает публичным read-only статусом: ${publicCount ?? 'неизвестно'} задач. Для полной синхронизации нужен вход владельца.`, { action: 'sync_taskstore', source: 'public_runtime_health', task_count: publicCount });
+    }
+    if (!token) {
+      return this.liveRuntimeCheck('task_store', 'Общее хранилище задач', 'manual_check', 'Нужен вход владельца. Нажмите “Синхронизировать хранилище задач”.', { action: 'sync_taskstore', source: 'task_store_live', task_count: this.taskStoreLastTaskCount });
+    }
+    const started = performance.now();
+    try {
+      const result = await directTaskStoreRequest('/tasks', {
+        method: 'GET',
+        token,
+        interactive: false,
+        timeoutMs: LIVE_RUNTIME_CHECK_TIMEOUT_MS
+      });
+      const latency = Math.round(performance.now() - started);
+      if (result?.ok === false || result?.reason) {
+        return this.liveRuntimeCheck('task_store', 'Общее хранилище задач', result.reason === 'owner_session_required' ? 'manual_check' : 'review', result.message || result.reason || 'TaskStore требует проверки.', { action: 'sync_taskstore', source: 'task_store_live', latency_ms: latency, task_count: this.taskStoreLastTaskCount });
+      }
+      const count = Array.isArray(result?.tasks)
+        ? result.tasks.length
+        : Number.isFinite(Number(result?.total ?? result?.count))
+          ? Number(result.total ?? result.count)
+          : Number(this.taskStoreLastTaskCount || (this.workTasks || []).length);
+      return this.liveRuntimeCheck('task_store', 'Общее хранилище задач', 'ready', `TaskStore отвечает: ${count} задач; ${latency} мс.`, { action: 'sync_taskstore', source: 'task_store_live', latency_ms: latency, task_count: count });
+    } catch (error) {
+      const latency = Math.round(performance.now() - started);
+      return this.liveRuntimeCheck('task_store', 'Общее хранилище задач', 'review', `TaskStore read-only check не завершился: ${error?.message || error?.name || 'fetch_error'}.`, { action: 'sync_taskstore', source: 'task_store_live', latency_ms: latency, task_count: this.taskStoreLastTaskCount });
+    }
+  },
+
+  probeLiveLocalAgentSummary() {
+    const heartbeat = this.publicRuntimeHeartbeatSummary();
+    if (heartbeat) {
+      return this.liveRuntimeCheck('local_agent', 'Локальный агент', heartbeat.status === 'online' && !heartbeat.stale ? 'ready' : 'review', heartbeat.note, { action: 'open_diagnostics', source: 'agent_heartbeat', latency_ms: heartbeat.age_ms });
+    }
+
+    const agent = this.localAgentStatusSnapshot();
+    const ready = /на связи|доверено|системное|готов/i.test(agent.status) && !/не проверено|не найден/i.test(agent.status);
+    const status = ready ? 'partial' : 'manual_check';
+    return this.liveRuntimeCheck('local_agent', 'Локальный агент', status, `${agent.note}. Это статус из реестра устройств; прямой системный ping будет через слой проверки локального агента.`, { action: 'open_diagnostics', source: 'device_registry' });
+  },
+
+  probeLivePwaSummary() {
+    const pwa = this.pwaSnapshot();
+    const status = pwa.serviceWorker === 'registered' ? 'ready' : pwa.serviceWorker === 'failed' ? 'review' : 'partial';
+    return this.liveRuntimeCheck('pwa', 'PWA / offline shell', status, `Установка: ${pwa.installLabel}; Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`, { action: 'open_pwa', source: 'pwa_runtime' });
+  },
+
+  probeLiveGuardianSummary() {
+    const guardian = this.guardianSnapshot();
+    const status = guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'ready';
+    return this.liveRuntimeCheck('guardian', 'Guardian', status, `${guardian.note}; incidents: ${guardian.openIncidents.length}.`, { action: 'open_guardian', source: 'guardian_state' });
+  },
+
+  async refreshLiveRuntimeBinding(options = {}) {
+    if (this.liveRuntimeChecking) return this.buildLiveRuntimeSnapshot();
+    this.liveRuntimeChecking = true;
+    this.renderSystemLiveRuntimePanel();
+    try {
+      const webappCheck = this.liveRuntimeCheck('webapp', 'WebApp', 'ready', `${window.location.host || 'локально'} открыт; экран и runtime state доступны.`, { action: 'open_system', source: 'browser_runtime' });
+      this.publicRuntimeHealth = null;
+      const bridgeCheck = await this.probeLiveBridgeHealth();
+      const taskStoreCheck = await this.probeLiveTaskStoreSummary();
+      const checks = [
+        webappCheck,
+        bridgeCheck,
+        taskStoreCheck,
+        this.probeLiveLocalAgentSummary(),
+        this.probeLivePwaSummary(),
+        this.probeLiveGuardianSummary()
+      ];
+      const score = Math.round(checks.reduce((sum, check) => sum + this.liveRuntimeCheckScore(check.status), 0) / Math.max(1, checks.length));
+      const next = this.liveRuntimeNextFromChecks(checks);
+      const blocked = checks.some((check) => ['blocked', 'failed'].includes(check.status));
+      const review = checks.some((check) => ['partial', 'review', 'manual_check', 'not_checked'].includes(check.status));
+      const checkedAt = new Date().toISOString();
+      this.liveRuntimeState = this.normalizeLiveRuntimeState({
+        status: blocked ? 'blocked' : review ? 'review' : 'ready',
+        score,
+        checked_at: checkedAt,
+        next_action: next.action,
+        next_label: next.name,
+        checks,
+        bridge_latency_ms: bridgeCheck.latency_ms,
+        task_count: taskStoreCheck.task_count,
+        last_error: checks.find((check) => ['blocked', 'failed', 'review'].includes(check.status))?.note || '',
+        history: [
+          {
+            checked_at: checkedAt,
+            status: blocked ? 'blocked' : review ? 'review' : 'ready',
+            score,
+            summary: this.liveRuntimeSummaryFromChecks(checks)
+          },
+          ...((this.liveRuntimeState?.history || []).slice(0, 19))
+        ]
+      });
+      this.saveLiveRuntimeState();
+      this.updateObservabilitySample();
+      if (!options.silent) this.toast(`Живой контур: ${score}%`);
+    } finally {
+      this.liveRuntimeChecking = false;
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      this.renderMinaSystemScheme();
+    }
+    return this.buildLiveRuntimeSnapshot();
+  },
+
+  async handleLiveRuntimeAction(action) {
+    const scrollTo = (id) => {
+      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    };
+    if (action === 'refresh' || action === 'run') {
+      await this.refreshLiveRuntimeBinding();
+      return;
+    }
+    if (action === 'sync_taskstore') {
+      await this.syncTaskStore({ interactive: true, reason: 'live_runtime_manual_sync' });
+      await this.refreshLiveRuntimeBinding({ silent: true });
+      return;
+    }
+    if (action === 'open_diagnostics') {
+      this.go('system');
+      scrollTo('system-diagnostics');
+      return;
+    }
+    if (action === 'open_guardian') {
+      this.go('system');
+      scrollTo('system-guardian-panel');
+      return;
+    }
+    if (action === 'open_pwa') {
+      this.go('system');
+      scrollTo('system-pwa-panel');
+      return;
+    }
+    if (action === 'open_integration') {
+      this.go('system');
+      scrollTo('system-integration-panel');
+      return;
+    }
+    this.go('system');
+    scrollTo('system-live-runtime-panel');
+  },
+
   defaultMemorySearchState() {
     return {
       schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
@@ -4112,6 +4653,992 @@ const App = {
       stats: state.stats || {},
       warnings: state.warnings || []
     };
+  },
+
+  defaultEyesVisualState() {
+    return {
+      schema_version: EYES_VISUAL_SCHEMA_VERSION,
+      status: 'not_started',
+      checks: [],
+      last_checked_at: '',
+      last_task_id: '',
+      warnings: []
+    };
+  },
+
+  normalizeEyesVisualCheck(check) {
+    const now = new Date().toISOString();
+    const source = check && typeof check === 'object' ? check : {};
+    const mode = EYES_VISUAL_MODE_BY_ID[source.mode] ? source.mode : 'manual';
+    const status = ['ready', 'needs_review', 'blocked', 'draft'].includes(source.status) ? source.status : 'ready';
+    const checklist = Array.isArray(source.checklist)
+      ? source.checklist.map((item) => ({
+          id: String(item.id || ''),
+          label: String(item.label || ''),
+          status: ['pass', 'review', 'missing'].includes(item.status) ? item.status : 'review'
+        })).filter((item) => item.id && item.label)
+      : EYES_VISUAL_CHECKLIST.map(([id, label]) => ({ id, label, status: id === 'screenshot_ref' && !source.screenshot_ref ? 'missing' : 'review' }));
+    return {
+      check_id: source.check_id || this.generateWorkspaceId('EYES'),
+      task_id: source.task_id || '',
+      project_id: source.project_id || '',
+      mode,
+      target: String(source.target || ''),
+      screenshot_ref: String(source.screenshot_ref || ''),
+      notes: String(source.notes || ''),
+      status,
+      privacy_status: source.privacy_status || 'clean',
+      privacy_summary: source.privacy_summary || 'clean',
+      checklist,
+      artifact_id: source.artifact_id || '',
+      storage_ref: source.storage_ref && typeof source.storage_ref === 'object' ? source.storage_ref : null,
+      created_at: source.created_at || now,
+      updated_at: source.updated_at || source.created_at || now
+    };
+  },
+
+  normalizeEyesVisualState(state) {
+    const fallback = this.defaultEyesVisualState();
+    const source = state && typeof state === 'object' ? state : {};
+    const checks = Array.isArray(source.checks)
+      ? source.checks.map((check) => this.normalizeEyesVisualCheck(check)).slice(0, EYES_VISUAL_MAX_CHECKS)
+      : [];
+    const warnings = Array.isArray(source.warnings) ? source.warnings.slice(0, 20).map(String) : [];
+    return {
+      ...fallback,
+      ...source,
+      schema_version: EYES_VISUAL_SCHEMA_VERSION,
+      status: checks.length ? (warnings.length ? 'review' : 'ready') : (source.status || 'not_started'),
+      checks,
+      warnings,
+      last_checked_at: source.last_checked_at || checks[0]?.created_at || '',
+      last_task_id: source.last_task_id || checks[0]?.task_id || ''
+    };
+  },
+
+  loadEyesVisualState() {
+    this.eyesVisualState = this.normalizeEyesVisualState(this.readJsonStorage(EYES_VISUAL_STATE_STORAGE_KEY, null));
+  },
+
+  saveEyesVisualState() {
+    this.eyesVisualState = this.normalizeEyesVisualState(this.eyesVisualState);
+    this.writeJsonStorage(EYES_VISUAL_STATE_STORAGE_KEY, {
+      ...this.eyesVisualState,
+      checks: this.eyesVisualState.checks.slice(0, EYES_VISUAL_MAX_CHECKS)
+    });
+  },
+
+  eyesVisualSnapshot() {
+    const state = this.normalizeEyesVisualState(this.eyesVisualState || this.defaultEyesVisualState());
+    const workerReports = (this.guardianWorkerReports || []).filter((report) => String(report.worker_id || '').includes('eyes'));
+    const checks = state.checks || [];
+    const taskChecks = (this.workTasks || []).flatMap((task) => Array.isArray(task.eyes_visual_checks) ? task.eyes_visual_checks : []);
+    const totalChecks = checks.length + taskChecks.filter((check) => !checks.some((item) => item.check_id === check.check_id)).length;
+    const latest = checks[0] || taskChecks.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0] || null;
+    const hasReview = checks.some((check) => check.status !== 'ready') || state.warnings.length;
+    const status = totalChecks ? (hasReview ? 'review' : 'ready') : (workerReports.length ? 'partial' : 'not_started');
+    const readiness = status === 'ready' ? 82 : status === 'review' ? 66 : status === 'partial' ? 58 : 38;
+    const schemeStatus = status === 'ready' ? 'ready' : status === 'review' || status === 'partial' ? 'partial' : 'waiting';
+    return {
+      status,
+      scheme_status: schemeStatus,
+      readiness,
+      count: totalChecks,
+      latest,
+      worker_reports: workerReports.length,
+      tone: status === 'ready' ? 'pass' : 'review',
+      label: totalChecks ? `${totalChecks} visual evidence` : workerReports.length ? 'готовность read-only' : 'ожидает фиксации',
+      summary: totalChecks ? 'visual evidence создано' : workerReports.length ? 'read-only контур готов' : 'ожидает первой проверки',
+      note: latest
+        ? `${EYES_VISUAL_MODE_BY_ID[latest.mode] || latest.mode}: ${latest.target || 'цель не задана'}`
+        : workerReports.length
+          ? 'Guardian подтверждает read-only готовность; создайте первую visual evidence запись.'
+          : 'Создайте первую визуальную проверку: цель, режим, скриншот/путь и вывод.',
+      snapshot_source: totalChecks ? 'Eyes Visual Evidence records' : workerReports.length ? 'Guardian worker reports' : 'Eyes V1 UI-assisted state',
+      checks: [
+        ['Visual evidence', totalChecks ? `${totalChecks} записей` : 'нет записей'],
+        ['Скриншоты', latest?.screenshot_ref ? 'есть ссылка/путь' : 'ручная ссылка ожидается'],
+        ['Mobile smoke', checks.some((check) => check.mode === 'mobile') ? 'есть запись' : 'ожидает записи'],
+        ['Privacy', hasReview ? 'нужна проверка' : 'clean']
+      ]
+    };
+  },
+
+  defaultHandsSafeState() {
+    return {
+      schema_version: HANDS_SAFE_ACTION_SCHEMA_VERSION,
+      status: 'not_started',
+      action_plans: [],
+      last_plan_id: '',
+      last_checked_at: '',
+      warnings: []
+    };
+  },
+
+  handsWorkerLabel(workerId) {
+    return HANDS_WORKER_BY_ID[workerId]?.label || workerId || 'Worker не выбран';
+  },
+
+  handsRiskName(risk) {
+    return HANDS_RISK_LABELS[risk] || risk || 'Нужна проверка';
+  },
+
+  handsStatusName(status) {
+    return HANDS_STATUS_LABELS[status] || status || 'черновик';
+  },
+
+  controlledRuntimeActionName(actionId) {
+    return CONTROLLED_RUNTIME_ACTION_BY_ID[actionId]?.label || actionId || 'Действие не выбрано';
+  },
+
+  controlledRuntimeStatusName(status) {
+    return CONTROLLED_RUNTIME_STATUS_LABELS[status] || status || 'не запускался';
+  },
+
+  normalizeHandsActionPlan(plan = {}, task = null) {
+    const now = new Date().toISOString();
+    const source = plan && typeof plan === 'object' ? plan : {};
+    const workerId = HANDS_WORKER_BY_ID[source.worker_id] ? source.worker_id : 'code_worker';
+    const sourceText = [
+      source.title || '',
+      source.goal || '',
+      source.expected_result || '',
+      source.action_type || ''
+    ].join('\n');
+    const forbiddenDetected = this.detectForbiddenActions(sourceText);
+    const blockedActions = [...new Set([
+      ...(Array.isArray(source.blocked_actions) ? source.blocked_actions : []),
+      ...forbiddenDetected
+    ])];
+    let riskLevel = HANDS_RISK_LABELS[source.risk_level] ? source.risk_level : (blockedActions.length ? 'approval_required' : 'review');
+    if (riskLevel === 'safe' && blockedActions.length) riskLevel = 'review';
+    const approvalRequired = Boolean(
+      source.approval_required
+      || blockedActions.length
+      || riskLevel === 'approval_required'
+      || riskLevel === 'dangerous'
+    );
+    const status = source.status || (riskLevel === 'dangerous'
+      ? 'blocked'
+      : approvalRequired
+        ? 'approval_required'
+        : riskLevel === 'review'
+          ? 'review_required'
+          : 'plan_ready');
+    const safeSteps = Array.isArray(source.safe_steps) && source.safe_steps.length
+      ? source.safe_steps.map(String).slice(0, 10)
+      : [
+          'Проверить цель действия и затрагиваемые файлы.',
+          'Проверить Privacy Guard: секреты, .env, tokens, cookies не используются.',
+          'Подготовить rollback point до любых изменений.',
+          'Передать результат Verifier до применения.',
+          'Выполнять только после Approval, если риск выше safe.'
+        ];
+    return {
+      schema_version: HANDS_SAFE_ACTION_SCHEMA_VERSION,
+      plan_id: source.plan_id || this.generateWorkspaceId('HAND'),
+      task_id: source.task_id || task?.task_id || '',
+      project_id: source.project_id || task?.project_id || '',
+      title: String(source.title || 'Безопасный план действия'),
+      goal: String(source.goal || 'цель не задана'),
+      worker_id: workerId,
+      worker_label: this.handsWorkerLabel(workerId),
+      action_type: String(source.action_type || 'safe_worker_plan'),
+      risk_level: riskLevel,
+      status,
+      safe_steps: safeSteps,
+      blocked_actions: blockedActions,
+      approval_required: approvalRequired,
+      approval_id: source.approval_id || '',
+      controlled_runtime_action: CONTROLLED_RUNTIME_ACTION_BY_ID[source.controlled_runtime_action] ? source.controlled_runtime_action : 'readiness_snapshot',
+      controlled_runtime_status: source.controlled_runtime_status || 'not_started',
+      controlled_runtime_run_ids: Array.isArray(source.controlled_runtime_run_ids) ? source.controlled_runtime_run_ids.map(String).slice(0, 12) : [],
+      verifier_required: source.verifier_required !== false,
+      verifier_status: source.verifier_status || 'not_checked',
+      rollback_required: source.rollback_required !== undefined ? Boolean(source.rollback_required) : (approvalRequired || riskLevel === 'review'),
+      rollback_plan: String(source.rollback_plan || 'До применения создать restore/backup affected files; без rollback MEDIUM/HIGH изменения не применять.'),
+      execution_allowed: Boolean(source.execution_allowed && riskLevel === 'safe' && !approvalRequired && !blockedActions.length),
+      execution_result: source.execution_result || 'not_executed',
+      artifact_id: source.artifact_id || '',
+      privacy_status: source.privacy_status || 'clean',
+      privacy_summary: source.privacy_summary || 'clean',
+      created_at: source.created_at || now,
+      updated_at: source.updated_at || source.created_at || now
+    };
+  },
+
+  normalizeHandsSafeState(state) {
+    const fallback = this.defaultHandsSafeState();
+    const source = state && typeof state === 'object' ? state : {};
+    const plans = Array.isArray(source.action_plans)
+      ? source.action_plans.map((plan) => this.normalizeHandsActionPlan(plan)).slice(0, HANDS_SAFE_ACTION_MAX_PLANS)
+      : [];
+    const warnings = Array.isArray(source.warnings) ? source.warnings.map(String).slice(0, 20) : [];
+    return {
+      ...fallback,
+      ...source,
+      schema_version: HANDS_SAFE_ACTION_SCHEMA_VERSION,
+      status: plans.length ? (warnings.length ? 'review' : 'ready') : (source.status || 'not_started'),
+      action_plans: plans,
+      warnings,
+      last_plan_id: source.last_plan_id || plans[0]?.plan_id || '',
+      last_checked_at: source.last_checked_at || plans[0]?.updated_at || ''
+    };
+  },
+
+  loadHandsSafeState() {
+    this.handsSafeState = this.normalizeHandsSafeState(this.readJsonStorage(HANDS_SAFE_ACTION_STORAGE_KEY, null));
+    this.activeHandsPlanId = this.handsSafeState.last_plan_id || '';
+  },
+
+  saveHandsSafeState() {
+    this.handsSafeState = this.normalizeHandsSafeState(this.handsSafeState || this.defaultHandsSafeState());
+    this.writeJsonStorage(HANDS_SAFE_ACTION_STORAGE_KEY, {
+      ...this.handsSafeState,
+      action_plans: this.handsSafeState.action_plans.slice(0, HANDS_SAFE_ACTION_MAX_PLANS)
+    });
+  },
+
+  defaultControlledWorkerRuntimeState() {
+    return {
+      schema_version: CONTROLLED_WORKER_RUNTIME_SCHEMA_VERSION,
+      status: 'not_started',
+      runs: [],
+      last_run_id: '',
+      last_checked_at: '',
+      policy: {
+        execution_mode: 'browser_controlled_allowlist',
+        shell_execution: false,
+        active_project_write: false,
+        dangerous_actions: 'blocked',
+        approval_required_above_low: true,
+        rollback_required_for_state_mutation: true,
+        verifier_required: true
+      }
+    };
+  },
+
+  normalizeControlledWorkerRun(run = {}) {
+    const now = new Date().toISOString();
+    const source = run && typeof run === 'object' ? run : {};
+    const actionId = CONTROLLED_RUNTIME_ACTION_BY_ID[source.action_type] ? source.action_type : 'readiness_snapshot';
+    const status = CONTROLLED_RUNTIME_STATUS_LABELS[source.status] ? source.status : 'not_started';
+    return {
+      schema_version: CONTROLLED_WORKER_RUNTIME_SCHEMA_VERSION,
+      run_id: source.run_id || this.generateWorkspaceId('RUN'),
+      plan_id: source.plan_id || '',
+      task_id: source.task_id || '',
+      project_id: source.project_id || '',
+      worker_id: HANDS_WORKER_BY_ID[source.worker_id] ? source.worker_id : 'system_worker',
+      action_type: actionId,
+      status,
+      risk_level: HANDS_RISK_LABELS[source.risk_level] ? source.risk_level : 'safe',
+      gate_status: source.gate_status || (status === 'blocked' ? 'blocked' : 'pass'),
+      gate_reasons: Array.isArray(source.gate_reasons) ? source.gate_reasons.map(String).slice(0, 12) : [],
+      output_summary: String(source.output_summary || ''),
+      output: source.output && typeof source.output === 'object' ? source.output : {},
+      rollback_point: source.rollback_point && typeof source.rollback_point === 'object' ? source.rollback_point : null,
+      verifier_status: source.verifier_status || 'not_checked',
+      evidence_refs: Array.isArray(source.evidence_refs) ? source.evidence_refs.map(String).slice(0, 20) : [],
+      no_shell: source.no_shell !== false,
+      no_active_project_write: source.no_active_project_write !== false,
+      no_ai_api: source.no_ai_api !== false,
+      created_at: source.created_at || now,
+      updated_at: source.updated_at || source.created_at || now
+    };
+  },
+
+  normalizeControlledWorkerRuntimeState(state = {}) {
+    const fallback = this.defaultControlledWorkerRuntimeState();
+    const source = state && typeof state === 'object' ? state : {};
+    const runs = Array.isArray(source.runs)
+      ? source.runs.map((run) => this.normalizeControlledWorkerRun(run)).slice(0, CONTROLLED_WORKER_RUNTIME_MAX_RUNS)
+      : [];
+    return {
+      ...fallback,
+      ...source,
+      schema_version: CONTROLLED_WORKER_RUNTIME_SCHEMA_VERSION,
+      status: runs.length ? (runs.some((run) => run.status === 'blocked') ? 'review' : 'ready') : (source.status || 'not_started'),
+      runs,
+      last_run_id: source.last_run_id || runs[0]?.run_id || '',
+      last_checked_at: source.last_checked_at || runs[0]?.updated_at || '',
+      policy: {
+        ...fallback.policy,
+        ...(source.policy && typeof source.policy === 'object' ? source.policy : {})
+      }
+    };
+  },
+
+  loadControlledWorkerRuntimeState() {
+    this.controlledWorkerRuntimeState = this.normalizeControlledWorkerRuntimeState(this.readJsonStorage(CONTROLLED_WORKER_RUNTIME_STORAGE_KEY, null));
+    this.activeControlledRunId = this.controlledWorkerRuntimeState.last_run_id || '';
+  },
+
+  saveControlledWorkerRuntimeState() {
+    this.controlledWorkerRuntimeState = this.normalizeControlledWorkerRuntimeState(this.controlledWorkerRuntimeState || this.defaultControlledWorkerRuntimeState());
+    this.writeJsonStorage(CONTROLLED_WORKER_RUNTIME_STORAGE_KEY, {
+      ...this.controlledWorkerRuntimeState,
+      runs: this.controlledWorkerRuntimeState.runs.slice(0, CONTROLLED_WORKER_RUNTIME_MAX_RUNS)
+    });
+  },
+
+  controlledRuntimeSnapshot() {
+    const state = this.normalizeControlledWorkerRuntimeState(this.controlledWorkerRuntimeState || this.defaultControlledWorkerRuntimeState());
+    const runs = state.runs || [];
+    const completed = runs.filter((run) => run.status === 'completed');
+    const blocked = runs.filter((run) => run.status === 'blocked' || run.gate_status === 'blocked');
+    const readiness = Math.max(25, Math.min(92, 42 + (runs.length ? 18 : 0) + (completed.length ? 18 : 0) - (blocked.length ? 8 : 0)));
+    return {
+      status: blocked.length ? 'review' : completed.length ? 'ready' : runs.length ? 'partial' : 'not_started',
+      readiness,
+      count: runs.length,
+      completed_count: completed.length,
+      blocked_count: blocked.length,
+      latest: runs[0] || null,
+      label: completed.length ? `${completed.length} выполнено` : runs.length ? `${runs.length} попыток` : 'ожидает запуска',
+      note: runs[0]
+        ? `${this.controlledRuntimeActionName(runs[0].action_type)}: ${this.controlledRuntimeStatusName(runs[0].status)}`
+        : 'Runtime выполняет только allowlist LOW-risk действия без shell, deploy, delete и active project write.'
+    };
+  },
+
+  integrationStatusName(status) {
+    const names = {
+      ready: 'готово',
+      review: 'нужно проверить',
+      blocked: 'есть блокер',
+      partial: 'частично'
+    };
+    return names[status] || status || 'не проверено';
+  },
+
+  integrationCheckScore(status) {
+    if (status === 'ready') return 100;
+    if (status === 'partial') return 76;
+    if (status === 'blocked') return 0;
+    return 58;
+  },
+
+  integrationCheck(id, name, status, note, action = 'refresh', ownerText = '') {
+    return {
+      id,
+      name,
+      status,
+      note,
+      action,
+      owner_text: ownerText || this.integrationStatusName(status)
+    };
+  },
+
+  buildIntegrationSnapshot() {
+    const tasks = this.workTasks || [];
+    const activeTask = this.getActiveWorkTask();
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const guardian = this.guardianSnapshot();
+    const head = this.headStatusSnapshot();
+    const memory = this.memorySearchSnapshot();
+    const eyes = this.eyesVisualSnapshot();
+    const hands = this.handsSnapshot();
+    const runtime = this.controlledRuntimeSnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
+    const pwa = this.pwaSnapshot();
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const approvals = this.pendingApprovalRecords();
+    const verifierReady = tasks.some((task) => task.verifier_result || (task.artifacts || []).some((artifact) => artifact.type === 'VERIFIER_VERDICT'));
+    const contextPackReady = tasks.some((task) => (task.artifacts || []).some((artifact) => artifact.type === 'CONTEXT_PACK'));
+    const researchReady = tasks.some((task) => {
+      const research = this.ensureResearchOpsState(task);
+      return research.status && research.status !== 'not_started';
+    });
+    const councilReady = tasks.some((task) => (task.brain_answers || []).length || (task.artifacts || []).some((artifact) => artifact.type === 'BRAIN_ANSWER' || artifact.type === 'DECISION_PASSPORT'));
+
+    const directReady = direct.status === 'сессия активна' || direct.status === 'активен' || direct.status === 'на связи';
+    const agentReady = agent.status === 'на связи' || agent.status === 'connected' || agent.status === 'готов';
+    const taskStoreReady = ['активна', 'вход активен', 'идёт синхронизация'].includes(taskStore.status);
+    const guardianBlocked = guardian.tone === 'danger' || guardian.state?.emergency_stop_active;
+
+    const checks = [
+      this.integrationCheck(
+        'workspace_task_runtime',
+        'Рабочее + задачи',
+        this.taskRuntimeReady && activeTask ? 'ready' : this.taskRuntimeReady ? 'partial' : 'review',
+        activeTask
+          ? `активная задача: ${activeTask.title || activeTask.task_id}; всего задач ${tasks.length}`
+          : this.taskRuntimeReady
+            ? 'локальная база задач готова, активную задачу можно создать в Рабочем'
+            : 'IndexedDB недоступен, работает резервный режим',
+        'open_work'
+      ),
+      this.integrationCheck(
+        'context_verifier',
+        'Context Pack + Verifier',
+        contextPackReady && verifierReady ? 'ready' : contextPackReady || verifierReady ? 'partial' : 'review',
+        contextPackReady && verifierReady
+          ? 'пакеты и проверка уже есть в задачах'
+          : contextPackReady
+            ? 'пакет есть, Verifier нужно прогнать на результате'
+            : verifierReady
+              ? 'Verifier есть, пакет контекста можно собрать из Рабочего'
+              : 'создайте задачу, соберите пакет и проверьте результат',
+        'open_work'
+      ),
+      this.integrationCheck(
+        'guardian_approval',
+        'Guardian + Approval',
+        guardianBlocked ? 'blocked' : approvals.length ? 'review' : 'ready',
+        guardianBlocked
+          ? guardian.note
+          : approvals.length
+            ? `${approvals.length} approval-запросов ждут решения владельца`
+            : 'опасные действия блокируются, очередь approval пуста',
+        approvals.length ? 'open_approval' : 'open_guardian'
+      ),
+      this.integrationCheck(
+        'memory_search',
+        'Память + поиск',
+        memory.status === 'ready' ? 'ready' : memory.status === 'stale' ? 'review' : 'partial',
+        memory.note,
+        'open_memory'
+      ),
+      this.integrationCheck(
+        'research_council',
+        'ResearchOps + Совет',
+        researchReady && councilReady ? 'ready' : researchReady || councilReady ? 'partial' : ['готова', 'готово'].includes(head.status) ? 'review' : 'partial',
+        researchReady && councilReady
+          ? 'исследование и ответы мозгов уже связаны с задачами'
+          : head.note || 'Голова готовит Стратега, Совет и исследователей',
+        'open_head'
+      ),
+      this.integrationCheck(
+        'eyes_evidence',
+        'Глаза + evidence',
+        eyes.status === 'ready' ? 'ready' : eyes.status === 'review' ? 'review' : 'partial',
+        eyes.note,
+        'open_eyes'
+      ),
+      this.integrationCheck(
+        'hands_runtime',
+        'Руки + controlled runtime',
+        hands.status === 'ready' && runtime.status === 'ready' ? 'ready' : runtime.status === 'review' ? 'review' : 'partial',
+        `${hands.note}; runtime: ${runtime.note}`,
+        'open_hands'
+      ),
+      this.integrationCheck(
+        'voice_workspace',
+        'Голос + Рабочее',
+        this.workspaceVoiceSupported ? 'ready' : 'partial',
+        this.workspaceVoiceSupported
+          ? 'push-to-talk доступен; опасные голосовые команды идут через Approval'
+          : 'ручной transcript preview работает, браузерный микрофон зависит от устройства',
+        'open_voice'
+      ),
+      this.integrationCheck(
+        'legs_devices',
+        'Ноги + устройства',
+        deviceMesh.readiness >= 70 ? 'ready' : 'review',
+        `${deviceMesh.readiness}% готовности; ${deviceMesh.devices.length} устройств; следующий шаг: ${deviceMesh.next}`,
+        'open_devices'
+      ),
+      this.integrationCheck(
+        'cloud_local_sync',
+        'Сайт + мост + локальный контур',
+        liveRuntime.status === 'ready'
+          ? 'ready'
+          : liveRuntime.status === 'blocked'
+            ? 'blocked'
+            : directReady || taskStoreReady || agentReady
+              ? 'partial'
+              : 'review',
+        `живой контур: ${liveRuntime.score}%; ${liveRuntime.summary}; мост: ${direct.status}; задачи: ${taskStore.status}; локальный агент: ${agent.status}`,
+        'open_live_runtime'
+      ),
+      this.integrationCheck(
+        'mobile_pwa',
+        'Mobile / PWA',
+        pwa.installLabel === 'установлено' || pwa.serviceWorker === 'registered' ? 'ready' : 'partial',
+        `установка: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}`,
+        'open_pwa'
+      )
+    ];
+
+    const blocked = checks.filter((check) => check.status === 'blocked');
+    const review = checks.filter((check) => check.status === 'review' || check.status === 'partial');
+    const ready = checks.filter((check) => check.status === 'ready');
+    const score = Math.round(checks.reduce((sum, check) => sum + this.integrationCheckScore(check.status), 0) / Math.max(1, checks.length));
+    const status = blocked.length ? 'blocked' : score >= 86 ? 'ready' : 'review';
+    const next = blocked[0] || review[0] || checks[0];
+    return {
+      status,
+      label: status === 'ready' ? 'контур связан' : status === 'blocked' ? 'есть блокер' : 'нужно связать хвосты',
+      score,
+      checked_at: new Date().toISOString(),
+      summary: `${ready.length}/${checks.length} связей готовы; ${review.length} требуют проверки; ${blocked.length} блокеров`,
+      next,
+      checks,
+      counts: {
+        ready: ready.length,
+        review: review.length,
+        blocked: blocked.length,
+        total: checks.length
+      }
+    };
+  },
+
+  evaluateControlledRuntimeGate(plan, task = null) {
+    const normalized = this.normalizeHandsActionPlan(plan, task);
+    const reasons = [];
+    const guardian = this.guardianSnapshot();
+    if (this.guardianState?.emergency_stop_active) reasons.push('Emergency Stop активен.');
+    if (this.guardianState?.safe_mode || guardian.status === 'safe_mode') reasons.push('Safe Mode активен.');
+    if (normalized.risk_level !== 'safe') reasons.push('Controlled Runtime V1 допускает только LOW-risk / безопасные планы.');
+    if (normalized.approval_required || normalized.approval_id) reasons.push('План требует Approval или уже связан с Approval.');
+    if (normalized.blocked_actions.length) reasons.push(`Есть заблокированные действия: ${normalized.blocked_actions.join('; ')}`);
+    if (normalized.privacy_status !== 'clean') reasons.push(`Privacy Guard: ${normalized.privacy_summary || normalized.privacy_status}`);
+    if (!CONTROLLED_RUNTIME_ACTION_BY_ID[normalized.controlled_runtime_action]) reasons.push('Действие не входит в allowlist controlled runtime.');
+    if (normalized.controlled_runtime_action === 'task_metadata_stamp' && !task) reasons.push('Для записи metadata нужна выбранная задача.');
+    if (normalized.controlled_runtime_action === 'memory_index_refresh' && !this.memorySearchState) reasons.push('Memory Search ещё не инициализирован.');
+    return {
+      ok: reasons.length === 0,
+      reasons,
+      plan: normalized,
+      gate_status: reasons.length ? 'blocked' : 'pass'
+    };
+  },
+
+  createControlledRuntimeRollbackPoint(plan, task = null) {
+    const state = this.normalizeControlledWorkerRuntimeState(this.controlledWorkerRuntimeState || this.defaultControlledWorkerRuntimeState());
+    return {
+      rollback_id: this.generateWorkspaceId('ROLLBACK'),
+      plan_id: plan.plan_id,
+      task_id: task?.task_id || plan.task_id || '',
+      action_type: plan.controlled_runtime_action,
+      snapshot: {
+        task_updated_at: task?.updated_at || '',
+        task_artifact_count: task?.artifacts?.length || 0,
+        task_message_count: task?.messages?.length || 0,
+        task_audit_count: task?.audit_log?.length || 0,
+        runtime_run_count: state.runs.length,
+        memory_indexed_at: this.memorySearchState?.last_indexed_at || '',
+        guardian_report_count: this.guardianWorkerReports?.length || 0
+      },
+      instructions: 'Rollback V1 откатывает metadata вручную по snapshot. Active project files не менялись.',
+      created_at: new Date().toISOString()
+    };
+  },
+
+  async saveControlledWorkerRun(run) {
+    const normalized = this.normalizeControlledWorkerRun(run);
+    if (!this.controlledWorkerRuntimeState) this.controlledWorkerRuntimeState = this.defaultControlledWorkerRuntimeState();
+    this.controlledWorkerRuntimeState.runs = Array.isArray(this.controlledWorkerRuntimeState.runs) ? this.controlledWorkerRuntimeState.runs : [];
+    const index = this.controlledWorkerRuntimeState.runs.findIndex((item) => item.run_id === normalized.run_id);
+    if (index >= 0) this.controlledWorkerRuntimeState.runs[index] = normalized;
+    else this.controlledWorkerRuntimeState.runs.unshift(normalized);
+    this.controlledWorkerRuntimeState.last_run_id = normalized.run_id;
+    this.controlledWorkerRuntimeState.last_checked_at = normalized.updated_at;
+    this.controlledWorkerRuntimeState.status = normalized.status === 'completed' ? 'ready' : normalized.status === 'blocked' ? 'review' : 'running';
+    this.activeControlledRunId = normalized.run_id;
+    this.saveControlledWorkerRuntimeState();
+    return normalized;
+  },
+
+  async runControlledWorkerPlan(plan, task = null) {
+    const gate = this.evaluateControlledRuntimeGate(plan, task);
+    const now = new Date().toISOString();
+    const baseRun = {
+      run_id: this.generateWorkspaceId('RUN'),
+      plan_id: gate.plan.plan_id,
+      task_id: task?.task_id || gate.plan.task_id || '',
+      project_id: task?.project_id || gate.plan.project_id || '',
+      worker_id: gate.plan.worker_id,
+      action_type: gate.plan.controlled_runtime_action,
+      risk_level: gate.plan.risk_level,
+      gate_status: gate.gate_status,
+      gate_reasons: gate.reasons,
+      created_at: now,
+      updated_at: now
+    };
+
+    if (!gate.ok) {
+      const blockedRun = await this.saveControlledWorkerRun({
+        ...baseRun,
+        status: 'blocked',
+        output_summary: 'Controlled Runtime заблокировал выполнение: нужен safe-план без Approval, секретов и опасных действий.',
+        verifier_status: 'blocked_by_guardian'
+      });
+      gate.plan.controlled_runtime_status = 'blocked';
+      gate.plan.execution_allowed = false;
+      gate.plan.execution_result = 'blocked_by_controlled_runtime';
+      gate.plan.controlled_runtime_run_ids = [...new Set([blockedRun.run_id, ...(gate.plan.controlled_runtime_run_ids || [])])].slice(0, 12);
+      await this.saveHandsActionPlan(gate.plan, task);
+      return blockedRun;
+    }
+
+    const rollbackPoint = this.createControlledRuntimeRollbackPoint(gate.plan, task);
+    let output = {};
+    let summary = '';
+    const evidenceRefs = [];
+
+    if (gate.plan.controlled_runtime_action === 'readiness_snapshot') {
+      const guardian = this.guardianSnapshot();
+      const hands = this.handsSnapshot();
+      const memory = this.memorySearchState || {};
+      output = {
+        guardian: guardian.label,
+        hands: hands.label,
+        tasks: (this.workTasks || []).length,
+        approvals: (this.approvalRecords || []).length,
+        memory_records: memory.records?.length || 0,
+        direct_bridge: this.taskStoreSyncStatus || 'not_connected'
+      };
+      summary = `Снимок готовности собран: задач ${output.tasks}, approval ${output.approvals}, memory records ${output.memory_records}.`;
+    } else if (gate.plan.controlled_runtime_action === 'memory_index_refresh') {
+      await this.refreshMemorySearchIndex({ silent: true, render: false });
+      output = {
+        records: this.memorySearchState?.records?.length || 0,
+        warnings: this.memorySearchState?.warnings?.length || 0,
+        indexed_at: this.memorySearchState?.last_indexed_at || ''
+      };
+      summary = `Индекс памяти обновлён: ${output.records} записей, предупреждений ${output.warnings}.`;
+    } else if (gate.plan.controlled_runtime_action === 'worker_readiness_report') {
+      const report = await this.saveGuardianWorkerReport(this.buildPhase4WorkerReadinessReport());
+      output = {
+        report_id: report.report_id,
+        status: report.status,
+        checks: report.checks?.length || 0
+      };
+      evidenceRefs.push(report.report_id);
+      summary = `Worker readiness report создан: ${report.report_id}, checks ${output.checks}.`;
+    } else if (gate.plan.controlled_runtime_action === 'task_metadata_stamp' && task) {
+      this.addWorkAudit(task, `Controlled Worker Runtime выполнил LOW-risk metadata stamp: ${gate.plan.title}.`);
+      this.addWorkspaceMessage(task, 'worker_runtime', 'Руки Runtime', `LOW-risk действие выполнено контролируемо: ${gate.plan.title}. Файлы проекта не менялись.`);
+      summary = `Metadata stamp добавлен в задачу ${task.task_id}.`;
+      output = {
+        task_id: task.task_id,
+        audit_count: task.audit_log?.length || 0,
+        message_count: task.messages?.length || 0
+      };
+    }
+
+    const completedRun = await this.saveControlledWorkerRun({
+      ...baseRun,
+      status: 'completed',
+      gate_status: 'pass',
+      output,
+      output_summary: summary,
+      rollback_point: rollbackPoint,
+      verifier_status: 'runtime_self_check_pass',
+      evidence_refs: evidenceRefs,
+      updated_at: new Date().toISOString()
+    });
+
+    gate.plan.controlled_runtime_status = 'completed';
+    gate.plan.execution_allowed = true;
+    gate.plan.execution_result = 'controlled_runtime_completed';
+    gate.plan.verifier_status = 'runtime_self_check_pass';
+    gate.plan.controlled_runtime_run_ids = [...new Set([completedRun.run_id, ...(gate.plan.controlled_runtime_run_ids || [])])].slice(0, 12);
+    gate.plan.updated_at = completedRun.updated_at;
+    await this.saveHandsActionPlan(gate.plan, task);
+
+    if (task) {
+      const content = this.buildControlledWorkerRunMarkdown(completedRun, gate.plan, task);
+      const artifact = this.createArtifact(task, 'WORKER_RUNTIME_REPORT', `Runtime: ${gate.plan.title}`, summary, content, 'hands_runtime');
+      artifact.status = 'verified';
+      completedRun.evidence_refs = [...new Set([...(completedRun.evidence_refs || []), artifact.artifact_id])];
+      await this.saveControlledWorkerRun(completedRun);
+      this.saveWorkTasks();
+      await this.refreshMemorySearchIndex({ silent: true, render: false });
+    }
+
+    return completedRun;
+  },
+
+  buildControlledWorkerRunMarkdown(run, plan = null, task = null) {
+    const normalized = this.normalizeControlledWorkerRun(run);
+    const ownerPlan = plan ? this.normalizeHandsActionPlan(plan, task) : null;
+    return [
+      `# Controlled Worker Runtime Report`,
+      '',
+      `run_id: ${normalized.run_id}`,
+      `plan_id: ${normalized.plan_id}`,
+      `task_id: ${task?.task_id || normalized.task_id || 'не привязано'}`,
+      `worker: ${this.handsWorkerLabel(normalized.worker_id)}`,
+      `action: ${this.controlledRuntimeActionName(normalized.action_type)}`,
+      `status: ${this.controlledRuntimeStatusName(normalized.status)}`,
+      `risk: ${this.handsRiskName(normalized.risk_level)}`,
+      `gate: ${normalized.gate_status}`,
+      `verifier: ${normalized.verifier_status}`,
+      '',
+      '## Output',
+      normalized.output_summary || 'нет summary',
+      '',
+      '## Safety',
+      `no_shell: ${normalized.no_shell}`,
+      `no_active_project_write: ${normalized.no_active_project_write}`,
+      `no_ai_api: ${normalized.no_ai_api}`,
+      '',
+      '## Rollback',
+      JSON.stringify(normalized.rollback_point || {}, null, 2),
+      '',
+      '## Plan',
+      ownerPlan ? this.buildHandsActionPlanMarkdown(ownerPlan, task) : 'План не найден.'
+    ].join('\n');
+  },
+
+  renderControlledWorkerRunCard(run, options = {}) {
+    const normalized = this.normalizeControlledWorkerRun(run);
+    return `
+      <article class="controlled-run controlled-run--${this.escapeHtml(normalized.status)}">
+        <div>
+          <span>${this.escapeHtml(this.controlledRuntimeActionName(normalized.action_type))} · ${this.escapeHtml(this.controlledRuntimeStatusName(normalized.status))}</span>
+          <strong>${this.escapeHtml(normalized.output_summary || normalized.run_id)}</strong>
+          <p>${this.escapeHtml(normalized.gate_reasons.length ? normalized.gate_reasons.join('; ') : 'Gate пройден. Shell, deploy, delete и active project write не использовались.')}</p>
+          <small>${this.escapeHtml(this.formatTaskTime(normalized.created_at))} · Verifier: ${this.escapeHtml(normalized.verifier_status)}</small>
+        </div>
+        ${options.compact ? '' : `<button type="button" data-hands-action="copy_controlled_run" data-run-id="${this.escapeHtml(normalized.run_id)}">Скопировать</button>`}
+      </article>
+    `;
+  },
+
+  handsSnapshot() {
+    const state = this.normalizeHandsSafeState(this.handsSafeState || this.defaultHandsSafeState());
+    const guardian = this.guardianSnapshot();
+    const workerReports = (this.guardianWorkerReports || []).filter((report) => /hands|worker|codex|file|code/i.test(String(report.worker_id || report.title || '')));
+    const taskPlans = (this.workTasks || []).flatMap((task) => Array.isArray(task.hands_action_plans) ? task.hands_action_plans : []);
+    const allPlans = [...state.action_plans, ...taskPlans.filter((plan) => !state.action_plans.some((item) => item.plan_id === plan.plan_id))]
+      .map((plan) => this.normalizeHandsActionPlan(plan))
+      .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+    const approvalPlans = allPlans.filter((plan) => plan.approval_required || plan.approval_id);
+    const blockedPlans = allPlans.filter((plan) => plan.status === 'blocked' || plan.risk_level === 'dangerous');
+    const controlledRuntime = this.controlledRuntimeSnapshot();
+    const emergency = this.guardianState?.safe_mode || guardian.status === 'safe_mode';
+    let readiness = 48;
+    if (workerReports.length) readiness += 14;
+    if (allPlans.length) readiness += 14;
+    if (allPlans.some((plan) => plan.verifier_required)) readiness += 8;
+    if (approvalPlans.length) readiness += 6;
+    if (controlledRuntime.completed_count) readiness += 6;
+    if (emergency) readiness -= 35;
+    if (blockedPlans.length) readiness -= 10;
+    readiness = Math.max(15, Math.min(94, readiness));
+    const status = emergency
+      ? 'error'
+      : allPlans.length
+        ? (blockedPlans.length ? 'review' : 'ready')
+        : workerReports.length
+          ? 'partial'
+          : 'not_started';
+    const schemeStatus = status === 'ready' ? 'ready' : status === 'error' ? 'error' : status === 'not_started' ? 'waiting' : 'partial';
+    return {
+      status,
+      scheme_status: schemeStatus,
+      readiness,
+      count: allPlans.length,
+      approval_count: approvalPlans.length,
+      blocked_count: blockedPlans.length,
+      worker_reports: workerReports.length,
+      controlled_runtime_count: controlledRuntime.count,
+      controlled_runtime_completed: controlledRuntime.completed_count,
+      latest: allPlans[0] || null,
+      tone: status === 'ready' ? 'pass' : status === 'error' ? 'fail' : 'review',
+      label: emergency ? 'Safe Mode' : allPlans.length ? `${allPlans.length} планов` : workerReports.length ? 'workers готовы' : 'ожидает план',
+      summary: allPlans.length ? 'безопасные планы действий доступны' : workerReports.length ? 'foundation готов, нужен первый план' : 'создайте безопасный план действия',
+      note: emergency
+        ? 'Safe Mode включён: новые действия заблокированы.'
+        : controlledRuntime.latest
+          ? `Controlled Runtime: ${controlledRuntime.note}`
+          : allPlans[0]
+          ? `${allPlans[0].title}: ${this.handsRiskName(allPlans[0].risk_level)}`
+          : workerReports.length
+            ? 'Guardian подтверждает worker readiness; действия всё равно проходят через план и Approval.'
+            : 'Руки V1 не выполняют команды напрямую. Сначала нужен безопасный план действия.',
+      snapshot_source: allPlans.length ? 'Hands Safe Action plans' : workerReports.length ? 'Guardian worker reports' : 'Hands V1 safe planner',
+      checks: [
+        ['Guardian gate', emergency ? 'Safe Mode' : 'активен'],
+        ['Планы действий', allPlans.length ? `${allPlans.length} создано` : 'нет планов'],
+        ['Approval bridge', approvalPlans.length ? `${approvalPlans.length} требуют решения` : 'готов'],
+        ['Verifier gate', allPlans.some((plan) => plan.verifier_required) ? 'обязателен' : 'ожидает плана'],
+        ['Controlled Runtime', controlledRuntime.completed_count ? `${controlledRuntime.completed_count} LOW-risk выполнено` : 'ожидает safe-план'],
+        ['Автовыполнение опасного', 'заблокировано']
+      ]
+    };
+  },
+
+  latestHandsPlan(scope = 'system', task = null) {
+    const state = this.normalizeHandsSafeState(this.handsSafeState || this.defaultHandsSafeState());
+    const plans = scope === 'workspace' && task
+      ? (Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [])
+      : state.action_plans;
+    return (plans || [])
+      .map((plan) => this.normalizeHandsActionPlan(plan, task))
+      .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))[0] || null;
+  },
+
+  buildHandsActionPlanFromForm(scope = 'system', forceApproval = false) {
+    const prefix = scope === 'workspace' ? 'workspace-hands' : 'system-hands';
+    const task = scope === 'workspace' ? this.getActiveWorkTask() : this.getActiveWorkTask();
+    const title = String(document.getElementById(`${prefix}-title`)?.value || '').trim() || 'Безопасный план действия';
+    const workerId = document.getElementById(`${prefix}-worker`)?.value || 'code_worker';
+    const requestedRisk = document.getElementById(`${prefix}-risk`)?.value || 'review';
+    const controlledAction = document.getElementById(`${prefix}-runtime-action`)?.value || 'readiness_snapshot';
+    const goal = String(document.getElementById(`${prefix}-goal`)?.value || '').trim() || 'Сформировать безопасное действие без выполнения.';
+    const privacy = this.scanPrivacyText([title, goal].join('\n'));
+    const safeTitle = privacy.findings.length ? this.redactPrivacyText(title) : title;
+    const safeGoal = privacy.findings.length ? this.redactPrivacyText(goal) : goal;
+    const detected = this.detectForbiddenActions([safeTitle, safeGoal].join('\n'));
+    const risk = forceApproval || detected.length
+      ? 'approval_required'
+      : HANDS_RISK_LABELS[requestedRisk]
+        ? requestedRisk
+        : 'review';
+    return this.normalizeHandsActionPlan({
+      plan_id: this.generateWorkspaceId('HAND'),
+      task_id: task?.task_id || '',
+      project_id: task?.project_id || '',
+      title: safeTitle,
+      goal: safeGoal,
+      worker_id: workerId,
+      risk_level: risk,
+      controlled_runtime_action: controlledAction,
+      blocked_actions: detected,
+      approval_required: forceApproval || detected.length > 0 || risk === 'approval_required' || risk === 'dangerous',
+      privacy_status: privacy.blocked ? 'blocked' : privacy.findings.length ? 'redacted' : 'clean',
+      privacy_summary: this.privacyScanSummary(privacy),
+      created_at: new Date().toISOString()
+    }, task);
+  },
+
+  async saveHandsActionPlan(plan, task = null) {
+    const normalized = this.normalizeHandsActionPlan(plan, task);
+    if (!this.handsSafeState) this.handsSafeState = this.defaultHandsSafeState();
+    this.handsSafeState.action_plans = Array.isArray(this.handsSafeState.action_plans) ? this.handsSafeState.action_plans : [];
+    const globalIndex = this.handsSafeState.action_plans.findIndex((item) => item.plan_id === normalized.plan_id);
+    if (globalIndex >= 0) this.handsSafeState.action_plans[globalIndex] = normalized;
+    else this.handsSafeState.action_plans.unshift(normalized);
+    this.handsSafeState.last_plan_id = normalized.plan_id;
+    this.handsSafeState.last_checked_at = normalized.updated_at;
+    this.handsSafeState.status = 'ready';
+    this.activeHandsPlanId = normalized.plan_id;
+
+    if (task) {
+      task.hands_action_plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
+      const taskIndex = task.hands_action_plans.findIndex((item) => item.plan_id === normalized.plan_id);
+      const shouldAddTimelineMessage = taskIndex < 0;
+      if (taskIndex >= 0) task.hands_action_plans[taskIndex] = normalized;
+      else task.hands_action_plans.unshift(normalized);
+      const existingArtifact = normalized.artifact_id
+        ? task.artifacts?.find((artifact) => artifact.artifact_id === normalized.artifact_id)
+        : null;
+      const content = this.buildHandsActionPlanMarkdown(normalized, task);
+      const artifact = existingArtifact || this.createArtifact(task, 'HANDS_ACTION_PLAN', normalized.title, `${this.handsWorkerLabel(normalized.worker_id)} · ${this.handsRiskName(normalized.risk_level)}`, content, 'hands');
+      artifact.status = normalized.approval_required ? 'review' : 'ready';
+      artifact.content = content;
+      normalized.artifact_id = artifact.artifact_id;
+      const savedIndex = task.hands_action_plans.findIndex((item) => item.plan_id === normalized.plan_id);
+      if (savedIndex >= 0) task.hands_action_plans[savedIndex] = normalized;
+      const alreadyLogged = (task.messages || []).some((message) => message.type === 'hands_plan' && message.linked_artifact_id === artifact.artifact_id);
+      if (shouldAddTimelineMessage || !alreadyLogged) {
+        this.addWorkspaceMessage(task, 'hands_plan', 'Руки', `Подготовлен план: ${normalized.title}. Выполнение не запускалось.`, {
+          linked_artifacts: [artifact.artifact_id],
+          linked_artifact_id: artifact.artifact_id
+        });
+      }
+      task.updated_at = new Date().toISOString();
+    }
+
+    this.saveHandsSafeState();
+    if (task) {
+      this.saveWorkTasks();
+      await this.refreshMemorySearchIndex({ silent: true, render: false });
+    }
+    return normalized;
+  },
+
+  buildHandsActionPlanMarkdown(plan, task = null) {
+    const normalized = this.normalizeHandsActionPlan(plan, task);
+    return [
+      `# ${normalized.title}`,
+      '',
+      `Task: ${task?.task_id || normalized.task_id || 'не привязано'}`,
+      `Worker: ${this.handsWorkerLabel(normalized.worker_id)}`,
+      `Controlled Runtime action: ${this.controlledRuntimeActionName(normalized.controlled_runtime_action)}`,
+      `Риск: ${this.handsRiskName(normalized.risk_level)}`,
+      `Статус: ${this.handsStatusName(normalized.status)}`,
+      `Approval: ${normalized.approval_required ? 'требуется' : 'не требуется для подготовки плана'}`,
+      `Runtime: ${this.controlledRuntimeStatusName(normalized.controlled_runtime_status)}`,
+      `Verifier: ${normalized.verifier_required ? 'обязателен перед применением' : 'не требуется'}`,
+      `Rollback: ${normalized.rollback_required ? 'обязателен' : 'не требуется'}`,
+      '',
+      '## Цель',
+      normalized.goal,
+      '',
+      '## Безопасные шаги',
+      ...normalized.safe_steps.map((step) => `- ${step}`),
+      '',
+      '## Заблокированные действия',
+      ...(normalized.blocked_actions.length ? normalized.blocked_actions : ['Прямое выполнение команд не разрешено в Hands V1.']).map((item) => `- ${item}`),
+      '',
+      '## Rollback',
+      normalized.rollback_plan,
+      '',
+      '## Execution',
+      `${normalized.execution_result}: dangerous actions remain blocked; Controlled Runtime can run only allowlisted LOW-risk actions.`
+    ].join('\n');
+  },
+
+  async createHandsApprovalFromPlan(plan, task = null) {
+    const normalized = this.normalizeHandsActionPlan(plan, task);
+    const approval = this.createApprovalRecord({
+      source: 'hands_v1',
+      action_type: 'hands_action_plan',
+      capability_id: normalized.worker_id,
+      action: normalized.goal,
+      command: normalized.goal,
+      title: normalized.title,
+      reason: 'Руки V1 подготовили план действия. Выполнение запрещено до Verifier, rollback и решения владельца.',
+      risk_level: normalized.risk_level === 'dangerous' ? 'dangerous' : 'approval_required',
+      impact: 'Команда не запускалась. Approval нужен только для дальнейшего применения плана отдельным шагом.',
+      rollback_note: normalized.rollback_plan,
+      forbidden_actions: normalized.blocked_actions.length ? normalized.blocked_actions : HANDS_BLOCKED_ACTIONS,
+      requested_by: 'hands_v1'
+    }, task);
+    normalized.approval_required = true;
+    normalized.approval_id = approval.approval_id;
+    normalized.status = 'approval_created';
+    normalized.updated_at = new Date().toISOString();
+    await this.saveApprovalRecord(approval);
+    await this.saveHandsActionPlan(normalized, task);
+    if (task) {
+      this.addWorkspaceMessage(task, 'approval_event', 'Руки', `Approval создан для плана: ${normalized.title}`, {
+        linked_approval_id: approval.approval_id,
+        linked_artifact_id: normalized.artifact_id
+      });
+      this.saveWorkTasks();
+    }
+    return approval;
+  },
+
+  renderHandsPlanCard(plan, options = {}) {
+    const normalized = this.normalizeHandsActionPlan(plan);
+    const compact = Boolean(options.compact);
+    return `
+      <article class="hands-plan hands-plan--${this.escapeHtml(normalized.risk_level)}">
+        <div>
+          <span>${this.escapeHtml(this.handsWorkerLabel(normalized.worker_id))} · ${this.escapeHtml(this.handsStatusName(normalized.status))}</span>
+          <strong>${this.escapeHtml(normalized.title)}</strong>
+          <p>${this.escapeHtml(normalized.goal)}</p>
+          <small>${this.escapeHtml(this.handsRiskName(normalized.risk_level))} · Runtime: ${this.escapeHtml(this.controlledRuntimeStatusName(normalized.controlled_runtime_status))} · ${this.escapeHtml(this.controlledRuntimeActionName(normalized.controlled_runtime_action))}</small>
+          <small>Approval: ${normalized.approval_required ? 'да' : 'нет'} · Verifier: ${normalized.verifier_required ? 'да' : 'нет'} · Execution: ${this.escapeHtml(normalized.execution_result)}</small>
+          ${!compact && normalized.blocked_actions.length ? `<small>Блокировки: ${this.escapeHtml(normalized.blocked_actions.join('; '))}</small>` : ''}
+        </div>
+        <div class="hands-plan-actions">
+          <button type="button" data-hands-action="copy_plan" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Скопировать</button>
+          <button type="button" data-hands-action="run_controlled" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Выполнить LOW-risk</button>
+          ${normalized.approval_id ? `<button type="button" data-hands-action="open_approval" data-approval-id="${this.escapeHtml(normalized.approval_id)}">Approval</button>` : `<button type="button" data-hands-action="create_approval" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Approval</button>`}
+        </div>
+      </article>
+    `;
   },
 
   memorySearchSafePreview(parts, warnings, contextLabel) {
@@ -4305,6 +5832,27 @@ const App = {
         });
       });
 
+      (task.eyes_visual_checks || []).forEach((check) => {
+        this.addMemorySearchRecord(records, warnings, {
+          ...taskBase,
+          record_id: `eyes:${check.check_id}`,
+          type: 'evidence',
+          title: `Visual evidence: ${check.target || check.mode}`,
+          summary: [check.notes, check.screenshot_ref, check.privacy_summary, check.status],
+          source_id: check.check_id,
+          source_type: 'EYES_VISUAL_CHECK',
+          refs: {
+            evidence_id: check.check_id,
+            artifact_id: check.artifact_id || '',
+            task_id: task.task_id,
+            screenshot_ref: check.screenshot_ref || ''
+          },
+          keywords: ['eyes', 'visual evidence', check.mode, check.status, check.privacy_status],
+          created_at: check.created_at,
+          updated_at: check.updated_at || check.created_at || task.updated_at
+        });
+      });
+
       const research = task.research_ops || {};
       (research.source_cards || []).forEach((card) => {
         this.addMemorySearchRecord(records, warnings, {
@@ -4389,7 +5937,7 @@ const App = {
       }
 
       (task.messages || [])
-        .filter((message) => ['decision', 'memory_event', 'verifier_result', 'executor_report_received', 'approval_event'].includes(message.type))
+        .filter((message) => ['decision', 'memory_event', 'verifier_result', 'executor_report_received', 'approval_event', 'hands_plan', 'worker_runtime'].includes(message.type))
         .slice(-12)
         .forEach((message) => {
           this.addMemorySearchRecord(records, warnings, {
@@ -4655,6 +6203,7 @@ const App = {
     const approvals = this.pendingApprovalRecords();
     const incidents = this.guardianSnapshot().openIncidents || [];
     const latestDiagnostic = this.systemDiagnostics?.[0] || null;
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
     const now = new Date().toISOString();
     const sample = {
       sample_id: this.generateWorkspaceId('OBS'),
@@ -4668,7 +6217,11 @@ const App = {
       last_sync_at: this.taskStoreLastSyncAt || '',
       last_diagnostic_at: latestDiagnostic?.created_at || '',
       pwa_service_worker: this.pwaServiceWorkerStatus,
-      guardian_status: this.guardianSnapshot().label
+      guardian_status: this.guardianSnapshot().label,
+      live_runtime_status: liveRuntime.status,
+      live_runtime_score: liveRuntime.score,
+      live_runtime_checked_at: liveRuntime.checked_at || '',
+      bridge_latency_ms: liveRuntime.bridge_latency_ms
     };
     const current = this.observabilityState || { samples: [] };
     this.observabilityState = {
@@ -5763,6 +7316,13 @@ const App = {
     }
     let host = baseUrl;
     try { host = new URL(baseUrl).host; } catch {}
+    const publicHealth = await this.probePublicRuntimeHealth();
+    if (publicHealth?.ok) {
+      const heartbeat = publicHealth.agent_heartbeat?.status || 'missing';
+      const taskStore = publicHealth.task_store?.status || 'unknown';
+      const queue = publicHealth.command_queue?.status || 'unknown';
+      return this.diagnosticCheck('Direct Bridge health', publicHealth.status === 'ready' ? 'pass' : 'manual_check', publicHealth.status === 'ready' ? 'safe' : 'review', `${host}: публичный read-only runtime status получен; очередь=${queue}; хранилище задач=${taskStore}; локальный агент=${heartbeat}.`);
+    }
     try {
       const controller = new AbortController();
       const timer = window.setTimeout(() => controller.abort(), DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS);
@@ -5966,8 +7526,14 @@ const App = {
     const registry = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
     const policy = this.policyCenterState?.last_checked_at ? this.policyCenterState : this.buildPolicyCenterSnapshot();
     const memorySearch = this.memorySearchSnapshot();
+    const eyes = this.eyesVisualSnapshot();
+    const hands = this.handsSnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
+    const integration = this.buildIntegrationSnapshot();
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
     const cards = [
+      ['Интеграция', `${integration.score}%`, `${integration.label}: ${integration.next.name}`],
+      ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.label}: ${liveRuntime.next.name}`],
       ['Guardian', guardian.label, guardian.note],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
       ['Схемы данных', this.phase6StatusName(schemaSafety.status), `готовность ${schemaSafety.score || 0}% · ${schemaSafety.summary || 'dry-run ожидает запуска'}`],
@@ -5977,6 +7543,8 @@ const App = {
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
       ['Голова', head.status, head.note],
+      ['Глаза', eyes.label, eyes.note],
+      ['Руки', hands.label, hands.note],
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
       ['Ноги / Устройства', `${deviceMesh.readiness}%`, `${trustedDevices} доверенных; ${deviceMesh.routes.length} маршрутов; ${deviceMesh.attention} требуют внимания`],
       ['Мобильное приложение', pwa.installLabel, `offline shell: ${pwa.serviceWorker}`],
@@ -5992,6 +7560,8 @@ const App = {
         <p>${this.escapeHtml(note)}</p>
       </article>
     `).join('');
+    this.renderSystemIntegrationPanel();
+    this.renderSystemLiveRuntimePanel();
     this.renderSystemDiagnostics();
     this.renderGuardianPanel();
     this.renderSystemRegistryPanel();
@@ -6001,6 +7571,8 @@ const App = {
     this.renderSystemLegacyWarnings();
     this.renderSystemHeadPanel();
     this.renderSystemMemorySearchPanel();
+    this.renderSystemEyesPanel();
+    this.renderSystemHandsPanel();
     this.renderApprovalCenter();
     this.renderSystemDevicePreview();
     this.renderSystemVoiceHooks();
@@ -6013,6 +7585,187 @@ const App = {
     this.renderMinaSystemScheme();
   },
 
+  renderSystemIntegrationPanel() {
+    const host = document.getElementById('system-integration-panel');
+    if (!host) return;
+    const snapshot = this.buildIntegrationSnapshot();
+    const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
+    host.innerHTML = `
+      <section class="integration-hero integration-hero--${this.escapeHtml(tone)}">
+        <div>
+          <span>Интеграция контура</span>
+          <strong>${this.escapeHtml(String(snapshot.score))}%</strong>
+          <p>${this.escapeHtml(snapshot.summary)}</p>
+        </div>
+        <div>
+          <span>Следующий шаг</span>
+          <strong>${this.escapeHtml(snapshot.next.name)}</strong>
+          <p>${this.escapeHtml(snapshot.next.note)}</p>
+        </div>
+        <div class="integration-actions">
+          <button type="button" data-integration-action="refresh">Проверить связи</button>
+          <button type="button" data-integration-action="${this.escapeHtml(snapshot.next.action)}">Открыть следующий шаг</button>
+          <button type="button" data-nav="mission">Центр управления</button>
+        </div>
+      </section>
+      <section class="integration-grid" aria-label="Матрица связей Терминатора">
+        ${snapshot.checks.map((check) => `
+          <article class="integration-check integration-check--${this.escapeHtml(check.status)}">
+            <div>
+              <span>${this.escapeHtml(check.owner_text)}</span>
+              <strong>${this.escapeHtml(check.name)}</strong>
+              <p>${this.escapeHtml(check.note)}</p>
+            </div>
+            <button type="button" data-integration-action="${this.escapeHtml(check.action)}">${this.escapeHtml(check.status === 'ready' ? 'Открыть' : 'Проверить')}</button>
+          </article>
+        `).join('')}
+      </section>
+    `;
+  },
+
+  renderSystemLiveRuntimePanel() {
+    const host = document.getElementById('system-live-runtime-panel');
+    if (!host) return;
+    const snapshot = this.buildLiveRuntimeSnapshot();
+    const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : snapshot.status === 'checking' ? 'checking' : 'review';
+    const lastChecked = snapshot.checked_at ? this.formatTaskTime(snapshot.checked_at) : 'ещё не проверялся';
+    const bridgeLatency = Number.isFinite(Number(snapshot.bridge_latency_ms)) ? `${snapshot.bridge_latency_ms} мс` : 'нет замера';
+    host.innerHTML = `
+      <section class="live-runtime-hero live-runtime-hero--${this.escapeHtml(tone)}">
+        <div>
+          <span>Живой контур</span>
+          <strong>${this.escapeHtml(String(snapshot.score))}%</strong>
+          <p>${this.escapeHtml(snapshot.summary)}</p>
+        </div>
+        <div>
+          <span>Последняя проверка</span>
+          <strong>${this.escapeHtml(lastChecked)}</strong>
+          <p>Задержка моста: ${this.escapeHtml(bridgeLatency)}; задач в общем хранилище: ${this.escapeHtml(String(snapshot.task_count ?? this.taskStoreLastTaskCount ?? 'неизвестно'))}</p>
+        </div>
+        <div>
+          <span>Следующий шаг</span>
+          <strong>${this.escapeHtml(snapshot.next.name)}</strong>
+          <p>${this.escapeHtml(snapshot.next.note)}</p>
+        </div>
+        <div class="live-runtime-actions">
+          <button type="button" data-live-runtime-action="refresh" ${this.liveRuntimeChecking ? 'disabled' : ''}>${this.liveRuntimeChecking ? 'Проверяю...' : 'Проверить живой контур'}</button>
+          <button type="button" data-live-runtime-action="sync_taskstore">Синхронизировать хранилище задач</button>
+          <button type="button" data-live-runtime-action="${this.escapeHtml(snapshot.next.action)}">Открыть следующий шаг</button>
+        </div>
+      </section>
+      <section class="live-runtime-grid" aria-label="Проверки живого контура">
+        ${snapshot.checks.map((check) => `
+          <article class="live-runtime-check live-runtime-check--${this.escapeHtml(check.status)}">
+            <div>
+              <span>${this.escapeHtml(this.liveRuntimeStatusName(check.status))}</span>
+              <strong>${this.escapeHtml(check.name)}</strong>
+              <p>${this.escapeHtml(check.note)}</p>
+              <small>${this.escapeHtml(check.source)}${check.latency_ms ? ` · ${this.escapeHtml(String(check.latency_ms))} мс` : ''}</small>
+            </div>
+            <button type="button" data-live-runtime-action="${this.escapeHtml(check.action)}">${this.escapeHtml(check.status === 'ready' ? 'Открыть' : 'Проверить')}</button>
+          </article>
+        `).join('')}
+      </section>
+    `;
+  },
+
+  async handleIntegrationAction(action) {
+    const scrollTo = (id) => {
+      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    };
+
+    if (action === 'refresh' || action === 'run') {
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      this.toast('Связи контура проверены локально');
+      return;
+    }
+
+    if (action === 'open_work') {
+      this.go('work');
+      return;
+    }
+
+    if (action === 'open_mission') {
+      this.go('mission');
+      return;
+    }
+
+    if (action === 'open_scheme') {
+      this.go('scheme');
+      return;
+    }
+
+    if (action === 'open_diagnostics') {
+      this.go('system');
+      scrollTo('system-diagnostics');
+      return;
+    }
+
+    if (action === 'open_live_runtime') {
+      this.go('system');
+      scrollTo('system-live-runtime-panel');
+      return;
+    }
+
+    if (action === 'open_guardian') {
+      this.go('system');
+      scrollTo('system-guardian-panel');
+      return;
+    }
+
+    if (action === 'open_approval') {
+      this.go('system');
+      scrollTo('system-approval-center');
+      return;
+    }
+
+    if (action === 'open_memory') {
+      this.go('system');
+      scrollTo('system-memory-search-panel');
+      return;
+    }
+
+    if (action === 'open_head') {
+      this.go('system');
+      scrollTo('system-head-panel');
+      return;
+    }
+
+    if (action === 'open_eyes') {
+      this.go('system');
+      scrollTo('system-eyes-panel');
+      return;
+    }
+
+    if (action === 'open_hands') {
+      this.go('system');
+      scrollTo('system-hands-panel');
+      return;
+    }
+
+    if (action === 'open_voice') {
+      this.go('system');
+      scrollTo('system-voice-hooks');
+      return;
+    }
+
+    if (action === 'open_devices') {
+      this.go('system');
+      scrollTo('system-device-preview');
+      return;
+    }
+
+    if (action === 'open_pwa') {
+      this.go('system');
+      scrollTo('system-pwa-panel');
+      return;
+    }
+
+    this.go('system');
+    scrollTo('system-integration-panel');
+  },
+
   renderSystemDiagnostics() {
     const host = document.getElementById('system-diagnostics');
     if (!host) return;
@@ -6021,9 +7774,11 @@ const App = {
     const taskStore = this.taskStoreStatusSnapshot();
     const head = this.headStatusSnapshot();
     const guardian = this.guardianSnapshot();
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
     const latest = this.systemDiagnostics[0] || null;
     const rows = [
       ['Guardian', guardian.label, `${guardian.note}; incidents: ${guardian.openIncidents.length}`],
+      ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.summary}; последний прогон: ${liveRuntime.checked_at ? this.formatTaskTime(liveRuntime.checked_at) : 'не запускался'}`],
       ['Хранилище задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? 'локальная база браузера доступна' : 'используется резерв localStorage'],
       ['Журнал событий', 'OK', 'события Рабочего окна сохраняются в задаче и локальной базе'],
       ['Модель задач', 'OK', 'поля под голос и устройства есть в новых задачах'],
@@ -6914,6 +8669,576 @@ const App = {
       await this.saveMemorySearchState();
       this.renderSystemMemorySearchPanel();
     }
+  },
+
+  renderSystemEyesPanel() {
+    const host = document.getElementById('system-eyes-panel');
+    if (!host) return;
+    const snapshot = this.eyesVisualSnapshot();
+    const state = this.normalizeEyesVisualState(this.eyesVisualState || this.defaultEyesVisualState());
+    const checks = state.checks || [];
+    const activeTask = this.getActiveWorkTask();
+    host.innerHTML = `
+      <section class="eyes-hero eyes-hero--${this.escapeHtml(snapshot.tone)}">
+        <div>
+          <span>Визуальные доказательства</span>
+          <strong>${this.escapeHtml(snapshot.label)}</strong>
+          <p>${this.escapeHtml(snapshot.note)}</p>
+        </div>
+        <dl>
+          <div><dt>Готовность</dt><dd>${this.escapeHtml(String(snapshot.readiness))}%</dd></div>
+          <div><dt>Записей</dt><dd>${this.escapeHtml(String(snapshot.count))}</dd></div>
+          <div><dt>Worker</dt><dd>${this.escapeHtml(String(snapshot.worker_reports))}</dd></div>
+          <div><dt>Задача</dt><dd>${this.escapeHtml(activeTask?.task_id || 'не выбрана')}</dd></div>
+        </dl>
+      </section>
+
+      <section class="eyes-console" aria-label="Создание visual evidence">
+        <label class="work-field">
+          <span>Что проверяем</span>
+          <input id="system-eyes-target" type="text" value="${this.escapeHtml(activeTask?.title || 'Mina UI')}" placeholder="Например: Схема Мины, Рабочее окно, мобильный экран">
+        </label>
+        <div class="eyes-form-grid">
+          <label class="work-field">
+            <span>Режим</span>
+            <select id="system-eyes-mode">
+              ${EYES_VISUAL_MODES.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Скриншот / путь / ссылка</span>
+            <input id="system-eyes-screenshot-ref" type="text" placeholder="D:\\TerminatorStorage\\tasks\\...\\evidence\\screen.png или ссылка">
+          </label>
+        </div>
+        <label class="work-field">
+          <span>Наблюдение</span>
+          <textarea id="system-eyes-notes" placeholder="Что видно, что подтверждает скрин, есть ли mobile overflow, кракозябры, перекрытия."></textarea>
+        </label>
+        <div class="system-action-strip">
+          <button type="button" data-eyes-action="create_check" data-eyes-scope="system">Создать visual evidence</button>
+          <button type="button" data-eyes-action="create_desktop_check" data-eyes-scope="system">Desktop smoke</button>
+          <button type="button" data-eyes-action="create_mobile_check" data-eyes-scope="system">Mobile smoke</button>
+          <button type="button" data-eyes-action="copy_report" data-eyes-scope="system">Скопировать отчёт</button>
+          <button type="button" data-eyes-action="open_scheme_eyes">Схема Мины: Глаза</button>
+        </div>
+      </section>
+
+      <section class="eyes-records" aria-label="Последние visual evidence записи">
+        ${checks.length ? checks.slice(0, 8).map((check) => this.renderEyesVisualCheckCard(check, { compact: false })).join('') : '<p class="mission-empty">Visual evidence ещё не создано. Глаза работают read-only: только фиксируют, не кликают и не входят в аккаунты.</p>'}
+      </section>
+    `;
+  },
+
+  renderWorkspaceEyes(task) {
+    const host = document.getElementById('workspace-eyes-panel');
+    if (!host || !task) return;
+    const checks = Array.isArray(task.eyes_visual_checks) ? task.eyes_visual_checks : [];
+    host.innerHTML = `
+      <section class="eyes-workspace-panel">
+        <div class="workspace-panel-head">
+          <strong>Глаза задачи</strong>
+          <span>${this.escapeHtml(String(checks.length))} visual evidence</span>
+        </div>
+        <p>Глаза создают доказательства для Verifier: скриншот/путь, что проверено, что видно и какие риски остались. Они не кликают и не читают cookies.</p>
+        <label class="work-field">
+          <span>Что проверяем</span>
+          <input id="workspace-eyes-target" type="text" value="${this.escapeHtml(task.title || task.goal || 'Рабочее окно')}" placeholder="Например: рабочее окно задачи">
+        </label>
+        <div class="eyes-form-grid">
+          <label class="work-field">
+            <span>Режим</span>
+            <select id="workspace-eyes-mode">
+              ${EYES_VISUAL_MODES.map(([id, label]) => `<option value="${this.escapeHtml(id)}" ${id === 'workspace' ? 'selected' : ''}>${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Скриншот / путь / ссылка</span>
+            <input id="workspace-eyes-screenshot-ref" type="text" placeholder="${this.escapeHtml(this.taskStoragePath(task.task_id, 'evidence'))}\\screen.png">
+          </label>
+        </div>
+        <label class="work-field">
+          <span>Наблюдение</span>
+          <textarea id="workspace-eyes-notes" placeholder="Опишите, что подтверждает скриншот и что проверить первым."></textarea>
+        </label>
+        <div class="workspace-file-actions">
+          <button type="button" data-eyes-action="create_check" data-eyes-scope="workspace">Создать evidence</button>
+          <button type="button" data-eyes-action="create_desktop_check" data-eyes-scope="workspace">Desktop smoke</button>
+          <button type="button" data-eyes-action="create_mobile_check" data-eyes-scope="workspace">Mobile smoke</button>
+          <button type="button" data-eyes-action="copy_report" data-eyes-scope="workspace">Скопировать отчёт</button>
+        </div>
+      </section>
+      <section class="eyes-records eyes-records--workspace">
+        ${checks.length ? checks.map((check) => this.renderEyesVisualCheckCard(check, { compact: true })).join('') : '<p class="workspace-empty">Для этой задачи visual evidence ещё не создано.</p>'}
+      </section>
+    `;
+  },
+
+  renderSystemHandsPanel() {
+    const host = document.getElementById('system-hands-panel');
+    if (!host) return;
+    const snapshot = this.handsSnapshot();
+    const state = this.normalizeHandsSafeState(this.handsSafeState || this.defaultHandsSafeState());
+    const runtime = this.controlledRuntimeSnapshot();
+    const runtimeState = this.normalizeControlledWorkerRuntimeState(this.controlledWorkerRuntimeState || this.defaultControlledWorkerRuntimeState());
+    const activeTask = this.getActiveWorkTask();
+    const plans = state.action_plans || [];
+    host.innerHTML = `
+      <section class="hands-hero hands-hero--${this.escapeHtml(snapshot.tone)}">
+        <div>
+          <span>Безопасные Руки</span>
+          <strong>${this.escapeHtml(snapshot.label)}</strong>
+          <p>${this.escapeHtml(snapshot.note)}</p>
+        </div>
+        <dl>
+          <div><dt>Готовность</dt><dd>${this.escapeHtml(String(snapshot.readiness))}%</dd></div>
+          <div><dt>Планы</dt><dd>${this.escapeHtml(String(snapshot.count))}</dd></div>
+          <div><dt>Approval</dt><dd>${this.escapeHtml(String(snapshot.approval_count))}</dd></div>
+          <div><dt>LOW-run</dt><dd>${this.escapeHtml(String(runtime.completed_count))}</dd></div>
+        </dl>
+      </section>
+
+      <section class="hands-console" aria-label="Безопасный план действия">
+        <div class="hands-form-grid">
+          <label class="work-field">
+            <span>Название плана</span>
+            <input id="system-hands-title" type="text" value="${this.escapeHtml(activeTask?.title ? `План: ${activeTask.title}` : 'Безопасный план действия')}" placeholder="Например: исправить визуальный баг через repair workspace">
+          </label>
+          <label class="work-field">
+            <span>Worker</span>
+            <select id="system-hands-worker">
+              ${HANDS_WORKER_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Риск</span>
+            <select id="system-hands-risk">
+              ${HANDS_RISK_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}" ${id === 'review' ? 'selected' : ''}>${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Controlled Runtime</span>
+            <select id="system-hands-runtime-action">
+              ${CONTROLLED_RUNTIME_ACTION_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <label class="work-field">
+          <span>Что нужно сделать</span>
+          <textarea id="system-hands-goal" placeholder="Опишите действие. Руки создадут план, но не запустят команду. Опасные слова автоматически поднимут риск."></textarea>
+        </label>
+        <div class="system-action-strip">
+          <button type="button" data-hands-action="prepare_system_plan">Подготовить план</button>
+          <button type="button" data-hands-action="prepare_system_approval">План + Approval</button>
+          <button type="button" data-guardian-action="run_worker_check">Проверить workers</button>
+          <button type="button" data-hands-action="open_scheme_hands">Схема Мины: Руки</button>
+        </div>
+      </section>
+
+      <section class="hands-worker-grid" aria-label="Матрица Рук">
+        ${HANDS_WORKER_OPTIONS.map(([id, label, note]) => `
+          <article>
+            <span>${this.escapeHtml(label)}</span>
+            <strong>${this.escapeHtml(id === 'browser_worker' ? 'позже' : id === 'system_worker' ? 'ограничено' : 'готов к плану')}</strong>
+            <p>${this.escapeHtml(note)}</p>
+          </article>
+        `).join('')}
+      </section>
+
+      <section class="hands-plan-grid" aria-label="Планы действий">
+        ${plans.length ? plans.slice(0, 8).map((plan) => this.renderHandsPlanCard(plan)).join('') : '<p class="mission-empty">Планов Рук пока нет. Создайте безопасный план: он станет artifact, но ничего не выполнит.</p>'}
+      </section>
+
+      <section class="controlled-runtime-panel" aria-label="Controlled Worker Runtime">
+        <div class="workspace-panel-head">
+          <strong>Controlled Runtime</strong>
+          <span>${this.escapeHtml(runtime.label)}</span>
+        </div>
+        <p>Выполняются только allowlist LOW-risk действия внутри WebApp: без shell, deploy, delete, .env, network и active project write.</p>
+        <div class="controlled-runtime-grid">
+          <article><span>Режим</span><strong>allowlist</strong><p>${this.escapeHtml(runtimeState.policy.execution_mode)}</p></article>
+          <article><span>Shell</span><strong>запрещён</strong><p>Команды ОС не запускаются.</p></article>
+          <article><span>Rollback</span><strong>обязателен</strong><p>Перед state mutation создаётся snapshot.</p></article>
+          <article><span>Verifier</span><strong>обязателен</strong><p>Run получает runtime self-check.</p></article>
+        </div>
+        <div class="controlled-run-list">
+          ${runtimeState.runs.length ? runtimeState.runs.slice(0, 6).map((run) => this.renderControlledWorkerRunCard(run)).join('') : '<p class="mission-empty">LOW-risk запусков пока нет.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderWorkspaceHands(task) {
+    const host = document.getElementById('workspace-hands-panel');
+    if (!host || !task) return;
+    const plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
+    host.innerHTML = `
+      <section class="hands-workspace-panel">
+        <div class="workspace-panel-head">
+          <strong>Руки задачи</strong>
+          <span>${this.escapeHtml(String(plans.length))} планов действий</span>
+        </div>
+        <p>Руки готовят безопасный план, rollback и Approval. Команды, файлы и deploy не запускаются из этого экрана.</p>
+        <label class="work-field">
+          <span>Название плана</span>
+          <input id="workspace-hands-title" type="text" value="${this.escapeHtml(task.title ? `План: ${task.title}` : 'Безопасный план задачи')}">
+        </label>
+        <div class="hands-form-grid">
+          <label class="work-field">
+            <span>Worker</span>
+            <select id="workspace-hands-worker">
+              ${HANDS_WORKER_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Риск</span>
+            <select id="workspace-hands-risk">
+              ${HANDS_RISK_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}" ${id === 'review' ? 'selected' : ''}>${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Controlled Runtime</span>
+            <select id="workspace-hands-runtime-action">
+              ${CONTROLLED_RUNTIME_ACTION_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <label class="work-field">
+          <span>Действие для подготовки</span>
+          <textarea id="workspace-hands-goal" placeholder="Например: подготовить diff через repair workspace, проверить UI, создать rollback, передать Verifier."></textarea>
+        </label>
+        <div class="workspace-file-actions">
+          <button type="button" data-hands-action="prepare_workspace_plan">Подготовить план</button>
+          <button type="button" data-hands-action="prepare_workspace_approval">План + Approval</button>
+          <button type="button" data-hands-action="copy_workspace_report">Скопировать отчёт</button>
+          <button type="button" data-hands-action="open_system_hands">Открыть Руки в Системе</button>
+        </div>
+      </section>
+      <section class="hands-plan-grid hands-plan-grid--workspace">
+        ${plans.length ? plans.map((plan) => this.renderHandsPlanCard(plan, { compact: true })).join('') : '<p class="workspace-empty">Для этой задачи планов Рук ещё нет.</p>'}
+      </section>
+      <section class="controlled-run-list controlled-run-list--workspace">
+        ${(this.controlledWorkerRuntimeState?.runs || []).filter((run) => run.task_id === task.task_id).slice(0, 6).map((run) => this.renderControlledWorkerRunCard(run, { compact: true })).join('') || '<p class="workspace-empty">Controlled Runtime для этой задачи ещё не запускался.</p>'}
+      </section>
+    `;
+  },
+
+  renderEyesVisualCheckCard(check, options = {}) {
+    const normalized = this.normalizeEyesVisualCheck(check);
+    const checklistSummary = normalized.checklist
+      .map((item) => `${item.label}: ${item.status}`)
+      .slice(0, options.compact ? 3 : 6)
+      .join(' · ');
+    return `
+      <article class="eyes-record eyes-record--${this.escapeHtml(normalized.status)}">
+        <div>
+          <span>${this.escapeHtml(EYES_VISUAL_MODE_BY_ID[normalized.mode] || normalized.mode)} · ${this.escapeHtml(this.formatTaskTime(normalized.created_at))}</span>
+          <strong>${this.escapeHtml(normalized.target || 'Цель не задана')}</strong>
+          <p>${this.escapeHtml(normalized.notes || 'Наблюдение не заполнено.')}</p>
+          <small>${this.escapeHtml(checklistSummary || 'checklist ожидает данных')}</small>
+          ${normalized.screenshot_ref ? `<small>Скрин: ${this.escapeHtml(normalized.screenshot_ref)}</small>` : ''}
+        </div>
+        <span class="eyes-record-status">${this.escapeHtml(this.eyesVisualStatusName(normalized.status))}</span>
+      </article>
+    `;
+  },
+
+  async handleEyesVisualAction(action, button) {
+    const scope = button?.dataset?.eyesScope || 'system';
+    if (action === 'open_scheme_eyes') {
+      this.activeMinaSchemeZone = 'eyes';
+      this.saveMinaSchemeState();
+      this.go('scheme');
+      return;
+    }
+
+    if (action === 'open_system_eyes') {
+      this.go('system');
+      window.setTimeout(() => document.getElementById('system-eyes-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'open_verifier') {
+      const task = this.getActiveWorkTask();
+      if (task) this.openVerifierPanel(task);
+      else this.toast('Сначала создай задачу');
+      return;
+    }
+
+    if (action === 'copy_report') {
+      const text = this.buildEyesVisualStateReport(scope === 'workspace' ? this.getActiveWorkTask() : null);
+      await this.copyWorkspaceText(text);
+      return;
+    }
+
+    if (['create_check', 'create_desktop_check', 'create_mobile_check'].includes(action)) {
+      const modeOverride = action === 'create_desktop_check' ? 'desktop' : action === 'create_mobile_check' ? 'mobile' : '';
+      const check = this.createEyesVisualCheckFromForm(scope, modeOverride);
+      if (!check) return;
+      this.renderSystemStatus();
+      if (this.getActiveWorkTask()) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(check.status === 'ready' ? 'Visual evidence создано' : 'Visual evidence требует проверки Privacy Guard');
+    }
+  },
+
+  async handleHandsAction(action, button) {
+    const task = this.getActiveWorkTask();
+    const planId = button?.dataset?.planId || this.activeHandsPlanId || '';
+    const findPlan = () => {
+      const globalPlans = this.handsSafeState?.action_plans || [];
+      const taskPlans = task?.hands_action_plans || [];
+      return [...globalPlans, ...taskPlans].find((plan) => plan.plan_id === planId) || null;
+    };
+
+    if (action === 'open_scheme_hands') {
+      this.activeMinaSchemeZone = 'hands';
+      this.saveMinaSchemeState();
+      this.go('scheme');
+      return;
+    }
+
+    if (action === 'open_system_hands') {
+      this.go('system');
+      window.setTimeout(() => document.getElementById('system-hands-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'open_approval') {
+      const approvalId = button?.dataset?.approvalId || '';
+      if (approvalId) this.activeApprovalId = approvalId;
+      this.go('system');
+      window.setTimeout(() => document.getElementById('system-approval-center')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'copy_plan') {
+      const plan = findPlan();
+      if (!plan) {
+        this.toast('План не найден');
+        return;
+      }
+      await this.copyWorkspaceText(this.buildHandsActionPlanMarkdown(plan, task));
+      return;
+    }
+
+    if (action === 'copy_controlled_run') {
+      const runId = button?.dataset?.runId || this.activeControlledRunId || '';
+      const run = (this.controlledWorkerRuntimeState?.runs || []).find((item) => item.run_id === runId);
+      if (!run) {
+        this.toast('Runtime report не найден');
+        return;
+      }
+      const ownerPlan = [...(this.handsSafeState?.action_plans || []), ...(task?.hands_action_plans || [])].find((item) => item.plan_id === run.plan_id) || null;
+      await this.copyWorkspaceText(this.buildControlledWorkerRunMarkdown(run, ownerPlan, task));
+      return;
+    }
+
+    if (action === 'copy_workspace_report') {
+      if (!task) {
+        this.toast('Сначала выберите задачу');
+        return;
+      }
+      const plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
+      const report = plans.length
+        ? plans.map((plan) => this.buildHandsActionPlanMarkdown(plan, task)).join('\n\n---\n\n')
+        : 'Для задачи нет планов Рук.';
+      await this.copyWorkspaceText(report);
+      return;
+    }
+
+    if (action === 'create_approval') {
+      const plan = findPlan();
+      if (!plan) {
+        this.toast('План не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === plan.task_id) || task || null;
+      await this.createHandsApprovalFromPlan(plan, ownerTask);
+      this.renderSystemStatus();
+      this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast('Approval создан, выполнение не запускалось');
+      return;
+    }
+
+    if (action === 'run_controlled') {
+      const plan = findPlan();
+      if (!plan) {
+        this.toast('План не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === plan.task_id) || task || null;
+      const run = await this.runControlledWorkerPlan(plan, ownerTask);
+      this.renderSystemStatus();
+      if (ownerTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(run.status === 'completed' ? 'LOW-risk runtime выполнен' : 'Controlled Runtime заблокировал действие');
+      return;
+    }
+
+    if (['prepare_system_plan', 'prepare_system_approval', 'prepare_workspace_plan', 'prepare_workspace_approval'].includes(action)) {
+      const scope = action.includes('workspace') ? 'workspace' : 'system';
+      const forceApproval = action.includes('approval');
+      const targetTask = scope === 'workspace' ? task : task;
+      if (scope === 'workspace' && !targetTask) {
+        this.toast('Сначала создайте или выберите задачу');
+        return;
+      }
+      const plan = this.buildHandsActionPlanFromForm(scope, forceApproval);
+      const saved = await this.saveHandsActionPlan(plan, targetTask);
+      if (forceApproval || saved.approval_required) {
+        await this.createHandsApprovalFromPlan(saved, targetTask);
+      }
+      this.renderSystemStatus();
+      if (targetTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(saved.approval_required ? 'План и Approval готовы' : 'План Рук готов');
+    }
+  },
+
+  createEyesVisualCheckFromForm(scope = 'system', modeOverride = '') {
+    const prefix = scope === 'workspace' ? 'workspace-eyes' : 'system-eyes';
+    const task = scope === 'workspace' ? this.getActiveWorkTask() : this.getActiveWorkTask();
+    const modeInput = document.getElementById(`${prefix}-mode`);
+    const targetInput = document.getElementById(`${prefix}-target`);
+    const screenshotInput = document.getElementById(`${prefix}-screenshot-ref`);
+    const notesInput = document.getElementById(`${prefix}-notes`);
+    const mode = EYES_VISUAL_MODE_BY_ID[modeOverride] ? modeOverride : (modeInput?.value || (scope === 'workspace' ? 'workspace' : 'manual'));
+    const target = String(targetInput?.value || task?.title || 'Mina UI').trim();
+    const screenshotRef = String(screenshotInput?.value || '').trim();
+    const notes = String(notesInput?.value || '').trim() || (mode === 'mobile'
+      ? 'Mobile smoke: проверить читаемость, отсутствие horizontal overflow, крупные кнопки и корректное состояние.'
+      : 'Visual smoke: проверить читаемость, кликабельность, отсутствие перекрытий, кракозябр и видимых секретов.');
+    if (!target) {
+      this.toast('Укажи, что проверяем');
+      return null;
+    }
+    const source = [target, screenshotRef, notes].join('\n');
+    const privacy = this.scanPrivacyText(source);
+    const safeTarget = privacy.findings.length ? this.redactPrivacyText(target) : target;
+    const safeScreenshotRef = privacy.findings.length ? this.redactPrivacyText(screenshotRef) : screenshotRef;
+    const safeNotes = privacy.findings.length ? this.redactPrivacyText(notes) : notes;
+    const status = privacy.blocked ? 'blocked' : privacy.findings.length ? 'needs_review' : 'ready';
+    const now = new Date().toISOString();
+    const check = this.normalizeEyesVisualCheck({
+      check_id: this.generateWorkspaceId('EYES'),
+      task_id: task?.task_id || '',
+      project_id: task?.project_id || '',
+      mode,
+      target: safeTarget,
+      screenshot_ref: safeScreenshotRef,
+      notes: safeNotes,
+      status,
+      privacy_status: privacy.status,
+      privacy_summary: this.privacyScanSummary(privacy),
+      checklist: EYES_VISUAL_CHECKLIST.map(([id, label]) => ({
+        id,
+        label,
+        status: id === 'screenshot_ref' && !safeScreenshotRef
+          ? 'missing'
+          : privacy.findings.length && id === 'no_secret_visible'
+            ? 'review'
+            : 'pass'
+      })),
+      storage_ref: task ? {
+        root: TERMINATOR_STORAGE_ROOT,
+        task_path: this.taskStoragePath(task.task_id),
+        folder: 'evidence',
+        planned_path: `${this.taskStoragePath(task.task_id, 'evidence')}\\${this.safeStorageSegment(`eyes_${Date.now()}_${mode}`)}.md`,
+        raw_file_saved: false,
+        persistence: 'metadata_only_browser'
+      } : null,
+      created_at: now,
+      updated_at: now
+    });
+
+    if (!this.eyesVisualState) this.eyesVisualState = this.defaultEyesVisualState();
+    this.eyesVisualState.checks = [check, ...(this.eyesVisualState.checks || []).filter((item) => item.check_id !== check.check_id)].slice(0, EYES_VISUAL_MAX_CHECKS);
+    this.eyesVisualState.last_checked_at = check.created_at;
+    this.eyesVisualState.last_task_id = check.task_id;
+    this.eyesVisualState.warnings = privacy.findings.length ? [`${check.check_id}: Privacy Guard ${check.privacy_summary}`] : [];
+
+    if (task) {
+      task.eyes_visual_checks = Array.isArray(task.eyes_visual_checks) ? task.eyes_visual_checks : [];
+      task.eyes_visual_checks.unshift(check);
+      const artifact = this.createArtifact(task, 'SCREENSHOT', `Visual evidence: ${safeTarget}`, `Eyes ${EYES_VISUAL_MODE_BY_ID[mode] || mode}: ${status}`, this.buildEyesVisualEvidenceMarkdown(check, task), 'eyes');
+      artifact.status = status === 'ready' ? 'ready' : 'needs_review';
+      artifact.linked_evidence_ids = [check.check_id];
+      check.artifact_id = artifact.artifact_id;
+      task.eyes_visual_checks[0] = check;
+      this.addWorkspaceMessage(task, 'eyes_evidence', 'Глаза', `Создано visual evidence: ${safeTarget}`, {
+        linked_artifacts: [artifact.artifact_id]
+      });
+      task.updated_at = now;
+      this.saveWorkTasks();
+    }
+
+    this.saveEyesVisualState();
+    if (notesInput) notesInput.value = '';
+    return check;
+  },
+
+  buildEyesVisualEvidenceMarkdown(check, task = null) {
+    const normalized = this.normalizeEyesVisualCheck(check);
+    return [
+      '# Visual Evidence / Глаза',
+      '',
+      `- check_id: ${normalized.check_id}`,
+      `- task_id: ${normalized.task_id || task?.task_id || 'not linked'}`,
+      `- project_id: ${normalized.project_id || task?.project_id || 'not linked'}`,
+      `- mode: ${EYES_VISUAL_MODE_BY_ID[normalized.mode] || normalized.mode}`,
+      `- status: ${this.eyesVisualStatusName(normalized.status)}`,
+      `- privacy: ${normalized.privacy_summary}`,
+      `- created_at: ${normalized.created_at}`,
+      '',
+      '## Что проверяли',
+      normalized.target || 'не задано',
+      '',
+      '## Скриншот / ссылка / путь',
+      normalized.screenshot_ref || 'не приложено; запись описывает ручное наблюдение',
+      '',
+      '## Наблюдение',
+      normalized.notes || 'не задано',
+      '',
+      '## Checklist',
+      ...normalized.checklist.map((item) => `- ${item.label}: ${item.status}`),
+      '',
+      '## Safety',
+      '- Глаза не кликали, не входили в аккаунты и не читали cookies.',
+      '- Raw/base64 изображения в localStorage не сохранялись.',
+      '- Запись предназначена для Verifier, evidence и Memory Preview.'
+    ].join('\n');
+  },
+
+  buildEyesVisualStateReport(task = null) {
+    const state = this.normalizeEyesVisualState(this.eyesVisualState || this.defaultEyesVisualState());
+    const taskChecks = task ? (task.eyes_visual_checks || []) : [];
+    const checks = task ? taskChecks : state.checks;
+    return [
+      '# Eyes V1 / Visual Evidence Report',
+      '',
+      `Generated: ${new Date().toISOString()}`,
+      `Scope: ${task ? `task ${task.task_id}` : 'system'}`,
+      `Records: ${checks.length}`,
+      '',
+      ...checks.slice(0, 12).map((check) => this.buildEyesVisualEvidenceMarkdown(check, task)),
+      '',
+      'Policy:',
+      '- read-only observation only;',
+      '- no browser auto-control;',
+      '- no cookies/session access;',
+      '- no AI API;',
+      '- evidence refs only, no heavy raw files in browser storage.'
+    ].join('\n');
+  },
+
+  eyesVisualStatusName(status) {
+    return {
+      ready: 'готово',
+      needs_review: 'нужна проверка',
+      blocked: 'заблокировано Privacy Guard',
+      draft: 'черновик'
+    }[status] || 'ожидает';
   },
 
   renderSystemLastCheckpoint() {
@@ -9030,11 +11355,12 @@ const App = {
     const taskStore = this.taskStoreStatusSnapshot();
     const pwa = this.pwaSnapshot();
     const memorySearch = this.memorySearchSnapshot();
+    const eyesSnapshot = this.eyesVisualSnapshot();
+    const handsSnapshot = this.handsSnapshot();
     const savedMemory = tasks.filter((task) => ['saved_local', 'memory_saved'].includes(task.memory_preview?.status || task.memory_status)).length;
     const memoryCandidates = tasks.filter((task) => task.memory_preview || task.memory_status || task.memory_candidate).length;
     const researchTasks = tasks.filter((task) => this.ensureResearchOpsState(task).status !== 'not_started').length;
     const devicePhone = (this.systemDevices || []).find((device) => device.device_id === 'device_owner_phone');
-    const workerReports = this.guardianWorkerReports || [];
     const repairIncidents = guardian.openIncidents.filter((incident) => incident.repair_workspace || incident.diagnostic_pack || incident.repair?.status !== 'not_started');
     const criticalIncident = guardian.openIncidents.find((incident) => incident.severity === 'critical');
     const costUnknown = COST_GUARD_SERVICES.some(([, , status]) => status === 'unknown');
@@ -9063,8 +11389,8 @@ const App = {
       : savedMemory || memoryCandidates || memorySearch.count
         ? 'partial'
         : (this.taskRuntimeReady ? 'partial' : 'waiting');
-    const handsStatus = workerReports.length || repairIncidents.length ? 'partial' : (guardian.state.status ? 'waiting' : 'waiting');
-    const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) || document.getElementById('screen-scheme') ? 'partial' : 'waiting';
+    const handsStatus = handsSnapshot.scheme_status;
+    const eyesStatus = eyesSnapshot.scheme_status;
     const voiceSnapshot = this.buildVoiceReadinessSnapshot();
     const voiceStatus = voiceSnapshot.score >= 86 ? 'ready' : voiceSnapshot.score >= 60 ? 'partial' : 'waiting';
     const deviceMesh = this.buildDeviceMeshSnapshot();
@@ -9089,17 +11415,12 @@ const App = {
       },
       eyes: {
         status: eyesStatus,
-        readiness: eyesStatus === 'partial' ? 61 : 35,
-        summary: eyesStatus === 'partial' ? 'визуальные доказательства частично готовы' : 'ожидает настройки',
-        note: 'Глаза только фиксируют доказательства: скриншоты, визуальную проверку и состояние интерфейса.',
-        snapshot_source: workerReports.length ? 'Guardian worker reports' : 'UI smoke / visual evidence support',
-        is_mock: !workerReports.length,
-        checks: [
-          ['Скриншоты', 'ручные доказательства'],
-          ['Визуальная проверка', 'готова к ручному smoke'],
-          ['Мобильная проверка', 'через QA smoke'],
-          ['Чтение интерфейса', 'позже через Eyes runtime']
-        ]
+        readiness: eyesSnapshot.readiness,
+        summary: eyesSnapshot.summary,
+        note: 'Глаза фиксируют visual evidence: скриншоты, визуальные проверки и состояние интерфейса.',
+        snapshot_source: eyesSnapshot.snapshot_source,
+        is_mock: false,
+        checks: eyesSnapshot.checks
       },
       voice: {
         status: voiceStatus,
@@ -9119,17 +11440,16 @@ const App = {
       },
       hands: {
         status: handsStatus,
-        readiness: repairIncidents.length ? 72 : (workerReports.length ? 68 : 48),
-        summary: repairIncidents.length ? `${repairIncidents.length} ремонтных инцидентов` : 'Codex Repair foundation',
-        note: 'Руки не применяют изменения напрямую. Рабочая область ремонта, проверка, откат и подтверждение обязательны.',
-        snapshot_source: workerReports.length || repairIncidents.length ? 'Guardian incidents / worker reports' : 'Guardian / Phase 4 foundation',
-        is_mock: !workerReports.length && !repairIncidents.length,
+        readiness: Math.max(handsSnapshot.readiness, repairIncidents.length ? 72 : 0),
+        summary: repairIncidents.length ? `${repairIncidents.length} ремонтных инцидентов · ${handsSnapshot.label}` : handsSnapshot.summary,
+        note: handsSnapshot.note,
+        snapshot_source: handsSnapshot.snapshot_source,
+        is_mock: false,
         checks: [
-          ['Codex-ремонтник', 'foundation готов'],
-          ['Рабочая область ремонта', `${TERMINATOR_STORAGE_ROOT}\\repair_workspaces`],
+          ...handsSnapshot.checks,
+          ['Repair workspace', `${TERMINATOR_STORAGE_ROOT}\\repair_workspaces`],
           ['Repair incidents', repairIncidents.length ? `${repairIncidents.length} активных` : 'нет активных'],
-          ['Auto-fix LOW', guardian.state.autonomy_level >= 3 ? 'разрешён политикой' : 'ручной контроль'],
-          ['Помощники', `${PHASE4_WORKER_FOUNDATION.length} в матрице возможностей`]
+          ['Auto-fix LOW', guardian.state.autonomy_level >= 3 ? 'разрешён политикой' : 'ручной контроль']
         ]
       },
       memory: {
@@ -9222,7 +11542,7 @@ const App = {
     if (subsystems.diagnost.readiness < 65) return { zone: 'diagnost', label: 'Запустить Диагност', action: 'run_diagnostics', note: 'Проверить защитник, инциденты и платные риски.' };
     if (subsystems.head.readiness < 65) return { zone: 'head', label: 'Настроить Голову', action: 'select_head', note: 'Выбрать Стратега и проверить мозги.' };
     if (subsystems.memory.readiness < 70) return { zone: 'memory', label: 'Проверить Память', action: 'select_memory', note: 'Подготовить поиск по памяти и индекс.' };
-    if (subsystems.hands.readiness < 70) return { zone: 'hands', label: 'Проверить ремонт через Codex', action: 'select_hands', note: 'Проверить рабочую область ремонта и отчёты помощников.' };
+    if (subsystems.hands.readiness < 70) return { zone: 'hands', label: 'Настроить Руки', action: 'select_hands', note: 'Создать безопасный план действия: worker, риск, rollback, Verifier и Approval.' };
     if (subsystems.legs.readiness < 70) return { zone: 'legs', label: 'Настроить Ноги', action: 'select_legs', note: 'Проверить связь устройств и передачу задач.' };
     if (subsystems.voice.readiness < 70) return { zone: 'voice', label: 'Настроить Голос', action: 'select_voice', note: 'Проверить режим “нажать и говорить” и предпросмотр намерения.' };
     if (subsystems.eyes.readiness < 70) return { zone: 'eyes', label: 'Проверить Глаза', action: 'select_eyes', note: 'Проверить визуальный контроль и сбор доказательств.' };
@@ -9539,15 +11859,21 @@ const App = {
     }
 
     if (zoneId === 'hands') {
+      const hands = this.handsSnapshot();
+      const runtime = this.controlledRuntimeSnapshot();
+      const latest = hands.latest;
       return `
         <section class="scheme-config-block">
           <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\repair_workspaces\\&lt;incident_id&gt;</div>
-          <p>Ремонт через Codex работает только через пакет диагностики, изолированную рабочую область, просмотр изменений, проверку и подтверждение.</p>
+          <p>${this.escapeHtml(hands.note)} Phase 12 добавляет Controlled Runtime: выполняются только allowlist LOW-risk действия без shell и без active project write.</p>
           <div class="scheme-chip-list">
-            <span>Файловый помощник: метаданные</span>
-            <span>Кодовый помощник: исправления</span>
-            <span>Браузерный помощник: позже</span>
+            <span>Планы: ${this.escapeHtml(String(hands.count))}</span>
+            <span>Approval: ${this.escapeHtml(String(hands.approval_count))}</span>
+            <span>Worker reports: ${this.escapeHtml(String(hands.worker_reports))}</span>
+            <span>LOW-run: ${this.escapeHtml(String(runtime.completed_count))}</span>
+            <span>Опасная автоматика: заблокирована</span>
           </div>
+          ${latest ? `<div class="scheme-chip-list"><span>Последний план: ${this.escapeHtml(latest.title)}</span><span>${this.escapeHtml(this.handsRiskName(latest.risk_level))}</span></div>` : ''}
         </section>
       `;
     }
@@ -9585,15 +11911,16 @@ const App = {
     }
 
     if (zoneId === 'eyes') {
+      const eyes = this.eyesVisualSnapshot();
       return `
         <section class="scheme-config-block">
           <div class="scheme-chip-list">
-            <span>Скриншоты</span>
-            <span>Визуальная проверка</span>
-            <span>Мобильная проверка</span>
+            <span>Записей: ${this.escapeHtml(String(eyes.count))}</span>
+            <span>Готовность: ${this.escapeHtml(String(eyes.readiness))}%</span>
+            <span>Последнее: ${this.escapeHtml(eyes.latest ? this.formatTaskTime(eyes.latest.created_at) : 'нет')}</span>
             <span>Только доказательства</span>
           </div>
-          <p>Глаза не кликают и не входят в аккаунты. Только наблюдение и доказательства.</p>
+          <p>${this.escapeHtml(eyes.note)} Глаза не кликают и не входят в аккаунты. Только наблюдение и доказательства.</p>
         </section>
       `;
     }
@@ -9626,8 +11953,9 @@ const App = {
         ['emergency_stop', 'Остановить действия']
       ],
       hands: [
-        ['open_guardian', 'Открыть Guardian'],
-        ['run_worker_check', 'Проверить Eyes/Hands']
+        ['open_system_hands', 'Открыть Руки'],
+        ['open_work_hands', 'План действия в задаче'],
+        ['run_worker_check', 'Проверить workers']
       ],
       legs: [
         ['open_devices', 'Открыть устройства'],
@@ -9638,8 +11966,9 @@ const App = {
         ['open_work_voice', 'Проверить в Рабочем']
       ],
       eyes: [
-        ['run_worker_check', 'Проверить Eyes/Hands'],
-        ['open_guardian', 'Открыть Guardian']
+        ['open_system_eyes', 'Открыть панель Глаз'],
+        ['create_visual_check', 'Создать visual evidence'],
+        ['open_verifier', 'Открыть Verifier']
       ],
       body: [
         ['run_diagnostics', 'Проверить систему'],
@@ -9726,16 +12055,47 @@ const App = {
       return;
     }
 
-    if (action === 'open_system_head' || action === 'open_guardian' || action === 'open_devices' || action === 'open_voice') {
+    if (action === 'open_system_head' || action === 'open_guardian' || action === 'open_devices' || action === 'open_voice' || action === 'open_system_eyes' || action === 'open_system_hands') {
       this.go('system');
       const target = action === 'open_devices'
         ? 'system-device-preview'
         : action === 'open_voice'
           ? 'system-voice-hooks'
-          : action === 'open_system_head'
-            ? 'system-head-panel'
-            : 'system-guardian-panel';
+          : action === 'open_system_eyes'
+            ? 'system-eyes-panel'
+            : action === 'open_system_hands'
+              ? 'system-hands-panel'
+              : action === 'open_system_head'
+                ? 'system-head-panel'
+                : 'system-guardian-panel';
       window.setTimeout(() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'open_work_hands') {
+      this.go('work');
+      this.workspaceActiveTab = 'hands';
+      this.renderWorkTaskCard();
+      window.setTimeout(() => document.getElementById('workspace-hands-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'create_visual_check') {
+      this.go('work');
+      this.workspaceActiveTab = 'eyes';
+      this.renderWorkTaskCard();
+      window.setTimeout(() => document.getElementById('workspace-eyes-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'open_verifier') {
+      const task = this.getActiveWorkTask();
+      if (task) {
+        this.openVerifierPanel(task);
+        this.go('work');
+      } else {
+        this.toast('Сначала создай задачу');
+      }
       return;
     }
 
@@ -11032,6 +13392,20 @@ const App = {
     task.brain_council.answers = Array.isArray(task.brain_council.answers) ? task.brain_council.answers : [];
     this.ensureResearchOpsState(task);
     task.project_id = task.project_id || 'terminator';
+    task.eyes_visual_checks = Array.isArray(task.eyes_visual_checks)
+      ? task.eyes_visual_checks.map((check) => this.normalizeEyesVisualCheck({
+          ...check,
+          task_id: check.task_id || task.task_id,
+          project_id: check.project_id || task.project_id
+        }))
+      : [];
+    task.hands_action_plans = Array.isArray(task.hands_action_plans)
+      ? task.hands_action_plans.map((plan) => this.normalizeHandsActionPlan({
+          ...plan,
+          task_id: plan.task_id || task.task_id,
+          project_id: plan.project_id || task.project_id
+        }, task))
+      : [];
     task.input_source = task.input_source || 'keyboard';
     task.original_transcript = task.original_transcript || '';
     task.normalized_text = task.normalized_text || task.user_request || task.goal || '';
@@ -11910,6 +14284,8 @@ const App = {
     this.renderWorkspaceArtifacts(task);
     this.renderWorkspaceResearch(task);
     this.renderWorkspaceCouncil(task);
+    this.renderWorkspaceEyes(task);
+    this.renderWorkspaceHands(task);
     this.renderWorkspaceMemory(task);
     this.renderVoicePanel();
     this.updateWorkspaceTimer();
@@ -14808,6 +17184,8 @@ const App = {
       FOLLOWUP_PACKAGE: 'Follow-up',
       FIX_REQUEST: 'Запрос доработки',
       RESTORE_POINT: 'Restore point',
+      HANDS_ACTION_PLAN: 'План Рук',
+      WORKER_RUNTIME_REPORT: 'Runtime Рук',
       BRAIN_PROMPT_PACKAGE: 'Пакеты Совета',
       BRAIN_ANSWER: 'Ответ мозга',
       BRAIN_COMPARISON: 'Сравнение Совета',
@@ -14830,6 +17208,9 @@ const App = {
       memory_event: 'память',
       approval_event: 'подтверждение',
       research_event: 'исследование',
+      eyes_evidence: 'глаза',
+      hands_plan: 'руки',
+      worker_runtime: 'runtime',
       brain_answer: 'ответ мозга',
       brain_council: 'совет',
       audit: 'аудит',

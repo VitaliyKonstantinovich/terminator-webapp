@@ -3,6 +3,7 @@ const TASK_STORE_NAME = "terminator-taskstore";
 const COMMAND_PREFIX = "cmd:";
 const CLIENT_COMMAND_PREFIX = "client_cmd:";
 const OWNER_SESSION_PREFIX = "owner_session:";
+const AGENT_HEARTBEAT_PREFIX = "agent_heartbeat:";
 const QUEUE_KEY = "queue:personal";
 const TASK_PREFIX = "task:";
 const TASK_EVENT_PREFIX = "task_event:";
@@ -14,6 +15,7 @@ const TASK_STORE_SCHEMA_VERSION = 1;
 const TASK_STORE_MAX_STRING_LENGTH = 30000;
 const TASK_STORE_MAX_ARRAY_LENGTH = 250;
 const TASK_STORE_MAX_DEPTH = 6;
+const DEFAULT_AGENT_HEARTBEAT_TTL_SECONDS = 120;
 const RAW_FILE_DATA_PATTERN = /(?:data:[^"'\\\s]+;base64,|;base64,)/i;
 const WEBAPP_UPSTREAM_BASE = "https://vitaliykonstantinovich.github.io/terminator-webapp";
 
@@ -36,6 +38,10 @@ export default {
     const origin = request.headers.get("origin") || "";
     const requestId = getRequestId(request);
     const startedAt = Date.now();
+
+    if (request.method === "OPTIONS" && url.pathname.startsWith("/public/")) {
+      return new Response(null, { status: 204, headers: publicResponseHeaders(requestId) });
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: responseHeaders(origin, env, requestId) });
@@ -72,6 +78,10 @@ export default {
           task_store: taskStore.status,
           task_store_schema: taskStore.schema_version || null,
         }, 200, origin, env, requestId, startedAt);
+      }
+
+      if ((url.pathname === "/public/runtime-health" || url.pathname === "/public/health") && request.method === "GET") {
+        return await getPublicRuntimeHealth(request, env, requestId, startedAt);
       }
 
       if (url.pathname === "/owner/session" && request.method === "POST") {
@@ -147,6 +157,11 @@ export default {
         return await getAgentDiagnostics(request, env, origin, requestId, startedAt);
       }
 
+      if (url.pathname === "/agent/heartbeat" && request.method === "POST") {
+        await assertAgentAuthorized(request, env);
+        return await updateAgentHeartbeat(request, env, origin, requestId, startedAt);
+      }
+
       const agentStatusMatch = url.pathname.match(/^\/agent\/commands\/([^/]+)\/status$/);
       if (agentStatusMatch && request.method === "POST") {
         await assertAgentAuthorized(request, env);
@@ -205,6 +220,14 @@ export class CommandQueue {
 
       if (url.pathname === "/internal/agent/diagnostics" && request.method === "GET") {
         return queueJson(await this.getDiagnostics(url.searchParams.get("agent_id")));
+      }
+
+      if (url.pathname === "/internal/agent/heartbeat" && request.method === "GET") {
+        return queueJson(await this.getAgentHeartbeat(url.searchParams.get("agent_id")));
+      }
+
+      if (url.pathname === "/internal/agent/heartbeat" && request.method === "POST") {
+        return queueJson(await this.recordAgentHeartbeat(await readJson(request)));
       }
 
       const agentStatusMatch = url.pathname.match(/^\/internal\/agent\/commands\/([^/]+)\/status$/);
@@ -411,6 +434,70 @@ export class CommandQueue {
       nearest_lease_expires_at: nearestLeaseExpiresAt,
       checked_at: new Date(now).toISOString(),
     };
+  }
+
+  async recordAgentHeartbeat(body = {}) {
+    const nowMs = Date.now();
+    const agentId = normalizeAgentId(body.agent_id || body.agentId || "unknown-agent");
+    const heartbeat = {
+      ok: true,
+      agent_id: agentId,
+      status: "online",
+      bridge_seen_at: new Date(nowMs).toISOString(),
+      agent_started_at: safeIsoDate(body.agent_started_at || body.started_at),
+      agent_uptime_seconds: normalizeBoundedNumber(body.agent_uptime_seconds ?? body.uptime_seconds, 0, 365 * 24 * 60 * 60),
+      poll_interval_ms: normalizeBoundedNumber(body.poll_interval_ms, 0, 10 * 60 * 1000),
+      version: limitString(body.version || "mina-local-agent", 80),
+      storage_root_status: limitString(body.storage_root_status || "configured", 40),
+      capabilities: normalizePublicStringArray(body.capabilities, 20, 80),
+      checked_at: new Date(nowMs).toISOString(),
+    };
+
+    await this.state.storage.put(agentHeartbeatKey(agentId), heartbeat);
+    return heartbeat;
+  }
+
+  async getAgentHeartbeat(agentId) {
+    const normalizedAgentId = normalizeAgentId(agentId || "");
+    const now = Date.now();
+    const heartbeat = normalizedAgentId
+      ? await this.state.storage.get(agentHeartbeatKey(normalizedAgentId))
+      : await this.readLatestAgentHeartbeat();
+
+    if (!heartbeat) {
+      return {
+        ok: true,
+        status: "missing",
+        agent_id: normalizedAgentId || null,
+        stale: true,
+        age_ms: null,
+      };
+    }
+
+    const seenAt = Date.parse(heartbeat.bridge_seen_at || heartbeat.checked_at || "");
+    const ageMs = Number.isFinite(seenAt) ? Math.max(0, now - seenAt) : null;
+    const stale = ageMs === null || ageMs > getAgentHeartbeatTtlSeconds(this.env) * 1000;
+
+    return {
+      ok: true,
+      ...heartbeat,
+      status: stale ? "stale" : "online",
+      stale,
+      age_ms: ageMs,
+    };
+  }
+
+  async readLatestAgentHeartbeat() {
+    const heartbeats = await this.state.storage.list({ prefix: AGENT_HEARTBEAT_PREFIX });
+    let latest = null;
+    for (const heartbeat of heartbeats.values()) {
+      const currentSeen = Date.parse(heartbeat?.bridge_seen_at || heartbeat?.checked_at || "");
+      const latestSeen = Date.parse(latest?.bridge_seen_at || latest?.checked_at || "");
+      if (!latest || (Number.isFinite(currentSeen) && (!Number.isFinite(latestSeen) || currentSeen > latestSeen))) {
+        latest = heartbeat;
+      }
+    }
+    return latest;
   }
 
   async updateCommandStatus(commandId, body) {
@@ -857,6 +944,21 @@ async function getAgentDiagnostics(request, env, origin, requestId, startedAt) {
   return tracedJson(diagnostics, 200, origin, env, requestId, startedAt);
 }
 
+async function updateAgentHeartbeat(request, env, origin, requestId, startedAt) {
+  const body = await readJson(request);
+  body.agent_id = body.agent_id || normalizeAgentId(request.headers.get("x-agent-id"));
+  const heartbeat = await queueRequest(env, "/internal/agent/heartbeat", {
+    method: "POST",
+    body,
+  });
+  logBridgeEvent("agent_heartbeat", {
+    request_id: requestId,
+    agent_id: heartbeat.agent_id,
+    status: heartbeat.status,
+  });
+  return tracedJson(heartbeat, 200, origin, env, requestId, startedAt);
+}
+
 async function updateCommandStatus(commandId, request, env, origin, requestId, startedAt) {
   const body = await readJson(request);
   body.agent_id = body.agent_id || normalizeAgentId(request.headers.get("x-agent-id"));
@@ -871,6 +973,91 @@ async function updateCommandStatus(commandId, request, env, origin, requestId, s
     status: body.status || null,
   });
   return tracedJson(result, 200, origin, env, requestId, startedAt);
+}
+
+async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
+  const started = Date.now();
+  const url = new URL(request.url);
+  const agentId = normalizeAgentId(url.searchParams.get("agent_id") || "");
+  let commandQueue = {
+    status: "unknown",
+    queue_depth: null,
+    command_count: null,
+    by_status: {},
+  };
+  let taskStore = await getTaskStoreHealth(env);
+  let heartbeat = {
+    status: "missing",
+    stale: true,
+    age_ms: null,
+    agent_id: agentId || null,
+  };
+
+  try {
+    const diagnostics = await queueRequest(env, `/internal/agent/diagnostics?agent_id=${encodeURIComponent(agentId || "public-health")}`);
+    commandQueue = {
+      status: "ready",
+      queue_depth: diagnostics.queue_depth,
+      command_count: diagnostics.command_count,
+      by_status: diagnostics.by_status || {},
+      active_for_agent: diagnostics.active_for_agent,
+      nearest_lease_expires_at: diagnostics.nearest_lease_expires_at || null,
+    };
+  } catch (error) {
+    commandQueue = {
+      ...commandQueue,
+      status: error?.code === "COMMAND_QUEUE_NOT_CONFIGURED" ? "not_configured" : "degraded",
+      error: error?.code || "COMMAND_QUEUE_ERROR",
+    };
+  }
+
+  try {
+    heartbeat = await queueRequest(env, `/internal/agent/heartbeat${agentId ? `?agent_id=${encodeURIComponent(agentId)}` : ""}`);
+  } catch (error) {
+    heartbeat = {
+      status: "missing",
+      stale: true,
+      age_ms: null,
+      agent_id: agentId || null,
+      error: error?.code || "AGENT_HEARTBEAT_UNAVAILABLE",
+    };
+  }
+
+  const status = commandQueue.status === "ready" && taskStore.status === "ready"
+    ? heartbeat.status === "online" ? "ready" : "partial"
+    : "degraded";
+
+  const body = {
+    ok: true,
+    service: "mina-direct-bridge",
+    status,
+    public: true,
+    bridge: {
+      status: "ready",
+      storage: "durable_object",
+      request_latency_ms: Date.now() - started,
+    },
+    command_queue: commandQueue,
+    task_store: {
+      status: taskStore.status,
+      schema_version: taskStore.schema_version || null,
+      task_count: taskStore.task_count,
+    },
+    agent_heartbeat: sanitizePublicHeartbeat(heartbeat),
+    checked_at: new Date().toISOString(),
+    request_id: requestId,
+  };
+
+  logBridgeEvent("public_runtime_health", {
+    request_id: requestId,
+    status,
+    duration_ms: Date.now() - startedAt,
+  });
+
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: publicResponseHeaders(requestId),
+  });
 }
 
 async function listTasks(request, env, origin, requestId, startedAt) {
@@ -1004,6 +1191,10 @@ async function getTaskStoreHealth(env) {
   }
 }
 
+function agentHeartbeatKey(agentId) {
+  return `${AGENT_HEARTBEAT_PREFIX}${normalizeAgentId(agentId)}`;
+}
+
 function commandKey(commandId) {
   return `${COMMAND_PREFIX}${commandId}`;
 }
@@ -1037,6 +1228,43 @@ function normalizeTaskId(value) {
 function normalizeProjectId(value) {
   const projectId = String(value || "").trim();
   return projectId ? projectId.replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 120) : "";
+}
+
+function safeIsoDate(value) {
+  const ms = Date.parse(String(value || ""));
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : "";
+}
+
+function normalizeBoundedNumber(value, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.max(min, Math.min(max, number));
+}
+
+function normalizePublicStringArray(values, maxItems, maxLength) {
+  return Array.isArray(values)
+    ? values
+      .map((value) => limitString(value, maxLength))
+      .filter(Boolean)
+      .slice(0, maxItems)
+    : [];
+}
+
+function sanitizePublicHeartbeat(heartbeat = {}) {
+  return {
+    ok: true,
+    status: heartbeat.status || "missing",
+    agent_id: heartbeat.agent_id || null,
+    stale: Boolean(heartbeat.stale),
+    age_ms: heartbeat.age_ms === null || heartbeat.age_ms === undefined ? null : normalizeBoundedNumber(heartbeat.age_ms, 0, 365 * 24 * 60 * 60 * 1000),
+    bridge_seen_at: safeIsoDate(heartbeat.bridge_seen_at),
+    agent_started_at: safeIsoDate(heartbeat.agent_started_at),
+    agent_uptime_seconds: normalizeBoundedNumber(heartbeat.agent_uptime_seconds, 0, 365 * 24 * 60 * 60),
+    poll_interval_ms: normalizeBoundedNumber(heartbeat.poll_interval_ms, 0, 10 * 60 * 1000),
+    version: limitString(heartbeat.version || "", 80),
+    storage_root_status: limitString(heartbeat.storage_root_status || "", 40),
+    capabilities: normalizePublicStringArray(heartbeat.capabilities, 20, 80),
+  };
 }
 
 function sanitizeTaskForStore(task, now) {
@@ -1397,6 +1625,10 @@ function getCommandQueueTtl(env) {
   return normalizePositiveSeconds(env.COMMAND_QUEUE_TTL_SECONDS || DEFAULT_COMMAND_QUEUE_TTL_SECONDS, DEFAULT_COMMAND_QUEUE_TTL_SECONDS, 60 * 60);
 }
 
+function getAgentHeartbeatTtlSeconds(env) {
+  return normalizePositiveSeconds(env.AGENT_HEARTBEAT_TTL_SECONDS || DEFAULT_AGENT_HEARTBEAT_TTL_SECONDS, DEFAULT_AGENT_HEARTBEAT_TTL_SECONDS, 60 * 60);
+}
+
 function normalizeSessionTtl(value) {
   return normalizePositiveSeconds(value || DEFAULT_OWNER_SESSION_TTL_SECONDS, DEFAULT_OWNER_SESSION_TTL_SECONDS, 24 * 60 * 60);
 }
@@ -1657,6 +1889,20 @@ function responseHeaders(origin, env, requestId) {
     "x-request-id": requestId,
     "alt-svc": "clear",
     ...corsHeaders(origin, env),
+  };
+}
+
+function publicResponseHeaders(requestId) {
+  return {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    "x-request-id": requestId,
+    "alt-svc": "clear",
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,OPTIONS",
+    "access-control-allow-headers": "content-type,x-request-id",
+    "access-control-expose-headers": "x-request-id",
+    "vary": "Origin",
   };
 }
 

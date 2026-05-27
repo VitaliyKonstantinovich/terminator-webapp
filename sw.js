@@ -1,10 +1,10 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260527-phase9-mina-voice-v1-final';
+const MINA_CACHE = 'terminator-mina-pwa-20260527-phase15-real-health-heartbeat-v1';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260527-phase9-mina-voice-v1-final',
-  './app.js?v=20260527-phase9-mina-voice-v1-final',
+  './styles.css?v=20260527-phase15-real-health-heartbeat-v1',
+  './app.js?v=20260527-phase15-real-health-heartbeat-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
@@ -24,7 +24,6 @@ self.addEventListener('install', (event) => {
       .then(() => self.skipWaiting())
   );
 });
-
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
