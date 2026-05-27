@@ -87,7 +87,8 @@ Not touched:
 - Local desktop Chrome smoke: PASS.
 - Local mobile Chrome smoke 390px: PASS.
 - GitHub Actions run `26488322868`: success.
-- Pages health check for `20260526-phase6-closure-v1`: PASS.
+- GitHub Actions final marker run `26488543492`: success.
+- Pages health check for `20260526-phase6-closure-v2`: PASS.
 - Live desktop Chrome smoke: PASS.
 - Live mobile Chrome smoke 390px: PASS.
 - Policy Center visible: PASS.
@@ -107,12 +108,14 @@ Not touched:
 - `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-local-panel-mobile.png`
 - `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-live-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-live-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-live-v2-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-live-v2-mobile.png`
 
 ## First Manual Check
 
 Live URL:
 
-`https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase6-closure-live-v1`
+`https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase6-closure-live-v2`
 
 Check first:
 
