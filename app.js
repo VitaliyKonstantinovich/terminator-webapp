@@ -1013,7 +1013,7 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Phase 9 Mina Voice / Safe Command Layer V1',
   date: '2026-05-27',
-  status: 'в работе',
+  status: 'закрыт live',
   previous: 'Phase 8 Device Mesh / Legs Control Center V1',
   next: 'Следующий крупный слой по roadmap'
 };
@@ -1049,7 +1049,7 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' },
   { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'закрыт live' },
   { id: 31, name: 'Device Mesh / Ноги Control Center V1', status: 'закрыт live' },
-  { id: 32, name: 'Mina Voice / Safe Command Layer V1', status: 'в работе' }
+  { id: 32, name: 'Mina Voice / Safe Command Layer V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
