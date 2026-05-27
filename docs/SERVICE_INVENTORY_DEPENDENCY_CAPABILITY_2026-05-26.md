@@ -74,7 +74,7 @@ Status: closed live
 
 ## Live Checks
 
-- GitHub Actions run `26486130046`: success.
+- GitHub Actions run `26486573681`: success.
 - Pages health check: PASS.
 - Live HTML marker `20260526-system-registry-v2`: PASS.
 - Live service worker marker `terminator-mina-pwa-20260526-system-registry-v2`: PASS.
