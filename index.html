@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260527-phase9-mina-voice-v1-final">
+  <link rel="stylesheet" href="styles.css?v=20260527-phase15-real-health-heartbeat-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -307,6 +307,8 @@
                     <button type="button" data-workspace-tab="artifacts">Артефакты</button>
                     <button type="button" data-workspace-tab="research">Исследование</button>
                     <button type="button" data-workspace-tab="council">Совет</button>
+                    <button type="button" data-workspace-tab="eyes">Глаза</button>
+                    <button type="button" data-workspace-tab="hands">Руки</button>
                     <button type="button" data-workspace-tab="check">Проверка</button>
                     <button type="button" data-workspace-tab="memory">Память</button>
                   </nav>
@@ -353,6 +355,22 @@
                     <div id="workspace-council-panel" class="brainops-panel"></div>
                   </section>
 
+                  <section id="workspace-tab-eyes" class="workspace-tab-panel" hidden>
+                    <div class="workspace-panel-head">
+                      <strong>Глаза</strong>
+                      <span>Visual evidence для Verifier</span>
+                    </div>
+                    <div id="workspace-eyes-panel" class="eyes-panel"></div>
+                  </section>
+
+                  <section id="workspace-tab-hands" class="workspace-tab-panel" hidden>
+                    <div class="workspace-panel-head">
+                      <strong>Руки</strong>
+                      <span>Безопасные планы действий</span>
+                    </div>
+                    <div id="workspace-hands-panel" class="hands-panel"></div>
+                  </section>
+
                   <section id="workspace-tab-memory" class="workspace-tab-panel" hidden>
                     <div class="workspace-panel-head">
                       <strong>Память</strong>
@@ -390,6 +408,7 @@
                   <button type="button" data-workspace-action="build_context_pack">Скопировать пакет</button>
                   <button type="button" data-workspace-action="mark_sent">Отметить как отправлено</button>
                   <button type="button" data-workspace-action="insert_report">Вставить отчёт</button>
+                  <button type="button" data-eyes-action="create_desktop_check" data-eyes-scope="workspace">Visual evidence</button>
                   <button type="button" data-workspace-action="open_verifier">Проверить результат</button>
                 </div>
               </footer>
@@ -613,6 +632,26 @@
           </section>
 
           <section id="system-summary" class="mission-grid" aria-label="Состояние системы"></section>
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Интеграция контура</strong>
+                <span>Связи между Рабочим, Системой, Миссией, Памятью, Руками, Глазами, Голосом и Ногами</span>
+              </div>
+            </div>
+            <div id="system-integration-panel" class="integration-panel"></div>
+          </section>
+
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Живой контур</strong>
+                <span>Сайт, мост, хранилище задач, локальный агент, PWA и Guardian</span>
+              </div>
+            </div>
+            <div id="system-live-runtime-panel" class="live-runtime-panel"></div>
+          </section>
+
           <section class="system-layout" aria-label="Системные панели">
             <section class="runtime-panel">
               <div class="runtime-panel-head">
@@ -703,6 +742,26 @@
               </div>
             </div>
             <div id="system-memory-search-panel" class="memory-search-panel"></div>
+          </section>
+
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Глаза / Evidence</strong>
+                <span>Скриншоты, visual smoke и привязка доказательств к задаче</span>
+              </div>
+            </div>
+            <div id="system-eyes-panel" class="eyes-panel"></div>
+          </section>
+
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Руки / Safe Workers</strong>
+                <span>Планы действий, риск, Approval, rollback и Verifier</span>
+              </div>
+            </div>
+            <div id="system-hands-panel" class="hands-panel"></div>
           </section>
 
           <section class="runtime-panel">
@@ -1033,6 +1092,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260527-phase9-mina-voice-v1-final"></script>
+  <script src="app.js?v=20260527-phase15-real-health-heartbeat-v1"></script>
 </body>
 </html>
