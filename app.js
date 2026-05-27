@@ -307,6 +307,7 @@ const WINDOWS_COMPANION_STATE_STORAGE_KEY = 'mina_windows_companion_state_v1';
 const MEMORY_SEARCH_STATE_STORAGE_KEY = 'mina_memory_search_state_v1';
 const SCHEMA_SAFETY_STATE_STORAGE_KEY = 'mina_schema_safety_state_v1';
 const SYSTEM_REGISTRY_STATE_STORAGE_KEY = 'mina_system_registry_state_v1';
+const POLICY_CENTER_STATE_STORAGE_KEY = 'mina_policy_center_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -610,6 +611,88 @@ const SYSTEM_REGISTRY_STATUS_LABELS = {
   review: 'требует проверки',
   blocked: 'заблокировано',
   unknown: 'неизвестно'
+};
+
+const POLICY_CENTER_SCHEMA_VERSION = 1;
+const POLICY_CENTER_STATUS_LABELS = {
+  ready: 'готово',
+  review: 'требует проверки',
+  blocked: 'заблокировано',
+  not_checked: 'не проверено'
+};
+
+const POLICY_CENTER_SELECTS = {
+  'owner.language': [
+    ['ru-RU', 'Русский'],
+    ['en-US', 'English later']
+  ],
+  'owner.theme': [
+    ['mina_dark', 'Mina UI тёмная'],
+    ['mina_high_contrast', 'Высокий контраст']
+  ],
+  'owner.mobile_mode': [
+    ['responsive', 'Адаптивный режим'],
+    ['pwa_first', 'PWA приоритет']
+  ],
+  'security.privacy_guard_level': [
+    ['strict', 'Строгий'],
+    ['balanced', 'Сбалансированный'],
+    ['manual', 'Только ручная проверка']
+  ],
+  'security.approval_strictness': [
+    ['high', 'Высокая'],
+    ['standard', 'Стандартная'],
+    ['low', 'Низкая, не рекомендуется']
+  ],
+  'security.dangerous_actions': [
+    ['blocked', 'Блокировать до подтверждения'],
+    ['approval_required', 'Только через подтверждение'],
+    ['manual_review', 'Ручная проверка']
+  ],
+  'security.ai_api_policy': [
+    ['disabled', 'Отключены'],
+    ['approval_only', 'Только после отдельного подтверждения']
+  ],
+  'runtime.default_context_pack_size': [
+    ['standard', 'Стандартный'],
+    ['short', 'Короткий'],
+    ['expert', 'Экспертный']
+  ],
+  'runtime.diagnostics_frequency': [
+    ['manual_plus_health', 'Ручной запуск + проверка здоровья'],
+    ['manual_only', 'Только вручную']
+  ],
+  'runtime.backup_policy': [
+    ['checkpoint_before_risk', 'Контрольная копия перед риском'],
+    ['manual_only', 'Только вручную']
+  ],
+  'runtime.release_channel': [
+    ['live_pages_controlled', 'Публикация сайта под контролем'],
+    ['local_only', 'Только локально']
+  ],
+  'project_defaults.memory_policy': [
+    ['preview_required', 'Только через предпросмотр памяти'],
+    ['manual_only', 'Только вручную']
+  ],
+  'project_defaults.verifier_strictness': [
+    ['evidence_required', 'Доказательства обязательны'],
+    ['standard', 'Стандартно']
+  ],
+  'project_defaults.research_depth': [
+    ['standard', 'Стандартное исследование'],
+    ['maximum', 'Максимальное исследование'],
+    ['fast', 'Быстро']
+  ],
+  'task_defaults.quality': [
+    ['maximum', 'Максимум'],
+    ['standard', 'Стандарт'],
+    ['fast', 'Быстро']
+  ],
+  'task_defaults.memory_save_scope': [
+    ['verified_only', 'Только проверенное'],
+    ['decision_only', 'Только решения'],
+    ['manual_only', 'Только вручную']
+  ]
 };
 
 const MINA_SCHEME_SUBSYSTEMS = [
@@ -920,11 +1003,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Service Inventory + Dependency Registry + Capability Matrix',
+  name: 'Phase 6 Closure + Settings / Policy Center V1',
   date: '2026-05-26',
-  status: 'закрыт live',
-  previous: 'Schema Versioning + Backup/Restore + Migration Safety',
-  next: 'следующий автономный слой после system registry live acceptance'
+  status: 'в работе',
+  previous: 'Service Inventory + Dependency Registry + Capability Matrix',
+  next: 'закрыть Phase 6 live после Settings / Policy Center'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -955,7 +1038,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' },
   { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' },
   { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' },
-  { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' }
+  { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' },
+  { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'в работе' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2194,6 +2278,7 @@ const App = {
   memorySearchState: null,
   schemaSafetyState: null,
   systemRegistryState: null,
+  policyCenterState: null,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -3904,6 +3989,7 @@ const App = {
       capabilities: [],
       history: []
     });
+    this.policyCenterState = this.normalizePolicyCenterState(this.readJsonStorage(POLICY_CENTER_STATE_STORAGE_KEY, {}));
   },
 
   saveProductionState() {
@@ -3912,6 +3998,7 @@ const App = {
     this.writeJsonStorage(OBSERVABILITY_STATE_KEY, this.observabilityState || {});
     this.writeJsonStorage(SCHEMA_SAFETY_STATE_STORAGE_KEY, this.schemaSafetyState || {});
     this.writeJsonStorage(SYSTEM_REGISTRY_STATE_STORAGE_KEY, this.systemRegistryState || {});
+    this.writeJsonStorage(POLICY_CENTER_STATE_STORAGE_KEY, this.policyCenterState || {});
   },
 
   defaultMemorySearchState() {
@@ -4644,6 +4731,7 @@ const App = {
       observability: this.observabilityState || {},
       schema_safety: this.schemaSafetyState || {},
       system_registry: this.systemRegistryState || {},
+      policy_center: this.policyCenterState || {},
       counters: {
         tasks: (this.workTasks || []).length,
         projects: (this.activeWorkProjects() || []).length,
@@ -5015,6 +5103,193 @@ const App = {
 
   systemRegistryStatusName(status) {
     return SYSTEM_REGISTRY_STATUS_LABELS[status] || status || 'неизвестно';
+  },
+
+  policyCenterStatusName(status) {
+    return POLICY_CENTER_STATUS_LABELS[status] || status || 'неизвестно';
+  },
+
+  defaultPolicyCenterState() {
+    const defaultProject = (this.activeWorkProjects?.() || this.workProjects || [])[0]?.id || 'terminator';
+    const activeProfile = this.activeHeadProfile?.();
+    return {
+      schema_version: POLICY_CENTER_SCHEMA_VERSION,
+      status: 'not_checked',
+      score: 0,
+      last_checked_at: '',
+      updated_at: '',
+      owner: {
+        language: 'ru-RU',
+        theme: 'mina_dark',
+        mobile_mode: 'responsive',
+        default_project_id: defaultProject,
+        default_council_profile_id: activeProfile?.profile_id || 'default'
+      },
+      security: {
+        privacy_guard_level: 'strict',
+        approval_strictness: 'high',
+        dangerous_actions: 'blocked',
+        ai_api_policy: 'disabled',
+        secrets_policy: 'redact_and_block'
+      },
+      runtime: {
+        storage_root: TERMINATOR_STORAGE_ROOT,
+        default_context_pack_size: 'standard',
+        diagnostics_frequency: 'manual_plus_health',
+        backup_policy: 'checkpoint_before_risk',
+        log_retention_days: 30,
+        release_channel: 'live_pages_controlled'
+      },
+      project_defaults: {
+        memory_policy: 'preview_required',
+        verifier_strictness: 'evidence_required',
+        research_depth: 'standard',
+        allowed_executors: 'Ручные web-чаты + Codex'
+      },
+      task_defaults: {
+        quality: 'maximum',
+        memory_save_scope: 'verified_only',
+        evidence_required: true,
+        approval_required_for_commands: true
+      },
+      history: []
+    };
+  },
+
+  normalizePolicyCenterState(state = {}) {
+    const defaults = this.defaultPolicyCenterState();
+    const normalized = {
+      ...defaults,
+      ...state,
+      schema_version: POLICY_CENTER_SCHEMA_VERSION,
+      owner: { ...defaults.owner, ...(state.owner || {}) },
+      security: { ...defaults.security, ...(state.security || {}) },
+      runtime: { ...defaults.runtime, ...(state.runtime || {}) },
+      project_defaults: { ...defaults.project_defaults, ...(state.project_defaults || {}) },
+      task_defaults: { ...defaults.task_defaults, ...(state.task_defaults || {}) },
+      history: Array.isArray(state.history) ? state.history.slice(0, 20) : []
+    };
+    if (normalized.project_defaults.allowed_executors === 'manual_web_chat_codex') {
+      normalized.project_defaults.allowed_executors = 'Ручные web-чаты + Codex';
+    }
+    return normalized;
+  },
+
+  policyCenterSelectOptions(path, value) {
+    const options = POLICY_CENTER_SELECTS[path] || [];
+    return options.map(([id, label]) => `<option value="${this.escapeHtml(id)}" ${id === value ? 'selected' : ''}>${this.escapeHtml(label)}</option>`).join('');
+  },
+
+  policyCenterDisplayValue(path, value) {
+    const options = POLICY_CENTER_SELECTS[path] || [];
+    const found = options.find(([id]) => id === value);
+    return found?.[1] || value || 'не задано';
+  },
+
+  policyCenterGet(path) {
+    return path.split('.').reduce((source, key) => source?.[key], this.policyCenterState || {});
+  },
+
+  policyCenterSet(target, path, value) {
+    const parts = path.split('.');
+    let cursor = target;
+    parts.slice(0, -1).forEach((part) => {
+      cursor[part] = { ...(cursor[part] || {}) };
+      cursor = cursor[part];
+    });
+    cursor[parts[parts.length - 1]] = value;
+  },
+
+  collectPolicyCenterFormValues() {
+    const next = this.normalizePolicyCenterState(this.policyCenterState || {});
+    document.querySelectorAll('[data-policy-setting]').forEach((field) => {
+      const path = field.dataset.policySetting;
+      const value = field.type === 'checkbox' ? Boolean(field.checked) : field.value;
+      this.policyCenterSet(next, path, value);
+    });
+    const retention = Number(next.runtime.log_retention_days || 30);
+    next.runtime.log_retention_days = Number.isFinite(retention) ? Math.max(7, Math.min(365, retention)) : 30;
+    next.runtime.storage_root = TERMINATOR_STORAGE_ROOT;
+    next.security.secrets_policy = 'redact_and_block';
+    next.schema_version = POLICY_CENTER_SCHEMA_VERSION;
+    next.updated_at = new Date().toISOString();
+    return next;
+  },
+
+  buildPolicyCenterSnapshot(state = this.policyCenterState) {
+    const current = this.normalizePolicyCenterState(state || {});
+    const checks = [
+      ['owner_language', 'Язык интерфейса', current.owner.language === 'ru-RU' ? 'pass' : 'review', current.owner.language === 'ru-RU' ? 'Основной UI на русском.' : 'Нужна ручная проверка переводов.'],
+      ['storage_root', 'Корень хранения', current.runtime.storage_root === TERMINATOR_STORAGE_ROOT && current.runtime.storage_root.startsWith('D:\\') ? 'pass' : 'blocked', `Хранилище: ${current.runtime.storage_root || 'не задано'}`],
+      ['privacy_guard', 'Защита приватности', current.security.privacy_guard_level === 'strict' ? 'pass' : 'review', `Уровень: ${this.policyCenterDisplayValue('security.privacy_guard_level', current.security.privacy_guard_level)}`],
+      ['approval', 'Подтверждения действий', ['high', 'standard'].includes(current.security.approval_strictness) ? 'pass' : 'review', `Строгость: ${this.policyCenterDisplayValue('security.approval_strictness', current.security.approval_strictness)}`],
+      ['dangerous_actions', 'Опасные действия', ['blocked', 'approval_required'].includes(current.security.dangerous_actions) ? 'pass' : 'blocked', `Правило: ${this.policyCenterDisplayValue('security.dangerous_actions', current.security.dangerous_actions)}`],
+      ['ai_api', 'ИИ API', current.security.ai_api_policy === 'disabled' ? 'pass' : 'review', current.security.ai_api_policy === 'disabled' ? 'ИИ API отключены по умолчанию.' : 'ИИ API только после отдельного подтверждения.'],
+      ['backup', 'Резервные копии', current.runtime.backup_policy === 'checkpoint_before_risk' ? 'pass' : 'review', `Правило: ${this.policyCenterDisplayValue('runtime.backup_policy', current.runtime.backup_policy)}`],
+      ['memory_policy', 'Правила памяти', current.project_defaults.memory_policy === 'preview_required' && current.task_defaults.memory_save_scope === 'verified_only' ? 'pass' : 'review', 'Память сохраняется только через предварительный просмотр и только проверенное.'],
+      ['verifier', 'Проверка результата', current.project_defaults.verifier_strictness === 'evidence_required' && current.task_defaults.evidence_required ? 'pass' : 'review', 'Для важных результатов нужны доказательства.'],
+      ['release', 'Публикация', current.runtime.release_channel === 'live_pages_controlled' ? 'pass' : 'review', `Канал: ${this.policyCenterDisplayValue('runtime.release_channel', current.runtime.release_channel)}`]
+    ].map(([checkId, name, status, note]) => ({
+      check_id: checkId,
+      name,
+      status,
+      note,
+      checked_at: new Date().toISOString()
+    }));
+    const blocked = checks.filter((check) => check.status === 'blocked').length;
+    const review = checks.filter((check) => check.status === 'review').length;
+    const pass = checks.filter((check) => check.status === 'pass').length;
+    return {
+      ...current,
+      status: blocked ? 'blocked' : review ? 'review' : 'ready',
+      score: Math.round((pass / checks.length) * 100),
+      checks,
+      summary: `${pass} пройдено, ${review} на проверке, ${blocked} заблокировано`,
+      last_checked_at: new Date().toISOString()
+    };
+  },
+
+  savePolicyCenterSnapshot(snapshot) {
+    this.policyCenterState = this.normalizePolicyCenterState({
+      ...snapshot,
+      history: [snapshot, ...((this.policyCenterState?.history || []).slice(0, 9))]
+    });
+    this.saveProductionState();
+    return this.policyCenterState;
+  },
+
+  buildPolicyCenterExport(snapshot = this.policyCenterState) {
+    return {
+      type: 'terminator_policy_center',
+      exported_at: new Date().toISOString(),
+      schema_version: POLICY_CENTER_SCHEMA_VERSION,
+      policy_center: this.normalizePolicyCenterState(snapshot || {}),
+      policy: {
+        no_secrets: true,
+        no_cookies: true,
+        no_tokens: true,
+        no_ai_api_by_default: true,
+        dangerous_actions_require_approval: true,
+        heavy_files_live_on_d: true
+      }
+    };
+  },
+
+  buildPolicyCenterPolicyText(snapshot = this.policyCenterState) {
+    const state = this.normalizePolicyCenterState(snapshot || {});
+    return [
+      'Terminator Policy Center:',
+      `- язык: ${this.policyCenterDisplayValue('owner.language', state.owner.language)}`,
+      `- хранилище: ${state.runtime.storage_root}`,
+      `- защита приватности: ${this.policyCenterDisplayValue('security.privacy_guard_level', state.security.privacy_guard_level)}`,
+      `- подтверждения: ${this.policyCenterDisplayValue('security.approval_strictness', state.security.approval_strictness)}`,
+      `- опасные действия: ${this.policyCenterDisplayValue('security.dangerous_actions', state.security.dangerous_actions)}`,
+      `- ИИ API: ${this.policyCenterDisplayValue('security.ai_api_policy', state.security.ai_api_policy)}`,
+      `- резервные копии: ${this.policyCenterDisplayValue('runtime.backup_policy', state.runtime.backup_policy)}`,
+      `- память: ${this.policyCenterDisplayValue('project_defaults.memory_policy', state.project_defaults.memory_policy)} / ${this.policyCenterDisplayValue('task_defaults.memory_save_scope', state.task_defaults.memory_save_scope)}`,
+      '- секреты, cookies и токены не экспортируются',
+      '- публикация, push, удаление, .env, сеть и billing требуют отдельного подтверждения'
+    ].join('\n');
   },
 
   normalizeServiceInventoryItem(item) {
@@ -5672,12 +5947,14 @@ const App = {
     const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
     const schemaSafety = this.schemaSafetyState?.last_checked_at ? this.schemaSafetyState : this.buildSchemaSafetySnapshot();
     const registry = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
+    const policy = this.policyCenterState?.last_checked_at ? this.policyCenterState : this.buildPolicyCenterSnapshot();
     const memorySearch = this.memorySearchSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
       ['Схемы данных', this.phase6StatusName(schemaSafety.status), `готовность ${schemaSafety.score || 0}% · ${schemaSafety.summary || 'dry-run ожидает запуска'}`],
       ['Реестр системы', this.systemRegistryStatusName(registry.status), `готовность ${registry.score || 0}% · ${registry.summary || 'проверка ожидает запуска'}`],
+      ['Настройки и правила', this.policyCenterStatusName(policy.status), `готовность ${policy.score || 0}% · ${policy.summary || 'проверка ожидает запуска'}`],
       ['Поиск по памяти', this.memorySearchStatusName(memorySearch.status), memorySearch.note],
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
@@ -5700,6 +5977,7 @@ const App = {
     this.renderSystemDiagnostics();
     this.renderGuardianPanel();
     this.renderSystemRegistryPanel();
+    this.renderSystemPolicyCenter();
     this.renderSystemStoragePolicy();
     this.renderSystemLastCheckpoint();
     this.renderSystemLegacyWarnings();
@@ -6065,6 +6343,124 @@ const App = {
         <button type="button" data-phase6-action="refresh_system_registry">Проверить реестр</button>
         <button type="button" data-phase6-action="export_system_registry">Скачать реестр</button>
         <button type="button" data-phase6-action="copy_system_registry_policy">Скопировать policy</button>
+      </div>
+    `;
+  },
+
+  renderPolicySetting(path, label, note = '') {
+    const value = this.policyCenterGet(path);
+    const options = POLICY_CENTER_SELECTS[path] || [];
+    if (options.length) {
+      return `
+        <label class="policy-setting">
+          <span>${this.escapeHtml(label)}</span>
+          <select data-policy-setting="${this.escapeHtml(path)}">
+            ${this.policyCenterSelectOptions(path, value)}
+          </select>
+          ${note ? `<small>${this.escapeHtml(note)}</small>` : ''}
+        </label>
+      `;
+    }
+    if (typeof value === 'boolean') {
+      return `
+        <label class="policy-setting policy-setting--checkbox">
+          <span>${this.escapeHtml(label)}</span>
+          <input type="checkbox" data-policy-setting="${this.escapeHtml(path)}" ${value ? 'checked' : ''}>
+          ${note ? `<small>${this.escapeHtml(note)}</small>` : ''}
+        </label>
+      `;
+    }
+    return `
+      <label class="policy-setting">
+        <span>${this.escapeHtml(label)}</span>
+        <input type="text" data-policy-setting="${this.escapeHtml(path)}" value="${this.escapeHtml(String(value ?? ''))}">
+        ${note ? `<small>${this.escapeHtml(note)}</small>` : ''}
+      </label>
+    `;
+  },
+
+  renderSystemPolicyCenter() {
+    const host = document.getElementById('system-policy-center');
+    if (!host) return;
+    this.policyCenterState = this.normalizePolicyCenterState(this.policyCenterState || {});
+    const snapshot = this.policyCenterState.last_checked_at
+      ? this.policyCenterState
+      : this.buildPolicyCenterSnapshot(this.policyCenterState);
+    const checks = snapshot.checks || [];
+    host.innerHTML = `
+      <section class="policy-center-hero policy-center-hero--${this.escapeHtml(snapshot.status || 'not_checked')}">
+        <div>
+          <span>Центр настроек и правил</span>
+          <strong>${this.escapeHtml(String(snapshot.score || 0))}%</strong>
+          <p>${this.escapeHtml(snapshot.summary || 'Политики ещё не проверялись.')}</p>
+        </div>
+        <dl>
+          <div><dt>Приватность</dt><dd>${this.escapeHtml(this.policyCenterDisplayValue('security.privacy_guard_level', snapshot.security.privacy_guard_level))}</dd></div>
+          <div><dt>Подтверждения</dt><dd>${this.escapeHtml(this.policyCenterDisplayValue('security.approval_strictness', snapshot.security.approval_strictness))}</dd></div>
+          <div><dt>ИИ API</dt><dd>${this.escapeHtml(this.policyCenterDisplayValue('security.ai_api_policy', snapshot.security.ai_api_policy))}</dd></div>
+          <div><dt>Резерв</dt><dd>${this.escapeHtml(this.policyCenterDisplayValue('runtime.backup_policy', snapshot.runtime.backup_policy))}</dd></div>
+        </dl>
+      </section>
+
+      <div class="policy-center-grid">
+        <section class="policy-center-card">
+          <div class="diagnost-subtitle">Владелец и интерфейс</div>
+          ${this.renderPolicySetting('owner.language', 'Язык')}
+          ${this.renderPolicySetting('owner.theme', 'Тема')}
+          ${this.renderPolicySetting('owner.mobile_mode', 'Мобильный режим')}
+          ${this.renderPolicySetting('owner.default_project_id', 'Проект по умолчанию', 'Можно указать ID проекта вручную.')}
+          ${this.renderPolicySetting('owner.default_council_profile_id', 'Профиль Совета по умолчанию')}
+        </section>
+
+        <section class="policy-center-card">
+          <div class="diagnost-subtitle">Безопасность</div>
+          ${this.renderPolicySetting('security.privacy_guard_level', 'Защита приватности')}
+          ${this.renderPolicySetting('security.approval_strictness', 'Строгость подтверждений')}
+          ${this.renderPolicySetting('security.dangerous_actions', 'Опасные действия')}
+          ${this.renderPolicySetting('security.ai_api_policy', 'ИИ API')}
+        </section>
+
+        <section class="policy-center-card">
+          <div class="diagnost-subtitle">Рабочий контур / публикация</div>
+          ${this.renderPolicySetting('runtime.storage_root', 'Хранилище', 'Фиксировано на D, без тяжёлого C.')}
+          ${this.renderPolicySetting('runtime.default_context_pack_size', 'Пакет контекста')}
+          ${this.renderPolicySetting('runtime.diagnostics_frequency', 'Диагностика')}
+          ${this.renderPolicySetting('runtime.backup_policy', 'Резервные копии')}
+          ${this.renderPolicySetting('runtime.release_channel', 'Публикация')}
+          ${this.renderPolicySetting('runtime.log_retention_days', 'Хранение логов, дней')}
+        </section>
+
+        <section class="policy-center-card">
+          <div class="diagnost-subtitle">Проекты и задачи</div>
+          ${this.renderPolicySetting('project_defaults.memory_policy', 'Память проекта')}
+          ${this.renderPolicySetting('project_defaults.verifier_strictness', 'Проверка результата')}
+          ${this.renderPolicySetting('project_defaults.research_depth', 'Глубина исследования')}
+          ${this.renderPolicySetting('project_defaults.allowed_executors', 'Разрешённые исполнители')}
+          ${this.renderPolicySetting('task_defaults.quality', 'Качество задачи')}
+          ${this.renderPolicySetting('task_defaults.memory_save_scope', 'Что сохранять в память')}
+          ${this.renderPolicySetting('task_defaults.evidence_required', 'Доказательства обязательны')}
+          ${this.renderPolicySetting('task_defaults.approval_required_for_commands', 'Команды через подтверждение')}
+        </section>
+      </div>
+
+      <section class="policy-checks">
+        <div class="diagnost-subtitle">Проверки политики</div>
+        <div class="phase6-check-grid">
+          ${checks.map((check) => `
+            <article class="phase6-check phase6-check--${this.escapeHtml(check.status)}">
+              <strong>${this.escapeHtml(check.name)}</strong>
+              <span>${this.escapeHtml(this.phase6StatusName(check.status))}</span>
+              <p>${this.escapeHtml(check.note)}</p>
+            </article>
+          `).join('') || '<p class="mission-empty">Проверка политики ещё не запускалась.</p>'}
+        </div>
+      </section>
+
+      <div class="system-action-strip system-action-strip--wrap">
+        <button type="button" data-phase6-action="save_policy_center">Сохранить правила</button>
+        <button type="button" data-phase6-action="refresh_policy_center">Проверить правила</button>
+        <button type="button" data-phase6-action="export_policy_center">Скачать policy</button>
+        <button type="button" data-phase6-action="copy_policy_center">Скопировать policy</button>
       </div>
     `;
   },
@@ -8174,6 +8570,39 @@ const App = {
         '- Direct Bridge / Local Agent changes require explicit scope'
       ].join('\n'));
       this.toast('Policy реестра скопирован');
+      return;
+    }
+
+    if (action === 'save_policy_center') {
+      const next = this.collectPolicyCenterFormValues();
+      const snapshot = this.buildPolicyCenterSnapshot(next);
+      this.savePolicyCenterSnapshot(snapshot);
+      this.renderSystemStatus();
+      this.toast(`Правила сохранены: ${this.policyCenterStatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'refresh_policy_center') {
+      const snapshot = this.buildPolicyCenterSnapshot(this.collectPolicyCenterFormValues());
+      this.savePolicyCenterSnapshot(snapshot);
+      this.renderSystemStatus();
+      this.toast(`Правила: ${this.policyCenterStatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'export_policy_center') {
+      const snapshot = this.policyCenterState?.last_checked_at ? this.policyCenterState : this.savePolicyCenterSnapshot(this.buildPolicyCenterSnapshot());
+      const text = JSON.stringify(this.buildPolicyCenterExport(snapshot), null, 2);
+      const ok = this.downloadTextFile(`terminator-policy-center-${Date.now()}.json`, text);
+      if (!ok) await this.copyWorkspaceText(text);
+      this.renderSystemStatus();
+      this.toast(ok ? 'Policy скачан' : 'Policy скопирован');
+      return;
+    }
+
+    if (action === 'copy_policy_center') {
+      await this.copyWorkspaceText(this.buildPolicyCenterPolicyText(this.policyCenterState));
+      this.toast('Policy Center скопирован');
       return;
     }
 
