@@ -1,7 +1,7 @@
 # Service Inventory + Dependency Registry + Capability Matrix
 
 Date: 2026-05-26
-Status: local implementation complete, live publication pending
+Status: closed live
 
 ## User Meaning
 
@@ -59,6 +59,8 @@ Status: local implementation complete, live publication pending
 
 - `node --check app.js`: PASS.
 - `node --check sw.js`: PASS.
+- `git diff --check`: PASS, CRLF notices only.
+- No mojibake scan: PASS.
 - Local desktop Chrome smoke: PASS.
 - Local mobile Chrome smoke 390px: PASS.
 - Registry panel visible: PASS.
@@ -70,14 +72,25 @@ Status: local implementation complete, live publication pending
 - Desktop horizontal overflow: false.
 - Mobile horizontal overflow: false.
 
+## Live Checks
+
+- GitHub Actions run `26486130046`: success.
+- Pages health check: PASS.
+- Live HTML marker `20260526-system-registry-v1`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260526-system-registry-v1`: PASS.
+- Live System registry panel visible: PASS.
+- Live registry refresh action: PASS.
+- Live registry buttons visible: PASS.
+- Live services count: 19.
+- Live dependencies count: 13.
+- Live capability actors count: 13.
+- Live desktop horizontal overflow: false.
+- Live mobile 390px horizontal overflow: false.
+
 ## Evidence
 
 - `D:\TerminatorStorage\evidence_backups\system_registry\system-registry-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\system_registry\system-registry-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\system_registry\system-registry-live-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\system_registry\system-registry-live-mobile.png`
 - `evidence/system_registry/SYSTEM_REGISTRY_RESULT.md`
-
-## Remaining Before Final Close
-
-- Publish to GitHub Pages.
-- Run Pages health check.
-- Run live desktop/mobile smoke.
