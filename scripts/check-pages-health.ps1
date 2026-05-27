@@ -1,8 +1,8 @@
 param(
   [string]$Repository = "VitaliyKonstantinovich/terminator-webapp",
   [string]$Url = "https://vitaliykonstantinovich.github.io/terminator-webapp/",
-  [string]$ExpectedAssetMarker = "20260526-phase6-closure-v2",
-  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260526-phase6-closure-v2"
+  [string]$ExpectedAssetMarker = "20260526-phase8-device-mesh-v1",
+  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260526-phase8-device-mesh-v1"
 )
 
 $ErrorActionPreference = "Stop"
