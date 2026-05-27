@@ -1,13 +1,13 @@
 # Phase 8: Device Mesh / Legs Control Center V1
 
 ## Status
-Local PASS on 2026-05-26. Live GitHub Pages deployment is the remaining acceptance step.
+Live PASS on 2026-05-26. Phase 8 is implemented, pushed and served by GitHub Pages with marker `20260526-phase8-device-mesh-v1`.
 
 ## User Meaning
 - Ноги = слой маршрутизации и связи устройств.
 - Device Mesh = связь устройств: ПК, WebApp, телефон, мобильная версия, локальный агент и будущие экраны.
 - Ноги не выполняют действия. Они показывают, куда можно безопасно передать задачу, контекст и статус.
-- Руки выполняют действия позже, через Guardian, Approval and evidence.
+- Руки выполняют действия позже, через Защитник (Guardian), подтверждение владельца (Approval) и доказательства (evidence).
 
 ## Implemented
 - Added System panel `Ноги / Устройства`.
@@ -41,10 +41,10 @@ Local PASS on 2026-05-26. Live GitHub Pages deployment is the remaining acceptan
   - owner confirmation.
 - Added safe route planner:
   - ПК -> WebApp;
-  - WebApp -> task storage;
-  - WebApp -> phone/mobile version;
-  - Diagnost -> Codex repair workspace;
-  - Mission Control -> future command screen.
+  - WebApp -> общее хранилище задач;
+  - WebApp -> телефон / мобильная версия;
+  - Диагност -> рабочая область ремонта через Codex;
+  - Центр управления -> будущий экран штаба.
 - Added handoff explanation:
   - create task;
   - collect package;
@@ -96,9 +96,19 @@ Local PASS on 2026-05-26. Live GitHub Pages deployment is the remaining acceptan
 - `D:\TerminatorStorage\evidence_backups\phase8_device_mesh\phase8-device-local-device-mobile.png`
 - `D:\TerminatorStorage\evidence_backups\phase8_device_mesh\phase8-device-final-local-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\phase8_device_mesh\phase8-device-final-local-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase8_device_mesh\phase8-device-live-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase8_device_mesh\phase8-device-live-mobile.png`
 
 ## Live Acceptance
-Pending GitHub Pages deploy and live smoke.
+- Commit `1128b39 feat: add phase 8 device mesh legs center`: pushed.
+- GitHub Actions `Deploy GitHub Pages` run `26490620988`: success.
+- `scripts/check-pages-health.ps1`: PASS.
+- Live HTML marker `20260526-phase8-device-mesh-v1`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260526-phase8-device-mesh-v1`: PASS.
+- Live desktop Chrome smoke for `Ноги / Устройства`: PASS.
+- Live mobile Chrome smoke 390px: PASS.
+- Live Device Mesh cards/routes/actions: 10 / 5 / 4.
+- Live horizontal overflow desktop/mobile: false.
 
 ## What To Check First
 1. Open `Система`.
