@@ -1,7 +1,7 @@
 # Phase 6 Final Closure — Settings / Policy Center V1
 
 Date: 2026-05-26
-Status: local PASS, live pending
+Status: live PASS
 
 ## Purpose
 
@@ -78,7 +78,7 @@ Not touched:
 - AI API.
 - Paid services.
 
-## Local Checks
+## Checks
 
 - `node --check app.js`: PASS.
 - `node --check sw.js`: PASS.
@@ -86,6 +86,10 @@ Not touched:
 - Local HTTP server: PASS.
 - Local desktop Chrome smoke: PASS.
 - Local mobile Chrome smoke 390px: PASS.
+- GitHub Actions run `26488322868`: success.
+- Pages health check for `20260526-phase6-closure-v1`: PASS.
+- Live desktop Chrome smoke: PASS.
+- Live mobile Chrome smoke 390px: PASS.
 - Policy Center visible: PASS.
 - Save policy action: PASS.
 - Refresh policy action: PASS.
@@ -101,12 +105,14 @@ Not touched:
 - `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-local-mobile.png`
 - `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-local-panel-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-local-panel-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-live-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase6_final_closure\phase6-policy-live-mobile.png`
 
 ## First Manual Check
 
-Open:
+Live URL:
 
-`http://127.0.0.1:8805/?screen=system&force=phase6-closure-local-ru`
+`https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase6-closure-live-v1`
 
 Check first:
 
@@ -115,4 +121,3 @@ Check first:
 3. Button `Сохранить правила` saves state.
 4. Hero shows Russian labels, not raw technical values.
 5. Mobile width has no horizontal overflow.
-
