@@ -1091,12 +1091,13 @@ const APPROVAL_RISK_LEVELS = {
 const WEBAPP_TRANSPORT_MODE = 'auto'; // telegram | direct | auto
 const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
+const TERMINATOR_LOCAL_AGENT_ID = 'Terminator-PC';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 15 Real Health Endpoints + Agent Heartbeat V1',
+  name: 'Phase 16 Controlled Bridge Rollout + Live Heartbeat Acceptance V1',
   date: '2026-05-27',
-  status: 'закрыт локально',
-  previous: 'Phase 14 Live Runtime Binding V1',
+  status: 'закрыт live',
+  previous: 'Phase 15 Real Health Endpoints + Agent Heartbeat V1',
   next: 'Финальный QA Max остаётся последним после сборки всех слоёв'
 };
 const TERMINATOR_PHASE_STEPS = [
@@ -1137,7 +1138,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 35, name: 'Controlled Worker Runtime V1', status: 'закрыт локально' },
   { id: 36, name: 'Integration Hardening V1', status: 'закрыт локально' },
   { id: 37, name: 'Live Runtime Binding V1', status: 'закрыт локально' },
-  { id: 38, name: 'Real Health Endpoints + Agent Heartbeat V1', status: 'закрыт локально' }
+  { id: 38, name: 'Real Health Endpoints + Agent Heartbeat V1', status: 'закрыт live' },
+  { id: 39, name: 'Controlled Bridge Rollout + Live Heartbeat Acceptance V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -4321,7 +4323,8 @@ const App = {
     const baseUrl = getConfiguredDirectBridgeBaseUrl();
     if (!baseUrl) return null;
     try {
-      const result = await directBridgeRequest(baseUrl, '/public/runtime-health', {
+      const params = new URLSearchParams({ agent_id: TERMINATOR_LOCAL_AGENT_ID });
+      const result = await directBridgeRequest(baseUrl, `/public/runtime-health?${params.toString()}`, {
         method: 'GET',
         skipAuth: true,
         idempotent: true,
