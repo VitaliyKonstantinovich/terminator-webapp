@@ -300,6 +300,7 @@ const HEAD_RUNTIME_FALLBACK_KEY = 'mina_head_runtime_v1';
 const MINA_SCHEME_STATE_KEY = 'mina_system_scheme_state_v1';
 const PWA_STATE_STORAGE_KEY = 'mina_pwa_state_v1';
 const VOICE_SETTINGS_STORAGE_KEY = 'mina_voice_settings_v1';
+const VOICE_EVENTS_STORAGE_KEY = 'mina_voice_events_v1';
 const PRODUCTION_RELEASE_STATE_KEY = 'mina_production_release_state_v1';
 const BACKUP_RESTORE_STATE_KEY = 'mina_backup_restore_state_v1';
 const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
@@ -868,6 +869,9 @@ const VOICE_INTENT_LABELS = {
   mark_sent_to_executor: 'Отметить пакет отправленным',
   open_verifier: 'Открыть проверку',
   show_memory_preview: 'Показать память',
+  show_next_best_action: 'Что дальше',
+  show_voice_status: 'Статус голоса',
+  open_device_mesh: 'Открыть Ноги / Устройства',
   stop_listening: 'Остановить голос',
   help: 'Подсказка',
   dangerous_command: 'Опасная команда',
@@ -1007,10 +1011,10 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 8 Device Mesh / Legs Control Center V1',
-  date: '2026-05-26',
-  status: 'закрыт live',
-  previous: 'Phase 6 Closure + Settings / Policy Center V1',
+  name: 'Phase 9 Mina Voice / Safe Command Layer V1',
+  date: '2026-05-27',
+  status: 'в работе',
+  previous: 'Phase 8 Device Mesh / Legs Control Center V1',
   next: 'Следующий крупный слой по roadmap'
 };
 const TERMINATOR_PHASE_STEPS = [
@@ -1044,7 +1048,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' },
   { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' },
   { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'закрыт live' },
-  { id: 31, name: 'Device Mesh / Ноги Control Center V1', status: 'закрыт live' }
+  { id: 31, name: 'Device Mesh / Ноги Control Center V1', status: 'закрыт live' },
+  { id: 32, name: 'Mina Voice / Safe Command Layer V1', status: 'в работе' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2267,6 +2272,8 @@ const App = {
   workspaceVoiceRecognition: null,
   workspaceVoiceSupported: false,
   workspaceVoiceOpen: false,
+  voiceSettings: null,
+  voiceEventLog: [],
   voiceResponsesEnabled: true,
   voiceTtsSupported: false,
   pwaInstallPrompt: null,
@@ -2305,6 +2312,7 @@ const App = {
     this.initTelegram();
     this.bindEvents();
     this.loadVoiceSettings();
+    this.loadVoiceEvents();
     this.initVoiceSupport();
     this.initPwaRuntime();
     await this.initTaskRuntime();
@@ -2432,7 +2440,7 @@ const App = {
 
       const voiceSettingButton = event.target.closest('[data-voice-setting]');
       if (voiceSettingButton) {
-        this.handleVoiceSetting(voiceSettingButton.dataset.voiceSetting);
+        this.handleVoiceSetting(voiceSettingButton.dataset.voiceSetting, voiceSettingButton);
         return;
       }
 
@@ -2662,7 +2670,7 @@ const App = {
       return;
     }
     const recognition = new Recognition();
-    recognition.lang = 'ru-RU';
+    recognition.lang = this.voiceSettings?.speech_language || 'ru-RU';
     recognition.interimResults = false;
     recognition.continuous = false;
     recognition.onstart = () => {
@@ -8014,21 +8022,61 @@ const App = {
     const voiceTasks = (this.workTasks || []).filter((task) => task.input_source === 'voice' || task.voice_event_type);
     const activeTask = this.getActiveWorkTask();
     const repliesStatus = this.voiceResponsesEnabled && this.voiceTtsSupported ? 'включены' : (this.voiceTtsSupported ? 'выключены' : 'недоступны');
+    const settings = this.voiceSettings || {};
+    const lastEvents = (this.voiceEventLog || []).slice(0, 5);
+    const readiness = this.buildVoiceReadinessSnapshot();
     const rows = [
-      ['Режим', 'push-to-talk', 'фонового прослушивания нет'],
-      ['STT', this.workspaceVoiceSupported ? 'доступен' : 'manual fallback', 'Browser Web Speech API, без AI API'],
-      ['Короткий ответ Мины', repliesStatus, 'TTS только короткими фразами, длинные данные остаются текстом'],
-      ['Intent Preview', 'включён', 'команда сначала показывается владельцу'],
-      ['Dangerous voice actions', 'blocked', 'опасные слова не выполняются автоматически'],
-      ['Voice events', `${voiceTasks.length} задач`, activeTask ? `активная задача: ${activeTask.task_id}` : 'активная задача не выбрана']
+      ['Готовность', `${readiness.score}%`, readiness.note],
+      ['Режим', settings.push_to_talk_enabled === false ? 'ручной предпросмотр' : 'нажать и говорить', 'фонового прослушивания нет'],
+      ['Распознавание речи', this.workspaceVoiceSupported ? 'доступно' : 'ручной ввод', 'браузерное распознавание, без ИИ API'],
+      ['Короткий ответ Мины', repliesStatus, 'ответы только короткими фразами, длинные данные остаются текстом'],
+      ['Предпросмотр намерения', 'включён', 'команда сначала показывается владельцу'],
+      ['Опасные команды', 'заблокированы', 'deploy, push, delete, .env, network и billing не выполняются голосом'],
+      ['Текст речи', settings.save_transcripts || 'confirmed_only', 'сохраняется только после подтверждения или привязки к задаче'],
+      ['Голосовые события', `${this.voiceEventLog.length} событий`, activeTask ? `активная задача: ${activeTask.task_id}` : `${voiceTasks.length} задач из голоса`]
     ];
     host.innerHTML = `
+      <section class="voice-command-center">
+        <div>
+          <span>MINA VOICE V1</span>
+          <h3>Голос безопасных команд</h3>
+          <p>Мина слушает только по действию владельца, превращает речь в намерение, показывает предпросмотр, риск и выполняет только разрешённые действия.</p>
+        </div>
+        <strong>${this.escapeHtml(String(readiness.score))}%<small>${this.escapeHtml(readiness.status)}</small></strong>
+      </section>
       <div class="voice-system-grid">
         ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
       </div>
+      <section class="voice-command-examples">
+        <strong>Команды, которые уже понимает Мина</strong>
+        <div>
+          ${[
+            'создай задачу проверить отчёт Codex',
+            'добавь уточнение не трогать Local Agent',
+            'открой Рабочее',
+            'покажи Центр управления',
+            'что дальше',
+            'сформируй пакет Codex',
+            'открой Ноги',
+            'стоп'
+          ].map((item) => `<button type="button" data-voice-setting="load_example" data-voice-example="${this.escapeHtml(item)}">${this.escapeHtml(item)}</button>`).join('')}
+        </div>
+      </section>
+      <section class="voice-event-strip">
+        <strong>Последние голосовые события</strong>
+        ${lastEvents.length ? lastEvents.map((event) => `
+          <article>
+            <span>${this.escapeHtml(this.formatTaskTime(event.created_at))}</span>
+            <b>${this.escapeHtml(VOICE_INTENT_LABELS[event.intent] || event.intent || event.type)}</b>
+            <p>${this.escapeHtml(event.summary || event.transcript || 'без текста')}</p>
+          </article>
+        `).join('') : '<p>Событий пока нет. Голос не запускается в фоне.</p>'}
+      </section>
       <div class="system-action-strip">
         <button type="button" data-voice-setting="toggle_responses">${this.voiceResponsesEnabled ? 'Отключить ответы' : 'Включить ответы'}</button>
         <button type="button" data-voice-setting="test_reply">Тест ответа</button>
+        <button type="button" data-voice-setting="open_workspace_voice">Открыть голос в Рабочем</button>
+        <button type="button" data-voice-setting="copy_voice_report">Скопировать отчёт голоса</button>
         <button type="button" data-scheme-action="select_voice">Открыть в Схеме Мины</button>
       </div>
     `;
@@ -8036,21 +8084,92 @@ const App = {
 
   loadVoiceSettings() {
     const stored = this.readJsonStorage(VOICE_SETTINGS_STORAGE_KEY, {});
+    this.voiceSettings = {
+      voice_enabled: stored.voice_enabled !== false,
+      push_to_talk_enabled: stored.push_to_talk_enabled !== false,
+      speech_language: stored.speech_language || 'ru-RU',
+      text_to_speech_enabled: stored.text_to_speech_enabled !== false,
+      voice_responses_enabled: stored.voice_responses_enabled !== false,
+      auto_preview: stored.auto_preview || 'always',
+      dangerous_voice_actions: 'blocked',
+      save_transcripts: stored.save_transcripts || 'confirmed_only',
+      speech_engine: stored.speech_engine || 'browser_web_speech',
+      tts_engine: stored.tts_engine || 'browser_speech_synthesis',
+      updated_at: stored.updated_at || ''
+    };
     this.voiceTtsSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-    this.voiceResponsesEnabled = stored.voice_responses_enabled !== false;
+    this.voiceResponsesEnabled = this.voiceSettings.voice_responses_enabled && this.voiceSettings.text_to_speech_enabled;
   },
 
   saveVoiceSettings() {
-    this.writeJsonStorage(VOICE_SETTINGS_STORAGE_KEY, {
+    this.voiceSettings = {
+      ...(this.voiceSettings || {}),
       voice_responses_enabled: this.voiceResponsesEnabled,
       tts_supported: this.voiceTtsSupported,
-      language: 'ru-RU',
+      speech_language: this.voiceSettings?.speech_language || 'ru-RU',
       mode: 'push-to-talk',
       updated_at: new Date().toISOString()
-    });
+    };
+    this.writeJsonStorage(VOICE_SETTINGS_STORAGE_KEY, this.voiceSettings);
   },
 
-  handleVoiceSetting(action) {
+  loadVoiceEvents() {
+    const stored = this.readJsonStorage(VOICE_EVENTS_STORAGE_KEY, []);
+    this.voiceEventLog = Array.isArray(stored) ? stored.slice(0, 50) : [];
+  },
+
+  saveVoiceEvents() {
+    this.writeJsonStorage(VOICE_EVENTS_STORAGE_KEY, (this.voiceEventLog || []).slice(0, 50));
+  },
+
+  buildVoiceReadinessSnapshot() {
+    const supported = this.workspaceVoiceSupported;
+    const tts = this.voiceTtsSupported;
+    const settings = this.voiceSettings || {};
+    const checks = [
+      settings.voice_enabled !== false,
+      settings.push_to_talk_enabled !== false,
+      true,
+      settings.dangerous_voice_actions === 'blocked',
+      settings.save_transcripts === 'confirmed_only',
+      supported,
+      tts || !this.voiceResponsesEnabled
+    ];
+    const pass = checks.filter(Boolean).length;
+    const score = Math.round((pass / checks.length) * 100);
+    return {
+      score,
+      status: score >= 86 ? 'готово' : score >= 60 ? 'частично' : 'ручной режим',
+      note: supported ? 'Распознавание доступно; ручной ввод остаётся запасным способом.' : 'Микрофон через браузер недоступен, но ручной предпросмотр текста работает.'
+    };
+  },
+
+  buildVoiceSafetyReport() {
+    const readiness = this.buildVoiceReadinessSnapshot();
+    return [
+      'Mina Voice V1',
+      `Готовность: ${readiness.score}% (${readiness.status})`,
+      `Речь: ${this.workspaceVoiceSupported ? 'доступно' : 'ручной ввод'}`,
+      `Короткие ответы: ${this.voiceResponsesEnabled && this.voiceTtsSupported ? 'включены' : 'выключены/недоступны'}`,
+      'Фоновое прослушивание: нет',
+      'Фоновая фраза запуска: не включена',
+      'ИИ API: не используются',
+      'Опасные команды: заблокированы, только предупреждение/подтверждение',
+      'Текст речи: только после подтверждения',
+      `Событий: ${(this.voiceEventLog || []).length}`,
+      '',
+      'Понимаемые действия:',
+      '- создать задачу',
+      '- добавить уточнение',
+      '- открыть Рабочее / Центр управления / Систему',
+      '- сформировать пакет Codex',
+      '- открыть проверку / память / Ноги',
+      '- показать следующий шаг',
+      '- остановить голос'
+    ].join('\n');
+  },
+
+  async handleVoiceSetting(action, button = null) {
     if (action === 'toggle_responses') {
       this.voiceResponsesEnabled = !this.voiceResponsesEnabled;
       this.saveVoiceSettings();
@@ -8062,7 +8181,27 @@ const App = {
     }
     if (action === 'test_reply') {
       this.speakMina('Голос Мины готов.');
-      this.toast(this.voiceTtsSupported ? 'Тестовый ответ отправлен' : 'TTS недоступен в браузере');
+      this.toast(this.voiceTtsSupported ? 'Тестовый ответ отправлен' : 'Голосовой ответ недоступен в браузере');
+    }
+    if (action === 'open_workspace_voice') {
+      this.go('work');
+      this.workspaceVoiceOpen = true;
+      this.workspaceVoiceState = this.workspaceVoiceSupported ? 'idle' : 'browser_not_supported';
+      this.renderVoicePanel();
+      document.getElementById('workspace-voice-transcript')?.focus();
+    }
+    if (action === 'copy_voice_report') {
+      await this.copyWorkspaceText(this.buildVoiceSafetyReport());
+      this.toast('Отчёт голоса скопирован');
+    }
+    if (action === 'load_example') {
+      const example = button?.dataset?.voiceExample || '';
+      this.go('work');
+      this.workspaceVoiceOpen = true;
+      this.workspaceVoiceTranscript = example;
+      this.workspaceVoicePreview = this.buildVoiceIntentPreview(example);
+      this.workspaceVoiceState = 'preview_waiting';
+      this.renderVoicePanel();
     }
   },
 
@@ -8073,7 +8212,7 @@ const App = {
     try {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(phrase);
-      utterance.lang = 'ru-RU';
+      utterance.lang = this.voiceSettings?.speech_language || 'ru-RU';
       utterance.rate = 0.96;
       utterance.pitch = 0.92;
       window.speechSynthesis.speak(utterance);
@@ -8926,7 +9065,8 @@ const App = {
         : (this.taskRuntimeReady ? 'partial' : 'waiting');
     const handsStatus = workerReports.length || repairIncidents.length ? 'partial' : (guardian.state.status ? 'waiting' : 'waiting');
     const eyesStatus = workerReports.some((report) => String(report.worker_id || '').includes('eyes')) || document.getElementById('screen-scheme') ? 'partial' : 'waiting';
-    const voiceStatus = this.workspaceVoiceSupported && this.voiceResponsesEnabled ? 'ready' : (this.workspaceVoiceSupported || this.voiceTtsSupported ? 'partial' : 'waiting');
+    const voiceSnapshot = this.buildVoiceReadinessSnapshot();
+    const voiceStatus = voiceSnapshot.score >= 86 ? 'ready' : voiceSnapshot.score >= 60 ? 'partial' : 'waiting';
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const legsStatus = deviceMesh.readiness >= 80 || devicePhone?.status === 'connected' || pwa.installed
       ? 'ready'
@@ -8963,16 +9103,17 @@ const App = {
       },
       voice: {
         status: voiceStatus,
-        readiness: voiceStatus === 'ready' ? 82 : (this.workspaceVoiceSupported ? 68 : 42),
-        summary: this.workspaceVoiceSupported ? 'режим “нажать и говорить” доступен' : 'ручной ввод доступен',
+        readiness: voiceSnapshot.score,
+        summary: voiceSnapshot.note,
         note: 'Фонового прослушивания нет. Опасные голосовые команды блокируются Approval.',
-        snapshot_source: 'Workspace voice hooks',
+        snapshot_source: 'Mina Voice V1 / Workspace voice hooks',
         is_mock: false,
         checks: [
           ['Режим', 'Нажать и говорить'],
           ['Язык', 'Русский'],
           ['Распознавание речи', this.workspaceVoiceSupported ? 'доступно в браузере' : 'ручной ввод'],
           ['Ответы Мины', this.voiceResponsesEnabled && this.voiceTtsSupported ? 'короткие ответы включены' : 'текстовый режим'],
+          ['События', `${(this.voiceEventLog || []).length} в журнале`],
           ['Опасные команды', 'заблокированы']
         ]
       },
@@ -9435,7 +9576,7 @@ const App = {
           <div class="scheme-chip-list">
             <span>Нажать и говорить</span>
             <span>Русский</span>
-            <span>${this.workspaceVoiceSupported ? 'Речь распознаётся' : 'ручной fallback'}</span>
+            <span>${this.workspaceVoiceSupported ? 'Речь распознаётся' : 'ручной ввод'}</span>
             <span>Опасное заблокировано</span>
           </div>
           <p>Мина сначала показывает “Я поняла так”, затем ждёт подтверждение. Опасные слова не выполняются.</p>
@@ -9643,41 +9784,56 @@ const App = {
 
   renderVoicePanel() {
     const panel = document.getElementById('workspace-voice-panel');
-    const toggle = document.getElementById('workspace-voice-toggle');
+    const toggles = document.querySelectorAll('[data-workspace-action="toggle_voice"]');
     if (!panel) return;
     panel.hidden = !this.workspaceVoiceOpen;
-    if (toggle) {
+    toggles.forEach((toggle) => {
       toggle.setAttribute('aria-pressed', this.workspaceVoiceState === 'listening' ? 'true' : 'false');
       toggle.textContent = this.workspaceVoiceState === 'listening' ? 'Слушаю...' : 'Микрофон';
-    }
+    });
     const state = document.getElementById('workspace-voice-state');
     const support = document.getElementById('workspace-voice-support');
     const transcript = document.getElementById('workspace-voice-transcript');
     const preview = document.getElementById('workspace-voice-preview');
     if (state) state.textContent = VOICE_STATES[this.workspaceVoiceState] || this.workspaceVoiceState || 'готово';
     if (support) support.textContent = this.workspaceVoiceSupported
-      ? 'Browser Speech API: доступен, push-to-talk'
-      : 'Browser Speech API: недоступен, работает ручной preview';
+      ? 'Распознавание браузера: доступно, режим “нажать и говорить”'
+      : 'Распознавание браузера недоступно, работает ручной предпросмотр';
     if (transcript && transcript.value !== this.workspaceVoiceTranscript) transcript.value = this.workspaceVoiceTranscript || '';
     if (!preview) return;
     const intent = this.workspaceVoicePreview;
     if (!intent) {
       preview.hidden = false;
       preview.innerHTML = `
-        <p>Голос не выполняет действия напрямую. Сначала будет preview намерения, риск и подтверждение.</p>
+        <p>Голос не выполняет действия напрямую. Сначала будет предпросмотр намерения, риск и подтверждение владельца.</p>
         <div class="voice-actions">
-          <button type="button" data-voice-action="preview_manual">Показать preview</button>
+          <button type="button" data-voice-action="preview_manual">Показать предпросмотр</button>
           <button type="button" data-voice-setting="toggle_responses">${this.voiceResponsesEnabled ? 'Ответы: вкл' : 'Ответы: выкл'}</button>
           <button type="button" data-voice-action="cancel">Закрыть</button>
         </div>
       `;
       return;
     }
+    const secretWarning = this.scanPrivacyText(intent.transcript || '').findings.length
+      ? '<p class="voice-warning">В тексте есть признаки секрета. В журнал будет записана только безопасная версия.</p>'
+      : '';
+    const canExecuteIntent = intent.intent !== 'unknown' && intent.confidence !== 'low' && intent.status !== 'completed';
+    const executeLabel = intent.risk === 'dangerous'
+      ? 'Создать предупреждение'
+      : intent.intent === 'create_task'
+        ? 'Создать задачу'
+        : 'Выполнить';
+    const statusClass = intent.risk === 'dangerous' ? 'danger' : intent.risk === 'review' ? 'review' : 'safe';
     preview.hidden = false;
     preview.innerHTML = `
       <div class="voice-preview-head">
-        <span>Я понял команду так</span>
+        <span>Я поняла команду так</span>
         <strong>${this.escapeHtml(intent.label)}</strong>
+      </div>
+      <div class="voice-preview-status ${statusClass}">
+        <span>Риск: ${this.escapeHtml(DEVICE_RISK_LEVELS[intent.risk] || intent.risk)}</span>
+        <span>Уверенность: ${this.escapeHtml(VOICE_CONFIDENCE_LABELS[intent.confidence] || intent.confidence)}</span>
+        <span>${intent.risk === 'dangerous' ? 'Автовыполнение заблокировано' : 'Сначала подтверждение владельца'}</span>
       </div>
       <dl class="voice-preview-grid">
         <div><dt>Действие</dt><dd>${this.escapeHtml(intent.label)}</dd></div>
@@ -9685,15 +9841,52 @@ const App = {
         <div><dt>Уверенность</dt><dd>${this.escapeHtml(VOICE_CONFIDENCE_LABELS[intent.confidence] || intent.confidence)}</dd></div>
         <div><dt>Проект</dt><dd>${this.escapeHtml(this.projectName(intent.entities.project_id || 'terminator'))}</dd></div>
         <div><dt>Исполнитель</dt><dd>${this.escapeHtml(intent.entities.executor || 'не задано')}</dd></div>
-        <div><dt>Статус</dt><dd>${this.escapeHtml(intent.status)}</dd></div>
+        <div><dt>Статус</dt><dd>${this.escapeHtml(VOICE_STATES[intent.status] || (intent.status === 'blocked_preview' ? 'заблокировано до подтверждения' : intent.status))}</dd></div>
       </dl>
       <p>${this.escapeHtml(intent.summary)}</p>
+      ${secretWarning}
+      ${this.renderVoiceEntityChips(intent)}
+      <div class="voice-safety-list">
+        <span>Фоновое прослушивание: нет</span>
+        <span>Аудио не сохраняется</span>
+        <span>Опасные действия только через подтверждение</span>
+      </div>
       <div class="voice-actions">
-        <button type="button" data-voice-action="execute">${intent.risk === 'dangerous' ? 'Подготовить warning' : 'Выполнить'}</button>
+        ${canExecuteIntent
+          ? `<button type="button" data-voice-action="execute">${this.escapeHtml(executeLabel)}</button>`
+          : intent.status === 'completed'
+            ? '<button type="button" disabled>Готово</button>'
+            : '<button type="button" data-voice-action="edit">Уточнить вручную</button>'}
         <button type="button" data-voice-action="edit">Изменить</button>
         <button type="button" data-voice-action="cancel">Отмена</button>
       </div>
     `;
+  },
+
+  renderVoiceEntityChips(intent) {
+    const entities = intent?.entities || {};
+    const chips = Object.entries(entities)
+      .filter(([, value]) => value !== undefined && value !== null && String(value).trim())
+      .map(([key, value]) => `<span>${this.escapeHtml(this.voiceEntityName(key))}: ${this.escapeHtml(this.voiceEntityValue(key, value))}</span>`);
+    if (!chips.length) return '';
+    return `<div class="voice-entity-chips">${chips.join('')}</div>`;
+  },
+
+  voiceEntityValue(key, value) {
+    if (key === 'project_id') return this.projectName(value);
+    return String(value);
+  },
+
+  voiceEntityName(key) {
+    return {
+      task_text: 'задача',
+      project_id: 'проект',
+      mode: 'режим',
+      quality_level: 'качество',
+      executor: 'исполнитель',
+      note: 'уточнение',
+      command: 'команда'
+    }[key] || key;
   },
 
   handleVoiceAction(action) {
@@ -9720,13 +9913,52 @@ const App = {
     }
   },
 
+  normalizeVoiceCommand(text) {
+    return String(text || '')
+      .trim()
+      .replace(/^(?:мина|терминатор)(?:[, ]+слушай)?[, ]*/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
+  voiceProjectFromText(text) {
+    const lower = String(text || '').toLowerCase();
+    const projects = [...(this.activeWorkProjects?.() || []), ...this.defaultRuntimeProjects()];
+    const seen = new Set();
+    for (const project of projects) {
+      if (!project?.project_id || seen.has(project.project_id)) continue;
+      seen.add(project.project_id);
+      const name = String(project.name || '').toLowerCase();
+      if (name && lower.includes(name)) return project.project_id;
+    }
+    if (/диплом|qa|тест/.test(lower)) return 'diploma_qa';
+    if (/codex|кодекс|antigravity|исполнитель/.test(lower)) return 'development_executors';
+    if (/исслед|документ|источник/.test(lower)) return 'research_documents';
+    if (/терминатор|мина|mina|direct|bridge|local agent|рабочее/.test(lower)) return 'terminator';
+    return '';
+  },
+
+  voiceExecutorFromText(text) {
+    const lower = String(text || '').toLowerCase();
+    const executors = [
+      ['Codex', /\b(codex|кодекс)\b/],
+      ['Claude', /\bclaude\b|клод/],
+      ['Gemini', /\bgemini\b|джемини/],
+      ['DeepSeek', /\bdeepseek\b|дипсик|дип seek/],
+      ['Qwen', /\bqwen\b|квен/],
+      ['ChatGPT', /\bchatgpt\b|чат ?gpt|чатджпт/]
+    ];
+    return executors.find(([, pattern]) => pattern.test(lower))?.[0] || '';
+  },
+
   buildVoiceIntentPreview(transcript) {
     const raw = String(transcript || '').trim();
-    const normalized = raw.toLowerCase().replace(/\s+/g, ' ');
-    if (!raw) {
+    const command = this.normalizeVoiceCommand(raw);
+    const normalized = command.toLowerCase().replace(/\s+/g, ' ');
+    if (!raw || !command) {
       return {
-        transcript: '',
-        normalized_text: '',
+        transcript: raw,
+        normalized_text: normalized,
         intent: 'unknown',
         label: VOICE_INTENT_LABELS.unknown,
         entities: {},
@@ -9736,59 +9968,73 @@ const App = {
         summary: 'Команда пустая. Скажите или вставьте текст.'
       };
     }
-    if (VOICE_DANGEROUS_PATTERN.test(raw)) {
+    const executor = this.voiceExecutorFromText(command);
+    const projectId = this.voiceProjectFromText(command);
+
+    if (VOICE_DANGEROUS_PATTERN.test(command)) {
       return this.voiceIntent(raw, 'dangerous_command', 'high', 'dangerous', {
-        command: raw
-      }, 'Опасная команда не будет выполнена автоматически. Можно только подготовить предупреждение/approval.');
+        command: command
+      }, 'Опасная команда не будет выполнена автоматически. Можно только подготовить предупреждение и запрос подтверждения.');
     }
-    if (/(^|\s)(стоп|отмена|не выполняй|останови|остановить|закрой голос|хватит)(\s|$)/i.test(raw)) {
+    if (/(^|\s)(стоп|отмена|не выполняй|останови|остановить|закрой голос|хватит)(\s|$)/i.test(command)) {
       return this.voiceIntent(raw, 'stop_listening', 'high', 'safe', {}, 'Голосовой режим будет остановлен. Никаких действий не выполняется.');
     }
-    if (/(помощь|что умеешь|команды|подсказка)/i.test(raw)) {
+    if (/(помощь|что умеешь|команды|подсказка)/i.test(command)) {
       return this.voiceIntent(raw, 'help', 'high', 'safe', {}, 'Покажу подсказку по безопасным голосовым командам.');
     }
-    if (/(создай|создать|новая|новую).{0,24}задач/i.test(raw)) {
-      const request = raw.replace(/^(мина[, ]*)?/i, '').replace(/создай|создать|новая|новую|задачу|задача/gi, '').trim() || raw;
-      const preview = this.buildWorkPreview(request, { project_id: 'terminator', mode: 'auto', quality_level: 'auto' });
+    if (/(что дальше|следующий шаг|что делать дальше|куда дальше|next best)/i.test(command)) {
+      return this.voiceIntent(raw, 'show_next_best_action', 'high', 'safe', {}, 'Покажу следующий лучший шаг по текущей задаче или системе.');
+    }
+    if (/(статус голоса|проверь голос|готовность голоса|voice status)/i.test(command)) {
+      return this.voiceIntent(raw, 'show_voice_status', 'high', 'safe', {}, 'Покажу состояние Mina Voice.');
+    }
+    if (/(ноги|устройства|телефон|device mesh|девайс|устройство)/i.test(command)) {
+      return this.voiceIntent(raw, 'open_device_mesh', 'high', 'safe', {}, 'Будет открыт центр связи устройств и Ноги Терминатора.');
+    }
+    if (/(создай|создать|новая|новую).{0,24}задач/i.test(command)) {
+      const request = command.replace(/создай|создать|новая|новую|задачу|задача/gi, '').trim() || command;
+      const preview = this.buildWorkPreview(request, { project_id: projectId || 'terminator', mode: 'auto', quality_level: 'auto' });
       return this.voiceIntent(raw, 'create_task', 'high', 'safe', {
         project_id: preview.project_id,
         mode: preview.mode,
         quality_level: preview.quality_level,
-        task_text: request
-      }, `Будет создан preview задачи: ${preview.title}`);
+        task_text: request,
+        ...(executor ? { executor } : {})
+      }, `Будет создан предпросмотр задачи: ${preview.title}`);
     }
-    if (/(добавь|добавить|запиши|записать).{0,28}(уточнен|уточнён|замет|комментар)|^(уточнение|заметка)/i.test(raw)) {
-      const note = raw.replace(/^(мина[, ]*)?/i, '').replace(/добавь|добавить|запиши|записать|уточнение|уточнённое|уточненное|заметку|заметка|комментарий/gi, '').replace(/^[-—: ]+/, '').trim() || raw;
+    if (/(добавь|добавить|запиши|записать).{0,28}(уточнен|уточнён|замет|комментар)|^(уточнение|заметка)/i.test(command)) {
+      const note = command.replace(/добавь|добавить|запиши|записать|уточнение|уточнённое|уточненное|заметку|заметка|комментарий/gi, '').replace(/^[-—: ]+/, '').trim() || command;
       return this.voiceIntent(raw, 'add_note', 'high', 'safe', { note }, 'Уточнение будет добавлено в историю текущей задачи.');
     }
-    if (/(центр управления|mission|задачи ждут|риски|ожидают отчёт|ожидают отчет)/i.test(raw)) {
+    if (/(центр управления|mission|задачи ждут|риски|ожидают отчёт|ожидают отчет)/i.test(command)) {
       return this.voiceIntent(raw, 'open_mission_control', 'high', 'safe', {}, 'Будет открыт Центр управления.');
     }
-    if (/(система|устройства|диагност|статус системы)/i.test(raw)) {
+    if (/(система|диагност|статус системы)/i.test(command)) {
       return this.voiceIntent(raw, 'open_system', 'high', 'safe', {}, 'Будет открыт экран Система.');
     }
-    if (/(рабочее|рабочее окно|workspace)/i.test(raw)) {
+    if (/(рабочее|рабочее окно|workspace)/i.test(command)) {
       return this.voiceIntent(raw, 'open_workspace', 'high', 'safe', {}, 'Будет открыт экран Рабочее.');
     }
-    if (/(сформируй|создай|сделай).{0,24}(пакет|context pack|контекст).{0,24}(codex|кодекс)?/i.test(raw)) {
-      return this.voiceIntent(raw, 'create_context_pack', 'medium', 'review', { executor: 'Codex' }, 'Будет подготовлен Context Pack, без автоматической отправки.');
+    if (/(сформируй|создай|сделай).{0,24}(пакет|context pack|контекст).{0,24}(codex|кодекс)?/i.test(command)) {
+      return this.voiceIntent(raw, 'create_context_pack', 'medium', 'review', { executor: executor || 'Codex' }, 'Будет подготовлен Context Pack, без автоматической отправки.');
     }
-    if (/(отметь|пометь).{0,30}(отправил|отправлено|отправлен).{0,20}(codex|кодекс)?/i.test(raw)) {
-      return this.voiceIntent(raw, 'mark_sent_to_executor', 'medium', 'review', { executor: 'Codex' }, 'Пакет будет отмечен как отправленный исполнителю.');
+    if (/(отметь|пометь).{0,30}(отправил|отправлено|отправлен).{0,20}(codex|кодекс)?/i.test(command)) {
+      return this.voiceIntent(raw, 'mark_sent_to_executor', 'medium', 'review', { executor: executor || 'Codex' }, 'Пакет будет отмечен как отправленный исполнителю.');
     }
-    if (/(провер|verifier|верифик)/i.test(raw)) {
+    if (/(провер|verifier|верифик)/i.test(command)) {
       return this.voiceIntent(raw, 'open_verifier', 'medium', 'review', {}, 'Будет открыта проверка результата.');
     }
-    if (/(памят|memory|сохрани вывод|что сохранить)/i.test(raw)) {
+    if (/(памят|memory|сохрани вывод|что сохранить)/i.test(command)) {
       return this.voiceIntent(raw, 'show_memory_preview', 'medium', 'review', {}, 'Будет открыт Memory Preview.');
     }
     return this.voiceIntent(raw, 'unknown', 'low', 'review', {}, 'Я не уверена. Проверьте команду вручную.');
   },
 
   voiceIntent(transcript, intent, confidence, risk, entities, summary) {
+    const normalized = this.normalizeVoiceCommand(transcript).toLowerCase().replace(/\s+/g, ' ');
     return {
       transcript,
-      normalized_text: transcript.toLowerCase().replace(/\s+/g, ' '),
+      normalized_text: normalized,
       intent,
       label: VOICE_INTENT_LABELS[intent] || intent,
       entities: entities || {},
@@ -9812,6 +10058,7 @@ const App = {
         this.speakMina('Нужно подтверждение владельца.');
       } else {
         this.toast('Опасная команда заблокирована');
+        this.recordVoiceEvent('voice_blocked_without_task', preview.transcript, preview);
         this.speakMina('Команда заблокирована.');
       }
       this.renderVoicePanel();
@@ -9842,9 +10089,30 @@ const App = {
       this.renderVoicePanel();
       return;
     }
+    if (preview.intent === 'show_next_best_action') {
+      const next = task?.next_step || this.minaSchemeHealth().next.note || 'Откройте Рабочее и создайте задачу.';
+      this.toast(`Следующий шаг: ${next}`, 6200);
+      this.recordVoiceEvent('voice_next_step_shown', preview.transcript, preview);
+      this.speakMina('Показываю следующий шаг.');
+      this.renderVoicePanel();
+      return;
+    }
+    if (preview.intent === 'show_voice_status') {
+      const status = this.buildVoiceReadinessSnapshot();
+      this.toast(`Голос Мины: ${status.score}%, ${status.status}. ${status.note}`, 6200);
+      this.recordVoiceEvent('voice_status_shown', preview.transcript, preview);
+      this.speakMina('Статус голоса показан.');
+      this.renderSystemVoiceHooks();
+      this.renderVoicePanel();
+      return;
+    }
     if (preview.intent === 'open_workspace') this.go('work');
     if (preview.intent === 'open_mission_control') this.go('mission');
     if (preview.intent === 'open_system') this.go('system');
+    if (preview.intent === 'open_device_mesh') {
+      this.go('system');
+      window.setTimeout(() => document.getElementById('system-device-preview')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    }
     if (preview.intent === 'create_task') {
       this.go('work');
       const input = document.getElementById('work-task-input');
@@ -9855,8 +10123,11 @@ const App = {
         quality_level: preview.entities.quality_level || 'auto'
       });
       this.workPreview.input_source = 'voice';
-      this.workPreview.original_transcript = preview.transcript;
-      this.renderWorkPreview(false);
+      this.workPreview.original_transcript = this.safeVoiceTranscript(preview.transcript);
+      this.workPreview.normalized_text = preview.normalized_text;
+      this.workPreview.intent_preview = preview;
+      this.confirmWorkPreview();
+      this.recordVoiceEvent('voice_action_completed', preview.transcript, preview);
     }
     if (preview.intent === 'add_note') {
       if (!task) {
@@ -9880,16 +10151,17 @@ const App = {
       task.memory_preview = this.buildWorkspaceMemoryPreview(task, task.memory_preview?.status || 'draft');
       this.switchWorkspaceTab('memory');
     }
-    if (['create_context_pack', 'mark_sent_to_executor', 'open_verifier', 'show_memory_preview'].includes(preview.intent) && task) {
+    if (['create_context_pack', 'mark_sent_to_executor', 'open_verifier', 'show_memory_preview', 'open_workspace', 'open_mission_control', 'open_system', 'open_device_mesh'].includes(preview.intent)) {
       this.recordVoiceEvent('voice_action_completed', preview.transcript, preview);
     }
+    preview.status = 'completed';
     this.saveWorkTasks();
     this.renderWorkTaskCard();
     this.renderMissionControl();
     this.renderSystemStatus();
     this.renderVoicePanel();
-    this.toast('Voice action обработан безопасно');
-    if (preview.intent === 'create_task') this.speakMina('Показываю preview задачи.');
+    this.toast('Голосовая команда обработана безопасно');
+    if (preview.intent === 'create_task') this.speakMina('Задача создана.');
     else if (preview.intent === 'add_note') this.speakMina('Уточнение добавлено.');
     else if (preview.intent.startsWith('open_')) this.speakMina('Открываю.');
     else this.speakMina('Готово.');
@@ -9897,20 +10169,42 @@ const App = {
 
   recordVoiceEvent(type, transcript, preview) {
     const task = this.getActiveWorkTask();
-    if (!task) return null;
+    const safeTranscript = this.safeVoiceTranscript(transcript);
+    const event = {
+      event_id: this.generateWorkspaceId('VOICE'),
+      type,
+      intent: preview?.intent || '',
+      label: VOICE_INTENT_LABELS[preview?.intent] || 'Голос',
+      transcript: safeTranscript,
+      normalized_text: preview?.normalized_text || this.normalizeVoiceCommand(transcript).toLowerCase().replace(/\s+/g, ' '),
+      risk_level: preview?.risk || 'safe',
+      confidence: preview?.confidence || '',
+      summary: preview?.summary || safeTranscript,
+      task_id: task?.task_id || '',
+      created_at: new Date().toISOString()
+    };
+    this.voiceEventLog = [event, ...(this.voiceEventLog || [])].slice(0, 50);
+    this.saveVoiceEvents();
+    if (!task) {
+      this.renderSystemVoiceHooks();
+      return event;
+    }
     task.voice_event_type = type;
     task.intent_preview = preview || task.intent_preview;
-    return this.recordTaskEvent(task, 'voice_command', `${VOICE_INTENT_LABELS[preview?.intent] || 'Голос'}: ${this.safeVoiceTranscript(transcript)}`, {
+    const taskEvent = this.recordTaskEvent(task, 'voice_command', `${VOICE_INTENT_LABELS[preview?.intent] || 'Голос'}: ${safeTranscript}`, {
       actor: 'Mina Voice',
       source: 'voice',
       risk_level: preview?.risk || 'safe'
     });
+    this.saveWorkTasks();
+    this.renderSystemVoiceHooks();
+    return taskEvent;
   },
 
   safeVoiceTranscript(text) {
     const source = String(text || '');
     const scan = this.scanPrivacyText(source);
-    if (scan.findings.length) return '[REDACTED: possible secret in voice transcript]';
+    if (scan.findings.length) return '[скрыто: возможный секрет в голосовом тексте]';
     return source;
   },
 
@@ -11289,18 +11583,24 @@ const App = {
       input_source: this.workPreview.input_source || 'keyboard',
       original_transcript: this.workPreview.original_transcript || '',
       normalized_text: this.workPreview.normalized_text || this.workPreview.user_request,
-      intent_preview: {
-        transcript: this.workPreview.original_transcript || '',
-        intent: 'create_task',
-        entities: {
-          project_id: this.workPreview.project_id,
-          mode: this.workPreview.mode,
-          quality_level: this.workPreview.quality_level
-        },
-        confidence: this.workPreview.input_source === 'voice' ? 'high' : 'manual',
-        risk: 'safe',
-        status: 'confirmed'
-      },
+      intent_preview: this.workPreview.intent_preview
+        ? {
+            ...this.workPreview.intent_preview,
+            transcript: this.safeVoiceTranscript(this.workPreview.intent_preview.transcript || this.workPreview.original_transcript || ''),
+            status: 'confirmed'
+          }
+        : {
+            transcript: this.workPreview.original_transcript || '',
+            intent: 'create_task',
+            entities: {
+              project_id: this.workPreview.project_id,
+              mode: this.workPreview.mode,
+              quality_level: this.workPreview.quality_level
+            },
+            confidence: this.workPreview.input_source === 'voice' ? 'high' : 'manual',
+            risk: 'safe',
+            status: 'confirmed'
+          },
       voice_event_type: this.workPreview.input_source === 'voice' ? 'voice_task_preview_confirmed' : '',
       device_context: {
         device_ids: [],
@@ -11384,7 +11684,7 @@ const App = {
     this.addWorkAudit(task, 'Preview подтвержден.');
     this.addWorkspaceMessage(task, 'system_event', 'Рабочее окно', 'Задача создана. Preview подтверждён владельцем.');
     if (task.input_source === 'voice') {
-      this.recordTaskEvent(task, 'voice_command', `Задача создана из голосового preview: ${this.safeVoiceTranscript(task.original_transcript)}`, {
+      this.recordTaskEvent(task, 'voice_command', `Задача создана из голосового предпросмотра: ${this.safeVoiceTranscript(task.original_transcript)}`, {
         actor: 'Mina Voice',
         source: 'voice',
         risk_level: 'safe'
@@ -11410,6 +11710,7 @@ const App = {
     document.getElementById('work-preview').hidden = true;
     this.renderWorkTaskCard();
     this.toast(`Задача создана: ${task.task_id}`);
+    return task;
   },
 
   createTaskId() {
