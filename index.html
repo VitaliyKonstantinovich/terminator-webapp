@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260526-schema-backup-v1">
+  <link rel="stylesheet" href="styles.css?v=20260526-system-registry-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -611,20 +611,30 @@
               <div id="system-diagnostics" class="system-list"></div>
             </section>
 
-            <section class="runtime-panel runtime-panel--wide">
-              <div class="runtime-panel-head">
-                <div>
-                  <strong>Guardian</strong>
-                  <span>Безопасный режим, incidents, стоимость и права исполнителей</span>
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Guardian</strong>
+                <span>Безопасный режим, incidents, стоимость и права исполнителей</span>
                 </div>
-              </div>
-              <div id="system-guardian-panel" class="guardian-panel"></div>
-            </section>
+            </div>
+            <div id="system-guardian-panel" class="guardian-panel"></div>
+          </section>
 
-            <section class="runtime-panel">
-              <div class="runtime-panel-head">
-                <div>
-                  <strong>Политика хранения</strong>
+          <section class="runtime-panel runtime-panel--wide">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Реестр системы</strong>
+                <span>Сервисы, зависимости и матрица прав</span>
+              </div>
+            </div>
+            <div id="system-registry-panel" class="system-registry-panel"></div>
+          </section>
+
+          <section class="runtime-panel">
+            <div class="runtime-panel-head">
+              <div>
+                <strong>Политика хранения</strong>
                   <span>Где живут рабочие данные</span>
                 </div>
               </div>
@@ -1000,6 +1010,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260526-schema-backup-v1"></script>
+  <script src="app.js?v=20260526-system-registry-v1"></script>
 </body>
 </html>

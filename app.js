@@ -306,6 +306,7 @@ const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
 const WINDOWS_COMPANION_STATE_STORAGE_KEY = 'mina_windows_companion_state_v1';
 const MEMORY_SEARCH_STATE_STORAGE_KEY = 'mina_memory_search_state_v1';
 const SCHEMA_SAFETY_STATE_STORAGE_KEY = 'mina_schema_safety_state_v1';
+const SYSTEM_REGISTRY_STATE_STORAGE_KEY = 'mina_system_registry_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -557,6 +558,59 @@ const FIRST_RUN_SAFETY_CHECKS = [
   ['head', 'Голова / Стратег', 'настройка мозгов и профилей'],
   ['restore_point', 'Первый restore point', 'точка восстановления перед крупными изменениями']
 ];
+
+const SERVICE_INVENTORY_CATALOG = [
+  ['webapp_mina_ui', 'WebApp Mina UI', 'hosting', 'active', 'главный интерфейс владельца', 'none', false, false, 'medium', 'проверять live URL и cache marker'],
+  ['github_pages', 'GitHub Pages', 'hosting', 'active', 'публикация сайта', 'github', false, false, 'medium', 'health check после каждого deploy'],
+  ['github_repository', 'GitHub repository', 'source_control', 'active', 'кодовая база и история изменений', 'github', false, false, 'high', 'push main только осознанно'],
+  ['github_actions', 'GitHub Actions', 'deployment', 'controlled', 'публикация WebApp и smoke-проверки', 'github_secrets', false, true, 'review', 'следить за workflow и лимитами'],
+  ['cloudflare_worker', 'Cloudflare Worker / Direct Bridge', 'bridge', 'active', 'мост между WebApp и локальным контуром', 'owner_session', true, true, 'high', 'не менять route/secrets без отдельного решения'],
+  ['cloudflare_durable_object', 'Cloudflare Durable Object', 'state_sync', 'active', 'очередь команд и состояние задач', 'worker_binding', true, false, 'high', 'не смешивать команды и задачи'],
+  ['local_agent', 'Local Agent', 'local_runtime', 'active', 'локальный исполнитель и связь с ПК', 'local_config', true, false, 'high', 'опасные действия только через Approval'],
+  ['windows_task_scheduler', 'Windows Task Scheduler', 'local_runtime', 'active', 'автозапуск локального агента', 'windows_user', false, false, 'review', 'проверять single-instance и LastTaskResult'],
+  ['terminator_storage_d', 'D:\\TerminatorStorage', 'storage', 'active', 'тяжёлые файлы, evidence, backups и restore points', 'local_owner', true, false, 'medium', 'не хранить тяжёлое на C'],
+  ['official_ai_web_chats', 'Official AI web chats', 'external_brain', 'manual_external', 'мозги через ручной web-chat без API', 'owner_login_manual', true, false, 'review', 'пароли/cookies не хранить'],
+  ['pwa_browser', 'PWA / Browser', 'client', 'future_ready', 'мобильный и desktop контейнер интерфейса', 'browser_session', true, false, 'medium', 'no heavy files in localStorage'],
+  ['telegram_bot', 'Telegram bot', 'legacy', 'legacy', 'старый интерфейс MVP', 'legacy_secret', true, true, 'high', 'не развивать как main path'],
+  ['n8n', 'n8n', 'legacy_automation', 'legacy', 'старые webhooks/automation', 'legacy_secret', true, true, 'high', 'не возвращать как ядро'],
+  ['amvera', 'Amvera', 'legacy_hosting', 'legacy', 'старый hosting/runtime', 'account', true, true, 'review', 'не развивать без отдельного решения'],
+  ['pm2_brain_workers', 'PM2 brain workers', 'legacy_runtime', 'audit_later', 'старые brain workers', 'local_process', true, true, 'high', 'audit later, не строить Phase 3+ на них'],
+  ['windows_tray_app', 'Windows Tray App', 'future_client', 'future', 'будущий desktop companion', 'local_owner', true, false, 'review', 'после стабильного WebApp/PWA'],
+  ['local_search_engine', 'Local Search Engine', 'future_memory', 'future_ready', 'локальный поиск по памяти и проектам', 'local_owner', true, false, 'medium', 'только без AI API по умолчанию'],
+  ['voice_engine', 'Voice Engine', 'future_voice', 'future', 'локальное/браузерное распознавание речи', 'owner_permission', true, false, 'review', 'без фонового hotword в ранних фазах'],
+  ['browser_automation_runtime', 'Browser Automation Runtime', 'future_hands', 'future_blocked', 'будущие глаза/руки браузера', 'approval', true, true, 'critical', 'только после Guardian/Approval/Evidence']
+];
+
+const DEPENDENCY_REGISTRY_CATALOG = [
+  ['browser', 'Браузер / Chrome', 'WebApp UI, PWA, live smoke', 'открыть сайт и проверить marker', 'text fallback / local static smoke', 'medium'],
+  ['nodejs', 'Node.js', 'syntax checks, local server, test scripts', 'node --check app.js', 'ручной browser smoke без Node ограничен', 'medium'],
+  ['git', 'Git', 'source control, commits, rollback diff', 'git status / git log', 'ручной file backup на D', 'high'],
+  ['github', 'GitHub', 'repository, Actions, Pages', 'gh run list / Pages health', 'локальный режим без publish', 'high'],
+  ['cloudflare_worker', 'Cloudflare Worker', 'Direct Bridge transport', '/health, commands next', 'local-only Task Runtime', 'high'],
+  ['local_agent_runtime', 'Local Agent Runtime', 'локальный исполнитель и future workers', 'System / Local Agent status', 'browser-only safe mode', 'high'],
+  ['task_scheduler', 'Windows Task Scheduler', 'autostart Local Agent', 'LastTaskResult / single-instance', 'ручной запуск агента', 'review'],
+  ['terminator_storage_d', 'D:\\TerminatorStorage', 'files/evidence/backups/restore points', 'проверить путь и screenshots', 'lightweight browser metadata only', 'high'],
+  ['indexeddb', 'IndexedDB', 'локальная база задач и metadata', 'Task Runtime статус', 'localStorage fallback', 'medium'],
+  ['service_worker', 'Service Worker', 'PWA/offline shell', 'service worker marker', 'online-only browser mode', 'medium'],
+  ['github_actions_secrets', 'GitHub Actions secrets', 'controlled deploy secrets', 'GitHub settings без вывода значений', 'manual local deploy prohibited', 'critical'],
+  ['future_sqlite_fts', 'SQLite FTS', 'future fast memory search', 'not active', 'current keyword index', 'review'],
+  ['future_local_stt', 'Local STT', 'future Mina Voice', 'not active', 'text input / push-to-talk later', 'review']
+];
+
+const SYSTEM_REGISTRY_STATUS_LABELS = {
+  active: 'активен',
+  controlled: 'контролируемый',
+  manual_external: 'ручной внешний',
+  future_ready: 'готовность',
+  future: 'будущее',
+  future_blocked: 'будущее / заблокировано',
+  legacy: 'legacy',
+  audit_later: 'аудит позже',
+  ready: 'готово',
+  review: 'требует проверки',
+  blocked: 'заблокировано',
+  unknown: 'неизвестно'
+};
 
 const MINA_SCHEME_SUBSYSTEMS = [
   {
@@ -866,11 +920,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Schema Versioning + Backup/Restore + Migration Safety',
+  name: 'Service Inventory + Dependency Registry + Capability Matrix',
   date: '2026-05-26',
-  status: 'закрыт live',
-  previous: 'Memory Search Engine / Context Index V1',
-  next: 'следующий автономный слой после schema/backup live acceptance'
+  status: 'в работе',
+  previous: 'Schema Versioning + Backup/Restore + Migration Safety',
+  next: 'live acceptance после system registry'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -900,7 +954,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт live' },
   { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' },
   { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' },
-  { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' }
+  { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' },
+  { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'в работе' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2138,6 +2193,7 @@ const App = {
   windowsCompanionState: null,
   memorySearchState: null,
   schemaSafetyState: null,
+  systemRegistryState: null,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -3839,6 +3895,15 @@ const App = {
       backup_packages: [],
       restore_points: []
     });
+    this.systemRegistryState = this.readJsonStorage(SYSTEM_REGISTRY_STATE_STORAGE_KEY, {
+      status: 'not_checked',
+      score: 0,
+      last_checked_at: '',
+      services: [],
+      dependencies: [],
+      capabilities: [],
+      history: []
+    });
   },
 
   saveProductionState() {
@@ -3846,6 +3911,7 @@ const App = {
     this.writeJsonStorage(BACKUP_RESTORE_STATE_KEY, this.backupRestoreState || {});
     this.writeJsonStorage(OBSERVABILITY_STATE_KEY, this.observabilityState || {});
     this.writeJsonStorage(SCHEMA_SAFETY_STATE_STORAGE_KEY, this.schemaSafetyState || {});
+    this.writeJsonStorage(SYSTEM_REGISTRY_STATE_STORAGE_KEY, this.systemRegistryState || {});
   },
 
   defaultMemorySearchState() {
@@ -4577,6 +4643,7 @@ const App = {
       backup: this.backupRestoreState || {},
       observability: this.observabilityState || {},
       schema_safety: this.schemaSafetyState || {},
+      system_registry: this.systemRegistryState || {},
       counters: {
         tasks: (this.workTasks || []).length,
         projects: (this.activeWorkProjects() || []).length,
@@ -4944,6 +5011,186 @@ const App = {
     };
     this.saveProductionState();
     return snapshot;
+  },
+
+  systemRegistryStatusName(status) {
+    return SYSTEM_REGISTRY_STATUS_LABELS[status] || status || 'неизвестно';
+  },
+
+  normalizeServiceInventoryItem(item) {
+    const [serviceId, name, category, activeStatus, purpose, authType, storesUserData, storesSecrets, riskLevel, nextAction] = item;
+    const now = new Date().toISOString();
+    return {
+      service_id: serviceId,
+      service_name: name,
+      category,
+      active_status: activeStatus,
+      purpose,
+      auth_type: authType,
+      stores_user_data: Boolean(storesUserData),
+      stores_secrets: Boolean(storesSecrets),
+      risk_level: riskLevel,
+      owner_action_required: nextAction,
+      linked_tasks: [],
+      last_checked: now,
+      next_action: nextAction,
+      legacy_cleanup_status: activeStatus === 'legacy' || activeStatus === 'audit_later' ? 'не развивать; аудит позже' : 'not_applicable'
+    };
+  },
+
+  buildServiceInventorySnapshot() {
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const pwa = this.pwaSnapshot();
+    const guardian = this.guardianSnapshot();
+    const overrides = {
+      cloudflare_worker: direct.status === 'сессия активна' || direct.status === 'ожидает вход' ? direct.status : direct.status,
+      local_agent: agent.status,
+      pwa_browser: pwa.serviceWorker === 'registered' ? 'active' : 'future_ready',
+      github_pages: 'active',
+      cloudflare_durable_object: taskStore.status === 'синхронизировано' ? 'active' : 'active',
+      browser_automation_runtime: guardian.state.browser_automation_allowed ? 'controlled' : 'future_blocked'
+    };
+    return SERVICE_INVENTORY_CATALOG.map((item) => {
+      const service = this.normalizeServiceInventoryItem(item);
+      if (overrides[service.service_id]) service.runtime_status = overrides[service.service_id];
+      else service.runtime_status = service.active_status;
+      service.requires_attention = ['legacy', 'audit_later', 'future_blocked'].includes(service.active_status)
+        || service.stores_secrets
+        || service.risk_level === 'critical';
+      return service;
+    });
+  },
+
+  buildDependencyRegistrySnapshot() {
+    const taskStore = this.taskStoreStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const pwa = this.pwaSnapshot();
+    const dependencyStatus = {
+      browser: 'ready',
+      nodejs: 'ready',
+      git: 'ready',
+      github: 'ready',
+      cloudflare_worker: 'review',
+      local_agent_runtime: agent.status === 'не проверено' ? 'review' : 'ready',
+      task_scheduler: 'review',
+      terminator_storage_d: TERMINATOR_STORAGE_ROOT.startsWith('D:\\') ? 'ready' : 'blocked',
+      indexeddb: this.taskRuntimeReady ? 'ready' : 'review',
+      service_worker: pwa.serviceWorker === 'registered' ? 'ready' : 'review',
+      github_actions_secrets: 'review',
+      future_sqlite_fts: 'future',
+      future_local_stt: 'future'
+    };
+    return DEPENDENCY_REGISTRY_CATALOG.map(([dependencyId, name, usedFor, check, fallback, riskLevel]) => ({
+      dependency_id: dependencyId,
+      name,
+      used_for: usedFor,
+      check,
+      fallback,
+      risk_level: riskLevel,
+      status: dependencyStatus[dependencyId] || 'unknown',
+      last_checked: new Date().toISOString(),
+      note: dependencyId === 'indexeddb'
+        ? taskStore.note
+        : dependencyId === 'local_agent_runtime'
+          ? agent.note
+          : ''
+    }));
+  },
+
+  buildCapabilityRegistrySnapshot() {
+    return GUARDIAN_CAPABILITY_MATRIX.map(([actor, title, canRead, canWrite, canExecute, canDelete, forbidden, allowedPaths, risk]) => ({
+      actor_id: actor,
+      title,
+      can_read: canRead,
+      can_write: canWrite,
+      can_execute: canExecute,
+      can_delete: canDelete,
+      requires_approval: ['high', 'critical'].includes(risk) || canDelete !== 'нет',
+      forbidden_actions: forbidden,
+      allowed_paths: allowedPaths,
+      risk_level: risk,
+      status: risk === 'critical' ? 'blocked' : risk === 'high' ? 'review' : 'ready'
+    }));
+  },
+
+  buildSystemRegistrySnapshot() {
+    const services = this.buildServiceInventorySnapshot();
+    const dependencies = this.buildDependencyRegistrySnapshot();
+    const capabilities = this.buildCapabilityRegistrySnapshot();
+    const active = services.filter((service) => service.active_status === 'active' || service.active_status === 'controlled').length;
+    const legacy = services.filter((service) => service.active_status === 'legacy' || service.active_status === 'audit_later').length;
+    const future = services.filter((service) => service.active_status.startsWith('future')).length;
+    const serviceRisks = services.filter((service) => service.requires_attention).length;
+    const dependencyRisks = dependencies.filter((dependency) => ['blocked', 'review', 'unknown'].includes(dependency.status)).length;
+    const capabilityRisks = capabilities.filter((capability) => capability.status === 'blocked').length;
+    const blocked = services.some((service) => ['active', 'controlled'].includes(service.active_status) && service.risk_level === 'critical' && service.stores_secrets)
+      || dependencies.some((dependency) => dependency.status === 'blocked');
+    const status = blocked ? 'blocked' : (serviceRisks || dependencyRisks || capabilityRisks) ? 'review' : 'ready';
+    const total = services.length + dependencies.length + capabilities.length;
+    const riskTotal = serviceRisks + dependencyRisks + capabilityRisks;
+    const score = Math.max(10, Math.round(((total - riskTotal) / total) * 100));
+    return {
+      status,
+      score,
+      generated_at: new Date().toISOString(),
+      summary: `${active} active/controlled, ${legacy} legacy, ${future} future; ${riskTotal} требуют внимания`,
+      counts: {
+        services: services.length,
+        dependencies: dependencies.length,
+        capabilities: capabilities.length,
+        active,
+        legacy,
+        future,
+        risks: riskTotal
+      },
+      services,
+      dependencies,
+      capabilities,
+      policy: {
+        no_ai_api_by_default: true,
+        no_paid_services_by_default: true,
+        no_legacy_as_main_path: true,
+        secrets_never_exported: true,
+        dangerous_actions_require_approval: true
+      }
+    };
+  },
+
+  saveSystemRegistrySnapshot(snapshot) {
+    this.systemRegistryState = {
+      ...snapshot,
+      last_checked_at: snapshot.generated_at,
+      history: [
+        {
+          checked_at: snapshot.generated_at,
+          status: snapshot.status,
+          score: snapshot.score,
+          summary: snapshot.summary,
+          counts: snapshot.counts
+        },
+        ...((this.systemRegistryState?.history || []).slice(0, 9))
+      ]
+    };
+    this.saveProductionState();
+    return this.systemRegistryState;
+  },
+
+  buildSystemRegistryExport() {
+    const snapshot = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
+    return {
+      export_type: 'terminator_system_registry',
+      exported_at: new Date().toISOString(),
+      app: 'Terminator Mina UI',
+      policy: {
+        no_secrets: true,
+        no_ai_api: true,
+        no_paid_services_added: true,
+        no_runtime_changes: true
+      },
+      registry: snapshot
+    };
   },
 
   downloadTextFile(filename, text, mimeType = 'application/json') {
@@ -5424,11 +5671,13 @@ const App = {
     const pwa = this.pwaSnapshot();
     const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
     const schemaSafety = this.schemaSafetyState?.last_checked_at ? this.schemaSafetyState : this.buildSchemaSafetySnapshot();
+    const registry = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
     const memorySearch = this.memorySearchSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
       ['Схемы данных', this.phase6StatusName(schemaSafety.status), `готовность ${schemaSafety.score || 0}% · ${schemaSafety.summary || 'dry-run ожидает запуска'}`],
+      ['Реестр системы', this.systemRegistryStatusName(registry.status), `готовность ${registry.score || 0}% · ${registry.summary || 'проверка ожидает запуска'}`],
       ['Поиск по памяти', this.memorySearchStatusName(memorySearch.status), memorySearch.note],
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
@@ -5450,6 +5699,7 @@ const App = {
     `).join('');
     this.renderSystemDiagnostics();
     this.renderGuardianPanel();
+    this.renderSystemRegistryPanel();
     this.renderSystemStoragePolicy();
     this.renderSystemLastCheckpoint();
     this.renderSystemLegacyWarnings();
@@ -5741,6 +5991,82 @@ const App = {
         <p><b>paths:</b> ${this.escapeHtml(allowedPaths)}</p>
       </article>
     `).join('');
+  },
+
+  renderSystemRegistryPanel() {
+    const host = document.getElementById('system-registry-panel');
+    if (!host) return;
+    const snapshot = this.systemRegistryState?.last_checked_at
+      ? this.systemRegistryState
+      : this.buildSystemRegistrySnapshot();
+    const services = snapshot.services || [];
+    const dependencies = snapshot.dependencies || [];
+    const capabilities = snapshot.capabilities || [];
+    host.innerHTML = `
+      <section class="system-registry-hero system-registry-hero--${this.escapeHtml(snapshot.status || 'not_checked')}">
+        <div>
+          <span>Реестр системы</span>
+          <strong>${this.escapeHtml(String(snapshot.score || 0))}%</strong>
+          <p>${this.escapeHtml(snapshot.summary || 'Реестр ещё не проверялся.')}</p>
+        </div>
+        <dl>
+          <div><dt>Сервисы</dt><dd>${this.escapeHtml(String(snapshot.counts?.services || services.length))}</dd><small>active / legacy / future</small></div>
+          <div><dt>Зависимости</dt><dd>${this.escapeHtml(String(snapshot.counts?.dependencies || dependencies.length))}</dd><small>что нужно для работы</small></div>
+          <div><dt>Права</dt><dd>${this.escapeHtml(String(snapshot.counts?.capabilities || capabilities.length))}</dd><small>кто что может делать</small></div>
+        </dl>
+      </section>
+
+      <div class="system-registry-columns">
+        <section>
+          <div class="diagnost-subtitle">Реестр сервисов</div>
+          <div class="system-registry-list">
+            ${services.map((service) => `
+              <article class="system-registry-card system-registry-card--${this.escapeHtml(service.requires_attention ? 'review' : 'ready')}">
+                <strong>${this.escapeHtml(service.service_name)}</strong>
+                <span>${this.escapeHtml(this.systemRegistryStatusName(service.active_status))} · ${this.escapeHtml(service.category)}</span>
+                <p>${this.escapeHtml(service.purpose)}</p>
+                <small>${this.escapeHtml(service.next_action)}</small>
+              </article>
+            `).join('')}
+          </div>
+        </section>
+
+        <section>
+          <div class="diagnost-subtitle">Реестр зависимостей</div>
+          <div class="system-registry-list">
+            ${dependencies.map((dependency) => `
+              <article class="system-registry-card system-registry-card--${this.escapeHtml(dependency.status)}">
+                <strong>${this.escapeHtml(dependency.name)}</strong>
+                <span>${this.escapeHtml(this.systemRegistryStatusName(dependency.status))} · риск ${this.escapeHtml(dependency.risk_level)}</span>
+                <p>${this.escapeHtml(dependency.used_for)}</p>
+                <small>${this.escapeHtml(dependency.fallback)}</small>
+              </article>
+            `).join('')}
+          </div>
+        </section>
+      </div>
+
+      <section class="system-registry-capabilities">
+        <div class="diagnost-subtitle">Матрица прав</div>
+        <div class="system-registry-capability-grid">
+          ${capabilities.map((capability) => `
+            <article class="system-registry-card system-registry-card--${this.escapeHtml(capability.status)}">
+              <strong>${this.escapeHtml(capability.title)}</strong>
+              <span>${this.escapeHtml(capability.requires_approval ? 'нужно подтверждение' : 'безопасный режим')} · риск ${this.escapeHtml(capability.risk_level)}</span>
+              <p><b>Читает:</b> ${this.escapeHtml(capability.can_read)}</p>
+              <p><b>Пишет:</b> ${this.escapeHtml(capability.can_write)}</p>
+              <p><b>Запрещено:</b> ${this.escapeHtml(capability.forbidden_actions)}</p>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+
+      <div class="system-action-strip system-action-strip--wrap">
+        <button type="button" data-phase6-action="refresh_system_registry">Проверить реестр</button>
+        <button type="button" data-phase6-action="export_system_registry">Скачать реестр</button>
+        <button type="button" data-phase6-action="copy_system_registry_policy">Скопировать policy</button>
+      </div>
+    `;
   },
 
   renderWorkerFoundationRows() {
@@ -7815,6 +8141,39 @@ const App = {
         `- full restore files live on D: ${TERMINATOR_STORAGE_ROOT}\\backups`
       ].join('\n'));
       this.toast('Restore policy скопирован');
+      return;
+    }
+
+    if (action === 'refresh_system_registry') {
+      const snapshot = this.buildSystemRegistrySnapshot();
+      this.saveSystemRegistrySnapshot(snapshot);
+      this.renderSystemStatus();
+      this.toast(`Реестр системы: ${this.systemRegistryStatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'export_system_registry') {
+      const snapshot = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.saveSystemRegistrySnapshot(this.buildSystemRegistrySnapshot());
+      const exportData = this.buildSystemRegistryExport(snapshot);
+      const text = JSON.stringify(exportData, null, 2);
+      const ok = this.downloadTextFile(`terminator-system-registry-${Date.now()}.json`, text);
+      if (!ok) await this.copyWorkspaceText(text);
+      this.renderSystemStatus();
+      this.toast(ok ? 'Реестр скачан' : 'Реестр скопирован');
+      return;
+    }
+
+    if (action === 'copy_system_registry_policy') {
+      await this.copyWorkspaceText([
+        'System Registry policy:',
+        '- active / legacy / future services must be separated',
+        '- legacy Telegram/n8n/Amvera/PM2 are not main path',
+        '- paid services and AI API stay blocked by default',
+        '- secrets are never exported',
+        '- high/critical capability requires Approval',
+        '- Direct Bridge / Local Agent changes require explicit scope'
+      ].join('\n'));
+      this.toast('Policy реестра скопирован');
       return;
     }
 
