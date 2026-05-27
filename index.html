@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260526-phase8-device-mesh-v1">
+  <link rel="stylesheet" href="styles.css?v=20260527-phase9-mina-voice-v1-final">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -165,6 +165,30 @@
             <button type="button" data-work-shortcut="research">Исследовать</button>
             <button type="button" data-work-shortcut="council">Совет мозгов</button>
           </div>
+
+          <section class="work-panel workspace-voice-dock" aria-label="Голос Мины в Рабочем">
+            <div class="workspace-voice-dock-head">
+              <div>
+                <span>Голос Мины</span>
+                <strong>Команда через предпросмотр</strong>
+                <p>Скажите или вставьте текст. Мина покажет намерение, уверенность и риск до любого действия.</p>
+              </div>
+              <button type="button" id="workspace-voice-toggle" class="workspace-voice-button" data-workspace-action="toggle_voice" aria-pressed="false">
+                Микрофон
+              </button>
+            </div>
+            <div id="workspace-voice-panel" class="workspace-voice-panel" hidden>
+              <div class="voice-status-line">
+                <strong id="workspace-voice-state">Готово</strong>
+                <span id="workspace-voice-support">Браузерное распознавание: проверяется</span>
+              </div>
+              <label class="voice-transcript-field">
+                <span>Вы сказали</span>
+                <textarea id="workspace-voice-transcript" placeholder="Нажмите Микрофон или вставьте текст команды для предпросмотра."></textarea>
+              </label>
+              <div id="workspace-voice-preview" class="voice-preview-card" hidden></div>
+            </div>
+          </section>
 
           <section id="work-preview" class="work-panel" hidden>
             <h3>Я понял задачу так:</h3>
@@ -346,7 +370,7 @@
 
               <footer class="workspace-console" aria-label="Рабочая консоль">
                 <button type="button" class="workspace-file-button" data-workspace-action="add_files">+ Файлы</button>
-                <button type="button" id="workspace-voice-toggle" class="workspace-voice-button" data-workspace-action="toggle_voice" aria-pressed="false">
+                <button type="button" class="workspace-voice-button" data-workspace-action="toggle_voice" aria-pressed="false">
                   Микрофон
                 </button>
                 <label class="workspace-mode">
@@ -367,17 +391,6 @@
                   <button type="button" data-workspace-action="mark_sent">Отметить как отправлено</button>
                   <button type="button" data-workspace-action="insert_report">Вставить отчёт</button>
                   <button type="button" data-workspace-action="open_verifier">Проверить результат</button>
-                </div>
-                <div id="workspace-voice-panel" class="workspace-voice-panel" hidden>
-                  <div class="voice-status-line">
-                    <strong id="workspace-voice-state">Готово</strong>
-                    <span id="workspace-voice-support">Browser Speech API: проверяется</span>
-                  </div>
-                  <label class="voice-transcript-field">
-                    <span>Вы сказали</span>
-                    <textarea id="workspace-voice-transcript" placeholder="Нажмите Микрофон или вставьте текст команды для preview."></textarea>
-                  </label>
-                  <div id="workspace-voice-preview" class="voice-preview-card" hidden></div>
                 </div>
               </footer>
             </section>
@@ -1020,6 +1033,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260526-phase8-device-mesh-v1"></script>
+  <script src="app.js?v=20260527-phase9-mina-voice-v1-final"></script>
 </body>
 </html>
