@@ -1005,9 +1005,9 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Phase 6 Closure + Settings / Policy Center V1',
   date: '2026-05-26',
-  status: 'в работе',
+  status: 'закрыт live',
   previous: 'Service Inventory + Dependency Registry + Capability Matrix',
-  next: 'закрыть Phase 6 live после Settings / Policy Center'
+  next: 'Phase 6 закрыта; следующий слой по roadmap'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1039,7 +1039,7 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' },
   { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' },
   { id: 29, name: 'Service Inventory + Dependency Registry + Capability Matrix', status: 'закрыт live' },
-  { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'в работе' }
+  { id: 30, name: 'Settings / Policy Center V1 + Phase 6 Closure', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
