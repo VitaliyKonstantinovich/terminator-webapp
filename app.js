@@ -305,6 +305,7 @@ const BACKUP_RESTORE_STATE_KEY = 'mina_backup_restore_state_v1';
 const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
 const WINDOWS_COMPANION_STATE_STORAGE_KEY = 'mina_windows_companion_state_v1';
 const MEMORY_SEARCH_STATE_STORAGE_KEY = 'mina_memory_search_state_v1';
+const SCHEMA_SAFETY_STATE_STORAGE_KEY = 'mina_schema_safety_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -360,6 +361,25 @@ const MEMORY_SEARCH_STOP_WORDS = new Set([
   'и', 'в', 'во', 'на', 'по', 'для', 'что', 'это', 'как', 'или', 'но', 'из', 'с', 'со', 'к', 'ко', 'а',
   'the', 'and', 'or', 'to', 'of', 'in', 'for', 'with', 'is', 'are'
 ]);
+
+const DATA_SCHEMA_VERSION = 1;
+const SAFE_BACKUP_PACKAGE_VERSION = 1;
+const SCHEMA_SAFETY_TARGETS = [
+  ['projects', 'Проекты', 'хранилище проектов', true],
+  ['tasks', 'Задачи', 'хранилище задач (TaskStore / IndexedDB)', true],
+  ['messages', 'Сообщения', 'история задачи', false],
+  ['artifacts', 'Артефакты', 'полка результатов', true],
+  ['files', 'Метаданные файлов', 'файловый контур', true],
+  ['evidence', 'Доказательства', 'проверка / исследование', true],
+  ['approvals', 'Подтверждения', 'центр подтверждений (Approval Center)', true],
+  ['memory', 'Память', 'память и поиск', true],
+  ['brains', 'Мозги', 'Голова / Совет мозгов', true],
+  ['profiles', 'Профили Совета', 'профили Совета', true],
+  ['search_agents', 'Поисковики', 'исследователи', true],
+  ['devices', 'Устройства', 'связь устройств (Device Mesh)', true],
+  ['incidents', 'Инциденты', 'защитник (Guardian)', true],
+  ['diagnostics', 'Диагност', 'диагност', false]
+];
 
 const DEFAULT_PROJECT_TYPE = 'custom';
 const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
@@ -846,11 +866,11 @@ const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Memory Search Engine / Context Index V1',
+  name: 'Schema Versioning + Backup/Restore + Migration Safety',
   date: '2026-05-26',
-  status: 'закрыт live',
-  previous: 'Phase 7: Windows-компаньон и installer foundation',
-  next: 'следующий автономный слой после Memory Search live acceptance'
+  status: 'в работе',
+  previous: 'Memory Search Engine / Context Index V1',
+  next: 'live acceptance после schema/backup safety'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -879,7 +899,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 24, name: 'Mobile / PWA / APK Foundation', status: 'закрыт live' },
   { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт live' },
   { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' },
-  { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' }
+  { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' },
+  { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'в работе' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2116,6 +2137,7 @@ const App = {
   observabilityState: null,
   windowsCompanionState: null,
   memorySearchState: null,
+  schemaSafetyState: null,
   workspaceFileRuntime: new Map(),
   workspaceTimer: null,
   runtimeSavePromise: null,
@@ -2795,7 +2817,10 @@ const App = {
       preset: Boolean(project.preset),
       goal: project.goal || project.short_description || '',
       created_at: project.created_at || now,
-      updated_at: project.updated_at || now
+      updated_at: project.updated_at || now,
+      schema_version: Number(project.schema_version || 0),
+      migration_status: project.migration_status || '',
+      schema_updated_at: project.schema_updated_at || ''
     };
   },
 
@@ -3802,12 +3827,25 @@ const App = {
       samples: [],
       last_sample_at: ''
     });
+    this.schemaSafetyState = this.readJsonStorage(SCHEMA_SAFETY_STATE_STORAGE_KEY, {
+      schema_version: DATA_SCHEMA_VERSION,
+      status: 'not_checked',
+      last_checked_at: '',
+      last_migration_dry_run_at: '',
+      last_schema_stamp_at: '',
+      last_backup_at: '',
+      registry: [],
+      migration_plan: null,
+      backup_packages: [],
+      restore_points: []
+    });
   },
 
   saveProductionState() {
     this.writeJsonStorage(PRODUCTION_RELEASE_STATE_KEY, this.productionReleaseState || {});
     this.writeJsonStorage(BACKUP_RESTORE_STATE_KEY, this.backupRestoreState || {});
     this.writeJsonStorage(OBSERVABILITY_STATE_KEY, this.observabilityState || {});
+    this.writeJsonStorage(SCHEMA_SAFETY_STATE_STORAGE_KEY, this.schemaSafetyState || {});
   },
 
   defaultMemorySearchState() {
@@ -4533,11 +4571,12 @@ const App = {
     return {
       exported_at: new Date().toISOString(),
       app: 'Terminator Mina UI',
-      phase: 'Phase 6 Production Hardening',
+      phase: 'Schema Versioning + Backup/Restore + Migration Safety',
       storage_root: TERMINATOR_STORAGE_ROOT,
       release: this.productionReleaseState || {},
       backup: this.backupRestoreState || {},
       observability: this.observabilityState || {},
+      schema_safety: this.schemaSafetyState || {},
       counters: {
         tasks: (this.workTasks || []).length,
         projects: (this.activeWorkProjects() || []).length,
@@ -4551,6 +4590,360 @@ const App = {
         raw_files_not_included: true
       }
     };
+  },
+
+  schemaVersionOf(record) {
+    const value = Number(record?.schema_version || record?.runtime?.schema_version || 0);
+    return Number.isFinite(value) ? value : 0;
+  },
+
+  dataSchemaRecords(targetId) {
+    const tasks = this.workTasks || [];
+    const researchEvidence = tasks.flatMap((task) => (task.research_ops?.evidence_cards || []).map((evidence) => ({ ...evidence, task_id: task.task_id, project_id: task.project_id })));
+    const artifactEvidence = tasks.flatMap((task) => (task.artifacts || []).filter((artifact) => artifact.type === 'EVIDENCE_CARD').map((artifact) => ({ ...artifact, task_id: task.task_id, project_id: task.project_id })));
+    const fileEvidence = tasks.flatMap((task) => (task.files || []).filter((file) => file.is_evidence).map((file) => ({ ...file, task_id: task.task_id, project_id: task.project_id })));
+    const taskMemory = tasks
+      .filter((task) => task.memory_preview || task.memory_status)
+      .map((task) => ({
+        memory_id: `MEMORY-${task.task_id}`,
+        task_id: task.task_id,
+        project_id: task.project_id,
+        schema_version: task.memory_preview?.schema_version || task.schema_version || 0,
+        status: task.memory_preview?.status || task.memory_status || 'draft'
+      }));
+
+    const sources = {
+      projects: this.workProjects || [],
+      tasks,
+      messages: tasks.flatMap((task) => (task.messages || []).map((message) => ({ ...message, task_id: task.task_id, project_id: task.project_id }))),
+      artifacts: tasks.flatMap((task) => (task.artifacts || []).map((artifact) => ({ ...artifact, task_id: task.task_id, project_id: task.project_id }))),
+      files: tasks.flatMap((task) => (task.files || []).map((file) => ({ ...file, task_id: task.task_id, project_id: task.project_id }))),
+      evidence: [...artifactEvidence, ...fileEvidence, ...researchEvidence],
+      approvals: this.approvalRecords || [],
+      memory: [...taskMemory, ...((this.memorySearchState?.records || []).map((record) => ({ ...record, memory_id: record.record_id })))],
+      brains: this.headBrains || [],
+      profiles: this.headProfiles || [],
+      search_agents: this.headSearchAgents || [],
+      devices: this.systemDevices || [],
+      incidents: this.guardianIncidents || [],
+      diagnostics: this.systemDiagnostics || []
+    };
+    return sources[targetId] || [];
+  },
+
+  schemaTargetSummary(target) {
+    const [id, displayName, source, critical] = target;
+    const records = this.dataSchemaRecords(id);
+    const missing = records.filter((record) => !this.schemaVersionOf(record)).length;
+    const outdated = records.filter((record) => {
+      const version = this.schemaVersionOf(record);
+      return version > 0 && version < DATA_SCHEMA_VERSION;
+    }).length;
+    const current = records.length - missing - outdated;
+    const status = records.length && (missing || outdated) ? 'review' : 'pass';
+    return {
+      id,
+      display_name: displayName,
+      source,
+      critical: Boolean(critical),
+      target_version: DATA_SCHEMA_VERSION,
+      total: records.length,
+      current,
+      missing,
+      outdated,
+      status,
+      note: records.length
+        ? `${current}/${records.length} имеют версию схемы v${DATA_SCHEMA_VERSION}`
+        : 'записей пока нет'
+    };
+  },
+
+  buildSchemaRegistrySnapshot() {
+    return SCHEMA_SAFETY_TARGETS.map((target) => this.schemaTargetSummary(target));
+  },
+
+  buildSchemaMigrationPlan() {
+    const registry = this.buildSchemaRegistrySnapshot();
+    const actions = registry
+      .filter((item) => item.missing || item.outdated)
+      .map((item) => ({
+        action_id: `schema_stamp_${item.id}`,
+        target: item.id,
+        display_name: item.display_name,
+        status: 'planned',
+        risk_level: item.critical ? 'review' : 'safe',
+        records_to_stamp: item.missing + item.outdated,
+        operation: `set schema_version=${DATA_SCHEMA_VERSION}; migration_status=current`,
+        destructive: false,
+        requires_backup: item.critical
+      }));
+    return {
+      migration_id: this.generateWorkspaceId('MIGRATION'),
+      schema_version: DATA_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: actions.length ? 'review' : 'ready',
+      actions,
+      rollback_required: actions.some((action) => action.requires_backup),
+      policy: {
+        no_delete: true,
+        no_raw_files: true,
+        no_secrets: true,
+        approval_for_destructive_restore: true
+      }
+    };
+  },
+
+  buildSchemaSafetySnapshot() {
+    const registry = this.buildSchemaRegistrySnapshot();
+    const total = registry.reduce((sum, item) => sum + item.total, 0);
+    const missing = registry.reduce((sum, item) => sum + item.missing, 0);
+    const outdated = registry.reduce((sum, item) => sum + item.outdated, 0);
+    const criticalGaps = registry.filter((item) => item.critical && (item.missing || item.outdated)).length;
+    const backup = this.schemaSafetyState || {};
+    const privacy = this.scanPrivacyText(this.safeLocalStorageAuditText());
+    const status = privacy.blocked ? 'blocked' : criticalGaps ? 'review' : 'ready';
+    const score = total ? Math.max(20, Math.round(((total - missing - outdated) / total) * 100)) : 100;
+    return {
+      status,
+      score,
+      total,
+      missing,
+      outdated,
+      critical_gaps: criticalGaps,
+      registry,
+      last_checked_at: new Date().toISOString(),
+      last_backup_at: backup.last_backup_at || '',
+      last_schema_stamp_at: backup.last_schema_stamp_at || '',
+      restore_points: backup.restore_points || [],
+      backup_packages: backup.backup_packages || [],
+      privacy_findings: privacy.findings.length,
+      summary: criticalGaps
+        ? `${criticalGaps} критичных групп требуют schema stamp`
+        : missing || outdated
+          ? `${missing + outdated} записей требуют мягкой миграции`
+          : 'схемы данных актуальны'
+    };
+  },
+
+  createSchemaRestorePoint(reason = 'schema_safety') {
+    const snapshot = this.buildSchemaSafetySnapshot();
+    const restorePointId = this.generateWorkspaceId('RESTORE');
+    const restorePoint = {
+      restore_point_id: restorePointId,
+      checkpoint_id: restorePointId,
+      created_at: new Date().toISOString(),
+      reason,
+      schema_version: DATA_SCHEMA_VERSION,
+      storage_root: TERMINATOR_STORAGE_ROOT,
+      counts: {
+        projects: (this.workProjects || []).length,
+        tasks: (this.workTasks || []).length,
+        messages: this.dataSchemaRecords('messages').length,
+        artifacts: this.dataSchemaRecords('artifacts').length,
+        evidence: this.dataSchemaRecords('evidence').length,
+        approvals: (this.approvalRecords || []).length,
+        memory_index: this.memorySearchState?.records?.length || 0
+      },
+      schema_summary: snapshot.summary,
+      rollback_policy: 'metadata restore only; destructive restore requires Approval'
+    };
+    const current = this.schemaSafetyState || {};
+    this.schemaSafetyState = {
+      ...current,
+      schema_version: DATA_SCHEMA_VERSION,
+      restore_points: [restorePoint, ...(current.restore_points || [])].slice(0, 12),
+      last_restore_point_at: restorePoint.created_at
+    };
+    this.backupRestoreState = {
+      ...(this.backupRestoreState || {}),
+      last_checkpoint_at: restorePoint.created_at,
+      checkpoints: [restorePoint, ...((this.backupRestoreState?.checkpoints || []))].slice(0, 12)
+    };
+    this.saveProductionState();
+    return restorePoint;
+  },
+
+  schemaSafeText(parts, label = 'schema_backup') {
+    const source = (Array.isArray(parts) ? parts : [parts]).filter((part) => part !== null && part !== undefined).join('\n');
+    const scan = this.scanPrivacyText(source);
+    return scan.findings.length ? `[скрыто Privacy Guard: ${label}]` : source.slice(0, MEMORY_SEARCH_MAX_PREVIEW_CHARS);
+  },
+
+  buildSchemaSafeBackupPackage() {
+    const snapshot = this.buildSchemaSafetySnapshot();
+    const packageId = this.generateWorkspaceId('BACKUP');
+    const tasks = (this.workTasks || []).map((task) => ({
+      schema_version: task.schema_version || DATA_SCHEMA_VERSION,
+      task_id: task.task_id,
+      project_id: task.project_id,
+      title: this.schemaSafeText(task.title || task.user_request || task.task_id, `task:${task.task_id}:title`),
+      status: task.status,
+      goal: this.schemaSafeText(task.goal || task.user_request || '', `task:${task.task_id}:goal`),
+      next_step: this.schemaSafeText(task.next_step || '', `task:${task.task_id}:next_step`),
+      counts: {
+        messages: (task.messages || []).length,
+        artifacts: (task.artifacts || []).length,
+        files: (task.files || []).length,
+        approvals: (task.approval_requests || []).length
+      },
+      artifact_refs: (task.artifacts || []).map((artifact) => ({
+        artifact_id: artifact.artifact_id,
+        type: artifact.type,
+        title: this.schemaSafeText(artifact.title || artifact.artifact_id, `artifact:${artifact.artifact_id}`),
+        status: artifact.status || ''
+      })).slice(0, 80),
+      file_refs: (task.files || []).map((file) => ({
+        file_id: file.file_id,
+        name: this.schemaSafeText(file.name || file.file_id, `file:${file.file_id}`),
+        role: file.role,
+        extension: file.extension,
+        human_size: file.human_size,
+        storage_ref: file.storage_ref?.planned_path || file.storage_path || '',
+        is_evidence: Boolean(file.is_evidence)
+      })).slice(0, 80),
+      created_at: task.created_at,
+      updated_at: task.updated_at
+    }));
+
+    const backup = {
+      package_id: packageId,
+      package_version: SAFE_BACKUP_PACKAGE_VERSION,
+      schema_version: DATA_SCHEMA_VERSION,
+      created_at: new Date().toISOString(),
+      app: 'Terminator Mina UI',
+      storage_root: TERMINATOR_STORAGE_ROOT,
+      policy: {
+        no_secrets: true,
+        no_ai_api: true,
+        no_raw_files: true,
+        no_cookies_or_sessions: true,
+        heavy_files_on_d: true
+      },
+      schema_snapshot: snapshot,
+      projects: (this.workProjects || []).map((project) => ({
+        schema_version: project.schema_version || DATA_SCHEMA_VERSION,
+        project_id: project.project_id,
+        name: this.schemaSafeText(project.name, `project:${project.project_id}`),
+        type: project.type,
+        status: project.status,
+        goal: this.schemaSafeText(project.goal || project.short_description || '', `project:${project.project_id}:goal`),
+        created_at: project.created_at,
+        updated_at: project.updated_at
+      })),
+      tasks,
+      head: {
+        strategist_id: this.mainStrategistBrain()?.brain_id || '',
+        brains: (this.headBrains || []).map((brain) => ({
+          brain_id: brain.brain_id,
+          provider: brain.provider_name || brain.provider || '',
+          display_name: brain.display_name,
+          role: brain.role,
+          status: brain.status,
+          enabled: Boolean(brain.enabled),
+          schema_version: brain.schema_version || DATA_SCHEMA_VERSION
+        })),
+        profiles: (this.headProfiles || []).map((profile) => ({
+          profile_id: profile.profile_id,
+          name: profile.name,
+          main_strategist_id: profile.main_strategist_id,
+          member_count: (profile.council_members || profile.members || []).length,
+          search_agent_count: (profile.search_agent_ids || profile.search_agents || []).length,
+          schema_version: profile.schema_version || DATA_SCHEMA_VERSION
+        }))
+      },
+      memory_index_summary: {
+        count: this.memorySearchState?.records?.length || 0,
+        stats: this.memorySearchState?.stats || {},
+        last_indexed_at: this.memorySearchState?.last_indexed_at || ''
+      },
+      restore_policy: {
+        browser_restore: 'metadata preview only',
+        destructive_restore: 'Approval required',
+        rollback_notes: 'restore package is safe summary; raw files stay on D and are not embedded'
+      }
+    };
+    const current = this.schemaSafetyState || {};
+    this.schemaSafetyState = {
+      ...current,
+      last_backup_at: backup.created_at,
+      backup_packages: [
+        {
+          package_id: backup.package_id,
+          created_at: backup.created_at,
+          task_count: backup.tasks.length,
+          project_count: backup.projects.length,
+          schema_status: backup.schema_snapshot.status
+        },
+        ...(current.backup_packages || [])
+      ].slice(0, 12)
+    };
+    this.saveProductionState();
+    return backup;
+  },
+
+  stampSchemaObject(record, now = new Date().toISOString()) {
+    if (!record || typeof record !== 'object') return record;
+    return {
+      ...record,
+      schema_version: DATA_SCHEMA_VERSION,
+      migration_status: 'current',
+      schema_updated_at: now
+    };
+  },
+
+  stampTaskSchema(task, now) {
+    const stamped = this.stampSchemaObject(task, now);
+    return this.normalizeWorkTask({
+      ...stamped,
+      messages: (task.messages || []).map((message) => this.stampSchemaObject(message, now)),
+      artifacts: (task.artifacts || []).map((artifact) => this.stampSchemaObject(artifact, now)),
+      files: (task.files || []).map((file) => this.stampSchemaObject(file, now)),
+      events: (task.events || []).map((event) => this.stampSchemaObject(event, now)),
+      approval_requests: (task.approval_requests || []).map((approval) => this.stampSchemaObject(approval, now)),
+      updated_at: task.updated_at || now
+    });
+  },
+
+  async applySafeSchemaStamp() {
+    const now = new Date().toISOString();
+    const restorePoint = this.createSchemaRestorePoint('before_safe_schema_stamp');
+    this.workProjects = (this.workProjects || []).map((project) => this.normalizeWorkProject(this.stampSchemaObject(project, now)));
+    this.workTasks = (this.workTasks || []).map((task) => this.stampTaskSchema(task, now));
+    this.approvalRecords = (this.approvalRecords || []).map((approval) => this.normalizeApprovalRecord(this.stampSchemaObject(approval, now)));
+    this.systemDevices = (this.systemDevices || []).map((device) => this.normalizeDevice(this.stampSchemaObject(device, now)));
+    this.headBrains = (this.headBrains || []).map((brain) => this.normalizeHeadBrain(this.stampSchemaObject(brain, now)));
+    this.headProfiles = (this.headProfiles || []).map((profile) => this.normalizeHeadProfile(this.stampSchemaObject(profile, now)));
+    this.headSearchAgents = (this.headSearchAgents || []).map((agent) => this.normalizeHeadSearchAgent(this.stampSchemaObject(agent, now)));
+    this.systemDiagnostics = (this.systemDiagnostics || []).map((diagnostic) => this.stampSchemaObject(diagnostic, now));
+    this.guardianIncidents = (this.guardianIncidents || []).map((incident) => this.stampSchemaObject(incident, now));
+    if (this.memorySearchState?.records) {
+      this.memorySearchState.records = this.memorySearchState.records.map((record) => this.stampSchemaObject(record, now));
+      await this.saveMemorySearchState();
+    }
+    if (this.taskRuntimeDb) {
+      await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.PROJECTS, this.workProjects);
+      await this.persistRuntimeSnapshot();
+      await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.APPROVALS, this.approvalRecords);
+      await this.saveSystemDevices();
+      await this.saveHeadRuntime();
+      await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.DIAGNOSTICS, this.systemDiagnostics);
+      await this.replaceRuntimeStoreRecords(TASK_RUNTIME_STORES.INCIDENTS, this.guardianIncidents);
+    } else {
+      this.saveWorkTasks();
+    }
+    const snapshot = this.buildSchemaSafetySnapshot();
+    this.schemaSafetyState = {
+      ...(this.schemaSafetyState || {}),
+      ...snapshot,
+      schema_version: DATA_SCHEMA_VERSION,
+      status: snapshot.status,
+      registry: snapshot.registry,
+      last_checked_at: snapshot.last_checked_at,
+      last_schema_stamp_at: now,
+      last_restore_point_id: restorePoint.restore_point_id
+    };
+    this.saveProductionState();
+    return snapshot;
   },
 
   downloadTextFile(filename, text, mimeType = 'application/json') {
@@ -5030,10 +5423,12 @@ const App = {
     const guardian = this.guardianSnapshot();
     const pwa = this.pwaSnapshot();
     const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
+    const schemaSafety = this.schemaSafetyState?.last_checked_at ? this.schemaSafetyState : this.buildSchemaSafetySnapshot();
     const memorySearch = this.memorySearchSnapshot();
     const cards = [
       ['Guardian', guardian.label, guardian.note],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
+      ['Схемы данных', this.phase6StatusName(schemaSafety.status), `готовность ${schemaSafety.score || 0}% · ${schemaSafety.summary || 'dry-run ожидает запуска'}`],
       ['Поиск по памяти', this.memorySearchStatusName(memorySearch.status), memorySearch.note],
       ['Синхронизация задач', taskStore.status, taskStore.note],
       ['Задачи', this.taskRuntimeReady ? 'локальная база' : 'резервный режим', this.taskRuntimeReady ? `${tasks.length} задач, ${projects.length} проектов` : 'браузерный резерв localStorage'],
@@ -5066,6 +5461,7 @@ const App = {
     this.renderSystemPwaPanel();
     this.renderSystemCompanionPanel();
     this.renderSystemReleaseCenter();
+    this.renderSystemSchemaSafetyPanel();
     this.renderSystemBackupCenter();
     this.renderSystemObservabilityPanel();
     this.renderMinaSystemScheme();
@@ -5925,7 +6321,10 @@ const App = {
       archived: Boolean(brain.archived || brain.status === 'archived'),
       notes: brain.notes || '',
       created_at: brain.created_at || now,
-      updated_at: brain.updated_at || now
+      updated_at: brain.updated_at || now,
+      schema_version: Number(brain.schema_version || 0),
+      migration_status: brain.migration_status || '',
+      schema_updated_at: brain.schema_updated_at || ''
     };
   },
 
@@ -5943,7 +6342,10 @@ const App = {
       preset: Boolean(agent.preset),
       archived: Boolean(agent.archived || agent.status === 'archived'),
       created_at: agent.created_at || now,
-      updated_at: agent.updated_at || now
+      updated_at: agent.updated_at || now,
+      schema_version: Number(agent.schema_version || 0),
+      migration_status: agent.migration_status || '',
+      schema_updated_at: agent.schema_updated_at || ''
     };
   },
 
@@ -5960,7 +6362,10 @@ const App = {
       is_default: Boolean(profile.is_default),
       status: profile.status || 'draft',
       created_at: profile.created_at || now,
-      updated_at: profile.updated_at || now
+      updated_at: profile.updated_at || now,
+      schema_version: Number(profile.schema_version || 0),
+      migration_status: profile.migration_status || '',
+      schema_updated_at: profile.schema_updated_at || ''
     };
   },
 
@@ -7144,13 +7549,85 @@ const App = {
     `;
   },
 
+  renderSystemSchemaSafetyPanel() {
+    const host = document.getElementById('system-schema-safety-panel');
+    if (!host) return;
+    const snapshot = this.schemaSafetyState?.last_checked_at
+      ? this.schemaSafetyState
+      : this.buildSchemaSafetySnapshot();
+    const registry = snapshot.registry?.length ? snapshot.registry : this.buildSchemaRegistrySnapshot();
+    const migration = this.schemaSafetyState?.migration_plan || null;
+    const backupPackages = this.schemaSafetyState?.backup_packages || [];
+    const restorePoints = this.schemaSafetyState?.restore_points || [];
+    const summaryRows = [
+      ['Последняя проверка', snapshot.last_checked_at ? this.formatTaskTime(snapshot.last_checked_at) : 'не запускалась', 'Проверка локальная: без удаления, deploy, секретов и AI API.'],
+      ['Dry-run миграции', migration?.generated_at ? this.formatTaskTime(migration.generated_at) : 'не запускался', migration?.actions?.length ? `${migration.actions.length} мягких действий запланировано` : 'опасных изменений нет'],
+      ['Backup / restore', backupPackages[0]?.created_at ? this.formatTaskTime(backupPackages[0].created_at) : 'backup не создан', `${restorePoints.length} restore point в журнале схемы`]
+    ];
+    host.innerHTML = `
+      <section class="phase6-hero phase6-hero--${this.escapeHtml(snapshot.status || 'not_checked')} schema-safety-hero">
+        <div>
+          <span>Схемы данных</span>
+          <strong>${this.escapeHtml(String(snapshot.score || 0))}%</strong>
+          <p>${this.escapeHtml(snapshot.summary || 'Состояние схем ещё не проверялось.')}</p>
+        </div>
+        <dl>
+          ${summaryRows.map(([name, value, note]) => `
+            <div>
+              <dt>${this.escapeHtml(name)}</dt>
+              <dd>${this.escapeHtml(value)}</dd>
+              <small>${this.escapeHtml(note)}</small>
+            </div>
+          `).join('')}
+        </dl>
+      </section>
+      <div class="schema-safety-table" role="table" aria-label="Версии схем данных">
+        ${registry.map((item) => `
+          <article class="schema-safety-row schema-safety-row--${this.escapeHtml(item.status)}" role="row">
+            <div>
+              <strong>${this.escapeHtml(item.display_name)}</strong>
+              <span>${this.escapeHtml(item.source)}</span>
+            </div>
+            <b>${this.escapeHtml(this.phase6StatusName(item.status))}</b>
+            <p>${this.escapeHtml(item.note)}</p>
+            <small>${this.escapeHtml(item.critical ? 'критичная группа' : 'служебная группа')}</small>
+          </article>
+        `).join('')}
+      </div>
+      <div class="schema-safety-plan">
+        <article>
+          <strong>План миграции</strong>
+          <span>${this.escapeHtml(migration ? this.phase6StatusName(migration.status) : 'не запускался')}</span>
+          <p>${this.escapeHtml(migration?.actions?.length
+            ? `Будет проставлена версия схемы v${DATA_SCHEMA_VERSION} для ${migration.actions.reduce((sum, action) => sum + action.records_to_stamp, 0)} записей. Удалений нет.`
+            : 'Сначала запустите dry-run. Он покажет, что будет обновлено, без применения изменений.')}</p>
+        </article>
+        <article>
+          <strong>Restore policy</strong>
+          <span>только безопасный откат</span>
+          <p>Перед schema stamp создаётся restore point. Деструктивный restore требует Approval и rollback notes.</p>
+        </article>
+      </div>
+      <div class="system-action-strip system-action-strip--wrap">
+        <button type="button" data-phase6-action="run_schema_check">Проверить схемы</button>
+        <button type="button" data-phase6-action="run_schema_dry_run">Dry-run миграции</button>
+        <button type="button" data-phase6-action="apply_schema_stamp">Проставить версию схемы</button>
+        <button type="button" data-phase6-action="create_schema_restore_point">Создать restore point</button>
+        <button type="button" data-phase6-action="export_schema_backup">Скачать backup схем</button>
+        <button type="button" data-phase6-action="copy_restore_policy">Скопировать restore policy</button>
+      </div>
+    `;
+  },
+
   renderSystemBackupCenter() {
     const host = document.getElementById('system-backup-center');
     if (!host) return;
     const backup = this.backupRestoreState || { checkpoints: [] };
     const checkpoints = backup.checkpoints || [];
+    const schemaPackages = this.schemaSafetyState?.backup_packages || [];
     const rows = [
       ['Последний checkpoint', backup.last_checkpoint_at ? this.formatTaskTime(backup.last_checkpoint_at) : 'не создан', 'Создаётся metadata snapshot без файлов, секретов и cookies.'],
+      ['Последний schema backup', schemaPackages[0]?.created_at ? this.formatTaskTime(schemaPackages[0].created_at) : 'не создан', 'Safe package хранит только metadata, ссылки и summary.'],
       ['Где жить полным backup', `${TERMINATOR_STORAGE_ROOT}\\backups`, 'Тяжёлые архивы должны уходить на D через Local Agent/ручной экспорт.'],
       ['Restore policy', 'только с подтверждением', 'Деструктивный restore требует Approval и rollback notes.']
     ];
@@ -7161,7 +7638,7 @@ const App = {
       <div class="phase6-timeline">
         ${checkpoints.slice(0, 5).map((checkpoint) => `
           <article>
-            <strong>${this.escapeHtml(checkpoint.checkpoint_id)}</strong>
+            <strong>${this.escapeHtml(checkpoint.checkpoint_id || checkpoint.restore_point_id || 'CHECKPOINT')}</strong>
             <span>${this.escapeHtml(this.formatTaskTime(checkpoint.created_at))}</span>
             <p>${this.escapeHtml(`${checkpoint.reason}; задач: ${checkpoint.counts?.tasks ?? 0}; release: ${checkpoint.release_status || 'not_checked'}`)}</p>
           </article>
@@ -7269,6 +7746,75 @@ const App = {
       if (!ok) this.copyWorkspaceText(text);
       this.renderSystemStatus();
       this.toast(ok ? 'Safe export скачан' : 'Safe export скопирован');
+      return;
+    }
+
+    if (action === 'run_schema_check') {
+      const snapshot = this.buildSchemaSafetySnapshot();
+      this.schemaSafetyState = {
+        ...(this.schemaSafetyState || {}),
+        ...snapshot,
+        status: snapshot.status,
+        registry: snapshot.registry,
+        last_checked_at: snapshot.last_checked_at
+      };
+      this.saveProductionState();
+      this.renderSystemStatus();
+      this.toast(`Схемы данных: ${this.phase6StatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'run_schema_dry_run') {
+      const plan = this.buildSchemaMigrationPlan();
+      const snapshot = this.buildSchemaSafetySnapshot();
+      this.schemaSafetyState = {
+        ...(this.schemaSafetyState || {}),
+        ...snapshot,
+        migration_plan: plan,
+        registry: snapshot.registry,
+        last_migration_dry_run_at: plan.generated_at,
+        last_checked_at: snapshot.last_checked_at
+      };
+      this.saveProductionState();
+      this.renderSystemStatus();
+      this.toast(plan.actions.length ? `Dry-run: ${plan.actions.length} действий` : 'Dry-run: миграция не нужна');
+      return;
+    }
+
+    if (action === 'apply_schema_stamp') {
+      const snapshot = await this.applySafeSchemaStamp();
+      this.renderSystemStatus();
+      this.toast(`Schema stamp завершён: ${this.phase6StatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'create_schema_restore_point') {
+      const restorePoint = this.createSchemaRestorePoint('manual_schema_restore_point');
+      this.renderSystemStatus();
+      this.toast(`Restore point создан: ${restorePoint.restore_point_id}`);
+      return;
+    }
+
+    if (action === 'export_schema_backup') {
+      const backup = this.buildSchemaSafeBackupPackage();
+      const text = JSON.stringify(backup, null, 2);
+      const ok = this.downloadTextFile(`terminator-schema-backup-${Date.now()}.json`, text);
+      if (!ok) await this.copyWorkspaceText(text);
+      this.renderSystemStatus();
+      this.toast(ok ? 'Schema backup скачан' : 'Schema backup скопирован');
+      return;
+    }
+
+    if (action === 'copy_restore_policy') {
+      await this.copyWorkspaceText([
+        'Restore policy:',
+        '- schema backup содержит metadata, ссылки, summary и версии схем',
+        '- raw files / cookies / tokens / passwords не экспортируются',
+        '- schema stamp создаёт restore point перед применением',
+        '- destructive restore только через Approval + rollback notes',
+        `- full restore files live on D: ${TERMINATOR_STORAGE_ROOT}\\backups`
+      ].join('\n'));
+      this.toast('Restore policy скопирован');
       return;
     }
 
@@ -8399,7 +8945,10 @@ const App = {
       decision_note: approval.decision_note || '',
       created_at: approval.created_at || now,
       updated_at: approval.updated_at || approval.created_at || now,
-      resolved_at: approval.resolved_at || ''
+      resolved_at: approval.resolved_at || '',
+      schema_version: Number(approval.schema_version || 0),
+      migration_status: approval.migration_status || '',
+      schema_updated_at: approval.schema_updated_at || ''
     };
   },
 
@@ -8780,7 +9329,10 @@ const App = {
       linked_project_ids: Array.isArray(device.linked_project_ids) ? device.linked_project_ids : [],
       linked_task_ids: Array.isArray(device.linked_task_ids) ? device.linked_task_ids : [],
       created_at: device.created_at || now,
-      updated_at: device.updated_at || now
+      updated_at: device.updated_at || now,
+      schema_version: Number(device.schema_version || 0),
+      migration_status: device.migration_status || '',
+      schema_updated_at: device.schema_updated_at || ''
     };
     const rawCapabilities = Array.isArray(device.capabilities) ? device.capabilities : [];
     normalized.capabilities = rawCapabilities.map((capability) => {
@@ -8819,7 +9371,10 @@ const App = {
       requires_owner_presence: Boolean(capability.requires_owner_presence),
       adapter: capability.adapter || device.connection_type || 'manual',
       available: Boolean(capability.available),
-      last_checked: capability.last_checked || ''
+      last_checked: capability.last_checked || '',
+      schema_version: Number(capability.schema_version || 0),
+      migration_status: capability.migration_status || '',
+      schema_updated_at: capability.schema_updated_at || ''
     };
   },
 
@@ -8833,7 +9388,10 @@ const App = {
       actor: event.actor || 'System',
       risk_level: event.risk_level || 'safe',
       linked_task_id: event.linked_task_id || '',
-      linked_approval_id: event.linked_approval_id || ''
+      linked_approval_id: event.linked_approval_id || '',
+      schema_version: Number(event.schema_version || 0),
+      migration_status: event.migration_status || '',
+      schema_updated_at: event.schema_updated_at || ''
     };
   },
 
@@ -9075,6 +9633,9 @@ const App = {
     task.timer_stopped_at = task.timer_stopped_at || task.executor_state.timer_stopped_at || '';
     task.updated_at = task.updated_at || now;
     task.created_at = task.created_at || now;
+    task.schema_version = Number(task.schema_version || task.runtime?.schema_version || 0);
+    task.migration_status = task.migration_status || '';
+    task.schema_updated_at = task.schema_updated_at || '';
     task.executor = task.executor || task.executor_state.executor || 'не назначен';
     task.messages = task.messages.map((message) => ({
       ...message,
