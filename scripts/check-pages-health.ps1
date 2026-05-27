@@ -1,8 +1,8 @@
 param(
   [string]$Repository = "VitaliyKonstantinovich/terminator-webapp",
   [string]$Url = "https://vitaliykonstantinovich.github.io/terminator-webapp/",
-  [string]$ExpectedAssetMarker = "20260526-schema-backup-v1",
-  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260526-schema-backup-v1"
+  [string]$ExpectedAssetMarker = "20260526-system-registry-v1",
+  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260526-system-registry-v1"
 )
 
 $ErrorActionPreference = "Stop"
