@@ -868,9 +868,9 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Schema Versioning + Backup/Restore + Migration Safety',
   date: '2026-05-26',
-  status: 'в работе',
+  status: 'закрыт live',
   previous: 'Memory Search Engine / Context Index V1',
-  next: 'live acceptance после schema/backup safety'
+  next: 'следующий автономный слой после schema/backup live acceptance'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -900,7 +900,7 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 25, name: 'Production Hardening + Release Quality', status: 'закрыт live' },
   { id: 26, name: 'Windows Companion + Installer Foundation', status: 'закрыт live' },
   { id: 27, name: 'Memory Search Engine / Context Index V1', status: 'закрыт live' },
-  { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'в работе' }
+  { id: 28, name: 'Schema Versioning + Backup/Restore + Migration Safety', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',

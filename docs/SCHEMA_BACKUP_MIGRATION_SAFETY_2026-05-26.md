@@ -1,7 +1,7 @@
 # Schema Versioning + Backup/Restore + Migration Safety
 
 Date: 2026-05-26
-Status: local implementation complete, live publication pending
+Status: closed live
 
 ## User Meaning
 
@@ -47,6 +47,7 @@ This step adds a data-safety layer for Terminator growth.
 
 - `node --check app.js`: PASS.
 - `node --check sw.js`: PASS.
+- `git diff --check`: PASS, CRLF notices only.
 - Local desktop smoke through Chrome CDP: PASS.
 - Local mobile smoke 390px: PASS.
 - Schema check: PASS.
@@ -57,10 +58,23 @@ This step adds a data-safety layer for Terminator growth.
 - Desktop horizontal overflow: false.
 - Mobile horizontal overflow: false.
 
+## Live Checks
+
+- GitHub Actions run `26483379465`: success.
+- Pages health check: PASS.
+- Live HTML marker `20260526-schema-backup-v1`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260526-schema-backup-v1`: PASS.
+- Live System DOM smoke: PASS.
+- Live schema check / dry-run / stamp actions: PASS.
+- Live desktop horizontal overflow: false.
+- Live mobile 390px horizontal overflow: false.
+
 ## Evidence
 
 - `D:\TerminatorStorage\evidence_backups\schema_backup_migration\schema-backup-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\schema_backup_migration\schema-backup-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\schema_backup_migration\schema-backup-live-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\schema_backup_migration\schema-backup-live-mobile.png`
 - `evidence/schema_backup_migration/SCHEMA_BACKUP_MIGRATION_RESULT.md`
 
 ## What To Check First
@@ -72,8 +86,6 @@ This step adds a data-safety layer for Terminator growth.
 5. Click `Проставить версию схемы`.
 6. Confirm readiness becomes 100% when all local records are stamped.
 
-## Remaining Before Final Close
+## Live URL
 
-- Publish to GitHub Pages.
-- Run Pages health check.
-- Run live desktop/mobile DOM smoke.
+`https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=schema-backup-live`
