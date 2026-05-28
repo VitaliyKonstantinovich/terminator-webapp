@@ -1,6 +1,6 @@
 # Phase 19 — Handoff / Route Planner V1
 
-Status: closed live candidate.
+Status: closed live PASS.
 Date: 2026-05-28.
 
 ## Goal
@@ -66,6 +66,11 @@ All transfer is manual owner-controlled copy/paste.
 - No AI API added: PASS.
 - Direct Bridge code unchanged: PASS.
 - Local Agent code unchanged: PASS.
+- GitHub Pages Actions deploy: PASS.
+- Live HTML marker `20260528-phase19-handoff-route-planner-v1`: PASS.
+- Live `app.js` Handoff / Route Planner markers: PASS.
+- Live `sw.js` Phase 19 cache marker: PASS.
+- Live browser load and no horizontal overflow: PASS.
 
 ## Evidence
 
