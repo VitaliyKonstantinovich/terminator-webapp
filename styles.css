@@ -7811,7 +7811,7 @@ button:not(:disabled) {
 
 .hands-hero dl {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
 }
@@ -7931,7 +7931,8 @@ button:not(:disabled) {
 
 .workspace-right .hands-workspace-panel .hands-form-grid,
 .workspace-right .hands-plan,
-.workspace-right .controlled-run {
+.workspace-right .controlled-run,
+.workspace-right .controlled-apply {
   grid-template-columns: 1fr;
 }
 
@@ -7941,7 +7942,8 @@ button:not(:disabled) {
 }
 
 .workspace-right .hands-plan-actions button,
-.workspace-right .controlled-run button {
+.workspace-right .controlled-run button,
+.workspace-right .controlled-apply button {
   width: 100%;
 }
 
@@ -7954,7 +7956,19 @@ button:not(:disabled) {
   background: linear-gradient(135deg, rgba(3, 34, 72, 0.72), rgba(1, 15, 36, 0.86));
 }
 
-.controlled-runtime-panel p {
+.controlled-apply-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(255, 212, 92, 0.28);
+  background:
+    radial-gradient(circle at 84% 18%, rgba(255, 212, 92, 0.12), transparent 28%),
+    linear-gradient(135deg, rgba(34, 28, 5, 0.68), rgba(1, 15, 36, 0.88));
+}
+
+.controlled-runtime-panel p,
+.controlled-apply-panel p {
   margin: 0;
   color: #c3ddff;
 }
@@ -7966,7 +7980,8 @@ button:not(:disabled) {
 }
 
 .controlled-runtime-grid article,
-.controlled-run {
+.controlled-run,
+.controlled-apply {
   padding: 12px;
   border: 1px solid rgba(87, 193, 255, 0.22);
   background: rgba(2, 19, 45, 0.8);
@@ -7974,7 +7989,9 @@ button:not(:disabled) {
 
 .controlled-runtime-grid span,
 .controlled-run span,
-.controlled-run small {
+.controlled-run small,
+.controlled-apply span,
+.controlled-apply small {
   color: #a8d6ff;
   font-size: 12px;
   font-weight: 800;
@@ -7982,14 +7999,16 @@ button:not(:disabled) {
 }
 
 .controlled-runtime-grid strong,
-.controlled-run strong {
+.controlled-run strong,
+.controlled-apply strong {
   display: block;
   margin: 5px 0;
   color: #5ff2ff;
   font-size: 18px;
 }
 
-.controlled-run {
+.controlled-run,
+.controlled-apply {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
@@ -7997,16 +8016,27 @@ button:not(:disabled) {
   border-radius: 8px;
 }
 
-.controlled-run--completed {
+.controlled-run--completed,
+.controlled-apply--approved_for_manual_apply,
+.controlled-apply--manual_applied {
   border-color: rgba(0, 246, 162, 0.4);
 }
 
 .controlled-run--blocked,
-.controlled-run--failed {
+.controlled-run--failed,
+.controlled-apply--blocked,
+.controlled-apply--rejected {
   border-color: rgba(255, 91, 122, 0.5);
 }
 
-.controlled-run p {
+.controlled-apply--approval_required,
+.controlled-apply--verifier_ready,
+.controlled-apply--prepared {
+  border-color: rgba(255, 212, 92, 0.48);
+}
+
+.controlled-run p,
+.controlled-apply p {
   margin: 0;
   color: #c6ddff;
 }
@@ -8267,7 +8297,8 @@ button:not(:disabled) {
   .hands-plan,
   .hands-worker-grid,
   .controlled-runtime-grid,
-  .controlled-run {
+  .controlled-run,
+  .controlled-apply {
     grid-template-columns: 1fr;
   }
 

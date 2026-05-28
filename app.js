@@ -486,6 +486,19 @@ const CONTROLLED_RUNTIME_STATUS_LABELS = {
   blocked: 'заблокирован',
   failed: 'ошибка'
 };
+const CONTROLLED_APPLY_PIPELINE_SCHEMA_VERSION = 1;
+const CONTROLLED_APPLY_PIPELINE_STORAGE_KEY = 'mina_controlled_apply_pipeline_v1';
+const CONTROLLED_APPLY_PIPELINE_MAX_PACKAGES = 80;
+const CONTROLLED_APPLY_STATUS_LABELS = {
+  draft: 'черновик',
+  prepared: 'пакет готов',
+  verifier_ready: 'готов к Verifier',
+  approval_required: 'нужно подтверждение',
+  approved_for_manual_apply: 'разрешено ручное применение',
+  manual_applied: 'владелец отметил применённым',
+  blocked: 'заблокировано',
+  rejected: 'отклонено'
+};
 
 const DATA_SCHEMA_VERSION = 1;
 const SAFE_BACKUP_PACKAGE_VERSION = 1;
@@ -1138,11 +1151,11 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 20 Continuity / Offline Recovery / Task Teleport V1',
+  name: 'Phase 21 Controlled Apply Pipeline / Verifier Gate V1',
   date: '2026-05-28',
   status: 'закрыт live',
-  previous: 'Phase 19 Handoff / Route Planner V1',
-  next: 'Следующий слой по MASTER SPEC после live acceptance'
+  previous: 'Phase 20 Continuity / Offline Recovery / Task Teleport V1',
+  next: 'Следующий слой финального road map перед QAMAX'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1187,7 +1200,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 40, name: 'Owned Device / Agent Registry V1', status: 'закрыт live' },
   { id: 41, name: 'Phone / PWA Pairing + Multi-Device Presence V1', status: 'закрыт live' },
   { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' },
-  { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' }
+  { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' },
+  { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2442,6 +2456,8 @@ const App = {
   activeHandsPlanId: '',
   controlledWorkerRuntimeState: null,
   activeControlledRunId: '',
+  controlledApplyPipelineState: null,
+  activeApplyPackageId: '',
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -2482,6 +2498,7 @@ const App = {
     this.loadEyesVisualState();
     this.loadHandsSafeState();
     this.loadControlledWorkerRuntimeState();
+    this.loadControlledApplyPipelineState();
     this.loadContinuityState();
     this.bindContinuityRuntime();
     this.loadMinaSchemeState();
@@ -5116,6 +5133,7 @@ const App = {
     const eyes = this.eyesVisualSnapshot();
     const hands = this.handsSnapshot();
     const runtime = this.controlledRuntimeSnapshot();
+    const applyPipeline = this.controlledApplySnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const pwa = this.pwaSnapshot();
     const liveRuntime = this.buildLiveRuntimeSnapshot();
@@ -5194,9 +5212,9 @@ const App = {
       ),
       this.integrationCheck(
         'hands_runtime',
-        'Руки + controlled runtime',
-        hands.status === 'ready' && runtime.status === 'ready' ? 'ready' : runtime.status === 'review' ? 'review' : 'partial',
-        `${hands.note}; runtime: ${runtime.note}`,
+        'Руки + controlled runtime + apply gate',
+        hands.status === 'ready' && runtime.status === 'ready' && applyPipeline.status === 'ready' ? 'ready' : runtime.status === 'review' || applyPipeline.status === 'review' ? 'review' : 'partial',
+        `${hands.note}; runtime: ${runtime.note}; apply gate: ${applyPipeline.note}`,
         'open_hands'
       ),
       this.integrationCheck(
@@ -5475,6 +5493,455 @@ const App = {
     `;
   },
 
+  controlledApplyStatusName(status) {
+    return CONTROLLED_APPLY_STATUS_LABELS[status] || status || 'черновик';
+  },
+
+  defaultControlledApplyPipelineState() {
+    return {
+      schema_version: CONTROLLED_APPLY_PIPELINE_SCHEMA_VERSION,
+      status: 'not_started',
+      packages: [],
+      last_package_id: '',
+      last_checked_at: '',
+      policy: {
+        active_project_write: false,
+        shell_execution: false,
+        direct_apply: false,
+        verifier_required: true,
+        rollback_required: true,
+        approval_required_above_low: true,
+        manual_owner_apply_only: true
+      }
+    };
+  },
+
+  normalizeControlledApplyCheck(check = {}) {
+    return {
+      name: String(check.name || 'check'),
+      status: String(check.status || 'not_run'),
+      note: String(check.note || '')
+    };
+  },
+
+  normalizeControlledApplyPackage(pack = {}, task = null) {
+    const now = new Date().toISOString();
+    const source = pack && typeof pack === 'object' ? pack : {};
+    const packageId = source.apply_package_id || this.generateWorkspaceId('APPLY');
+    const taskId = source.task_id || task?.task_id || '';
+    const projectId = source.project_id || task?.project_id || '';
+    const changedFiles = Array.isArray(source.changed_files) && source.changed_files.length
+      ? source.changed_files.map(String).slice(0, 20)
+      : ['repair workspace diff refs only'];
+    const textForScan = [
+      source.title || '',
+      source.source_summary || '',
+      source.diff_summary || '',
+      source.manual_apply_instructions || '',
+      changedFiles.join('\n')
+    ].join('\n');
+    const privacy = this.scanPrivacyText(textForScan);
+    const detectedForbidden = this.detectForbiddenActions(textForScan);
+    const forbiddenActions = [...new Set([
+      ...(Array.isArray(source.forbidden_actions) ? source.forbidden_actions.map(String) : []),
+      ...detectedForbidden
+    ])].slice(0, 20);
+    const riskLevel = HANDS_RISK_LABELS[source.risk_level]
+      ? source.risk_level
+      : forbiddenActions.length || privacy.blocked
+        ? 'approval_required'
+        : 'review';
+    const approvalRequired = Boolean(
+      source.approval_required
+      || forbiddenActions.length
+      || privacy.findings.length
+      || riskLevel === 'review'
+      || riskLevel === 'approval_required'
+      || riskLevel === 'dangerous'
+    );
+    const rollbackPoint = source.rollback_point && typeof source.rollback_point === 'object'
+      ? source.rollback_point
+      : {
+          rollback_id: this.generateWorkspaceId('ROLLBACK'),
+          apply_package_id: packageId,
+          task_id: taskId,
+          affected_files: changedFiles,
+          previous_file_hashes: [],
+          backup_path: `${TERMINATOR_STORAGE_ROOT}\\tasks\\${taskId || 'manual'}\\restore_points\\${packageId}`,
+          status: 'prepared',
+          instructions: 'Перед ручным применением сохранить affected files и откатить по этому пакету, если проверка провалится.',
+          created_at: now
+        };
+    const checks = Array.isArray(source.checks) && source.checks.length
+      ? source.checks.map((check) => this.normalizeControlledApplyCheck(check)).slice(0, 12)
+      : [
+          { name: 'rollback point', status: 'pass', note: rollbackPoint.rollback_id },
+          { name: 'no secrets', status: privacy.findings.length ? 'review' : 'pass', note: this.privacyScanSummary(privacy) },
+          { name: 'no AI API', status: /ai api|openai api|gemini api|deepseek api|openrouter/i.test(textForScan) ? 'blocked' : 'pass', note: 'AI API не используется' },
+          { name: 'active project write', status: 'blocked_by_policy', note: 'Прямое изменение active project запрещено этим пакетом.' },
+          { name: 'verifier', status: source.verifier_status === 'metadata_self_check_pass' ? 'pass' : 'not_run', note: source.verifier_status || 'ожидает проверки' }
+        ];
+    const baseStatus = CONTROLLED_APPLY_STATUS_LABELS[source.status] ? source.status : 'prepared';
+    const blocked = forbiddenActions.length || privacy.blocked || checks.some((check) => ['blocked', 'fail'].includes(check.status));
+    const status = blocked ? 'blocked' : baseStatus;
+    return {
+      schema_version: CONTROLLED_APPLY_PIPELINE_SCHEMA_VERSION,
+      apply_package_id: packageId,
+      plan_id: source.plan_id || '',
+      task_id: taskId,
+      project_id: projectId,
+      source_type: source.source_type || 'hands_plan',
+      title: String(source.title || 'Пакет контролируемого применения'),
+      source_summary: String(source.source_summary || 'Пакет подготовлен из плана Рук. Активный проект не менялся.'),
+      risk_level: riskLevel,
+      status,
+      changed_files: changedFiles,
+      diff_summary: String(source.diff_summary || 'Diff summary не применён к active project. Пакет хранит только refs, инструкции и проверки.'),
+      checks,
+      rollback_point: rollbackPoint,
+      verifier_status: source.verifier_status || 'not_checked',
+      approval_required: approvalRequired,
+      approval_id: source.approval_id || '',
+      manual_apply_allowed: Boolean(source.manual_apply_allowed && !approvalRequired && !blocked),
+      manual_apply_instructions: String(source.manual_apply_instructions || 'Применение выполняется отдельным ручным шагом после Verifier, rollback point и решения владельца. WebApp не пишет изменения в active project.'),
+      forbidden_actions: forbiddenActions,
+      privacy_status: privacy.status,
+      privacy_summary: this.privacyScanSummary(privacy),
+      gate_reasons: Array.isArray(source.gate_reasons) ? source.gate_reasons.map(String).slice(0, 20) : [],
+      artifact_id: source.artifact_id || '',
+      no_shell: source.no_shell !== false,
+      no_active_project_write: source.no_active_project_write !== false,
+      no_ai_api: source.no_ai_api !== false,
+      created_at: source.created_at || now,
+      updated_at: source.updated_at || source.created_at || now
+    };
+  },
+
+  normalizeControlledApplyPipelineState(state = {}) {
+    const fallback = this.defaultControlledApplyPipelineState();
+    const source = state && typeof state === 'object' ? state : {};
+    const packages = Array.isArray(source.packages)
+      ? source.packages.map((pack) => this.normalizeControlledApplyPackage(pack)).slice(0, CONTROLLED_APPLY_PIPELINE_MAX_PACKAGES)
+      : [];
+    const blocked = packages.filter((pack) => pack.status === 'blocked');
+    return {
+      ...fallback,
+      ...source,
+      schema_version: CONTROLLED_APPLY_PIPELINE_SCHEMA_VERSION,
+      status: blocked.length ? 'review' : packages.length ? 'ready' : (source.status || 'not_started'),
+      packages,
+      last_package_id: source.last_package_id || packages[0]?.apply_package_id || '',
+      last_checked_at: source.last_checked_at || packages[0]?.updated_at || '',
+      policy: {
+        ...fallback.policy,
+        ...(source.policy && typeof source.policy === 'object' ? source.policy : {})
+      }
+    };
+  },
+
+  loadControlledApplyPipelineState() {
+    this.controlledApplyPipelineState = this.normalizeControlledApplyPipelineState(this.readJsonStorage(CONTROLLED_APPLY_PIPELINE_STORAGE_KEY, null));
+    this.activeApplyPackageId = this.controlledApplyPipelineState.last_package_id || '';
+  },
+
+  saveControlledApplyPipelineState() {
+    this.controlledApplyPipelineState = this.normalizeControlledApplyPipelineState(this.controlledApplyPipelineState || this.defaultControlledApplyPipelineState());
+    this.writeJsonStorage(CONTROLLED_APPLY_PIPELINE_STORAGE_KEY, {
+      ...this.controlledApplyPipelineState,
+      packages: this.controlledApplyPipelineState.packages.slice(0, CONTROLLED_APPLY_PIPELINE_MAX_PACKAGES)
+    });
+  },
+
+  collectControlledApplyPackages() {
+    const globalPackages = this.controlledApplyPipelineState?.packages || [];
+    const taskPackages = (this.workTasks || []).flatMap((task) => Array.isArray(task.controlled_apply_packages) ? task.controlled_apply_packages : []);
+    return [...globalPackages, ...taskPackages.filter((pack) => !globalPackages.some((item) => item.apply_package_id === pack.apply_package_id))]
+      .map((pack) => this.normalizeControlledApplyPackage(pack))
+      .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+  },
+
+  controlledApplySnapshot() {
+    const packages = this.collectControlledApplyPackages();
+    const verified = packages.filter((pack) => pack.verifier_status === 'metadata_self_check_pass');
+    const blocked = packages.filter((pack) => pack.status === 'blocked');
+    const approvalRequired = packages.filter((pack) => pack.approval_required && !pack.approval_id);
+    const readiness = Math.max(20, Math.min(94, 38 + (packages.length ? 18 : 0) + (verified.length ? 18 : 0) - (blocked.length ? 10 : 0) - (approvalRequired.length ? 6 : 0)));
+    return {
+      status: blocked.length ? 'review' : verified.length ? 'ready' : packages.length ? 'partial' : 'not_started',
+      readiness,
+      count: packages.length,
+      verified_count: verified.length,
+      blocked_count: blocked.length,
+      approval_required_count: approvalRequired.length,
+      latest: packages[0] || null,
+      label: verified.length ? `${verified.length} проверено` : packages.length ? `${packages.length} пакетов` : 'нет пакетов',
+      note: packages[0]
+        ? `${packages[0].title}: ${this.controlledApplyStatusName(packages[0].status)}`
+        : 'Пакет применения пока не создан: нужен diff summary, rollback point, Verifier и Approval gate.'
+    };
+  },
+
+  controlledApplyPackageChangedFiles(plan, task = null) {
+    const normalized = this.normalizeHandsActionPlan(plan, task);
+    const taskId = task?.task_id || normalized.task_id || 'manual';
+    if (normalized.worker_id === 'file_worker') return [`${TERMINATOR_STORAGE_ROOT}\\tasks\\${taskId}\\files\\metadata`, `${TERMINATOR_STORAGE_ROOT}\\tasks\\${taskId}\\artifacts\\refs`];
+    if (normalized.worker_id === 'code_worker') return ['repair workspace diff refs only', 'active project files: manual apply only'];
+    if (normalized.worker_id === 'memory_worker') return [`${TERMINATOR_STORAGE_ROOT}\\memory\\indexes\\metadata`];
+    if (normalized.worker_id === 'system_worker') return ['system status metadata only'];
+    return ['task metadata / artifact refs only'];
+  },
+
+  buildControlledApplyPackageFromPlan(plan, task = null) {
+    const normalized = this.normalizeHandsActionPlan(plan, task);
+    const changedFiles = this.controlledApplyPackageChangedFiles(normalized, task);
+    const forbidden = this.detectForbiddenActions([normalized.goal, normalized.title, normalized.blocked_actions.join('\n')].join('\n'));
+    return this.normalizeControlledApplyPackage({
+      apply_package_id: this.generateWorkspaceId('APPLY'),
+      plan_id: normalized.plan_id,
+      task_id: task?.task_id || normalized.task_id || '',
+      project_id: task?.project_id || normalized.project_id || '',
+      title: `Пакет применения: ${normalized.title}`,
+      source_summary: `${this.handsWorkerLabel(normalized.worker_id)} · ${this.handsRiskName(normalized.risk_level)} · active project write запрещён.`,
+      risk_level: normalized.risk_level === 'safe' ? 'safe' : normalized.risk_level,
+      status: 'verifier_ready',
+      changed_files: changedFiles,
+      diff_summary: [
+        `Цель: ${normalized.goal}`,
+        `Worker: ${this.handsWorkerLabel(normalized.worker_id)}`,
+        `Runtime action: ${this.controlledRuntimeActionName(normalized.controlled_runtime_action)}`,
+        'Изменения active project не применялись. Пакет описывает безопасный путь: repair workspace -> diff review -> Verifier -> rollback -> решение владельца.'
+      ].join('\n'),
+      verifier_status: 'not_checked',
+      approval_required: normalized.approval_required || normalized.risk_level !== 'safe' || forbidden.length > 0,
+      forbidden_actions: [...new Set([...(normalized.blocked_actions || []), ...forbidden])],
+      manual_apply_instructions: [
+        '1. Проверить diff summary и список affected refs.',
+        '2. Убедиться, что rollback point создан.',
+        '3. Прогнать Verifier package check.',
+        '4. Если риск выше safe — создать Approval.',
+        '5. Применять только вручную или будущим Hands-слоем после отдельного подтверждения владельца.'
+      ].join('\n')
+    }, task);
+  },
+
+  evaluateControlledApplyPackageIntegrity(pack, task = null) {
+    const normalized = this.normalizeControlledApplyPackage(pack, task);
+    const reasons = [];
+    const checkText = [normalized.title, normalized.source_summary, normalized.diff_summary, normalized.manual_apply_instructions, normalized.changed_files.join('\n')].join('\n');
+    const privacy = this.scanPrivacyText(checkText);
+    const forbidden = this.detectForbiddenActions(checkText);
+    if (privacy.findings.length) reasons.push(`Privacy Guard: ${this.privacyScanSummary(privacy)}.`);
+    if (forbidden.length || normalized.forbidden_actions.length) reasons.push(`Forbidden actions: ${[...new Set([...forbidden, ...normalized.forbidden_actions])].join('; ')}.`);
+    if (!normalized.rollback_point?.rollback_id) reasons.push('Rollback point не создан.');
+    if (!normalized.changed_files.length) reasons.push('Список affected refs пуст.');
+    if (normalized.no_shell === false) reasons.push('Shell execution запрещён.');
+    if (normalized.no_active_project_write === false) reasons.push('Active project write запрещён.');
+    if (normalized.no_ai_api === false) reasons.push('AI API запрещён.');
+    return {
+      ok: reasons.length === 0,
+      reasons,
+      package: normalized
+    };
+  },
+
+  evaluateControlledApplyGate(pack, task = null) {
+    const integrity = this.evaluateControlledApplyPackageIntegrity(pack, task);
+    const reasons = [...integrity.reasons];
+    const guardian = this.guardianSnapshot();
+    const approval = integrity.package.approval_id
+      ? this.approvalRecords.find((record) => record.approval_id === integrity.package.approval_id)
+      : null;
+    if (this.guardianState?.emergency_stop_active) reasons.push('Emergency Stop активен.');
+    if (this.guardianState?.safe_mode || guardian.status === 'safe_mode') reasons.push('Safe Mode активен.');
+    if (integrity.package.verifier_status !== 'metadata_self_check_pass') reasons.push('Verifier package check не PASS.');
+    if (integrity.package.approval_required && !approval) reasons.push('Нужен Approval владельца.');
+    if (approval && ['manual_required', 'pending'].includes(approval.status)) reasons.push('Approval ещё ждёт решения владельца.');
+    if (approval && ['denied', 'cancelled', 'expired'].includes(approval.status)) reasons.push(`Approval не разрешает применение: ${APPROVAL_STATUSES[approval.status] || approval.status}.`);
+    return {
+      ok: reasons.length === 0,
+      reasons,
+      package: integrity.package,
+      gate_status: reasons.length ? 'blocked' : 'pass'
+    };
+  },
+
+  async saveControlledApplyPackage(pack, task = null) {
+    const normalized = this.normalizeControlledApplyPackage(pack, task);
+    if (!this.controlledApplyPipelineState) this.controlledApplyPipelineState = this.defaultControlledApplyPipelineState();
+    this.controlledApplyPipelineState.packages = Array.isArray(this.controlledApplyPipelineState.packages) ? this.controlledApplyPipelineState.packages : [];
+    const globalIndex = this.controlledApplyPipelineState.packages.findIndex((item) => item.apply_package_id === normalized.apply_package_id);
+    if (globalIndex >= 0) this.controlledApplyPipelineState.packages[globalIndex] = normalized;
+    else this.controlledApplyPipelineState.packages.unshift(normalized);
+    this.controlledApplyPipelineState.last_package_id = normalized.apply_package_id;
+    this.controlledApplyPipelineState.last_checked_at = normalized.updated_at;
+    this.controlledApplyPipelineState.status = normalized.status === 'blocked' ? 'review' : 'ready';
+    this.activeApplyPackageId = normalized.apply_package_id;
+
+    if (task) {
+      task.controlled_apply_packages = Array.isArray(task.controlled_apply_packages) ? task.controlled_apply_packages : [];
+      const taskIndex = task.controlled_apply_packages.findIndex((item) => item.apply_package_id === normalized.apply_package_id);
+      if (taskIndex >= 0) task.controlled_apply_packages[taskIndex] = normalized;
+      else task.controlled_apply_packages.unshift(normalized);
+      const existingArtifact = normalized.artifact_id
+        ? task.artifacts?.find((artifact) => artifact.artifact_id === normalized.artifact_id)
+        : null;
+      const content = this.buildControlledApplyPackageMarkdown(normalized, task);
+      const artifact = existingArtifact || this.createArtifact(task, 'CONTROLLED_APPLY_PACKAGE', normalized.title, `${this.controlledApplyStatusName(normalized.status)} · ${this.handsRiskName(normalized.risk_level)}`, content, 'hands_apply');
+      artifact.status = normalized.status === 'blocked' ? 'review' : 'ready';
+      artifact.content = content;
+      normalized.artifact_id = artifact.artifact_id;
+      const savedIndex = task.controlled_apply_packages.findIndex((item) => item.apply_package_id === normalized.apply_package_id);
+      if (savedIndex >= 0) task.controlled_apply_packages[savedIndex] = normalized;
+      this.addWorkspaceMessage(task, 'hands_apply_package', 'Руки', `Подготовлен пакет применения: ${normalized.title}. Active project не менялся.`, {
+        linked_artifacts: [artifact.artifact_id],
+        linked_artifact_id: artifact.artifact_id
+      });
+      task.updated_at = new Date().toISOString();
+      this.saveWorkTasks();
+      await this.refreshMemorySearchIndex({ silent: true, render: false });
+    }
+
+    this.saveControlledApplyPipelineState();
+    return normalized;
+  },
+
+  async prepareControlledApplyPackageFromPlan(plan, task = null) {
+    const pack = this.buildControlledApplyPackageFromPlan(plan, task);
+    return this.saveControlledApplyPackage(pack, task);
+  },
+
+  async verifyControlledApplyPackage(pack, task = null) {
+    const integrity = this.evaluateControlledApplyPackageIntegrity(pack, task);
+    const updated = {
+      ...integrity.package,
+      verifier_status: integrity.ok ? 'metadata_self_check_pass' : 'metadata_self_check_failed',
+      status: integrity.ok
+        ? integrity.package.approval_required
+          ? 'approval_required'
+          : 'approved_for_manual_apply'
+        : 'blocked',
+      manual_apply_allowed: integrity.ok && !integrity.package.approval_required,
+      gate_reasons: integrity.reasons,
+      checks: integrity.package.checks.map((check) => {
+        if (check.name === 'verifier') return { ...check, status: integrity.ok ? 'pass' : 'fail', note: integrity.ok ? 'metadata self-check pass' : integrity.reasons.join('; ') };
+        return check;
+      }),
+      updated_at: new Date().toISOString()
+    };
+    return this.saveControlledApplyPackage(updated, task);
+  },
+
+  async createControlledApplyApproval(pack, task = null) {
+    const normalized = this.normalizeControlledApplyPackage(pack, task);
+    const approval = this.createApprovalRecord({
+      source: 'controlled_apply_pipeline',
+      action_type: 'controlled_apply_package',
+      capability_id: 'hands_apply',
+      action: normalized.diff_summary,
+      command: normalized.diff_summary,
+      title: normalized.title,
+      reason: 'Пакет применения подготовлен. Active project не менялся. Нужен осознанный переход к ручному apply после Verifier и rollback.',
+      risk_level: normalized.risk_level === 'dangerous' ? 'dangerous' : 'approval_required',
+      impact: 'Автоматическое применение не выполняется. Approval нужен для следующего ручного/будущего apply шага.',
+      rollback_note: normalized.rollback_point?.instructions || normalized.manual_apply_instructions,
+      forbidden_actions: normalized.forbidden_actions.length ? normalized.forbidden_actions : HANDS_BLOCKED_ACTIONS,
+      requested_by: 'controlled_apply_pipeline'
+    }, task);
+    normalized.approval_required = true;
+    normalized.approval_id = approval.approval_id;
+    normalized.status = 'approval_required';
+    normalized.updated_at = new Date().toISOString();
+    await this.saveApprovalRecord(approval);
+    await this.saveControlledApplyPackage(normalized, task);
+    return approval;
+  },
+
+  async markControlledApplyManualApplied(pack, task = null) {
+    const gate = this.evaluateControlledApplyGate(pack, task);
+    const updated = {
+      ...gate.package,
+      status: gate.ok ? 'manual_applied' : 'blocked',
+      gate_reasons: gate.reasons,
+      manual_apply_allowed: gate.ok,
+      updated_at: new Date().toISOString()
+    };
+    const saved = await this.saveControlledApplyPackage(updated, task);
+    if (task) {
+      this.addWorkAudit(task, gate.ok
+        ? `Владелец отметил ручное применение пакета ${saved.apply_package_id}.`
+        : `Ручное применение пакета ${saved.apply_package_id} заблокировано: ${gate.reasons.join('; ')}`);
+      this.saveWorkTasks();
+    }
+    return saved;
+  },
+
+  buildControlledApplyPackageMarkdown(pack, task = null) {
+    const normalized = this.normalizeControlledApplyPackage(pack, task);
+    return [
+      '# Controlled Apply Package',
+      '',
+      `apply_package_id: ${normalized.apply_package_id}`,
+      `plan_id: ${normalized.plan_id || 'не привязан'}`,
+      `task_id: ${task?.task_id || normalized.task_id || 'не привязано'}`,
+      `status: ${this.controlledApplyStatusName(normalized.status)}`,
+      `risk: ${this.handsRiskName(normalized.risk_level)}`,
+      `verifier: ${normalized.verifier_status}`,
+      `approval_required: ${normalized.approval_required}`,
+      `approval_id: ${normalized.approval_id || 'нет'}`,
+      '',
+      '## Source',
+      normalized.source_summary,
+      '',
+      '## Diff Summary',
+      normalized.diff_summary,
+      '',
+      '## Affected Refs',
+      ...normalized.changed_files.map((file) => `- ${file}`),
+      '',
+      '## Checks',
+      ...normalized.checks.map((check) => `- ${check.name}: ${check.status}${check.note ? ` — ${check.note}` : ''}`),
+      '',
+      '## Rollback Point',
+      JSON.stringify(normalized.rollback_point, null, 2),
+      '',
+      '## Manual Apply Rules',
+      normalized.manual_apply_instructions,
+      '',
+      '## Safety',
+      `no_shell: ${normalized.no_shell}`,
+      `no_active_project_write: ${normalized.no_active_project_write}`,
+      `no_ai_api: ${normalized.no_ai_api}`,
+      `privacy: ${normalized.privacy_summary}`,
+      '',
+      '## Gate Reasons',
+      ...(normalized.gate_reasons.length ? normalized.gate_reasons : ['Gate не запускался или блокеров нет.']).map((reason) => `- ${reason}`)
+    ].join('\n');
+  },
+
+  renderControlledApplyPackageCard(pack, options = {}) {
+    const normalized = this.normalizeControlledApplyPackage(pack);
+    const compact = Boolean(options.compact);
+    const ownerTask = this.workTasks.find((task) => task.task_id === normalized.task_id) || null;
+    const gate = this.evaluateControlledApplyGate(normalized, ownerTask);
+    return `
+      <article class="controlled-apply controlled-apply--${this.escapeHtml(normalized.status)}">
+        <div>
+          <span>${this.escapeHtml(this.controlledApplyStatusName(normalized.status))} · ${this.escapeHtml(this.handsRiskName(normalized.risk_level))}</span>
+          <strong>${this.escapeHtml(normalized.title)}</strong>
+          <p>${this.escapeHtml(normalized.diff_summary)}</p>
+          <small>Verifier: ${this.escapeHtml(normalized.verifier_status)} · Rollback: ${this.escapeHtml(normalized.rollback_point?.rollback_id || 'нет')} · Apply gate: ${gate.ok ? 'pass' : 'blocked'}</small>
+          ${!compact && gate.reasons.length ? `<small>Блокеры: ${this.escapeHtml(gate.reasons.join('; '))}</small>` : ''}
+        </div>
+        <div class="hands-plan-actions">
+          <button type="button" data-hands-action="copy_apply_package" data-apply-id="${this.escapeHtml(normalized.apply_package_id)}">Скопировать</button>
+          <button type="button" data-hands-action="verify_apply_package" data-apply-id="${this.escapeHtml(normalized.apply_package_id)}">Verifier</button>
+          ${normalized.approval_id ? `<button type="button" data-hands-action="open_approval" data-approval-id="${this.escapeHtml(normalized.approval_id)}">Approval</button>` : `<button type="button" data-hands-action="create_apply_approval" data-apply-id="${this.escapeHtml(normalized.apply_package_id)}">Approval</button>`}
+          <button type="button" data-hands-action="mark_manual_apply" data-apply-id="${this.escapeHtml(normalized.apply_package_id)}" ${gate.ok ? '' : 'disabled'}>Отметить применённым</button>
+        </div>
+      </article>
+    `;
+  },
+
   handsSnapshot() {
     const state = this.normalizeHandsSafeState(this.handsSafeState || this.defaultHandsSafeState());
     const guardian = this.guardianSnapshot();
@@ -5486,6 +5953,7 @@ const App = {
     const approvalPlans = allPlans.filter((plan) => plan.approval_required || plan.approval_id);
     const blockedPlans = allPlans.filter((plan) => plan.status === 'blocked' || plan.risk_level === 'dangerous');
     const controlledRuntime = this.controlledRuntimeSnapshot();
+    const controlledApply = this.controlledApplySnapshot();
     const emergency = this.guardianState?.safe_mode || guardian.status === 'safe_mode';
     let readiness = 48;
     if (workerReports.length) readiness += 14;
@@ -5493,13 +5961,15 @@ const App = {
     if (allPlans.some((plan) => plan.verifier_required)) readiness += 8;
     if (approvalPlans.length) readiness += 6;
     if (controlledRuntime.completed_count) readiness += 6;
+    if (controlledApply.verified_count) readiness += 6;
     if (emergency) readiness -= 35;
     if (blockedPlans.length) readiness -= 10;
+    if (controlledApply.blocked_count) readiness -= 8;
     readiness = Math.max(15, Math.min(94, readiness));
     const status = emergency
       ? 'error'
-      : allPlans.length
-        ? (blockedPlans.length ? 'review' : 'ready')
+      : allPlans.length || controlledApply.count
+        ? (blockedPlans.length || controlledApply.blocked_count ? 'review' : 'ready')
         : workerReports.length
           ? 'partial'
           : 'not_started';
@@ -5514,12 +5984,16 @@ const App = {
       worker_reports: workerReports.length,
       controlled_runtime_count: controlledRuntime.count,
       controlled_runtime_completed: controlledRuntime.completed_count,
+      controlled_apply_count: controlledApply.count,
+      controlled_apply_verified: controlledApply.verified_count,
       latest: allPlans[0] || null,
       tone: status === 'ready' ? 'pass' : status === 'error' ? 'fail' : 'review',
       label: emergency ? 'Safe Mode' : allPlans.length ? `${allPlans.length} планов` : workerReports.length ? 'workers готовы' : 'ожидает план',
       summary: allPlans.length ? 'безопасные планы действий доступны' : workerReports.length ? 'foundation готов, нужен первый план' : 'создайте безопасный план действия',
       note: emergency
         ? 'Safe Mode включён: новые действия заблокированы.'
+        : controlledApply.latest
+          ? `Apply Pipeline: ${controlledApply.note}`
         : controlledRuntime.latest
           ? `Controlled Runtime: ${controlledRuntime.note}`
           : allPlans[0]
@@ -5534,6 +6008,7 @@ const App = {
         ['Approval bridge', approvalPlans.length ? `${approvalPlans.length} требуют решения` : 'готов'],
         ['Verifier gate', allPlans.some((plan) => plan.verifier_required) ? 'обязателен' : 'ожидает плана'],
         ['Controlled Runtime', controlledRuntime.completed_count ? `${controlledRuntime.completed_count} LOW-risk выполнено` : 'ожидает safe-план'],
+        ['Apply Pipeline', controlledApply.verified_count ? `${controlledApply.verified_count} пакетов проверено` : controlledApply.count ? `${controlledApply.count} пакетов ждут Verifier` : 'нет пакетов'],
         ['Автовыполнение опасного', 'заблокировано']
       ]
     };
@@ -5708,6 +6183,7 @@ const App = {
         </div>
         <div class="hands-plan-actions">
           <button type="button" data-hands-action="copy_plan" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Скопировать</button>
+          <button type="button" data-hands-action="prepare_apply_package" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Пакет применения</button>
           <button type="button" data-hands-action="run_controlled" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Выполнить LOW-risk</button>
           ${normalized.approval_id ? `<button type="button" data-hands-action="open_approval" data-approval-id="${this.escapeHtml(normalized.approval_id)}">Approval</button>` : `<button type="button" data-hands-action="create_approval" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Approval</button>`}
         </div>
@@ -9039,6 +9515,8 @@ const App = {
     const state = this.normalizeHandsSafeState(this.handsSafeState || this.defaultHandsSafeState());
     const runtime = this.controlledRuntimeSnapshot();
     const runtimeState = this.normalizeControlledWorkerRuntimeState(this.controlledWorkerRuntimeState || this.defaultControlledWorkerRuntimeState());
+    const applySnapshot = this.controlledApplySnapshot();
+    const applyPackages = this.collectControlledApplyPackages();
     const activeTask = this.getActiveWorkTask();
     const plans = state.action_plans || [];
     host.innerHTML = `
@@ -9053,6 +9531,7 @@ const App = {
           <div><dt>Планы</dt><dd>${this.escapeHtml(String(snapshot.count))}</dd></div>
           <div><dt>Approval</dt><dd>${this.escapeHtml(String(snapshot.approval_count))}</dd></div>
           <div><dt>LOW-run</dt><dd>${this.escapeHtml(String(runtime.completed_count))}</dd></div>
+          <div><dt>Apply</dt><dd>${this.escapeHtml(String(applySnapshot.verified_count))}/${this.escapeHtml(String(applySnapshot.count))}</dd></div>
         </dl>
       </section>
 
@@ -9123,6 +9602,23 @@ const App = {
           ${runtimeState.runs.length ? runtimeState.runs.slice(0, 6).map((run) => this.renderControlledWorkerRunCard(run)).join('') : '<p class="mission-empty">LOW-risk запусков пока нет.</p>'}
         </div>
       </section>
+
+      <section class="controlled-apply-panel" aria-label="Controlled Apply Pipeline">
+        <div class="workspace-panel-head">
+          <strong>Apply Pipeline</strong>
+          <span>${this.escapeHtml(applySnapshot.label)}</span>
+        </div>
+        <p>Пакет применения собирает diff summary, affected refs, rollback point, Verifier check и Approval gate. Active project из WebApp не меняется.</p>
+        <div class="controlled-runtime-grid">
+          <article><span>Direct apply</span><strong>запрещён</strong><p>Применение только отдельным ручным/будущим Hands-шагом.</p></article>
+          <article><span>Rollback</span><strong>обязателен</strong><p>Без rollback package не проходит gate.</p></article>
+          <article><span>Verifier</span><strong>обязателен</strong><p>Metadata self-check должен быть PASS.</p></article>
+          <article><span>Approval</span><strong>выше safe</strong><p>Review/опасное не идёт дальше без решения владельца.</p></article>
+        </div>
+        <div class="controlled-run-list">
+          ${applyPackages.length ? applyPackages.slice(0, 6).map((pack) => this.renderControlledApplyPackageCard(pack)).join('') : '<p class="mission-empty">Пакетов применения пока нет. Создайте план Рук и нажмите “Пакет применения”.</p>'}
+        </div>
+      </section>
     `;
   },
 
@@ -9130,6 +9626,7 @@ const App = {
     const host = document.getElementById('workspace-hands-panel');
     if (!host || !task) return;
     const plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
+    const applyPackages = Array.isArray(task.controlled_apply_packages) ? task.controlled_apply_packages : [];
     host.innerHTML = `
       <section class="hands-workspace-panel">
         <div class="workspace-panel-head">
@@ -9177,6 +9674,9 @@ const App = {
       </section>
       <section class="controlled-run-list controlled-run-list--workspace">
         ${(this.controlledWorkerRuntimeState?.runs || []).filter((run) => run.task_id === task.task_id).slice(0, 6).map((run) => this.renderControlledWorkerRunCard(run, { compact: true })).join('') || '<p class="workspace-empty">Controlled Runtime для этой задачи ещё не запускался.</p>'}
+      </section>
+      <section class="controlled-run-list controlled-run-list--workspace">
+        ${applyPackages.length ? applyPackages.slice(0, 6).map((pack) => this.renderControlledApplyPackageCard(pack, { compact: true })).join('') : '<p class="workspace-empty">Пакетов применения для этой задачи ещё нет.</p>'}
       </section>
     `;
   },
@@ -9262,6 +9762,12 @@ const App = {
       const taskPlans = task?.hands_action_plans || [];
       return [...globalPlans, ...taskPlans].find((plan) => plan.plan_id === planId) || null;
     };
+    const findApplyPackage = () => {
+      const applyId = button?.dataset?.applyId || this.activeApplyPackageId || '';
+      const globalPackages = this.controlledApplyPipelineState?.packages || [];
+      const taskPackages = (this.workTasks || []).flatMap((item) => Array.isArray(item.controlled_apply_packages) ? item.controlled_apply_packages : []);
+      return [...globalPackages, ...taskPackages].find((pack) => pack.apply_package_id === applyId) || null;
+    };
 
     if (action === 'open_scheme_hands') {
       this.activeMinaSchemeZone = 'hands';
@@ -9306,6 +9812,17 @@ const App = {
       return;
     }
 
+    if (action === 'copy_apply_package') {
+      const pack = findApplyPackage();
+      if (!pack) {
+        this.toast('Пакет применения не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === pack.task_id) || task || null;
+      await this.copyWorkspaceText(this.buildControlledApplyPackageMarkdown(pack, ownerTask));
+      return;
+    }
+
     if (action === 'copy_workspace_report') {
       if (!task) {
         this.toast('Сначала выберите задачу');
@@ -9346,6 +9863,66 @@ const App = {
       if (ownerTask) this.renderWorkTaskCard();
       this.renderMinaSystemScheme();
       this.toast(run.status === 'completed' ? 'LOW-risk runtime выполнен' : 'Controlled Runtime заблокировал действие');
+      return;
+    }
+
+    if (action === 'prepare_apply_package') {
+      const plan = findPlan();
+      if (!plan) {
+        this.toast('План не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === plan.task_id) || task || null;
+      const pack = await this.prepareControlledApplyPackageFromPlan(plan, ownerTask);
+      this.renderSystemStatus();
+      if (ownerTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(`Пакет применения готов: ${this.controlledApplyStatusName(pack.status)}`);
+      return;
+    }
+
+    if (action === 'verify_apply_package') {
+      const pack = findApplyPackage();
+      if (!pack) {
+        this.toast('Пакет применения не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === pack.task_id) || task || null;
+      const verified = await this.verifyControlledApplyPackage(pack, ownerTask);
+      this.renderSystemStatus();
+      if (ownerTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(verified.verifier_status === 'metadata_self_check_pass' ? 'Verifier пакета PASS' : 'Verifier пакета заблокировал применение');
+      return;
+    }
+
+    if (action === 'create_apply_approval') {
+      const pack = findApplyPackage();
+      if (!pack) {
+        this.toast('Пакет применения не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === pack.task_id) || task || null;
+      await this.createControlledApplyApproval(pack, ownerTask);
+      this.renderSystemStatus();
+      if (ownerTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast('Approval для пакета применения создан');
+      return;
+    }
+
+    if (action === 'mark_manual_apply') {
+      const pack = findApplyPackage();
+      if (!pack) {
+        this.toast('Пакет применения не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === pack.task_id) || task || null;
+      const saved = await this.markControlledApplyManualApplied(pack, ownerTask);
+      this.renderSystemStatus();
+      if (ownerTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(saved.status === 'manual_applied' ? 'Ручное применение отмечено' : 'Apply gate заблокировал отметку');
       return;
     }
 
@@ -15295,6 +15872,13 @@ const App = {
           ...plan,
           task_id: plan.task_id || task.task_id,
           project_id: plan.project_id || task.project_id
+        }, task))
+      : [];
+    task.controlled_apply_packages = Array.isArray(task.controlled_apply_packages)
+      ? task.controlled_apply_packages.map((pack) => this.normalizeControlledApplyPackage({
+          ...pack,
+          task_id: pack.task_id || task.task_id,
+          project_id: pack.project_id || task.project_id
         }, task))
       : [];
     task.handoff_records = Array.isArray(task.handoff_records)
