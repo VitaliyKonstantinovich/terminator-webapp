@@ -1,6 +1,6 @@
 # Phase 22 — Единый источник истины / снимок состояния V1
 
-Status: local PASS, live pending.
+Status: live PASS.
 Date: 2026-05-28.
 
 ## Цель
@@ -34,6 +34,7 @@ Date: 2026-05-28.
 - Рабочее окно получило chip и summary-блок "Источник истины".
 - Добавлена кнопка "Обновить снимок".
 - PWA/cache markers обновлены на Phase 22.
+- GitHub Pages live publication accepted.
 
 ## Проверки
 
@@ -44,6 +45,12 @@ Date: 2026-05-28.
 - Local Scheme source truth smoke: PASS.
 - Local Workspace source truth smoke: PASS.
 - Local mobile 390px no horizontal overflow: PASS.
+- GitHub Pages Actions deploy `26599982763`: PASS.
+- Live HTML / app.js / sw.js Phase 22 markers: PASS.
+- Live desktop System source truth smoke: PASS.
+- Live Scheme source truth smoke: PASS.
+- Live Workspace source truth smoke: PASS.
+- Live mobile 390px no horizontal overflow: PASS.
 - No English "Source of Truth" in visible body text: PASS.
 - No AI API: PASS.
 - No secrets: PASS.
@@ -57,6 +64,11 @@ Date: 2026-05-28.
 - `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-local-workspace-source-truth-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-local-system-source-truth-mobile.png`
 - `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-local-smoke.json`
+- `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-live-system-source-truth-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-live-scheme-source-truth-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-live-workspace-source-truth-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-live-system-source-truth-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase22_source_of_truth\phase22-live-smoke.json`
 
 ## Не трогалось
 
@@ -70,4 +82,5 @@ Date: 2026-05-28.
 
 ## Остаток
 
-Нужно опубликовать Phase 22 на GitHub Pages и провести live smoke.
+- No blocking residual for Phase 22.
+- More real runtime sources should be attached in later hardening layers.
