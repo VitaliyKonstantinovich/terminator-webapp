@@ -1,6 +1,6 @@
 # Phase 24: Windows Companion Installed User Layer V1
 
-Status: local PASS, live pending.
+Status: live PASS.
 Date: 2026-05-28.
 
 ## Purpose
@@ -54,16 +54,26 @@ Not created:
 - No paid services: PASS.
 - No autostart tray install: PASS.
 
+## Live Checks
+
+- GitHub Actions deploy `26603815476`: PASS.
+- Live HTML Phase 24 marker: PASS.
+- Live `app.js` Phase 24 marker: PASS.
+- Live service worker Phase 24 marker: PASS.
+- Live desktop System companion smoke: PASS.
+- Live mobile 390px no horizontal overflow: PASS.
+
 ## Evidence
 
 - `D:\TerminatorStorage\diagnostics\phase24_windows_companion_installed\installer-report.json`.
 - `D:\TerminatorStorage\evidence_backups\phase24_windows_companion_installed\phase24-local-system-companion-desktop.png`.
 - `D:\TerminatorStorage\evidence_backups\phase24_windows_companion_installed\phase24-local-system-companion-mobile.png`.
 - `D:\TerminatorStorage\evidence_backups\phase24_windows_companion_installed\phase24-local-smoke.json`.
+- `D:\TerminatorStorage\evidence_backups\phase24_windows_companion_installed\phase24-live-system-companion-desktop.png`.
+- `D:\TerminatorStorage\evidence_backups\phase24_windows_companion_installed\phase24-live-system-companion-mobile.png`.
+- `D:\TerminatorStorage\evidence_backups\phase24_windows_companion_installed\phase24-live-smoke.json`.
 
-## Residual Before Live Close
+## Residual
 
-- Publish GitHub Pages marker.
-- Verify live System companion panel includes Start Menu install command.
-- Verify live mobile no horizontal overflow.
-
+- No blocking residual for Phase 24.
+- WebApp exposes the install command; the actual Start Menu shortcut exists locally on this Windows profile.
