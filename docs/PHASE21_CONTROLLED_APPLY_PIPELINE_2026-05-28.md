@@ -1,6 +1,6 @@
 # Phase 21 - Controlled Apply Pipeline / Verifier Gate V1
 
-Status: local PASS, live acceptance pending.
+Status: closed live PASS.
 Date: 2026-05-28.
 
 ## Goal
@@ -79,19 +79,42 @@ The pipeline prepares a reviewed package. Real apply remains explicit and contro
 - Added-code AI API scan: PASS, only policy text mentions AI API as forbidden.
 - Direct Bridge code unchanged: PASS.
 - Local Agent code unchanged: PASS.
+- GitHub Pages Actions deploy `26596977330`: PASS.
+- Live HTML marker `20260528-phase21-controlled-apply-pipeline-v1`: PASS.
+- Live `app.js` marker `Controlled Apply Pipeline / Verifier Gate V1`: PASS.
+- Live service worker marker `terminator-mina-pwa-20260528-phase21-controlled-apply-pipeline-v1`: PASS.
+- Live desktop System Hands apply smoke: PASS.
+- Live mobile 390px System Hands apply smoke: PASS.
+- Live mobile no horizontal overflow: PASS.
 
 ## Evidence
 
 - `D:\TerminatorStorage\evidence_backups\phase21_controlled_apply_pipeline\phase21-local-system-hands-apply-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\phase21_controlled_apply_pipeline\phase21-local-system-hands-apply-mobile.png`
 - `D:\TerminatorStorage\evidence_backups\phase21_controlled_apply_pipeline\phase21-local-smoke.json`
+- `D:\TerminatorStorage\evidence_backups\phase21_controlled_apply_pipeline\phase21-live-system-hands-apply-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase21_controlled_apply_pipeline\phase21-live-system-hands-apply-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase21_controlled_apply_pipeline\phase21-live-smoke.json`
 - `evidence/phase21_controlled_apply_pipeline/PHASE21_CONTROLLED_APPLY_PIPELINE_RESULT.md`
 
 ## Residual
 
-- Live GitHub Pages acceptance is pending until deploy finishes.
 - Actual file apply is intentionally not automated yet. The product now has the gate and package layer; active-project write execution remains behind future explicit owner-controlled apply tooling.
+
+## Live Acceptance
+
+GitHub Pages live acceptance verified:
+
+- workflow `26596977330`;
+- HTML / app / service worker markers;
+- desktop and mobile System -> Hands apply package smoke;
+- Verifier package gate;
+- mobile 390px no horizontal overflow.
+
+Live URL:
+
+- `https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase21-controlled-apply-pipeline-live`
 
 ## Next
 
-Deploy and verify live GitHub Pages, then continue to the next MASTER SPEC layer before final QAMAX.
+Continue to the next MASTER SPEC layer before final QAMAX.
