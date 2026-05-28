@@ -2,6 +2,7 @@
   [switch]$SelfTest,
   [switch]$Tray,
   [switch]$StatusJson,
+  [switch]$WriteReport,
   [string]$WebAppUrl = "https://vitaliykonstantinovich.github.io/terminator-webapp/",
   [string]$LocalAgentDir = "",
   [string]$TaskName = "Terminator-Mina-Local-Agent"
@@ -37,6 +38,8 @@ function Resolve-CompanionPaths {
     LocalAgentDir = $resolvedAgent
     StorageRoot = $storageRoot
     LogPath = if ($resolvedAgent) { Join-Path (Split-Path $resolvedAgent -Parent) "logs\local-agent.log" } else { "" }
+    ReportRoot = Join-Path $storageRoot "diagnostics\phase23_windows_companion"
+    ReportPath = Join-Path (Join-Path $storageRoot "diagnostics\phase23_windows_companion") "companion-self-test.json"
   }
 }
 
@@ -55,12 +58,17 @@ function Get-ScheduledTaskStatus {
   try {
     $task = Get-ScheduledTask -TaskName $Name -ErrorAction Stop
     $info = Get-ScheduledTaskInfo -TaskName $Name -ErrorAction Stop
+    $action = @($task.Actions | Select-Object -First 1)[0]
     return [pscustomobject]@{
       exists = $true
       state = [string]$task.State
       last_result = $info.LastTaskResult
       last_run_time = $info.LastRunTime
       next_run_time = $info.NextRunTime
+      hidden = [bool]$task.Settings.Hidden
+      execute = if ($action) { [string]$action.Execute } else { "" }
+      arguments = if ($action) { [string]$action.Arguments } else { "" }
+      working_directory = if ($action) { [string]$action.WorkingDirectory } else { "" }
     }
   } catch {
     return [pscustomobject]@{
@@ -71,11 +79,46 @@ function Get-ScheduledTaskStatus {
   }
 }
 
+function Get-VisibleTerminatorWindows {
+  $patterns = @(
+    "mina-local-agent.mjs",
+    "mina-windows-companion.ps1",
+    "start-local-agent.ps1",
+    "start-local-agent-hidden.vbs",
+    "Terminator-Mina-Local-Agent"
+  )
+  Get-CimInstance Win32_Process |
+    Where-Object {
+      $commandLine = $_.CommandLine
+      $commandLine -and
+      @($patterns | Where-Object { $pattern = $_; $pattern -and $commandLine -like "*$pattern*" }).Count -gt 0
+    } |
+    ForEach-Object {
+      $process = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
+      if ($process -and $process.MainWindowHandle -ne 0) {
+        [pscustomobject]@{
+          process_id = $_.ProcessId
+          name = $_.Name
+          title = $process.MainWindowTitle
+        }
+      }
+    }
+}
+
 function Invoke-CompanionSelfTest {
   $paths = Resolve-CompanionPaths
   $agentProcesses = @(Get-LocalAgentProcessInfo)
   $task = Get-ScheduledTaskStatus -Name $TaskName
+  $legacyTask = Get-ScheduledTaskStatus -Name "Terminator-PM2-Resurrect"
+  $visibleWindows = @(Get-VisibleTerminatorWindows)
   $node = Get-Command node.exe -ErrorAction SilentlyContinue
+  $silentAutostart = $task.exists -and
+    $task.hidden -and
+    $task.execute -like "*wscript.exe*" -and
+    $task.arguments -like "*//B*" -and
+    $task.arguments -like "*//NoLogo*" -and
+    $task.arguments -like "*start-local-agent-hidden.vbs*"
+  $legacyDisabled = (-not $legacyTask.exists) -or $legacyTask.state -eq "Disabled"
 
   $checks = @(
     [pscustomobject]@{
@@ -115,6 +158,24 @@ function Invoke-CompanionSelfTest {
       note = if ($task.exists) { "state=$($task.state); last_result=$($task.last_result)" } else { "not installed" }
     },
     [pscustomobject]@{
+      id = "silent_autostart"
+      name = "Silent autostart"
+      status = if ($silentAutostart) { "pass" } else { "review" }
+      note = if ($silentAutostart) { "hidden wscript //B //NoLogo startup is configured" } else { "autostart should use hidden wscript launcher without visible console windows" }
+    },
+    [pscustomobject]@{
+      id = "legacy_pm2_resurrect"
+      name = "Legacy PM2 autostart"
+      status = if ($legacyDisabled) { "pass" } else { "review" }
+      note = if ($legacyDisabled) { "Terminator-PM2-Resurrect is disabled or absent" } else { "legacy PM2 autostart is enabled and can create noisy windows/processes" }
+    },
+    [pscustomobject]@{
+      id = "visible_windows"
+      name = "No visible companion windows"
+      status = if ($visibleWindows.Count -eq 0) { "pass" } else { "review" }
+      note = if ($visibleWindows.Count -eq 0) { "no visible node/powershell/wscript Terminator windows detected" } else { "visible windows: " + (($visibleWindows | ForEach-Object { "$($_.name):$($_.process_id)" }) -join ",") }
+    },
+    [pscustomobject]@{
       id = "storage_root"
       name = "Storage root"
       status = if (Test-Path -LiteralPath $paths.StorageRoot) { "pass" } else { "review" }
@@ -135,7 +196,7 @@ function Invoke-CompanionSelfTest {
 
   [pscustomobject]@{
     schema_version = 1
-    phase = "Phase 7 Windows Companion"
+    phase = "Phase 23 Windows Companion Silent Autostart"
     status = $status
     score = $score
     checked_at = (Get-Date).ToString("s")
@@ -144,7 +205,10 @@ function Invoke-CompanionSelfTest {
     local_agent_dir = $paths.LocalAgentDir
     storage_root = $paths.StorageRoot
     log_path = $paths.LogPath
+    report_path = $paths.ReportPath
     task_name = $TaskName
+    legacy_task_state = $legacyTask.state
+    visible_windows = $visibleWindows
     checks = $checks
     policy = [pscustomobject]@{
       starts_agent_automatically = $false
@@ -152,6 +216,8 @@ function Invoke-CompanionSelfTest {
       changes_network = $false
       deploys = $false
       paid_services = $false
+      autostart_must_be_hidden = $true
+      visible_console_windows_allowed = $false
     }
   }
 }
@@ -183,7 +249,7 @@ function Show-CompanionTray {
     } },
     @{ Text = "Остановить Local Agent"; Action = {
       if ($paths.LocalAgentDir) {
-        Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $paths.LocalAgentDir "stop-local-agent.ps1")) -WindowStyle Normal
+        Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", (Join-Path $paths.LocalAgentDir "stop-local-agent.ps1")) -WindowStyle Hidden
       }
     } },
     @{ Text = "Открыть логи"; Action = {
@@ -206,6 +272,11 @@ function Show-CompanionTray {
 
 if ($SelfTest -or $StatusJson) {
   $result = Invoke-CompanionSelfTest
+  if ($WriteReport) {
+    $paths = Resolve-CompanionPaths
+    New-Item -ItemType Directory -Path $paths.ReportRoot -Force | Out-Null
+    $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $paths.ReportPath -Encoding UTF8
+  }
   $result | ConvertTo-Json -Depth 6
   exit 0
 }

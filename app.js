@@ -1035,6 +1035,7 @@ const PWA_INSTALL_STATUS_LABELS = {
 
 const WINDOWS_COMPANION_SCRIPT_ROOT = '$env:USERPROFILE\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\tools\\windows-companion';
 const WINDOWS_COMPANION_SELF_TEST_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -SelfTest`;
+const WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -SelfTest -WriteReport`;
 const WINDOWS_COMPANION_TRAY_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -Tray`;
 const WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\install-mina-windows-companion.ps1" -DryRun`;
 
@@ -1042,6 +1043,9 @@ const WINDOWS_COMPANION_CONTRACT = [
   ['Статус Local Agent', 'только чтение', 'Показывать online/offline и last seen без запуска опасных команд.'],
   ['Tray shell', 'готовится локально', 'Открыть WebApp / Схему Мины / Диагност из системного меню Windows.'],
   ['Installer readiness', 'dry-run first', 'Установка сначала проверяется без изменения системы.'],
+  ['Тихая автозагрузка', 'обязательно', 'Автозапуск должен идти через hidden launcher без видимого node/powershell окна.'],
+  ['Legacy PM2', 'выключено', 'PM2/n8n/Gemini/DeepSeek legacy не должен подниматься при входе в Windows.'],
+  ['Window hygiene', 'обязательно', 'После перезагрузки не должно оставаться лишних видимых окон Терминатора.'],
   ['Безопасный рестарт агента', 'approval', 'Restart только через Guardian и подтверждение владельца.'],
   ['Логи и health', 'read-only', 'Показать путь к логам, storage root и последние incidents.'],
   ['Голос из tray', 'future', 'Только после зрелого Mina Voice и явного privacy indicator.']
@@ -1154,10 +1158,10 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 22 Единый источник истины / снимок состояния V1',
+  name: 'Phase 23 Windows-компаньон / тихая автозагрузка V1',
   date: '2026-05-28',
-  status: 'закрыт live',
-  previous: 'Phase 21 Controlled Apply Pipeline / Verifier Gate V1',
+  status: 'закрыт локально, live pending',
+  previous: 'Phase 22 Единый источник истины / снимок состояния V1',
   next: 'Следующий слой финального road map перед QAMAX'
 };
 const TERMINATOR_PHASE_STEPS = [
@@ -1205,7 +1209,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' },
   { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' },
   { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' },
-  { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' }
+  { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' },
+  { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт локально, live pending' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -5223,6 +5228,7 @@ const App = {
     const continuity = this.buildContinuitySnapshot(this.getActiveWorkTask());
     const voice = this.buildVoiceReadinessSnapshot();
     const pwa = this.pwaSnapshot();
+    const companion = this.buildWindowsCompanionSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
     const direct = this.directModeStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
@@ -5242,6 +5248,7 @@ const App = {
       this.sourceTruthItem('legs', 'Ноги / Device Mesh', deviceMesh.readiness >= 78 ? 'ready' : 'review', Math.max(deviceMesh.readiness, continuity.readiness), `${deviceMesh.next}; continuity: ${continuity.next}`, 'open_devices'),
       this.sourceTruthItem('taskstore', 'TaskStore / Direct Bridge', taskStore.tone === 'synced' ? 'ready' : direct.status === 'сессия активна' ? 'partial' : 'review', taskStore.tone === 'synced' ? 88 : direct.status === 'сессия активна' ? 70 : 52, `${taskStore.note}; мост: ${direct.status}; агент: ${agent.status}`, 'open_live_runtime'),
       this.sourceTruthItem('pwa', 'PWA / mobile shell', pwa.serviceWorker === 'registered' ? 'ready' : 'partial', pwa.serviceWorker === 'registered' ? 82 : 58, `установка: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}`, 'open_pwa'),
+      this.sourceTruthItem('windows_companion', 'Windows-компаньон', companion.status === 'ready' ? 'ready' : companion.status === 'blocked' ? 'blocked' : 'review', companion.score || 0, `тихий автозапуск: ${companion.autostart_silent_status}; legacy PM2: ${companion.legacy_pm2_status}; окна: ${companion.visible_window_status}`, 'open_companion'),
       this.sourceTruthItem('diagnostics', 'Диагност / incidents', latestDiagnostic ? (latestDiagnostic.status === 'pass' ? 'ready' : latestDiagnostic.status === 'fail' ? 'blocked' : 'review') : 'partial', latestDiagnostic ? (latestDiagnostic.status === 'pass' ? 86 : latestDiagnostic.status === 'fail' ? 20 : 62) : 54, latestDiagnostic ? this.diagnosticSummaryText(latestDiagnostic.checks || []) : 'последний прогон диагностики отсутствует', 'open_diagnostics'),
       this.sourceTruthItem('controlled_runtime', 'Controlled Runtime', runtime.status === 'ready' ? 'ready' : runtime.status === 'review' ? 'review' : 'partial', runtime.readiness, runtime.note, 'open_hands')
     ];
@@ -8757,6 +8764,12 @@ const App = {
     if (action === 'open_pwa') {
       this.go('system');
       scrollTo('system-pwa-panel');
+      return;
+    }
+
+    if (action === 'open_companion') {
+      this.go('system');
+      scrollTo('system-companion-panel');
       return;
     }
 
@@ -13324,6 +13337,10 @@ const App = {
       tray_status: stored.tray_status || 'ready_to_launch',
       self_test_status: stored.self_test_status || 'not_run',
       installer_status: stored.installer_status || 'dry_run_available',
+      autostart_silent_status: stored.autostart_silent_status || 'needs_self_test',
+      legacy_pm2_status: stored.legacy_pm2_status || 'needs_self_test',
+      visible_window_status: stored.visible_window_status || 'needs_self_test',
+      report_path: stored.report_path || `${TERMINATOR_STORAGE_ROOT}\\diagnostics\\phase23_windows_companion\\companion-self-test.json`,
       local_agent_dir: stored.local_agent_dir || 'council\\local-agent',
       script_root: stored.script_root || WINDOWS_COMPANION_SCRIPT_ROOT,
       notes: Array.isArray(stored.notes) ? stored.notes : [],
@@ -13377,6 +13394,24 @@ const App = {
         note: 'Dry-run сначала; автозапуск только отдельным флагом в PowerShell.'
       },
       {
+        id: 'silent_autostart',
+        name: 'Тихая автозагрузка',
+        status: 'manual_check',
+        note: 'Self-test проверяет hidden wscript //B //NoLogo launcher и отсутствие видимых console windows.'
+      },
+      {
+        id: 'legacy_pm2_disabled',
+        name: 'Legacy PM2 выключен',
+        status: 'manual_check',
+        note: 'Self-test проверяет, что Terminator-PM2-Resurrect выключен или отсутствует.'
+      },
+      {
+        id: 'visible_window_hygiene',
+        name: 'Лишние окна',
+        status: 'manual_check',
+        note: 'Self-test проверяет видимые node/powershell/wscript окна, связанные с Терминатором.'
+      },
+      {
         id: 'secrets_policy',
         name: 'Секреты',
         status: 'pass',
@@ -13389,7 +13424,7 @@ const App = {
     const status = blockedCount ? 'blocked' : (score >= 80 ? 'ready' : 'review');
     return {
       schema_version: 1,
-      phase: 'Phase 7 Windows Companion',
+      phase: 'Phase 23 Windows Companion Silent Autostart',
       status,
       score,
       checked_at: new Date().toISOString(),
@@ -13397,18 +13432,24 @@ const App = {
       tray_status: 'ready_to_launch',
       self_test_status: 'command_ready',
       installer_status: 'dry_run_available',
+      autostart_silent_status: 'self_test_required',
+      legacy_pm2_status: 'self_test_required',
+      visible_window_status: 'self_test_required',
+      report_path: `${TERMINATOR_STORAGE_ROOT}\\diagnostics\\phase23_windows_companion\\companion-self-test.json`,
       script_root: WINDOWS_COMPANION_SCRIPT_ROOT,
       local_agent_dir: 'council\\local-agent',
       checks,
       commands: {
         self_test: WINDOWS_COMPANION_SELF_TEST_COMMAND,
+        self_test_report: WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND,
         tray: WINDOWS_COMPANION_TRAY_COMMAND,
         install_dry_run: WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND
       },
       notes: [
         'Windows-компаньон не обходит Approval.',
         'WebApp не запускает PowerShell сам; владелец запускает команду локально.',
-        'Autostart disabled by default; включается только явным флагом installer script.'
+        'Autostart disabled by default; включается только явным флагом installer script.',
+        'После перезагрузки активный Local Agent должен стартовать скрыто, legacy PM2 должен оставаться выключенным.'
       ]
     };
   },
@@ -13435,6 +13476,10 @@ const App = {
       ['Local Agent', agent.status, agent.note],
       ['Tray shell', companion.tray_status || 'ready_to_launch', 'Открывает Mina UI, Схему, Диагност и команды агента из меню Windows.'],
       ['Installer', companion.installer_status || 'dry_run_available', 'Сначала dry-run; автозапуск только явным флагом.'],
+      ['Тихая автозагрузка', companion.autostart_silent_status || 'self_test_required', 'Self-test проверяет hidden launcher без видимого node/powershell окна.'],
+      ['Legacy PM2', companion.legacy_pm2_status || 'self_test_required', 'Legacy PM2/n8n autostart должен быть выключен.'],
+      ['Окна после входа', companion.visible_window_status || 'self_test_required', 'Не должно оставаться видимых окон node/powershell/wscript, связанных с Терминатором.'],
+      ['Отчёт', companion.report_path || `${TERMINATOR_STORAGE_ROOT}\\diagnostics\\phase23_windows_companion\\companion-self-test.json`, 'Self-test может сохранить JSON-отчёт на D.'],
       ['Safe restart', 'только через Guardian', 'WebApp не перезапускает агент молча.']
     ];
     host.innerHTML = `
@@ -13446,6 +13491,7 @@ const App = {
         </div>
         <div>
           ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_SELF_TEST_COMMAND, 'Self-test')}
+          ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND, 'Self-test + отчёт на D')}
           ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_TRAY_COMMAND, 'Запуск tray shell')}
         </div>
       </section>
@@ -13473,6 +13519,7 @@ const App = {
       <div class="system-action-strip">
         <button type="button" data-companion-action="run_check">Проверить компаньон</button>
         <button type="button" data-companion-action="copy_self_test">Скопировать self-test</button>
+        <button type="button" data-companion-action="copy_self_test_report">Скопировать self-test + отчёт</button>
         <button type="button" data-companion-action="copy_tray">Скопировать запуск tray</button>
         <button type="button" data-companion-action="copy_install_dry_run">Скопировать dry-run install</button>
         <button type="button" data-companion-action="open_scheme">Схема Мины</button>
@@ -13492,6 +13539,11 @@ const App = {
     if (action === 'copy_self_test') {
       await this.copyWorkspaceText(WINDOWS_COMPANION_SELF_TEST_COMMAND);
       this.toast('Self-test команда скопирована');
+      return;
+    }
+    if (action === 'copy_self_test_report') {
+      await this.copyWorkspaceText(WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND);
+      this.toast('Self-test с отчётом на D скопирован');
       return;
     }
     if (action === 'copy_tray') {
@@ -13516,7 +13568,12 @@ const App = {
       blocked: 'заблокировано',
       not_checked: 'не проверялось',
       pass: 'OK',
-      manual_check: 'ручная проверка'
+      manual_check: 'ручная проверка',
+      self_test_required: 'нужен self-test',
+      needs_self_test: 'нужен self-test',
+      command_ready: 'команда готова',
+      ready_to_launch: 'готов к запуску',
+      dry_run_available: 'доступен dry-run'
     };
     return names[status] || status || 'не проверялось';
   },

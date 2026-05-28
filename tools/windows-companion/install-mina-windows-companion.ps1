@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 $ScriptRoot = $PSScriptRoot
 $CompanionScript = Join-Path $ScriptRoot "mina-windows-companion.ps1"
 $StorageRoot = if ($env:TERMINATOR_STORAGE_ROOT) { $env:TERMINATOR_STORAGE_ROOT } else { "D:\TerminatorStorage" }
-$ReportRoot = Join-Path $StorageRoot "diagnostics\phase7_windows_companion"
+$ReportRoot = Join-Path $StorageRoot "diagnostics\phase23_windows_companion"
 $ReportPath = Join-Path $ReportRoot "installer-report.json"
 
 if (-not (Test-Path -LiteralPath $CompanionScript)) {
@@ -35,6 +35,8 @@ $checks = @(
   [pscustomobject]@{ id = "script"; status = "pass"; note = $CompanionScript },
   [pscustomobject]@{ id = "dry_run_first"; status = if ($DryRun) { "pass" } else { "review" }; note = "Run with -DryRun before enabling shortcuts/autostart." },
   [pscustomobject]@{ id = "autostart"; status = if ($InstallAutostart) { "review" } else { "pass" }; note = "Autostart is explicit only." },
+  [pscustomobject]@{ id = "silent_window_policy"; status = "pass"; note = "Autostart/tray commands use hidden PowerShell window style." },
+  [pscustomobject]@{ id = "legacy_pm2_policy"; status = "pass"; note = "Installer does not enable legacy PM2/n8n autostart." },
   [pscustomobject]@{ id = "secrets"; status = "pass"; note = "Installer does not read secrets, cookies, tokens or .env." },
   [pscustomobject]@{ id = "network"; status = "pass"; note = "No DNS/VPN/proxy/firewall/Defender changes." }
 )
@@ -63,13 +65,16 @@ if (-not $DryRun) {
     $principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
     $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
     Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description "Starts Mina Windows Companion tray at Windows logon." -Force | Out-Null
+    $registered = Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop
+    $registered.Settings.Hidden = $true
+    Set-ScheduledTask -InputObject $registered | Out-Null
     $actions += "installed_autostart_task:$TaskName"
   }
 }
 
 $report = [pscustomobject]@{
   schema_version = 1
-  phase = "Phase 7 Windows Companion Installer"
+  phase = "Phase 23 Windows Companion Silent Autostart Installer"
   status = if ($DryRun) { "dry_run_pass" } else { "completed" }
   dry_run = [bool]$DryRun
   created_at = (Get-Date).ToString("s")
@@ -80,6 +85,7 @@ $report = [pscustomobject]@{
   checks = $checks
   policy = [pscustomobject]@{
     autostart_default = $false
+    autostart_hidden = $true
     secrets_read = $false
     network_changes = $false
     deploy = $false
