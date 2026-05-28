@@ -1038,11 +1038,13 @@ const WINDOWS_COMPANION_SELF_TEST_COMMAND = `powershell -NoProfile -ExecutionPol
 const WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -SelfTest -WriteReport`;
 const WINDOWS_COMPANION_TRAY_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\mina-windows-companion.ps1" -Tray`;
 const WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\install-mina-windows-companion.ps1" -DryRun`;
+const WINDOWS_COMPANION_INSTALL_START_MENU_COMMAND = `powershell -NoProfile -ExecutionPolicy Bypass -File "${WINDOWS_COMPANION_SCRIPT_ROOT}\\install-mina-windows-companion.ps1" -CreateStartMenuShortcut`;
 
 const WINDOWS_COMPANION_CONTRACT = [
   ['Статус Local Agent', 'только чтение', 'Показывать online/offline и last seen без запуска опасных команд.'],
   ['Tray shell', 'готовится локально', 'Открыть WebApp / Схему Мины / Диагност из системного меню Windows.'],
   ['Installer readiness', 'dry-run first', 'Установка сначала проверяется без изменения системы.'],
+  ['Start Menu shortcut', 'рекомендуется', 'Безопасный вход через меню Пуск без автозапуска tray.'],
   ['Тихая автозагрузка', 'обязательно', 'Автозапуск должен идти через hidden launcher без видимого node/powershell окна.'],
   ['Legacy PM2', 'выключено', 'PM2/n8n/Gemini/DeepSeek legacy не должен подниматься при входе в Windows.'],
   ['Window hygiene', 'обязательно', 'После перезагрузки не должно оставаться лишних видимых окон Терминатора.'],
@@ -1158,10 +1160,10 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 23 Windows-компаньон / тихая автозагрузка V1',
+  name: 'Phase 24 Windows-компаньон / установленный пользовательский слой V1',
   date: '2026-05-28',
-  status: 'live PASS',
-  previous: 'Phase 22 Единый источник истины / снимок состояния V1',
+  status: 'закрывается',
+  previous: 'Phase 23 Windows-компаньон / тихая автозагрузка V1',
   next: 'Следующий слой финального road map перед QAMAX'
 };
 const TERMINATOR_PHASE_STEPS = [
@@ -1210,7 +1212,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' },
   { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' },
   { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' },
-  { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт live' }
+  { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт live' },
+  { id: 47, name: 'Windows-компаньон / установленный пользовательский слой V1', status: 'закрывается' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -13443,7 +13446,8 @@ const App = {
         self_test: WINDOWS_COMPANION_SELF_TEST_COMMAND,
         self_test_report: WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND,
         tray: WINDOWS_COMPANION_TRAY_COMMAND,
-        install_dry_run: WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND
+        install_dry_run: WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND,
+        install_start_menu: WINDOWS_COMPANION_INSTALL_START_MENU_COMMAND
       },
       notes: [
         'Windows-компаньон не обходит Approval.',
@@ -13476,6 +13480,7 @@ const App = {
       ['Local Agent', agent.status, agent.note],
       ['Tray shell', companion.tray_status || 'ready_to_launch', 'Открывает Mina UI, Схему, Диагност и команды агента из меню Windows.'],
       ['Installer', companion.installer_status || 'dry_run_available', 'Сначала dry-run; автозапуск только явным флагом.'],
+      ['Start Menu', companion.start_menu_status || 'command_ready', 'Рекомендуемый безопасный слой установки: ярлык в меню Пуск, без автозапуска tray.'],
       ['Тихая автозагрузка', companion.autostart_silent_status || 'self_test_required', 'Self-test проверяет hidden launcher без видимого node/powershell окна.'],
       ['Legacy PM2', companion.legacy_pm2_status || 'self_test_required', 'Legacy PM2/n8n autostart должен быть выключен.'],
       ['Окна после входа', companion.visible_window_status || 'self_test_required', 'Не должно оставаться видимых окон node/powershell/wscript, связанных с Терминатором.'],
@@ -13493,6 +13498,7 @@ const App = {
           ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_SELF_TEST_COMMAND, 'Self-test')}
           ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_SELF_TEST_REPORT_COMMAND, 'Self-test + отчёт на D')}
           ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_TRAY_COMMAND, 'Запуск tray shell')}
+          ${this.renderWindowsCompanionCommandBlock(WINDOWS_COMPANION_INSTALL_START_MENU_COMMAND, 'Установить в меню Пуск')}
         </div>
       </section>
       <div class="voice-system-grid">
@@ -13522,6 +13528,7 @@ const App = {
         <button type="button" data-companion-action="copy_self_test_report">Скопировать self-test + отчёт</button>
         <button type="button" data-companion-action="copy_tray">Скопировать запуск tray</button>
         <button type="button" data-companion-action="copy_install_dry_run">Скопировать dry-run install</button>
+        <button type="button" data-companion-action="copy_install_start_menu">Скопировать установку в меню Пуск</button>
         <button type="button" data-companion-action="open_scheme">Схема Мины</button>
       </div>
     `;
@@ -13554,6 +13561,11 @@ const App = {
     if (action === 'copy_install_dry_run') {
       await this.copyWorkspaceText(WINDOWS_COMPANION_INSTALL_DRY_RUN_COMMAND);
       this.toast('Dry-run install команда скопирована');
+      return;
+    }
+    if (action === 'copy_install_start_menu') {
+      await this.copyWorkspaceText(WINDOWS_COMPANION_INSTALL_START_MENU_COMMAND);
+      this.toast('Команда установки в меню Пуск скопирована');
       return;
     }
     if (action === 'open_scheme') {
