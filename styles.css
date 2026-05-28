@@ -6873,6 +6873,25 @@ button:not(:disabled) {
   mask-image: radial-gradient(ellipse at 50% 49%, rgba(255, 255, 255, 1) 0 63%, rgba(255, 255, 255, 0.9) 70%, transparent 80%);
   pointer-events: none;
   user-select: none;
+  opacity: 0;
+}
+
+.scheme-silhouette::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: min(128%, 430px);
+  height: min(100%, 610px);
+  transform: translate(-50%, -50%);
+  background: url("assets/mina-ui/system-scheme/mina_hologram_silhouette.png") center / contain no-repeat;
+  filter:
+    drop-shadow(0 0 12px rgba(66, 216, 255, 0.72))
+    drop-shadow(0 0 36px rgba(0, 112, 255, 0.42));
+  -webkit-mask-image: radial-gradient(ellipse at 50% 49%, rgba(255, 255, 255, 1) 0 63%, rgba(255, 255, 255, 0.9) 70%, transparent 80%);
+  mask-image: radial-gradient(ellipse at 50% 49%, rgba(255, 255, 255, 1) 0 63%, rgba(255, 255, 255, 0.9) 70%, transparent 80%);
+  pointer-events: none;
 }
 
 .scheme-silhouette .scheme-anchor-layer {
@@ -6891,6 +6910,11 @@ button:not(:disabled) {
   .scheme-hologram-img {
     height: min(100%, 330px);
     max-width: 112%;
+  }
+
+  .scheme-silhouette::before {
+    width: min(112%, 260px);
+    height: min(100%, 330px);
   }
 }
 
