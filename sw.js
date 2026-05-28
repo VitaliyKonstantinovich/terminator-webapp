@@ -1,10 +1,10 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260528-phase17-owned-device-registry-v1';
+const MINA_CACHE = 'terminator-mina-pwa-20260528-phase18-phone-pwa-presence-v1';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260528-phase17-owned-device-registry-v1',
-  './app.js?v=20260528-phase17-owned-device-registry-v1',
+  './styles.css?v=20260528-phase18-phone-pwa-presence-v1',
+  './app.js?v=20260528-phase18-phone-pwa-presence-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',

@@ -4013,6 +4013,136 @@ button:not(:disabled) {
   font-weight: 900;
 }
 
+.device-presence-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(110, 231, 255, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(82, 203, 255, 0.13), transparent 34%),
+    linear-gradient(135deg, rgba(3, 31, 72, 0.86), rgba(1, 11, 29, 0.88));
+  box-shadow: inset 0 0 32px rgba(42, 168, 255, 0.08);
+}
+
+.device-presence-panel--ready {
+  border-color: rgba(61, 247, 165, 0.38);
+}
+
+.device-presence-panel--partial,
+.device-presence-panel--waiting {
+  border-color: rgba(255, 209, 102, 0.34);
+}
+
+.device-presence-panel--review {
+  border-color: rgba(255, 116, 116, 0.5);
+}
+
+.device-presence-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.device-presence-head span,
+.phone-pairing-card span {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.device-presence-head h3 {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.12;
+}
+
+.device-presence-head p,
+.phone-pairing-card p,
+.device-presence-next {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.device-presence-head > strong {
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 86px;
+  border: 1px solid rgba(110, 231, 255, 0.38);
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 25px;
+  box-shadow: inset 0 0 24px rgba(64, 202, 255, 0.16), 0 0 16px rgba(64, 202, 255, 0.16);
+}
+
+.device-presence-head > strong small {
+  color: var(--cyan);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.device-presence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.device-presence-grid article,
+.phone-pairing-card {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(82, 203, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(2, 14, 32, 0.58);
+}
+
+.device-presence-grid span {
+  color: #9fc4df;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.device-presence-grid strong,
+.phone-pairing-card strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.device-presence-grid p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.phone-pairing-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border-color: rgba(255, 209, 102, 0.28);
+}
+
+.phone-pairing-card code {
+  padding: 9px 11px;
+  border: 1px solid rgba(110, 231, 255, 0.26);
+  border-radius: 8px;
+  background: rgba(4, 38, 78, 0.7);
+  color: var(--cyan);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
 .device-route-panel {
   display: grid;
   gap: 10px;
@@ -4283,6 +4413,7 @@ button:not(:disabled) {
 @media (max-width: 1120px) {
   .device-mesh-metrics,
   .device-route-grid,
+  .device-presence-grid,
   .owned-agent-registry__metrics,
   .owned-agent-registry__agents {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4296,12 +4427,15 @@ button:not(:disabled) {
 @media (max-width: 760px) {
   .device-mesh-hero,
   .owned-agent-registry__head,
+  .device-presence-head,
+  .phone-pairing-card,
   .device-route-head,
   .device-hub {
     grid-template-columns: 1fr;
   }
 
-  .device-mesh-hero > strong {
+  .device-mesh-hero > strong,
+  .device-presence-head > strong {
     width: 86px;
     height: 86px;
     font-size: 24px;
@@ -4309,6 +4443,7 @@ button:not(:disabled) {
 
   .device-mesh-metrics,
   .device-route-grid,
+  .device-presence-grid,
   .owned-agent-registry__metrics,
   .owned-agent-registry__agents,
   .capability-grid,
