@@ -317,6 +317,9 @@ const CONTINUITY_STORAGE_KEY = 'mina_continuity_offline_teleport_v1';
 const CONTINUITY_MAX_CHECKPOINTS = 20;
 const CONTINUITY_MAX_TELEPORT_PACKAGES = 30;
 const CONTINUITY_MAX_OFFLINE_EVENTS = 40;
+const SOURCE_OF_TRUTH_SCHEMA_VERSION = 1;
+const SOURCE_OF_TRUTH_STORAGE_KEY = 'mina_source_of_truth_v1';
+const SOURCE_OF_TRUTH_MAX_HISTORY = 24;
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -1151,10 +1154,10 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 21 Controlled Apply Pipeline / Verifier Gate V1',
+  name: 'Phase 22 Единый источник истины / снимок состояния V1',
   date: '2026-05-28',
-  status: 'закрыт live',
-  previous: 'Phase 20 Continuity / Offline Recovery / Task Teleport V1',
+  status: 'закрыт локально, live pending',
+  previous: 'Phase 21 Controlled Apply Pipeline / Verifier Gate V1',
   next: 'Следующий слой финального road map перед QAMAX'
 };
 const TERMINATOR_PHASE_STEPS = [
@@ -1201,7 +1204,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 41, name: 'Phone / PWA Pairing + Multi-Device Presence V1', status: 'закрыт live' },
   { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' },
   { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' },
-  { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' }
+  { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' },
+  { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт локально, live pending' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2458,6 +2462,7 @@ const App = {
   activeControlledRunId: '',
   controlledApplyPipelineState: null,
   activeApplyPackageId: '',
+  sourceOfTruthState: null,
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -2499,6 +2504,7 @@ const App = {
     this.loadHandsSafeState();
     this.loadControlledWorkerRuntimeState();
     this.loadControlledApplyPipelineState();
+    this.loadSourceOfTruthState();
     this.loadContinuityState();
     this.bindContinuityRuntime();
     this.loadMinaSchemeState();
@@ -3355,7 +3361,9 @@ const App = {
     const guardian = this.guardianSnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const integration = this.buildIntegrationSnapshot();
+    const truth = this.refreshSourceOfTruthSnapshot();
     const cards = [
+      ['Источник истины', `${truth.score}%`, `${truth.label}: ${truth.next.name}`],
       ['Проекты', projects.length, 'активные проекты'],
       ['Активные задачи', active, 'в работе или ожидании'],
       ['Исследование', researchActive, 'пакет исследования / источники'],
@@ -3435,7 +3443,9 @@ const App = {
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const integration = this.buildIntegrationSnapshot();
     const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: true });
     const rows = [
+      ['Источник истины', `${truth.score}%`, `${truth.summary}; следующий шаг: ${truth.next.name}`],
       ['Интеграция контура', `${integration.score}%`, `${integration.summary}; следующий шаг: ${integration.next.name}`],
       ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.summary}; следующий шаг: ${liveRuntime.next.name}`],
       ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
@@ -5091,6 +5101,214 @@ const App = {
         ? `${this.controlledRuntimeActionName(runs[0].action_type)}: ${this.controlledRuntimeStatusName(runs[0].status)}`
         : 'Runtime выполняет только allowlist LOW-risk действия без shell, deploy, delete и active project write.'
     };
+  },
+
+  sourceOfTruthStatusName(status) {
+    const names = {
+      ready: 'единый контур готов',
+      review: 'нужно проверить связи',
+      blocked: 'есть блокер',
+      stale: 'снимок устарел'
+    };
+    return names[status] || status || 'не проверено';
+  },
+
+  truthStatusScore(status) {
+    if (status === 'ready') return 100;
+    if (status === 'partial') return 76;
+    if (status === 'review') return 58;
+    if (status === 'blocked' || status === 'error') return 0;
+    return 42;
+  },
+
+  defaultSourceOfTruthState() {
+    return {
+      schema_version: SOURCE_OF_TRUTH_SCHEMA_VERSION,
+      status: 'review',
+      score: 0,
+      label: 'снимок не собран',
+      summary: 'Единый источник состояния ещё не обновлялся.',
+      next: {
+        name: 'Проверить связи',
+        action: 'refresh',
+        note: 'Собрать новый снимок состояния.'
+      },
+      blockers: [],
+      warnings: [],
+      sources: [],
+      counts: {
+        ready: 0,
+        review: 0,
+        blocked: 0,
+        total: 0
+      },
+      history: [],
+      checked_at: ''
+    };
+  },
+
+  normalizeSourceOfTruthState(state = {}) {
+    const fallback = this.defaultSourceOfTruthState();
+    const source = state && typeof state === 'object' ? state : {};
+    const history = Array.isArray(source.history) ? source.history.slice(0, SOURCE_OF_TRUTH_MAX_HISTORY) : [];
+    const sources = Array.isArray(source.sources) ? source.sources.map((item) => ({
+      id: String(item.id || ''),
+      name: String(item.name || item.id || ''),
+      status: item.status || 'review',
+      score: Number.isFinite(Number(item.score)) ? Math.round(Number(item.score)) : this.truthStatusScore(item.status),
+      note: String(item.note || ''),
+      action: item.action || 'refresh',
+      owner_text: item.owner_text || this.integrationStatusName?.(item.status) || item.status || 'проверить'
+    })).filter((item) => item.id) : [];
+    return {
+      ...fallback,
+      ...source,
+      schema_version: SOURCE_OF_TRUTH_SCHEMA_VERSION,
+      status: source.status || fallback.status,
+      score: Number.isFinite(Number(source.score)) ? Math.max(0, Math.min(100, Math.round(Number(source.score)))) : fallback.score,
+      label: String(source.label || fallback.label),
+      summary: String(source.summary || fallback.summary),
+      next: {
+        ...fallback.next,
+        ...(source.next && typeof source.next === 'object' ? source.next : {})
+      },
+      blockers: Array.isArray(source.blockers) ? source.blockers.map(String).slice(0, 20) : [],
+      warnings: Array.isArray(source.warnings) ? source.warnings.map(String).slice(0, 30) : [],
+      sources,
+      counts: {
+        ...fallback.counts,
+        ...(source.counts && typeof source.counts === 'object' ? source.counts : {})
+      },
+      history,
+      checked_at: source.checked_at || ''
+    };
+  },
+
+  loadSourceOfTruthState() {
+    this.sourceOfTruthState = this.normalizeSourceOfTruthState(this.readJsonStorage(SOURCE_OF_TRUTH_STORAGE_KEY, null));
+  },
+
+  saveSourceOfTruthState() {
+    this.sourceOfTruthState = this.normalizeSourceOfTruthState(this.sourceOfTruthState || this.defaultSourceOfTruthState());
+    this.writeJsonStorage(SOURCE_OF_TRUTH_STORAGE_KEY, {
+      ...this.sourceOfTruthState,
+      history: this.sourceOfTruthState.history.slice(0, SOURCE_OF_TRUTH_MAX_HISTORY)
+    });
+  },
+
+  sourceTruthItem(id, name, status, score, note, action = 'refresh', ownerText = '') {
+    return {
+      id,
+      name,
+      status,
+      score: Number.isFinite(Number(score)) ? Math.max(0, Math.min(100, Math.round(Number(score)))) : this.truthStatusScore(status),
+      note,
+      action,
+      owner_text: ownerText || this.integrationStatusName(status)
+    };
+  },
+
+  buildSourceOfTruthSnapshot() {
+    const tasks = this.workTasks || [];
+    const integration = this.buildIntegrationSnapshot();
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const guardian = this.guardianSnapshot();
+    const head = this.headStatusSnapshot();
+    const memory = this.memorySearchSnapshot();
+    const eyes = this.eyesVisualSnapshot();
+    const hands = this.handsSnapshot();
+    const runtime = this.controlledRuntimeSnapshot();
+    const applyPipeline = this.controlledApplySnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
+    const continuity = this.buildContinuitySnapshot(this.getActiveWorkTask());
+    const voice = this.buildVoiceReadinessSnapshot();
+    const pwa = this.pwaSnapshot();
+    const taskStore = this.taskStoreStatusSnapshot();
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const latestDiagnostic = (this.systemDiagnostics || [])[0] || null;
+    const approvals = this.pendingApprovalRecords();
+    const activeTask = this.getActiveWorkTask();
+    const sourceItems = [
+      this.sourceTruthItem('integration', 'Интеграция контура', integration.status, integration.score, integration.summary, integration.next?.action || 'open_integration'),
+      this.sourceTruthItem('live_runtime', 'Живой контур', liveRuntime.status, liveRuntime.score, liveRuntime.summary, liveRuntime.next?.action || 'open_live_runtime'),
+      this.sourceTruthItem('guardian', 'Guardian / Approval', guardian.state?.emergency_stop_active ? 'blocked' : approvals.length ? 'review' : 'ready', guardian.state?.emergency_stop_active ? 0 : approvals.length ? 64 : 92, guardian.note, approvals.length ? 'open_approval' : 'open_guardian'),
+      this.sourceTruthItem('workspace', 'Рабочее / Task Runtime', this.taskRuntimeReady ? (activeTask ? 'ready' : 'partial') : 'review', this.taskRuntimeReady ? (activeTask ? 88 : 72) : 44, activeTask ? `активная задача: ${activeTask.title || activeTask.task_id}` : `${tasks.length} задач; активную задачу можно создать`, 'open_work'),
+      this.sourceTruthItem('memory', 'Память / поиск', memory.status === 'ready' ? 'ready' : memory.status === 'stale' ? 'review' : 'partial', memory.status === 'ready' ? 88 : memory.count ? 72 : 56, memory.note, 'open_memory'),
+      this.sourceTruthItem('head', 'Голова / Совет', head.tone === 'pass' ? 'ready' : this.mainStrategistBrain() ? 'partial' : 'review', head.tone === 'pass' ? 90 : this.mainStrategistBrain() ? 68 : 42, head.note, 'open_head'),
+      this.sourceTruthItem('hands', 'Руки / Apply Pipeline', hands.status === 'ready' && applyPipeline.status === 'ready' ? 'ready' : applyPipeline.status === 'review' ? 'review' : 'partial', Math.max(hands.readiness, applyPipeline.readiness), `${hands.note}; apply: ${applyPipeline.note}`, 'open_hands'),
+      this.sourceTruthItem('eyes', 'Глаза / evidence', eyes.status === 'ready' ? 'ready' : eyes.status === 'review' ? 'review' : 'partial', eyes.readiness, eyes.note, 'open_eyes'),
+      this.sourceTruthItem('voice', 'Голос / intent preview', voice.score >= 86 ? 'ready' : voice.score >= 60 ? 'partial' : 'review', voice.score, voice.note, 'open_voice'),
+      this.sourceTruthItem('legs', 'Ноги / Device Mesh', deviceMesh.readiness >= 78 ? 'ready' : 'review', Math.max(deviceMesh.readiness, continuity.readiness), `${deviceMesh.next}; continuity: ${continuity.next}`, 'open_devices'),
+      this.sourceTruthItem('taskstore', 'TaskStore / Direct Bridge', taskStore.tone === 'synced' ? 'ready' : direct.status === 'сессия активна' ? 'partial' : 'review', taskStore.tone === 'synced' ? 88 : direct.status === 'сессия активна' ? 70 : 52, `${taskStore.note}; мост: ${direct.status}; агент: ${agent.status}`, 'open_live_runtime'),
+      this.sourceTruthItem('pwa', 'PWA / mobile shell', pwa.serviceWorker === 'registered' ? 'ready' : 'partial', pwa.serviceWorker === 'registered' ? 82 : 58, `установка: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}`, 'open_pwa'),
+      this.sourceTruthItem('diagnostics', 'Диагност / incidents', latestDiagnostic ? (latestDiagnostic.status === 'pass' ? 'ready' : latestDiagnostic.status === 'fail' ? 'blocked' : 'review') : 'partial', latestDiagnostic ? (latestDiagnostic.status === 'pass' ? 86 : latestDiagnostic.status === 'fail' ? 20 : 62) : 54, latestDiagnostic ? this.diagnosticSummaryText(latestDiagnostic.checks || []) : 'последний прогон диагностики отсутствует', 'open_diagnostics'),
+      this.sourceTruthItem('controlled_runtime', 'Controlled Runtime', runtime.status === 'ready' ? 'ready' : runtime.status === 'review' ? 'review' : 'partial', runtime.readiness, runtime.note, 'open_hands')
+    ];
+    const blockers = [];
+    const warnings = [];
+    sourceItems.forEach((item) => {
+      if (item.status === 'blocked') blockers.push(`${item.name}: ${item.note}`);
+      else if (item.status !== 'ready') warnings.push(`${item.name}: ${item.note}`);
+    });
+    if (guardian.state?.emergency_stop_active) blockers.unshift('Guardian: Стоп действия включён.');
+    if (guardian.state?.safe_mode) warnings.unshift('Guardian: Safe Mode включён.');
+    if (liveRuntime.status !== 'ready') warnings.push(`Живой контур: ${liveRuntime.summary}`);
+    if (taskStore.tone !== 'synced') warnings.push(`TaskStore: ${taskStore.note}`);
+    const counts = {
+      ready: sourceItems.filter((item) => item.status === 'ready').length,
+      review: sourceItems.filter((item) => item.status === 'review' || item.status === 'partial').length,
+      blocked: sourceItems.filter((item) => item.status === 'blocked').length,
+      total: sourceItems.length
+    };
+    const score = Math.round(sourceItems.reduce((sum, item) => sum + item.score, 0) / Math.max(1, sourceItems.length));
+    const status = blockers.length ? 'blocked' : score >= 86 && counts.review <= 2 ? 'ready' : 'review';
+    const nextSource = sourceItems.find((item) => item.status === 'blocked')
+      || sourceItems.find((item) => item.status === 'review')
+      || sourceItems.find((item) => item.status === 'partial')
+      || integration.next
+      || sourceItems[0];
+    const previousHistory = Array.isArray(this.sourceOfTruthState?.history) ? this.sourceOfTruthState.history : [];
+    return this.normalizeSourceOfTruthState({
+      schema_version: SOURCE_OF_TRUTH_SCHEMA_VERSION,
+      status,
+      score,
+      label: status === 'ready' ? 'единая правда собрана' : status === 'blocked' ? 'есть блокер' : 'нужно закрыть связи',
+      summary: `${counts.ready}/${counts.total} источников готовы; ${counts.review} требуют проверки; ${counts.blocked} блокеров`,
+      next: {
+        name: nextSource.name || 'Проверить связи',
+        action: nextSource.action || 'refresh',
+        note: nextSource.note || 'Собрать актуальный снимок.'
+      },
+      blockers: [...new Set(blockers)].slice(0, 20),
+      warnings: [...new Set(warnings)].slice(0, 30),
+      sources: sourceItems,
+      counts,
+      checked_at: new Date().toISOString(),
+      history: [
+        {
+          checked_at: new Date().toISOString(),
+          status,
+          score,
+          summary: `${counts.ready}/${counts.total} ready`
+        },
+        ...previousHistory
+      ].slice(0, SOURCE_OF_TRUTH_MAX_HISTORY)
+    });
+  },
+
+  refreshSourceOfTruthSnapshot(options = {}) {
+    const snapshot = this.buildSourceOfTruthSnapshot();
+    this.sourceOfTruthState = snapshot;
+    if (options.persist !== false) this.saveSourceOfTruthState();
+    return snapshot;
+  },
+
+  currentSourceOfTruthSnapshot(options = {}) {
+    if (options.refresh || !this.sourceOfTruthState?.checked_at) {
+      return this.refreshSourceOfTruthSnapshot({ persist: options.persist !== false });
+    }
+    return this.normalizeSourceOfTruthState(this.sourceOfTruthState);
   },
 
   integrationStatusName(status) {
@@ -8264,7 +8482,9 @@ const App = {
     const presence = deviceMesh.presence || this.buildDevicePresenceSnapshot();
     const integration = this.buildIntegrationSnapshot();
     const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const truth = this.refreshSourceOfTruthSnapshot();
     const cards = [
+      ['Источник истины', `${truth.score}%`, `${truth.label}: ${truth.next.name}`],
       ['Интеграция', `${integration.score}%`, `${integration.label}: ${integration.next.name}`],
       ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.label}: ${liveRuntime.next.name}`],
       ['Guardian', guardian.label, guardian.note],
@@ -8324,8 +8544,31 @@ const App = {
     const host = document.getElementById('system-integration-panel');
     if (!host) return;
     const snapshot = this.buildIntegrationSnapshot();
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: true });
     const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
+    const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
+      <section class="source-truth-panel source-truth-panel--${this.escapeHtml(truthTone)}" aria-label="Единый источник истины">
+        <div>
+          <span>Источник истины</span>
+          <strong>${this.escapeHtml(String(truth.score))}%</strong>
+          <p>${this.escapeHtml(truth.summary)}</p>
+        </div>
+        <div>
+          <span>Следующий шаг</span>
+          <strong>${this.escapeHtml(truth.next.name)}</strong>
+          <p>${this.escapeHtml(truth.next.note)}</p>
+        </div>
+        <div>
+          <span>Источники</span>
+          <strong>${this.escapeHtml(String(truth.counts.ready))}/${this.escapeHtml(String(truth.counts.total))}</strong>
+          <p>Снимок: ${this.escapeHtml(truth.checked_at ? this.formatTaskTime(truth.checked_at) : 'не собран')}</p>
+        </div>
+        <div class="integration-actions">
+          <button type="button" data-integration-action="refresh_source_truth">Обновить снимок</button>
+          <button type="button" data-integration-action="${this.escapeHtml(truth.next.action)}">Открыть следующий шаг</button>
+        </div>
+      </section>
       <section class="integration-hero integration-hero--${this.escapeHtml(tone)}">
         <div>
           <span>Интеграция контура</span>
@@ -8344,6 +8587,16 @@ const App = {
         </div>
       </section>
       <section class="integration-grid" aria-label="Матрица связей Терминатора">
+        ${truth.sources.slice(0, 8).map((source) => `
+          <article class="integration-check integration-check--${this.escapeHtml(source.status)}">
+            <div>
+              <span>${this.escapeHtml(source.owner_text)}</span>
+              <strong>${this.escapeHtml(source.name)}</strong>
+              <p>${this.escapeHtml(source.note)}</p>
+            </div>
+            <button type="button" data-integration-action="${this.escapeHtml(source.action)}">${this.escapeHtml(source.status === 'ready' ? 'Открыть' : 'Проверить')}</button>
+          </article>
+        `).join('')}
         ${snapshot.checks.map((check) => `
           <article class="integration-check integration-check--${this.escapeHtml(check.status)}">
             <div>
@@ -8409,7 +8662,17 @@ const App = {
       window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
     };
 
+    if (action === 'refresh_source_truth') {
+      this.refreshSourceOfTruthSnapshot();
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      this.renderMinaSystemScheme();
+      this.toast('Источник истины обновлён');
+      return;
+    }
+
     if (action === 'refresh' || action === 'run') {
+      this.refreshSourceOfTruthSnapshot();
       this.renderMissionControl();
       this.renderSystemStatus();
       this.toast('Связи контура проверены локально');
@@ -8510,8 +8773,10 @@ const App = {
     const head = this.headStatusSnapshot();
     const guardian = this.guardianSnapshot();
     const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: true });
     const latest = this.systemDiagnostics[0] || null;
     const rows = [
+      ['Источник истины', `${truth.score}%`, `${truth.summary}; следующий шаг: ${truth.next.name}`],
       ['Guardian', guardian.label, `${guardian.note}; incidents: ${guardian.openIncidents.length}`],
       ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.summary}; последний прогон: ${liveRuntime.checked_at ? this.formatTaskTime(liveRuntime.checked_at) : 'не запускался'}`],
       ['Хранилище задач', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? 'локальная база браузера доступна' : 'используется резерв localStorage'],
@@ -13889,7 +14154,8 @@ const App = {
           ? Math.min(69, 35 + Math.round((subsystems.head.readiness + subsystems.memory.readiness + subsystems.hands.readiness) / 12))
           : Math.max(12, Math.round((subsystems.body.readiness + subsystems.diagnost.readiness) / 4));
     const next = this.minaSchemeNextAction(subsystems, fullReady);
-    return { subsystems, minimumReady, comfortReady, fullReady, readinessPercent, next };
+    const sourceTruth = this.currentSourceOfTruthSnapshot({ refresh: false, persist: false });
+    return { subsystems, minimumReady, comfortReady, fullReady, readinessPercent, next, sourceTruth };
   },
 
   minaSchemeNextAction(subsystems, fullReady = false) {
@@ -13922,6 +14188,7 @@ const App = {
               <p>Настройте ключевые подсистемы Мины.</p>
             </div>
             <div class="scheme-top-actions">
+              <span class="scheme-system-pill"><i></i> Правда ${this.escapeHtml(String(health.sourceTruth.score))}%</span>
               <span class="scheme-system-pill"><i></i> Система активна</span>
               <button type="button" data-scheme-action="run_diagnostics" aria-label="Проверить систему">⌁</button>
               <button type="button" data-scheme-action="save_state" aria-label="Сохранить состояние">▣</button>
@@ -16791,6 +17058,14 @@ const App = {
     setText('workspace-status', `Статус: ${this.statusName(task.status)}`);
     setText('workspace-executor', `Исполнитель: ${task.executor || task.executor_state?.executor || 'не назначен'}`);
     setText('workspace-risk', `Риск: ${this.workspaceRiskLevel(task)}`);
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: true });
+    const truthChip = document.getElementById('workspace-source-truth');
+    if (truthChip) {
+      truthChip.textContent = `Источник истины: ${truth.score}%`;
+      truthChip.title = `${truth.label}: ${truth.next.name}`;
+      truthChip.classList.toggle('workspace-chip--green', truth.status === 'ready');
+      truthChip.classList.toggle('workspace-chip--yellow', truth.status !== 'ready');
+    }
   },
 
   renderWorkspaceTaskList() {
@@ -16819,8 +17094,13 @@ const App = {
     const goal = document.getElementById('workspace-goal');
     const readiness = document.getElementById('workspace-readiness');
     const nextStep = document.getElementById('workspace-next-step');
+    const truthDetail = document.getElementById('workspace-source-truth-detail');
     if (goal) goal.textContent = task.goal || task.user_request || 'не задано';
     if (nextStep) nextStep.textContent = task.next_step || 'не задано';
+    if (truthDetail) {
+      const truth = this.currentSourceOfTruthSnapshot({ refresh: false });
+      truthDetail.textContent = `${truth.label}: ${truth.summary}. Следующий шаг: ${truth.next.name}.`;
+    }
     if (readiness) {
       const criteria = Array.isArray(task.readiness_criteria) ? task.readiness_criteria : [];
       readiness.innerHTML = criteria.length

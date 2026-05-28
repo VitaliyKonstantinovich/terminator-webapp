@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260528-phase21-controlled-apply-pipeline-v1">
+  <link rel="stylesheet" href="styles.css?v=20260528-phase22-source-of-truth-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -236,6 +236,7 @@
                   <span id="workspace-timer" class="workspace-chip">Ожидание отчёта: 00:00:00</span>
                   <span id="workspace-executor" class="workspace-chip">Исполнитель: не назначен</span>
                   <span id="workspace-risk" class="workspace-chip workspace-chip--yellow">Риск: средний</span>
+                  <span id="workspace-source-truth" class="workspace-chip workspace-chip--truth">Источник истины: не проверен</span>
                 </div>
               </header>
 
@@ -268,6 +269,10 @@
                     <article>
                       <span>Следующий шаг</span>
                       <p id="workspace-next-step">не задано</p>
+                    </article>
+                    <article class="workspace-summary-truth">
+                      <span>Источник истины</span>
+                      <p id="workspace-source-truth-detail">Состояние системы ещё не собрано.</p>
                     </article>
                   </div>
 
@@ -1101,6 +1106,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260528-phase21-controlled-apply-pipeline-v1"></script>
+  <script src="app.js?v=20260528-phase22-source-of-truth-v1"></script>
 </body>
 </html>
