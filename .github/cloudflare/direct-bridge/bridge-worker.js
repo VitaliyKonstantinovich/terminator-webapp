@@ -231,6 +231,10 @@ export class CommandQueue {
         return queueJson(await this.recordAgentHeartbeat(await readJson(request)));
       }
 
+      if (url.pathname === "/internal/agent/registry" && request.method === "GET") {
+        return queueJson(await this.getAgentRegistry());
+      }
+
       const agentStatusMatch = url.pathname.match(/^\/internal\/agent\/commands\/([^/]+)\/status$/);
       if (agentStatusMatch && request.method === "POST") {
         return queueJson(await this.updateCommandStatus(decodeURIComponent(agentStatusMatch[1]), await readJson(request)));
@@ -499,6 +503,28 @@ export class CommandQueue {
       }
     }
     return latest;
+  }
+
+  async getAgentRegistry() {
+    const heartbeats = await this.state.storage.list({ prefix: AGENT_HEARTBEAT_PREFIX });
+    const agents = [];
+    for (const heartbeat of heartbeats.values()) {
+      if (!heartbeat?.agent_id) continue;
+      agents.push(await this.getAgentHeartbeat(heartbeat.agent_id));
+    }
+    agents.sort((a, b) => Date.parse(b.bridge_seen_at || b.checked_at || 0) - Date.parse(a.bridge_seen_at || a.checked_at || 0));
+    const onlineCount = agents.filter((agent) => agent.status === "online" && !agent.stale).length;
+    const staleCount = agents.filter((agent) => agent.status !== "online" || agent.stale).length;
+    return {
+      ok: true,
+      schema_version: 1,
+      status: onlineCount ? "ready" : agents.length ? "partial" : "missing",
+      agent_count: agents.length,
+      online_count: onlineCount,
+      stale_count: staleCount,
+      agents: agents.slice(0, 12),
+      checked_at: new Date().toISOString(),
+    };
   }
 
   async updateCommandStatus(commandId, body) {
@@ -995,6 +1021,13 @@ async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
     age_ms: null,
     agent_id: agentId,
   };
+  let agentRegistry = {
+    status: "missing",
+    agent_count: 0,
+    online_count: 0,
+    stale_count: 0,
+    agents: [],
+  };
 
   try {
     const diagnostics = await queueRequest(env, `/internal/agent/diagnostics?agent_id=${encodeURIComponent(agentId)}`);
@@ -1026,6 +1059,16 @@ async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
     };
   }
 
+  try {
+    agentRegistry = await queueRequest(env, "/internal/agent/registry");
+  } catch (error) {
+    agentRegistry = {
+      ...agentRegistry,
+      status: "degraded",
+      error: error?.code || "AGENT_REGISTRY_UNAVAILABLE",
+    };
+  }
+
   const status = commandQueue.status === "ready" && taskStore.status === "ready"
     ? heartbeat.status === "online" ? "ready" : "partial"
     : "degraded";
@@ -1048,6 +1091,7 @@ async function getPublicRuntimeHealth(request, env, requestId, startedAt) {
       task_count: taskStore.task_count,
     },
     agent_heartbeat: sanitizePublicHeartbeat(heartbeat),
+    agent_registry: sanitizePublicAgentRegistry(agentRegistry, agentId),
     checked_at: new Date().toISOString(),
     request_id: requestId,
   };
@@ -1268,6 +1312,20 @@ function sanitizePublicHeartbeat(heartbeat = {}) {
     version: limitString(heartbeat.version || "", 80),
     storage_root_status: limitString(heartbeat.storage_root_status || "", 40),
     capabilities: normalizePublicStringArray(heartbeat.capabilities, 20, 80),
+  };
+}
+
+function sanitizePublicAgentRegistry(registry = {}, primaryAgentId = "") {
+  const agents = Array.isArray(registry.agents) ? registry.agents.slice(0, 12).map((agent) => sanitizePublicHeartbeat(agent)) : [];
+  return {
+    schema_version: 1,
+    status: limitString(registry.status || (agents.length ? "partial" : "missing"), 40),
+    primary_agent_id: limitString(primaryAgentId || "", 120),
+    agent_count: normalizeBoundedNumber(registry.agent_count ?? agents.length, 0, 1000),
+    online_count: normalizeBoundedNumber(registry.online_count ?? agents.filter((agent) => agent.status === "online" && !agent.stale).length, 0, 1000),
+    stale_count: normalizeBoundedNumber(registry.stale_count ?? agents.filter((agent) => agent.status !== "online" || agent.stale).length, 0, 1000),
+    agents,
+    checked_at: safeIsoDate(registry.checked_at),
   };
 }
 
