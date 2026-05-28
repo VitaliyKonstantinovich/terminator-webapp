@@ -312,6 +312,11 @@ const POLICY_CENTER_STATE_STORAGE_KEY = 'mina_policy_center_state_v1';
 const LIVE_RUNTIME_STATE_STORAGE_KEY = 'mina_live_runtime_state_v1';
 const DEVICE_PAIRING_STATE_STORAGE_KEY = 'mina_device_pairing_state_v1';
 const HANDOFF_ROUTE_PLANNER_SCHEMA_VERSION = 1;
+const CONTINUITY_SCHEMA_VERSION = 1;
+const CONTINUITY_STORAGE_KEY = 'mina_continuity_offline_teleport_v1';
+const CONTINUITY_MAX_CHECKPOINTS = 20;
+const CONTINUITY_MAX_TELEPORT_PACKAGES = 30;
+const CONTINUITY_MAX_OFFLINE_EVENTS = 40;
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -336,6 +341,23 @@ const HANDOFF_ROUTE_STATUS_LABELS = {
   waiting: 'ожидает',
   review: 'проверить',
   blocked: 'заблокирован'
+};
+
+const TELEPORT_PACKAGE_MODES = [
+  ['resume_short', 'Короткий пакет', 'Минимум для продолжения: задача, статус, следующий шаг.'],
+  ['resume_standard', 'Стандартный пакет', 'Задача, критерии, артефакты, handoff, safety rules.'],
+  ['phone_pwa', 'Телефон / PWA', 'Сжатый пакет для продолжения с телефона.'],
+  ['brain_council', 'Совет мозгов', 'Пакет для ручной передачи в Brain Council.'],
+  ['external_executor', 'Внешний исполнитель', 'Пакет для Codex/Antigravity/внешнего чата без секретов.']
+];
+const TELEPORT_PACKAGE_MODE_BY_ID = Object.fromEntries(TELEPORT_PACKAGE_MODES.map(([id, label, note]) => [id, { id, label, note }]));
+const CONTINUITY_STATUS_LABELS = {
+  ready: 'готово',
+  partial: 'частично',
+  waiting: 'ожидает',
+  review: 'нужно проверить',
+  offline: 'offline',
+  blocked: 'заблокировано'
 };
 
 const TASK_RUNTIME_STORES = {
@@ -1116,11 +1138,11 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 19 Handoff / Route Planner V1',
+  name: 'Phase 20 Continuity / Offline Recovery / Task Teleport V1',
   date: '2026-05-28',
   status: 'закрыт live',
-  previous: 'Phase 18 Phone / PWA Pairing + Multi-Device Presence V1',
-  next: 'Phase 20 рабочий слой по MASTER SPEC'
+  previous: 'Phase 19 Handoff / Route Planner V1',
+  next: 'Следующий слой по MASTER SPEC после live acceptance'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1164,7 +1186,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 39, name: 'Controlled Bridge Rollout + Live Heartbeat Acceptance V1', status: 'закрыт live' },
   { id: 40, name: 'Owned Device / Agent Registry V1', status: 'закрыт live' },
   { id: 41, name: 'Phone / PWA Pairing + Multi-Device Presence V1', status: 'закрыт live' },
-  { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' }
+  { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' },
+  { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2411,6 +2434,9 @@ const App = {
   publicRuntimeHealth: null,
   liveRuntimeChecking: false,
   devicePairingState: null,
+  continuityState: null,
+  activeContinuityCheckpointId: '',
+  activeTeleportPackageId: '',
   workspaceFileRuntime: new Map(),
   handsSafeState: null,
   activeHandsPlanId: '',
@@ -2456,6 +2482,8 @@ const App = {
     this.loadEyesVisualState();
     this.loadHandsSafeState();
     this.loadControlledWorkerRuntimeState();
+    this.loadContinuityState();
+    this.bindContinuityRuntime();
     this.loadMinaSchemeState();
     this.attachVerifierPanel();
     this.renderWorkFormOptions();
@@ -2661,6 +2689,12 @@ const App = {
       const handoffActionButton = event.target.closest('[data-handoff-action]');
       if (handoffActionButton) {
         this.handleHandoffAction(handoffActionButton.dataset.handoffAction, handoffActionButton);
+        return;
+      }
+
+      const continuityActionButton = event.target.closest('[data-continuity-action]');
+      if (continuityActionButton) {
+        this.handleContinuityAction(continuityActionButton.dataset.continuityAction, continuityActionButton);
         return;
       }
 
@@ -9157,6 +9191,7 @@ const App = {
         <p>Выберите маршрут, подготовьте безопасный пакет и вручную перенесите его туда, где продолжите работу. Терминатор не нажимает за вас кнопки, не открывает аккаунты и не отправляет команды устройствам.</p>
       </section>
       ${this.renderHandoffPlannerPanel(mesh, { task })}
+      ${this.renderContinuityPanel(task)}
     `;
   },
 
@@ -10483,6 +10518,468 @@ const App = {
     return this.buildDevicePresenceSnapshot();
   },
 
+  defaultContinuityState() {
+    return {
+      schema_version: CONTINUITY_SCHEMA_VERSION,
+      status: 'not_started',
+      last_checkpoint_id: '',
+      last_checkpoint_at: '',
+      last_teleport_package_id: '',
+      last_teleport_at: '',
+      checkpoints: [],
+      teleport_packages: [],
+      offline_events: [],
+      settings: {
+        auto_checkpoint_on_hide: true,
+        auto_checkpoint_on_offline: true,
+        restore_mode: 'owner_confirmed',
+        heavy_files_policy: 'refs_only'
+      }
+    };
+  },
+
+  normalizeContinuityCheckpoint(checkpoint = {}) {
+    const now = new Date().toISOString();
+    return {
+      schema_version: CONTINUITY_SCHEMA_VERSION,
+      checkpoint_id: checkpoint.checkpoint_id || this.generateWorkspaceId('CONT'),
+      task_id: checkpoint.task_id || '',
+      project_id: checkpoint.project_id || '',
+      task_title: checkpoint.task_title || '',
+      task_status: checkpoint.task_status || '',
+      workspace_tab: checkpoint.workspace_tab || this.workspaceActiveTab || 'files',
+      screen: checkpoint.screen || this.activeScreen || this.initialScreenFromUrl(),
+      reason: checkpoint.reason || 'manual_checkpoint',
+      next_step: checkpoint.next_step || '',
+      handoff_count: Number.isFinite(Number(checkpoint.handoff_count)) ? Number(checkpoint.handoff_count) : 0,
+      teleport_count: Number.isFinite(Number(checkpoint.teleport_count)) ? Number(checkpoint.teleport_count) : 0,
+      artifact_refs: Array.isArray(checkpoint.artifact_refs) ? checkpoint.artifact_refs : [],
+      package_refs: Array.isArray(checkpoint.package_refs) ? checkpoint.package_refs : [],
+      browser_online: checkpoint.browser_online !== false,
+      pwa_service_worker: checkpoint.pwa_service_worker || this.pwaServiceWorkerStatus || 'not_checked',
+      storage_status: checkpoint.storage_status || (this.taskRuntimeReady ? 'indexeddb' : 'localStorage_fallback'),
+      privacy_status: checkpoint.privacy_status || 'not_required',
+      created_at: checkpoint.created_at || now,
+      updated_at: checkpoint.updated_at || checkpoint.created_at || now,
+      note: checkpoint.note || 'Checkpoint хранит metadata и ссылки. Raw файлы, cookies, tokens и пароли не сохраняются.'
+    };
+  },
+
+  normalizeTeleportPackage(pack = {}, task = null) {
+    const now = new Date().toISOString();
+    const mode = TELEPORT_PACKAGE_MODE_BY_ID[pack.mode] ? pack.mode : 'resume_standard';
+    return {
+      schema_version: CONTINUITY_SCHEMA_VERSION,
+      package_id: pack.package_id || this.generateWorkspaceId('TELEPORT'),
+      task_id: pack.task_id || task?.task_id || '',
+      project_id: pack.project_id || task?.project_id || '',
+      task_title: pack.task_title || task?.title || task?.user_request || '',
+      mode,
+      mode_label: pack.mode_label || TELEPORT_PACKAGE_MODE_BY_ID[mode].label,
+      target: pack.target || TELEPORT_PACKAGE_MODE_BY_ID[mode].label,
+      status: pack.status || 'prepared',
+      package_text: pack.package_text || '',
+      package_summary: pack.package_summary || '',
+      artifact_id: pack.artifact_id || '',
+      checkpoint_id: pack.checkpoint_id || '',
+      privacy_status: pack.privacy_status || 'not_checked',
+      privacy_summary: pack.privacy_summary || '',
+      copied_at: pack.copied_at || '',
+      owner_confirmed_at: pack.owner_confirmed_at || '',
+      created_at: pack.created_at || now,
+      updated_at: pack.updated_at || now,
+      note: pack.note || 'Task Teleport переносит контекст вручную. Команды устройствам не отправляются.',
+      artifact_refs: Array.isArray(pack.artifact_refs) ? pack.artifact_refs : [],
+      evidence_refs: Array.isArray(pack.evidence_refs) ? pack.evidence_refs : []
+    };
+  },
+
+  normalizeContinuityState(state = {}) {
+    const fallback = this.defaultContinuityState();
+    const source = state && typeof state === 'object' ? state : {};
+    const checkpoints = Array.isArray(source.checkpoints)
+      ? source.checkpoints.map((checkpoint) => this.normalizeContinuityCheckpoint(checkpoint)).slice(0, CONTINUITY_MAX_CHECKPOINTS)
+      : [];
+    const teleportPackages = Array.isArray(source.teleport_packages)
+      ? source.teleport_packages.map((pack) => this.normalizeTeleportPackage(pack)).slice(0, CONTINUITY_MAX_TELEPORT_PACKAGES)
+      : [];
+    const offlineEvents = Array.isArray(source.offline_events)
+      ? source.offline_events.map((event) => ({
+          event_id: event.event_id || this.generateWorkspaceId('OFFLINE'),
+          type: event.type || 'status',
+          status: event.status || 'recorded',
+          task_id: event.task_id || '',
+          message: event.message || '',
+          created_at: event.created_at || new Date().toISOString()
+        })).slice(0, CONTINUITY_MAX_OFFLINE_EVENTS)
+      : [];
+    return {
+      ...fallback,
+      ...source,
+      schema_version: CONTINUITY_SCHEMA_VERSION,
+      checkpoints,
+      teleport_packages: teleportPackages,
+      offline_events: offlineEvents,
+      settings: {
+        ...fallback.settings,
+        ...(source.settings && typeof source.settings === 'object' ? source.settings : {})
+      },
+      last_checkpoint_id: source.last_checkpoint_id || checkpoints[0]?.checkpoint_id || '',
+      last_checkpoint_at: source.last_checkpoint_at || checkpoints[0]?.created_at || '',
+      last_teleport_package_id: source.last_teleport_package_id || teleportPackages[0]?.package_id || '',
+      last_teleport_at: source.last_teleport_at || teleportPackages[0]?.created_at || ''
+    };
+  },
+
+  loadContinuityState() {
+    this.continuityState = this.normalizeContinuityState(this.readJsonStorage(CONTINUITY_STORAGE_KEY, null));
+    this.activeContinuityCheckpointId = this.continuityState.last_checkpoint_id || '';
+    this.activeTeleportPackageId = this.continuityState.last_teleport_package_id || '';
+  },
+
+  saveContinuityState() {
+    this.continuityState = this.normalizeContinuityState(this.continuityState || this.defaultContinuityState());
+    this.writeJsonStorage(CONTINUITY_STORAGE_KEY, this.continuityState);
+  },
+
+  bindContinuityRuntime() {
+    if (this.continuityRuntimeBound || typeof window === 'undefined') return;
+    this.continuityRuntimeBound = true;
+    window.addEventListener('beforeunload', () => {
+      if (this.continuityState?.settings?.auto_checkpoint_on_hide !== false) {
+        this.createContinuityCheckpoint('beforeunload');
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && this.continuityState?.settings?.auto_checkpoint_on_hide !== false) {
+        this.createContinuityCheckpoint('visibility_hidden');
+      }
+    });
+    window.addEventListener('offline', () => {
+      this.recordOfflineContinuityEvent('browser_offline', 'Браузер перешёл в offline. Черновики и checkpoint остаются локально.');
+      if (this.continuityState?.settings?.auto_checkpoint_on_offline !== false) this.createContinuityCheckpoint('browser_offline');
+      this.renderSystemStatus();
+      this.renderWorkTaskCard();
+    });
+    window.addEventListener('online', () => {
+      this.recordOfflineContinuityEvent('browser_online', 'Браузер снова online. Можно продолжить handoff/sync вручную.');
+      this.renderSystemStatus();
+      this.renderWorkTaskCard();
+    });
+  },
+
+  continuityStatusName(status) {
+    return CONTINUITY_STATUS_LABELS[status] || status || 'ожидает';
+  },
+
+  createContinuityCheckpoint(reason = 'manual_checkpoint', task = this.getActiveWorkTask()) {
+    if (!this.continuityState) this.continuityState = this.defaultContinuityState();
+    const now = new Date().toISOString();
+    const normalizedTask = task || this.getActiveWorkTask();
+    const checkpoint = this.normalizeContinuityCheckpoint({
+      task_id: normalizedTask?.task_id || '',
+      project_id: normalizedTask?.project_id || '',
+      task_title: normalizedTask?.title || normalizedTask?.user_request || '',
+      task_status: normalizedTask?.status || '',
+      workspace_tab: this.workspaceActiveTab || 'files',
+      screen: this.activeScreen || this.initialScreenFromUrl(),
+      reason,
+      next_step: normalizedTask?.next_step || '',
+      handoff_count: this.taskHandoffRecords(normalizedTask).length,
+      teleport_count: Array.isArray(normalizedTask?.teleport_packages) ? normalizedTask.teleport_packages.length : 0,
+      artifact_refs: Array.isArray(normalizedTask?.artifacts) ? normalizedTask.artifacts.slice(0, 8).map((artifact) => artifact.artifact_id) : [],
+      package_refs: Array.isArray(normalizedTask?.teleport_packages) ? normalizedTask.teleport_packages.slice(0, 5).map((pack) => pack.package_id) : [],
+      browser_online: typeof navigator === 'undefined' ? true : navigator.onLine !== false,
+      pwa_service_worker: this.pwaServiceWorkerStatus || 'not_checked',
+      storage_status: this.taskRuntimeReady ? 'indexeddb' : 'localStorage_fallback',
+      created_at: now,
+      updated_at: now
+    });
+    this.continuityState.checkpoints = [checkpoint, ...(this.continuityState.checkpoints || []).filter((item) => item.checkpoint_id !== checkpoint.checkpoint_id)].slice(0, CONTINUITY_MAX_CHECKPOINTS);
+    this.continuityState.last_checkpoint_id = checkpoint.checkpoint_id;
+    this.continuityState.last_checkpoint_at = checkpoint.created_at;
+    this.continuityState.status = 'checkpoint_ready';
+    this.activeContinuityCheckpointId = checkpoint.checkpoint_id;
+    this.saveContinuityState();
+    return checkpoint;
+  },
+
+  recordOfflineContinuityEvent(type, message, task = this.getActiveWorkTask()) {
+    if (!this.continuityState) this.continuityState = this.defaultContinuityState();
+    const event = {
+      event_id: this.generateWorkspaceId('OFFLINE'),
+      type,
+      status: 'recorded',
+      task_id: task?.task_id || '',
+      message,
+      created_at: new Date().toISOString()
+    };
+    this.continuityState.offline_events = [event, ...(this.continuityState.offline_events || [])].slice(0, CONTINUITY_MAX_OFFLINE_EVENTS);
+    this.saveContinuityState();
+    return event;
+  },
+
+  buildContinuitySnapshot(task = this.getActiveWorkTask()) {
+    const state = this.normalizeContinuityState(this.continuityState || this.defaultContinuityState());
+    const pwa = this.pwaSnapshot();
+    const hasCheckpoint = Boolean(state.checkpoints.length);
+    const hasTask = Boolean(task?.task_id);
+    const taskPackages = task ? (task.teleport_packages || []) : [];
+    const browserOnline = typeof navigator === 'undefined' ? true : navigator.onLine !== false;
+    let readiness = 18;
+    if (this.taskRuntimeReady) readiness += 16;
+    if (hasTask) readiness += 16;
+    if (hasCheckpoint) readiness += 18;
+    if (pwa.serviceWorker === 'registered') readiness += 14;
+    if (taskPackages.length || state.teleport_packages.length) readiness += 12;
+    if (browserOnline) readiness += 8;
+    readiness = Math.min(100, readiness);
+    const status = !browserOnline ? 'offline' : readiness >= 84 ? 'ready' : readiness >= 55 ? 'partial' : hasTask ? 'review' : 'waiting';
+    const next = !hasTask
+      ? 'Создать или открыть задачу.'
+      : !hasCheckpoint
+        ? 'Создать checkpoint продолжения.'
+        : !taskPackages.length
+          ? 'Подготовить Task Teleport package.'
+          : browserOnline
+            ? 'Можно продолжать работу или передать пакет вручную.'
+            : 'Работа сохранена локально; продолжить после восстановления online.';
+    return {
+      schema_version: CONTINUITY_SCHEMA_VERSION,
+      status,
+      label: this.continuityStatusName(status),
+      readiness,
+      browser_online: browserOnline,
+      pwa_service_worker: pwa.serviceWorker,
+      task_id: task?.task_id || '',
+      checkpoint_count: state.checkpoints.length,
+      last_checkpoint: state.checkpoints[0] || null,
+      teleport_count: state.teleport_packages.length,
+      task_teleport_count: taskPackages.length,
+      offline_events: state.offline_events || [],
+      next,
+      state
+    };
+  },
+
+  buildTaskTeleportPackageText(task, mode = 'resume_standard') {
+    const selectedMode = TELEPORT_PACKAGE_MODE_BY_ID[mode] ? mode : 'resume_standard';
+    const modeInfo = TELEPORT_PACKAGE_MODE_BY_ID[selectedMode];
+    const artifacts = Array.isArray(task.artifacts) ? task.artifacts : [];
+    const files = Array.isArray(task.files) ? task.files : [];
+    const handoffs = this.taskHandoffRecords(task);
+    const checks = Array.isArray(task.eyes_visual_checks) ? task.eyes_visual_checks : [];
+    const plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
+    const isShort = selectedMode === 'resume_short' || selectedMode === 'phone_pwa';
+    const lines = [
+      'MINA TASK TELEPORT PACKAGE',
+      `schema_version: ${CONTINUITY_SCHEMA_VERSION}`,
+      `mode: ${modeInfo.label}`,
+      `created_at: ${new Date().toISOString()}`,
+      '',
+      '## Задача',
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      `title: ${task.title || task.user_request}`,
+      `status: ${this.statusName(task.status)}`,
+      `next_step: ${task.next_step || 'не задан'}`,
+      '',
+      '## Цель',
+      task.goal || task.user_request || 'не задано',
+      '',
+      '## Критерии',
+      ...(Array.isArray(task.criteria) && task.criteria.length ? task.criteria.map((item) => `- ${item}`) : ['- критерии не заданы'])
+    ];
+    if (!isShort) {
+      lines.push(
+        '',
+        '## Артефакты',
+        ...(artifacts.length ? artifacts.slice(0, 12).map((artifact) => `- ${artifact.artifact_id}: ${artifact.title} (${this.artifactTypeName(artifact.type)}, ${artifact.status || 'draft'})`) : ['- нет']),
+        '',
+        '## Файлы metadata',
+        ...(files.length ? files.slice(0, 12).map((file) => `- ${file.file_id || file.name}: ${file.name || file.file_name || 'file'}; role=${file.role || 'context'}`) : ['- нет']),
+        '',
+        '## Evidence / Проверки',
+        ...(checks.length ? checks.slice(0, 8).map((check) => `- ${check.check_id}: ${check.target}; ${this.eyesVisualStatusName(check.status)}`) : ['- visual evidence нет']),
+        '',
+        '## Руки / Планы',
+        ...(plans.length ? plans.slice(0, 8).map((plan) => `- ${plan.plan_id}: ${plan.title}; risk=${plan.risk_level}; status=${plan.status}`) : ['- планов Рук нет']),
+        '',
+        '## Handoff',
+        ...(handoffs.length ? handoffs.slice(0, 8).map((handoff) => `- ${handoff.handoff_id}: ${handoff.route_title}; ${this.handoffStatusName(handoff.status)}`) : ['- handoff пакетов нет'])
+      );
+    }
+    lines.push(
+      '',
+      '## Как продолжить',
+      '1. Открыть Терминатор / Рабочее.',
+      '2. Найти task_id из пакета.',
+      '3. Проверить следующий шаг и статус.',
+      '4. Если нужен внешний исполнитель, использовать пакет вручную.',
+      '5. Любые опасные действия отправлять в Approval.',
+      '',
+      '## Safety',
+      '- Пакет не содержит raw/base64 файлов.',
+      '- Пакет не должен содержать passwords, cookies, tokens, API keys.',
+      '- AI API не использовались.',
+      '- Устройствам команды не отправлялись.',
+      '- Это ручной перенос контекста, не автозапуск.'
+    );
+    return lines.join('\n');
+  },
+
+  async prepareTaskTeleportPackage(mode = 'resume_standard') {
+    const task = this.getActiveWorkTask();
+    if (!task) {
+      this.toast('Сначала создайте или выберите задачу');
+      return null;
+    }
+    const checkpoint = this.createContinuityCheckpoint(`teleport_${mode}`, task);
+    const rawPackage = this.buildTaskTeleportPackageText(task, mode);
+    const privacy = this.scanPrivacyText(rawPackage);
+    const packageText = privacy.findings.length ? this.redactPrivacyText(rawPackage) : rawPackage;
+    const modeInfo = TELEPORT_PACKAGE_MODE_BY_ID[TELEPORT_PACKAGE_MODE_BY_ID[mode] ? mode : 'resume_standard'];
+    const artifact = this.createArtifact(
+      task,
+      'CONTEXT_PACK',
+      `Task Teleport: ${modeInfo.label}`,
+      `Пакет продолжения задачи. Privacy: ${this.privacyScanSummary(privacy)}.`,
+      packageText,
+      'continuity'
+    );
+    artifact.status = privacy.blocked ? 'blocked' : privacy.findings.length ? 'needs_review' : 'ready';
+    const pack = this.normalizeTeleportPackage({
+      task_id: task.task_id,
+      project_id: task.project_id,
+      task_title: task.title || task.user_request,
+      mode: modeInfo.id,
+      target: modeInfo.label,
+      status: privacy.blocked ? 'blocked' : 'prepared',
+      package_text: packageText,
+      package_summary: `${modeInfo.label}: ${task.title || task.user_request}`,
+      artifact_id: artifact.artifact_id,
+      checkpoint_id: checkpoint.checkpoint_id,
+      privacy_status: privacy.status,
+      privacy_summary: this.privacyScanSummary(privacy),
+      artifact_refs: [artifact.artifact_id],
+      evidence_refs: [checkpoint.checkpoint_id]
+    }, task);
+    task.teleport_packages = Array.isArray(task.teleport_packages) ? task.teleport_packages : [];
+    task.teleport_packages = [pack, ...task.teleport_packages.filter((item) => item.package_id !== pack.package_id)].slice(0, 12);
+    task.device_context = task.device_context && typeof task.device_context === 'object' ? task.device_context : { device_ids: [], required_capabilities: [], device_events: [] };
+    task.device_context.device_events = Array.isArray(task.device_context.device_events) ? task.device_context.device_events : [];
+    task.device_context.device_events.unshift({
+      event_id: this.generateWorkspaceId('DEVICE-EVENT'),
+      type: 'task_teleport_package_prepared',
+      status: pack.status,
+      package_id: pack.package_id,
+      checkpoint_id: checkpoint.checkpoint_id,
+      created_at: pack.created_at
+    });
+    this.addWorkspaceMessage(task, 'teleport_event', 'Ноги', `Подготовлен Task Teleport package: ${modeInfo.label}`, {
+      linked_artifacts: [artifact.artifact_id]
+    });
+    task.updated_at = pack.updated_at;
+    this.saveWorkTasks();
+
+    if (!this.continuityState) this.continuityState = this.defaultContinuityState();
+    this.continuityState.teleport_packages = [pack, ...(this.continuityState.teleport_packages || []).filter((item) => item.package_id !== pack.package_id)].slice(0, CONTINUITY_MAX_TELEPORT_PACKAGES);
+    this.continuityState.last_teleport_package_id = pack.package_id;
+    this.continuityState.last_teleport_at = pack.created_at;
+    this.continuityState.status = pack.status === 'blocked' ? 'blocked' : 'teleport_ready';
+    this.activeTeleportPackageId = pack.package_id;
+    this.saveContinuityState();
+    return pack;
+  },
+
+  findTeleportPackage(packageId) {
+    const id = String(packageId || '').trim();
+    if (!id) return { task: null, pack: null };
+    for (const task of this.workTasks || []) {
+      const packs = Array.isArray(task.teleport_packages) ? task.teleport_packages.map((pack) => this.normalizeTeleportPackage(pack, task)) : [];
+      const pack = packs.find((item) => item.package_id === id);
+      if (pack) return { task, pack };
+    }
+    const statePack = (this.continuityState?.teleport_packages || []).find((item) => item.package_id === id);
+    return { task: null, pack: statePack || null };
+  },
+
+  async copyTeleportPackage(packageId) {
+    const { task, pack } = this.findTeleportPackage(packageId);
+    if (!pack?.package_text) {
+      this.toast('Task Teleport package не найден');
+      return;
+    }
+    await this.copyWorkspaceText(pack.package_text);
+    pack.status = 'copied';
+    pack.copied_at = new Date().toISOString();
+    pack.updated_at = pack.copied_at;
+    if (task) {
+      task.teleport_packages = (task.teleport_packages || []).map((item) => item.package_id === pack.package_id ? pack : item);
+      this.addWorkspaceMessage(task, 'teleport_event', 'Ноги', `Task Teleport package скопирован вручную: ${pack.mode_label}`);
+      task.updated_at = pack.updated_at;
+      this.saveWorkTasks();
+    }
+    if (this.continuityState) {
+      this.continuityState.teleport_packages = (this.continuityState.teleport_packages || []).map((item) => item.package_id === pack.package_id ? pack : item);
+      this.saveContinuityState();
+    }
+    this.renderSystemStatus();
+    this.renderWorkTaskCard();
+  },
+
+  restoreContinuityCheckpoint(checkpointId) {
+    const state = this.normalizeContinuityState(this.continuityState || this.defaultContinuityState());
+    const id = String(checkpointId || state.last_checkpoint_id || '').trim();
+    const checkpoint = state.checkpoints.find((item) => item.checkpoint_id === id) || state.checkpoints[0];
+    if (!checkpoint) {
+      this.toast('Checkpoint не найден');
+      return null;
+    }
+    if (checkpoint.task_id && this.workTasks.some((task) => task.task_id === checkpoint.task_id)) {
+      this.activeWorkTaskId = checkpoint.task_id;
+      this.workspaceActiveTab = WORKSPACE_TABS.has(checkpoint.workspace_tab) ? checkpoint.workspace_tab : 'handoff';
+      this.go('work');
+      this.toast('Контекст задачи восстановлен');
+    } else {
+      this.go(checkpoint.screen || 'work');
+      this.toast('Checkpoint открыт без active task');
+    }
+    return checkpoint;
+  },
+
+  buildContinuityReport(task = this.getActiveWorkTask()) {
+    const snapshot = this.buildContinuitySnapshot(task);
+    return [
+      '# Continuity / Offline Recovery / Task Teleport V1',
+      '',
+      `Generated: ${new Date().toISOString()}`,
+      `Status: ${snapshot.label}`,
+      `Readiness: ${snapshot.readiness}%`,
+      `Browser online: ${snapshot.browser_online ? 'yes' : 'no'}`,
+      `PWA service worker: ${snapshot.pwa_service_worker}`,
+      `Task: ${snapshot.task_id || 'not selected'}`,
+      `Checkpoints: ${snapshot.checkpoint_count}`,
+      `Task Teleport packages: ${snapshot.teleport_count}`,
+      '',
+      '## Последние checkpoints',
+      ...(snapshot.state.checkpoints.length ? snapshot.state.checkpoints.slice(0, 8).map((checkpoint) => `- ${checkpoint.checkpoint_id}: task=${checkpoint.task_id || 'none'}; reason=${checkpoint.reason}; ${this.formatTaskTime(checkpoint.created_at)}`) : ['- нет']),
+      '',
+      '## Последние teleport packages',
+      ...(snapshot.state.teleport_packages.length ? snapshot.state.teleport_packages.slice(0, 8).map((pack) => `- ${pack.package_id}: task=${pack.task_id || 'none'}; mode=${pack.mode_label}; status=${pack.status}`) : ['- нет']),
+      '',
+      '## Offline events',
+      ...(snapshot.offline_events.length ? snapshot.offline_events.slice(0, 8).map((event) => `- ${event.type}: ${event.message} (${this.formatTaskTime(event.created_at)})`) : ['- нет']),
+      '',
+      '## Safety',
+      '- No device commands.',
+      '- No ADB.',
+      '- No browser/account automation.',
+      '- No AI API.',
+      '- Heavy files stay on D or remain referenced by metadata only.'
+    ].join('\n');
+  },
+
   handoffStatusName(status) {
     return HANDOFF_STATUS_LABELS[status] || status || 'черновик';
   },
@@ -10941,6 +11438,62 @@ const App = {
     }
   },
 
+  async handleContinuityAction(action, button) {
+    if (action === 'create_checkpoint') {
+      const checkpoint = this.createContinuityCheckpoint(button?.dataset?.reason || 'manual_checkpoint');
+      this.renderSystemStatus();
+      this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(`Checkpoint создан: ${checkpoint.checkpoint_id}`);
+      return;
+    }
+
+    if (action === 'prepare_teleport') {
+      const pack = await this.prepareTaskTeleportPackage(button?.dataset?.mode || 'resume_standard');
+      this.renderSystemStatus();
+      this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      if (pack) this.toast(pack.status === 'blocked' ? 'Teleport заблокирован Privacy Guard' : 'Task Teleport package готов');
+      return;
+    }
+
+    if (action === 'copy_teleport') {
+      await this.copyTeleportPackage(button?.dataset?.packageId || this.activeTeleportPackageId || '');
+      return;
+    }
+
+    if (action === 'restore_checkpoint') {
+      this.restoreContinuityCheckpoint(button?.dataset?.checkpointId || this.activeContinuityCheckpointId || '');
+      return;
+    }
+
+    if (action === 'copy_report') {
+      await this.copyWorkspaceText(this.buildContinuityReport(this.getActiveWorkTask()));
+      return;
+    }
+
+    if (action === 'offline_recovery_test') {
+      this.recordOfflineContinuityEvent('manual_recovery_test', 'Ручной recovery smoke: checkpoint и Task Teleport остаются локально доступными.');
+      const checkpoint = this.createContinuityCheckpoint('manual_offline_recovery_test');
+      this.renderSystemStatus();
+      this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast(`Offline recovery smoke записан: ${checkpoint.checkpoint_id}`);
+      return;
+    }
+
+    if (action === 'open_work_handoff') {
+      const task = this.getActiveWorkTask();
+      if (task) {
+        this.activeWorkTaskId = task.task_id;
+        this.workspaceActiveTab = 'handoff';
+        this.go('work');
+      } else {
+        this.toast('Сначала создайте задачу');
+      }
+    }
+  },
+
   buildDevicePresenceReport(snapshot = this.buildDevicePresenceSnapshot()) {
     return [
       'Phone / PWA Pairing + Multi-Device Presence V1',
@@ -11282,6 +11835,91 @@ const App = {
     `;
   },
 
+  renderContinuityPanel(task = this.getActiveWorkTask(), options = {}) {
+    const snapshot = this.buildContinuitySnapshot(task);
+    const state = snapshot.state;
+    const taskPackages = task?.teleport_packages || [];
+    const latestCheckpoint = snapshot.last_checkpoint;
+    return `
+      <section class="continuity-panel continuity-panel--${this.escapeHtml(snapshot.status)}">
+        <div class="continuity-head">
+          <div>
+            <span>Continuity / Offline Recovery</span>
+            <h3>Непрерывность работы</h3>
+            <p>Сохраняет checkpoint задачи, готовит Task Teleport package и помогает продолжить после перезагрузки, offline или перехода на телефон/PWA.</p>
+          </div>
+          <strong>${this.escapeHtml(String(snapshot.readiness))}%<small>${this.escapeHtml(snapshot.label)}</small></strong>
+        </div>
+        <div class="continuity-metrics">
+          <article><span>Checkpoint</span><strong>${this.escapeHtml(latestCheckpoint ? this.formatTaskTime(latestCheckpoint.created_at) : 'нет')}</strong><p>${this.escapeHtml(latestCheckpoint?.reason || 'создайте checkpoint перед переносом')}</p></article>
+          <article><span>Task Teleport</span><strong>${this.escapeHtml(String(snapshot.task_teleport_count))}</strong><p>${this.escapeHtml(task ? 'пакеты активной задачи' : 'задача не выбрана')}</p></article>
+          <article><span>Offline</span><strong>${snapshot.browser_online ? 'online' : 'offline'}</strong><p>Состояние браузера владельца</p></article>
+          <article><span>PWA</span><strong>${this.escapeHtml(snapshot.pwa_service_worker)}</strong><p>offline shell / mobile continuity</p></article>
+        </div>
+        <div class="continuity-actions">
+          <button type="button" data-continuity-action="create_checkpoint">Создать checkpoint</button>
+          <button type="button" data-continuity-action="prepare_teleport" data-mode="resume_standard" ${task ? '' : 'disabled'}>Task Teleport</button>
+          <button type="button" data-continuity-action="prepare_teleport" data-mode="phone_pwa" ${task ? '' : 'disabled'}>Пакет для телефона</button>
+          <button type="button" data-continuity-action="offline_recovery_test">Проверить recovery</button>
+          <button type="button" data-continuity-action="copy_report">Скопировать отчёт</button>
+        </div>
+        <div class="teleport-mode-grid">
+          ${TELEPORT_PACKAGE_MODES.map(([id, label, note]) => `
+            <article>
+              <span>${this.escapeHtml(label)}</span>
+              <p>${this.escapeHtml(note)}</p>
+              <button type="button" data-continuity-action="prepare_teleport" data-mode="${this.escapeHtml(id)}" ${task ? '' : 'disabled'}>Собрать</button>
+            </article>
+          `).join('')}
+        </div>
+        <div class="continuity-log-grid">
+          <section>
+            <strong>Последние Task Teleport packages</strong>
+            ${taskPackages.length ? taskPackages.slice(0, 5).map((pack) => this.renderTeleportPackageCard(pack, task)).join('') : '<p class="mission-empty">Для активной задачи пакетов продолжения пока нет.</p>'}
+            ${!taskPackages.length && state.teleport_packages.length ? state.teleport_packages.slice(0, 3).map((pack) => this.renderTeleportPackageCard(pack)).join('') : ''}
+          </section>
+          <section>
+            <strong>Checkpoints</strong>
+            ${state.checkpoints.length ? state.checkpoints.slice(0, options.compact ? 3 : 6).map((checkpoint) => this.renderContinuityCheckpointCard(checkpoint)).join('') : '<p class="mission-empty">Checkpoint ещё не создан.</p>'}
+          </section>
+        </div>
+        <p class="continuity-safe-note">Task Teleport не запускает действия, не открывает аккаунты и не отправляет команды устройствам. Это переносимый контекст под контролем владельца.</p>
+      </section>
+    `;
+  },
+
+  renderTeleportPackageCard(pack, task = null) {
+    const normalized = this.normalizeTeleportPackage(pack, task);
+    return `
+      <article class="teleport-card teleport-card--${this.escapeHtml(normalized.status)}">
+        <div>
+          <span>${this.escapeHtml(normalized.mode_label)} · ${this.escapeHtml(normalized.privacy_summary || 'privacy не проверялась')}</span>
+          <strong>${this.escapeHtml(normalized.task_title || normalized.task_id || 'задача')}</strong>
+          <p>${this.escapeHtml(normalized.package_summary || normalized.note)}</p>
+          <small>${this.escapeHtml(this.formatTaskTime(normalized.updated_at || normalized.created_at))}</small>
+        </div>
+        <div class="teleport-card-actions">
+          <button type="button" data-continuity-action="copy_teleport" data-package-id="${this.escapeHtml(normalized.package_id)}" ${normalized.package_text ? '' : 'disabled'}>Скопировать</button>
+          ${normalized.checkpoint_id ? `<button type="button" data-continuity-action="restore_checkpoint" data-checkpoint-id="${this.escapeHtml(normalized.checkpoint_id)}">Открыть checkpoint</button>` : ''}
+        </div>
+      </article>
+    `;
+  },
+
+  renderContinuityCheckpointCard(checkpoint) {
+    const normalized = this.normalizeContinuityCheckpoint(checkpoint);
+    return `
+      <article class="continuity-checkpoint-card">
+        <div>
+          <span>${this.escapeHtml(this.formatTaskTime(normalized.created_at))} · ${this.escapeHtml(normalized.reason)}</span>
+          <strong>${this.escapeHtml(normalized.task_title || normalized.task_id || 'общий checkpoint')}</strong>
+          <p>${this.escapeHtml(normalized.next_step || normalized.note)}</p>
+        </div>
+        <button type="button" data-continuity-action="restore_checkpoint" data-checkpoint-id="${this.escapeHtml(normalized.checkpoint_id)}">Восстановить контекст</button>
+      </article>
+    `;
+  },
+
   renderDeviceHandoffPanel(mesh) {
     const steps = [
       ['Создать задачу', 'Рабочее создаёт task_id и привязывает проект.'],
@@ -11317,8 +11955,9 @@ const App = {
 
   buildDeviceMeshReport(mesh = this.buildDeviceMeshSnapshot()) {
     const planner = this.buildHandoffRoutePlannerSnapshot(mesh, this.getActiveWorkTask());
+    const continuity = this.buildContinuitySnapshot(this.getActiveWorkTask());
     return [
-      'Ноги / Handoff + Route Planner V1',
+      'Ноги / Handoff + Route Planner + Continuity V1',
       `Готовность: ${mesh.readiness}% (${this.deviceMeshStatusText(mesh.status)})`,
       `Устройств: ${mesh.devices.length}`,
       `Доверенные: ${mesh.trusted}`,
@@ -11329,12 +11968,18 @@ const App = {
       `PWA: ${mesh.presence.pwa.install_label}; service worker=${mesh.presence.pwa.service_worker}`,
       `Handoff readiness: ${planner.readiness}% (${this.deviceMeshStatusText(planner.status)})`,
       `Пакетов передачи: ${planner.records.length}; по активной задаче: ${planner.task_records.length}`,
+      `Continuity readiness: ${continuity.readiness}% (${continuity.label})`,
+      `Checkpoints: ${continuity.checkpoint_count}; Task Teleport packages: ${continuity.teleport_count}; Browser online: ${continuity.browser_online ? 'да' : 'нет'}`,
       '',
       'Маршруты:',
       ...mesh.routes.map((route) => `- ${route.title}: ${this.deviceMeshStatusText(route.status)}; риск: ${DEVICE_RISK_LEVELS[route.risk] || route.risk}; ${route.note}`),
       '',
       'Маршруты передачи задачи:',
       ...planner.routes.map((route) => `- ${route.title}: ${this.handoffRouteStatusName(route.status)}; можно подготовить=${route.can_prepare ? 'да' : 'нет'}; ${route.note}`),
+      '',
+      'Непрерывность:',
+      `- Последний checkpoint: ${continuity.last_checkpoint ? `${continuity.last_checkpoint.checkpoint_id} / ${this.formatTaskTime(continuity.last_checkpoint.created_at)}` : 'нет'}`,
+      `- Следующий шаг continuity: ${continuity.next}`,
       '',
       `Следующий шаг: ${planner.next || mesh.next}`,
       'Опасные действия устройствам не отправлялись.'
@@ -11374,6 +12019,7 @@ const App = {
         </section>
         ${this.renderDeviceRoutePlanner(mesh)}
         ${this.renderHandoffPlannerPanel(mesh)}
+        ${this.renderContinuityPanel(this.getActiveWorkTask(), { compact: true })}
         ${this.renderDeviceHandoffPanel(mesh)}
       </section>
     `;
@@ -12520,9 +13166,10 @@ const App = {
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const devicePresence = deviceMesh.presence || this.buildDevicePresenceSnapshot();
     const handoffPlanner = this.buildHandoffRoutePlannerSnapshot(deviceMesh, this.getActiveWorkTask());
+    const continuity = this.buildContinuitySnapshot(this.getActiveWorkTask());
     const legsStatus = deviceMesh.readiness >= 80 || devicePhone?.status === 'connected' || pwa.installed || devicePresence.phone.owner_confirmed
       ? 'ready'
-      : (deviceMesh.readiness >= 50 || (this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
+      : (deviceMesh.readiness >= 50 || continuity.readiness >= 60 || (this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
 
     const subsystems = {
       head: {
@@ -12610,10 +13257,10 @@ const App = {
       },
       legs: {
         status: legsStatus,
-        readiness: deviceMesh.readiness,
-        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · ${ownedRegistry.online_count} агент online · телефон ${devicePresence.phone.pairing_status}`,
-        note: `Ноги маршрутизируют задачи и контекст. ${devicePresence.next}`,
-        snapshot_source: 'Реестр владельца / Центр связи устройств / мобильная версия / хранилище задач',
+        readiness: Math.max(deviceMesh.readiness, Math.min(96, continuity.readiness + 4)),
+        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · checkpoints ${continuity.checkpoint_count} · teleport ${continuity.teleport_count}`,
+        note: `Ноги маршрутизируют задачи и контекст. ${continuity.next}`,
+        snapshot_source: 'Реестр владельца / Handoff Planner / Continuity / Task Teleport / PWA',
         is_mock: false,
         checks: [
           ['Основной агент', ownedRegistry.primary_agent_id],
@@ -12622,6 +13269,9 @@ const App = {
           ['PWA', `${devicePresence.pwa.install_label}; работа без сети: ${devicePresence.pwa.service_worker}`],
           ['Маршруты', `${deviceMesh.routes.length} описано`],
           ['Handoff', `${handoffPlanner.task_records.length} по активной задаче · ${handoffPlanner.readiness}%`],
+          ['Continuity', `${continuity.checkpoint_count} checkpoint · ${continuity.readiness}%`],
+          ['Task Teleport', `${continuity.teleport_count} пакетов · active task ${continuity.task_teleport_count}`],
+          ['Offline recovery', continuity.browser_online ? 'браузер online' : 'offline snapshot активен'],
           ['Передача задачи', devicePresence.handoff.status === 'route_ready' || handoffPlanner.active ? 'маршрут подготовлен' : 'локальный слой статуса'],
           ['Подтверждение', `${deviceMesh.riskyCapabilities} возможностей требуют решения владельца`]
         ]
@@ -13011,6 +13661,7 @@ const App = {
       const mesh = this.buildDeviceMeshSnapshot();
       const ownedRegistry = mesh.ownedRegistry || this.buildOwnedAgentRegistrySnapshot();
       const handoff = this.buildHandoffRoutePlannerSnapshot(mesh, this.getActiveWorkTask());
+      const continuity = this.buildContinuitySnapshot(this.getActiveWorkTask());
       return `
         <section class="scheme-config-block">
           <div class="scheme-chip-list">
@@ -13021,6 +13672,9 @@ const App = {
             <span>Heartbeat: ${this.escapeHtml(ownedRegistry.online_count ? 'online' : 'не получен')}</span>
             <span>${this.escapeHtml(String(mesh.routes.length))} маршрутов</span>
             <span>Handoff: ${this.escapeHtml(String(handoff.task_records.length))} по задаче</span>
+            <span>Checkpoint: ${this.escapeHtml(String(continuity.checkpoint_count))}</span>
+            <span>Task Teleport: ${this.escapeHtml(String(continuity.teleport_count))}</span>
+            <span>Offline recovery: ${this.escapeHtml(continuity.label)}</span>
             <span>${this.escapeHtml(String(mesh.trusted))} доверенных</span>
             <span>${this.escapeHtml(String(mesh.attention))} требуют внимания</span>
           </div>
@@ -13094,6 +13748,8 @@ const App = {
       legs: [
         ['open_devices', 'Открыть устройства'],
         ['open_work_handoff', 'Передача задачи'],
+        ['create_continuity_checkpoint', 'Создать checkpoint'],
+        ['prepare_task_teleport', 'Task Teleport'],
         ['select_body', 'Проверить Тело']
       ],
       voice: [
@@ -13181,6 +13837,16 @@ const App = {
       this.workspaceActiveTab = 'handoff';
       this.renderWorkTaskCard();
       window.setTimeout(() => document.getElementById('workspace-handoff-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      return;
+    }
+
+    if (action === 'create_continuity_checkpoint') {
+      await this.handleContinuityAction('create_checkpoint', { dataset: { reason: 'scheme_legs_checkpoint' } });
+      return;
+    }
+
+    if (action === 'prepare_task_teleport') {
+      await this.handleContinuityAction('prepare_teleport', { dataset: { mode: 'resume_standard' } });
       return;
     }
 
@@ -14636,6 +15302,13 @@ const App = {
           ...record,
           task_id: record.task_id || task.task_id,
           project_id: record.project_id || task.project_id
+        }, task))
+      : [];
+    task.teleport_packages = Array.isArray(task.teleport_packages)
+      ? task.teleport_packages.map((pack) => this.normalizeTeleportPackage({
+          ...pack,
+          task_id: pack.task_id || task.task_id,
+          project_id: pack.project_id || task.project_id
         }, task))
       : [];
     task.input_source = task.input_source || 'keyboard';
@@ -18444,6 +19117,8 @@ const App = {
       eyes_evidence: 'глаза',
       hands_plan: 'руки',
       handoff_event: 'передача',
+      teleport_event: 'перенос задачи',
+      continuity_event: 'непрерывность',
       worker_runtime: 'runtime',
       brain_answer: 'ответ мозга',
       brain_council: 'совет',
