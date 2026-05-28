@@ -6865,7 +6865,7 @@ button:not(:disabled) {
   max-width: 128%;
   transform: translate(-50%, -50%);
   object-fit: contain;
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
   filter:
     drop-shadow(0 0 12px rgba(66, 216, 255, 0.72))
     drop-shadow(0 0 36px rgba(0, 112, 255, 0.42));
