@@ -1,10 +1,10 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260528-phase21-controlled-apply-pipeline-v1';
+const MINA_CACHE = 'terminator-mina-pwa-20260528-phase22-source-of-truth-v1';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260528-phase21-controlled-apply-pipeline-v1',
-  './app.js?v=20260528-phase21-controlled-apply-pipeline-v1',
+  './styles.css?v=20260528-phase22-source-of-truth-v1',
+  './app.js?v=20260528-phase22-source-of-truth-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
