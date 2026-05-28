@@ -1156,7 +1156,7 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Phase 22 Единый источник истины / снимок состояния V1',
   date: '2026-05-28',
-  status: 'закрыт локально, live pending',
+  status: 'закрыт live',
   previous: 'Phase 21 Controlled Apply Pipeline / Verifier Gate V1',
   next: 'Следующий слой финального road map перед QAMAX'
 };
@@ -1205,7 +1205,7 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' },
   { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' },
   { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' },
-  { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт локально, live pending' }
+  { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
