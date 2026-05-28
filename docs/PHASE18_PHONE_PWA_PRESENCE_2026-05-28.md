@@ -1,6 +1,6 @@
 # Phase 18 — Phone / PWA Pairing + Multi-Device Presence V1
 
-Статус: PASS local, готово к live publish.
+Статус: PASS live.
 
 ## Что реализовано
 
@@ -38,12 +38,19 @@
 - Local desktop smoke: PASS.
 - Local mobile overflow check 430px: PASS, `scrollWidth=430`.
 - Click action: `Подготовить ссылку телефона` переводит телефон в `link_ready` и не подделывает online.
+- GitHub Pages deploy run `26572725172`: PASS.
+- Live HTML marker: PASS.
+- Live Service Worker marker: PASS.
+- Live `app.js` Phase 18 marker: PASS.
+- Live mobile overflow check 430px: PASS, `scrollWidth=430`.
 
 ## Evidence
 
 - `D:\TerminatorStorage\evidence_backups\phase18_phone_pwa_presence\phase18-local-system-device-presence.png`
 - `D:\TerminatorStorage\evidence_backups\phase18_phone_pwa_presence\phase18-local-system-mobile.png`
 - `D:\TerminatorStorage\evidence_backups\phase18_phone_pwa_presence\phase18-local-phone-pairing-ready.png`
+- `D:\TerminatorStorage\evidence_backups\phase18_phone_pwa_presence\phase18-live-system-device-presence.png`
+- `D:\TerminatorStorage\evidence_backups\phase18_phone_pwa_presence\phase18-live-system-mobile.png`
 
 ## Что проверить первым
 
