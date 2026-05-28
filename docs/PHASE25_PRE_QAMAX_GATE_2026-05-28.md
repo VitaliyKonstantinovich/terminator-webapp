@@ -1,6 +1,6 @@
 # Phase 25: Pre-QAMAX Release Candidate Gate V1
 
-Status: local PASS / live pending.
+Status: live PASS.
 Date: 2026-05-28.
 
 ## Purpose
@@ -41,6 +41,14 @@ Local fresh-profile gate result:
 - Blocking issues: 0.
 - Decision: release candidate can stop before QA Max.
 
+Live GitHub Pages gate result:
+
+- Score: 93%.
+- Passed gate checks: 16.
+- QAMAX/review items: 5.
+- Blocking issues: 0.
+- Decision: ready to stop before final QA Max.
+
 Review items are not hidden. They are explicitly routed into final QA Max.
 
 ## Checks
@@ -50,6 +58,12 @@ Review items are not hidden. They are explicitly routed into final QA Max.
 - `git diff --check`: PASS, CRLF notices only.
 - Local desktop System Pre-QAMAX smoke: PASS.
 - Local mobile 390px no horizontal overflow: PASS.
+- GitHub Actions deploy `26605992994`: PASS.
+- Live HTML Phase 25 marker: PASS.
+- Live service worker Phase 25 marker: PASS.
+- Live desktop System Pre-QAMAX smoke: PASS.
+- Live mobile 390px no horizontal overflow: PASS.
+- Live DOM scope/evidence/stop boundary: PASS.
 - Gate panel visible: PASS.
 - Stop boundary visible: PASS.
 - QA Max scope visible: PASS.
@@ -64,6 +78,10 @@ Review items are not hidden. They are explicitly routed into final QA Max.
 - `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-local-system-pre-qamax-desktop.png`.
 - `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-local-system-pre-qamax-mobile.png`.
 - `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-local-smoke.json`.
+- `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-live-system-pre-qamax-desktop.png`.
+- `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-live-system-pre-qamax-mobile.png`.
+- `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-live-smoke.json`.
+- `D:\TerminatorStorage\evidence_backups\phase25_pre_qamax_gate\phase25-live-dom.html`.
 
 ## Not Touched
 
@@ -80,5 +98,5 @@ Review items are not hidden. They are explicitly routed into final QA Max.
 
 ## Residual
 
-- Live GitHub Pages deployment and live smoke are pending for final Phase 25 acceptance.
+- No blocking residual for Phase 25.
 - Final QA Max remains the next explicit owner-approved step after this gate.

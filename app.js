@@ -1163,7 +1163,7 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Phase 25 Pre-QAMAX Release Candidate Gate V1',
   date: '2026-05-28',
-  status: 'в работе',
+  status: 'live PASS',
   previous: 'Phase 24 Windows-компаньон / установленный пользовательский слой V1',
   next: 'Остановиться перед финальным QAMAX'
 };
@@ -1215,7 +1215,7 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' },
   { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт live' },
   { id: 47, name: 'Windows-компаньон / установленный пользовательский слой V1', status: 'закрыт live' },
-  { id: 48, name: 'Pre-QAMAX Release Candidate Gate V1', status: 'в работе' }
+  { id: 48, name: 'Pre-QAMAX Release Candidate Gate V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
