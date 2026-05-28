@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260528-phase18-phone-pwa-presence-v1">
+  <link rel="stylesheet" href="styles.css?v=20260528-phase19-handoff-route-planner-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -309,6 +309,7 @@
                     <button type="button" data-workspace-tab="council">Совет</button>
                     <button type="button" data-workspace-tab="eyes">Глаза</button>
                     <button type="button" data-workspace-tab="hands">Руки</button>
+                    <button type="button" data-workspace-tab="handoff">Передача</button>
                     <button type="button" data-workspace-tab="check">Проверка</button>
                     <button type="button" data-workspace-tab="memory">Память</button>
                   </nav>
@@ -369,6 +370,14 @@
                       <span>Безопасные планы действий</span>
                     </div>
                     <div id="workspace-hands-panel" class="hands-panel"></div>
+                  </section>
+
+                  <section id="workspace-tab-handoff" class="workspace-tab-panel" hidden>
+                    <div class="workspace-panel-head">
+                      <strong>Передача</strong>
+                      <span>Маршрут задачи между ПК, WebApp, телефоном/PWA и Советом</span>
+                    </div>
+                    <div id="workspace-handoff-panel" class="handoff-panel"></div>
                   </section>
 
                   <section id="workspace-tab-memory" class="workspace-tab-panel" hidden>
@@ -1092,6 +1101,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260528-phase18-phone-pwa-presence-v1"></script>
+  <script src="app.js?v=20260528-phase19-handoff-route-planner-v1"></script>
 </body>
 </html>

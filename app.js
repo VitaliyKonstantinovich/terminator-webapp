@@ -311,6 +311,7 @@ const SYSTEM_REGISTRY_STATE_STORAGE_KEY = 'mina_system_registry_state_v1';
 const POLICY_CENTER_STATE_STORAGE_KEY = 'mina_policy_center_state_v1';
 const LIVE_RUNTIME_STATE_STORAGE_KEY = 'mina_live_runtime_state_v1';
 const DEVICE_PAIRING_STATE_STORAGE_KEY = 'mina_device_pairing_state_v1';
+const HANDOFF_ROUTE_PLANNER_SCHEMA_VERSION = 1;
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -319,6 +320,23 @@ const WORK_RUNTIME_MIGRATION_KEY = 'localStorage_migrated_v1';
 const WORK_PROJECT_BY_ID = Object.fromEntries(WORK_PROJECTS.map((project) => [project.id, project]));
 const WORK_MODE_BY_ID = Object.fromEntries(WORK_MODES.map((mode) => [mode.id, mode]));
 const WORK_QUALITY_BY_ID = Object.fromEntries(WORK_QUALITY_LEVELS.map((quality) => [quality.id, quality]));
+
+const HANDOFF_STATUS_LABELS = {
+  draft: 'черновик',
+  prepared: 'пакет готов',
+  copied: 'пакет скопирован',
+  owner_confirmed: 'передано вручную',
+  cancelled: 'отменено',
+  blocked: 'заблокировано'
+};
+
+const HANDOFF_ROUTE_STATUS_LABELS = {
+  ready: 'готов',
+  partial: 'частично',
+  waiting: 'ожидает',
+  review: 'проверить',
+  blocked: 'заблокирован'
+};
 
 const TASK_RUNTIME_STORES = {
   META: 'meta',
@@ -1030,7 +1048,7 @@ const WORK_FILE_ROLES = [
 ];
 
 const WORK_FILE_ROLE_BY_ID = Object.fromEntries(WORK_FILE_ROLES.map((role) => [role.id, role]));
-const WORKSPACE_TABS = new Set(['files', 'artifacts', 'research', 'council', 'eyes', 'hands', 'check', 'memory']);
+const WORKSPACE_TABS = new Set(['files', 'artifacts', 'research', 'council', 'eyes', 'hands', 'handoff', 'check', 'memory']);
 const RESEARCH_SOURCE_TYPES = [
   ['official_docs', 'Официальная документация'],
   ['github', 'GitHub / код'],
@@ -1098,11 +1116,11 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 18 Phone / PWA Pairing + Multi-Device Presence V1',
+  name: 'Phase 19 Handoff / Route Planner V1',
   date: '2026-05-28',
   status: 'закрыт live',
-  previous: 'Phase 17 Owned Device / Agent Registry V1',
-  next: 'Phase 19 Handoff / Route Planner V1'
+  previous: 'Phase 18 Phone / PWA Pairing + Multi-Device Presence V1',
+  next: 'Phase 20 рабочий слой по MASTER SPEC'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1145,7 +1163,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 38, name: 'Real Health Endpoints + Agent Heartbeat V1', status: 'закрыт live' },
   { id: 39, name: 'Controlled Bridge Rollout + Live Heartbeat Acceptance V1', status: 'закрыт live' },
   { id: 40, name: 'Owned Device / Agent Registry V1', status: 'закрыт live' },
-  { id: 41, name: 'Phone / PWA Pairing + Multi-Device Presence V1', status: 'закрыт live' }
+  { id: 41, name: 'Phone / PWA Pairing + Multi-Device Presence V1', status: 'закрыт live' },
+  { id: 42, name: 'Handoff / Route Planner V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2636,6 +2655,12 @@ const App = {
       const deviceActionButton = event.target.closest('[data-device-action]');
       if (deviceActionButton) {
         this.handleDeviceAction(deviceActionButton.dataset.deviceAction, deviceActionButton);
+        return;
+      }
+
+      const handoffActionButton = event.target.closest('[data-handoff-action]');
+      if (handoffActionButton) {
+        this.handleHandoffAction(handoffActionButton.dataset.handoffAction, handoffActionButton);
         return;
       }
 
@@ -9122,6 +9147,19 @@ const App = {
     `;
   },
 
+  renderWorkspaceHandoff(task) {
+    const host = document.getElementById('workspace-handoff-panel');
+    if (!host || !task) return;
+    const mesh = this.buildDeviceMeshSnapshot();
+    host.innerHTML = `
+      <section class="handoff-workspace-intro">
+        <strong>Передача задачи</strong>
+        <p>Выберите маршрут, подготовьте безопасный пакет и вручную перенесите его туда, где продолжите работу. Терминатор не нажимает за вас кнопки, не открывает аккаунты и не отправляет команды устройствам.</p>
+      </section>
+      ${this.renderHandoffPlannerPanel(mesh, { task })}
+    `;
+  },
+
   renderEyesVisualCheckCard(check, options = {}) {
     const normalized = this.normalizeEyesVisualCheck(check);
     const checklistSummary = normalized.checklist
@@ -10242,10 +10280,10 @@ const App = {
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('screen', 'system');
-      url.searchParams.set('force', 'phase18-phone-pairing');
+      url.searchParams.set('force', 'phase19-handoff-route-planner');
       return url.toString();
     } catch {
-      return 'https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase18-phone-pairing';
+      return 'https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase19-handoff-route-planner';
     }
   },
 
@@ -10294,8 +10332,11 @@ const App = {
         status: handoff.status || 'not_started',
         direction: handoff.direction || 'pc_to_phone',
         active_task_id: handoff.active_task_id || '',
+        active_handoff_id: handoff.active_handoff_id || '',
+        active_route_id: handoff.active_route_id || '',
+        package_status: handoff.package_status || 'not_started',
         last_handoff_at: handoff.last_handoff_at || '',
-        note: handoff.note || 'Передача задачи на телефон пока работает как подготовленный маршрут, без автоматического открытия и без команд устройству.'
+        note: handoff.note || 'Передача задачи теперь готовит безопасный пакет и ждёт ручного подтверждения владельца. Команды устройствам не отправляются.'
       }
     };
   },
@@ -10432,7 +10473,7 @@ const App = {
           : phone.pairing_status === 'link_ready'
             ? 'ссылка подключения подготовлена; ждём ручной вход владельца на телефоне'
             : 'ожидает подготовки ссылки подключения';
-        next.notes = 'Телефон владельца как контроллер Mina UI/PWA. ADB, скриншоты и команды не запускаются в Phase 18.';
+        next.notes = 'Телефон владельца как контроллер Mina UI/PWA. ADB, скриншоты и команды устройству не запускаются.';
       }
       return next;
     });
@@ -10440,6 +10481,464 @@ const App = {
     await this.saveSystemDevices();
     if (!options.silent) this.toast('Присутствие устройств обновлено');
     return this.buildDevicePresenceSnapshot();
+  },
+
+  handoffStatusName(status) {
+    return HANDOFF_STATUS_LABELS[status] || status || 'черновик';
+  },
+
+  handoffRouteStatusName(status) {
+    return HANDOFF_ROUTE_STATUS_LABELS[status] || status || 'проверить';
+  },
+
+  normalizeHandoffRecord(record = {}, task = null) {
+    const now = new Date().toISOString();
+    return {
+      schema_version: HANDOFF_ROUTE_PLANNER_SCHEMA_VERSION,
+      handoff_id: record.handoff_id || this.generateWorkspaceId('HANDOFF'),
+      task_id: record.task_id || task?.task_id || '',
+      project_id: record.project_id || task?.project_id || '',
+      task_title: record.task_title || task?.title || task?.user_request || '',
+      route_id: record.route_id || 'workspace_to_webapp',
+      route_title: record.route_title || 'Рабочее -> WebApp',
+      from: record.from || 'Рабочее',
+      to: record.to || 'Mina UI',
+      target_device_id: record.target_device_id || '',
+      target_label: record.target_label || record.to || 'Mina UI',
+      status: record.status || 'draft',
+      risk_level: record.risk_level || 'safe',
+      requires_approval: Boolean(record.requires_approval),
+      manual_delivery_required: record.manual_delivery_required !== false,
+      package_type: record.package_type || 'task_context',
+      package_summary: record.package_summary || '',
+      package_text: record.package_text || '',
+      artifact_id: record.artifact_id || '',
+      privacy_status: record.privacy_status || 'not_checked',
+      privacy_summary: record.privacy_summary || '',
+      prepared_at: record.prepared_at || '',
+      copied_at: record.copied_at || '',
+      owner_confirmed_at: record.owner_confirmed_at || '',
+      cancelled_at: record.cancelled_at || '',
+      created_at: record.created_at || now,
+      updated_at: record.updated_at || now,
+      note: record.note || 'Handoff готовит пакет передачи. Устройствам команды не отправляются.',
+      evidence_refs: Array.isArray(record.evidence_refs) ? record.evidence_refs : [],
+      artifact_refs: Array.isArray(record.artifact_refs) ? record.artifact_refs : []
+    };
+  },
+
+  taskHandoffRecords(task) {
+    if (!task) return [];
+    task.handoff_records = Array.isArray(task.handoff_records)
+      ? task.handoff_records.map((record) => this.normalizeHandoffRecord(record, task))
+      : [];
+    return task.handoff_records;
+  },
+
+  allHandoffRecords() {
+    return (this.workTasks || [])
+      .flatMap((task) => this.taskHandoffRecords(task).map((record) => ({ ...record, task })))
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+  },
+
+  findHandoffRecord(handoffId) {
+    const id = String(handoffId || '').trim();
+    if (!id) return { task: null, record: null };
+    for (const task of this.workTasks || []) {
+      const records = this.taskHandoffRecords(task);
+      const record = records.find((item) => item.handoff_id === id);
+      if (record) return { task, record };
+    }
+    return { task: null, record: null };
+  },
+
+  buildHandoffRoutes(mesh = this.buildDeviceMeshSnapshot(), task = this.getActiveWorkTask()) {
+    const presence = mesh.presence || this.buildDevicePresenceSnapshot();
+    const head = this.headStatusSnapshot();
+    const hasTask = Boolean(task?.task_id);
+    const primaryOnline = Boolean(mesh.ownedRegistry?.online_count);
+    const phoneReady = Boolean(presence.phone?.owner_confirmed || presence.phone?.pairing_ready || presence.pwa?.ready);
+    const pwaReady = Boolean(presence.pwa?.ready);
+    const headReady = head.tone === 'pass' || Boolean(this.mainStrategistBrain());
+    const routes = [
+      {
+        route_id: 'workspace_to_phone_pwa',
+        title: 'Рабочее -> Телефон / PWA',
+        from: 'Рабочее окно',
+        to: 'Телефон владельца / PWA',
+        target_device_id: 'device_owner_phone',
+        target_label: 'Телефон / PWA',
+        status: phoneReady ? 'ready' : presence.phone?.pairing_ready ? 'partial' : 'waiting',
+        risk_level: 'safe',
+        requires_approval: false,
+        can_prepare: hasTask && phoneReady,
+        note: phoneReady
+          ? 'Можно подготовить пакет задачи для ручного продолжения на телефоне или в PWA.'
+          : 'Сначала подготовьте ссылку телефона или проверьте PWA. Online heartbeat не подделывается.'
+      },
+      {
+        route_id: 'workspace_to_pc_runtime',
+        title: 'Рабочее -> ПК Терминатора',
+        from: 'Mina UI',
+        to: 'ПК / локальный runtime',
+        target_device_id: 'device_terminator_pc',
+        target_label: 'ПК Терминатора',
+        status: primaryOnline ? 'ready' : 'review',
+        risk_level: 'review',
+        requires_approval: false,
+        can_prepare: hasTask,
+        note: primaryOnline
+          ? 'Пакет можно вернуть в основной контур ПК. Выполнение команд не запускается.'
+          : 'Heartbeat ПК не подтверждён. Пакет можно подготовить, но маршрут требует проверки.'
+      },
+      {
+        route_id: 'workspace_to_brain_council',
+        title: 'Рабочее -> Совет мозгов',
+        from: 'Рабочее окно',
+        to: 'Голова / Совет',
+        target_device_id: 'brain_council',
+        target_label: 'Совет мозгов',
+        status: headReady ? 'ready' : 'partial',
+        risk_level: 'safe',
+        requires_approval: false,
+        can_prepare: hasTask,
+        note: headReady
+          ? 'Пакет содержит цель, критерии и ссылки на артефакты для ручного web-chat workflow.'
+          : 'Стратег или Совет ещё не полностью настроены, но ручной пакет можно подготовить.'
+      },
+      {
+        route_id: 'workspace_to_external_executor',
+        title: 'Рабочее -> внешний исполнитель',
+        from: 'Рабочее окно',
+        to: 'Codex / Antigravity / web-chat вручную',
+        target_device_id: 'external_manual_executor',
+        target_label: 'Внешний исполнитель',
+        status: 'ready',
+        risk_level: 'safe',
+        requires_approval: false,
+        can_prepare: hasTask,
+        note: 'Формируется краткий пакет без автоматической отправки, автологина и браузерной автоматики.'
+      },
+      {
+        route_id: 'phone_pwa_to_workspace',
+        title: 'Телефон / PWA -> Рабочее',
+        from: 'Телефон / PWA',
+        to: 'Рабочее окно',
+        target_device_id: 'device_webapp_browser',
+        target_label: 'Рабочее окно',
+        status: pwaReady ? 'partial' : 'waiting',
+        risk_level: 'safe',
+        requires_approval: false,
+        can_prepare: hasTask && pwaReady,
+        note: pwaReady
+          ? 'Фиксируется маршрут возврата контекста в Рабочее. Реальный heartbeat телефона будет отдельным слоем.'
+          : 'PWA/offline shell ещё не готов к честному маршруту возврата.'
+      }
+    ];
+    return routes.map((route) => ({
+      ...route,
+      can_prepare: Boolean(route.can_prepare && hasTask),
+      blocked_reason: hasTask
+        ? (route.can_prepare ? '' : route.note)
+        : 'Сначала создайте или выберите задачу.'
+    }));
+  },
+
+  buildHandoffRoutePlannerSnapshot(mesh = this.buildDeviceMeshSnapshot(), task = this.getActiveWorkTask()) {
+    const routes = this.buildHandoffRoutes(mesh, task);
+    const records = this.allHandoffRecords();
+    const taskRecords = task ? this.taskHandoffRecords(task) : [];
+    const active = taskRecords[0] || records[0]?.record || null;
+    const readyRoutes = routes.filter((route) => route.status === 'ready').length;
+    const prepared = records.filter((item) => ['prepared', 'copied', 'owner_confirmed'].includes(item.status)).length;
+    const confirmed = records.filter((item) => item.status === 'owner_confirmed').length;
+    const readiness = Math.max(28, Math.min(96,
+      34
+      + (task ? 18 : 0)
+      + Math.min(20, readyRoutes * 5)
+      + Math.min(14, prepared * 4)
+      + Math.min(10, confirmed * 5)
+      + (routes.some((route) => route.route_id === 'workspace_to_phone_pwa' && route.status === 'ready') ? 8 : 0)
+    ));
+    const status = readiness >= 82
+      ? 'ready'
+      : readiness >= 58
+        ? 'partial'
+        : task
+          ? 'review'
+          : 'waiting';
+    const next = !task
+      ? 'Создать или выбрать задачу для передачи.'
+      : !routes.some((route) => route.can_prepare)
+        ? 'Подготовить телефон/PWA или проверить ПК runtime.'
+        : !taskRecords.length
+          ? 'Выбрать маршрут и подготовить пакет передачи.'
+          : active?.status === 'prepared'
+            ? 'Скопировать пакет и подтвердить ручную передачу.'
+            : active?.status === 'copied'
+              ? 'Отметить, что пакет передан вручную.'
+              : 'Маршрут записан. Можно продолжить работу или подготовить новый пакет.';
+    return {
+      schema_version: HANDOFF_ROUTE_PLANNER_SCHEMA_VERSION,
+      status,
+      readiness,
+      task,
+      routes,
+      records,
+      task_records: taskRecords,
+      active,
+      next
+    };
+  },
+
+  buildTaskHandoffPackageText(task, route) {
+    const criteria = Array.isArray(task.readiness_criteria) ? task.readiness_criteria : [];
+    const artifacts = Array.isArray(task.artifacts) ? task.artifacts.slice(0, 8) : [];
+    const files = Array.isArray(task.files) ? task.files.slice(0, 8) : [];
+    const raw = [
+      task.title,
+      task.goal,
+      task.user_request,
+      task.next_step,
+      ...criteria,
+      ...artifacts.map((artifact) => artifact.title || artifact.summary || ''),
+      ...files.map((file) => file.name || '')
+    ].join('\n');
+    const privacy = this.scanPrivacyText(raw);
+    const safe = (value) => privacy.findings.length ? this.redactPrivacyText(String(value || '')) : String(value || '');
+    const lines = [
+      'MINA HANDOFF PACKAGE',
+      `schema_version: ${HANDOFF_ROUTE_PLANNER_SCHEMA_VERSION}`,
+      `route: ${route.title}`,
+      `from: ${route.from}`,
+      `to: ${route.to}`,
+      `risk: ${route.risk_level}`,
+      `manual_delivery_required: true`,
+      `approval_required: ${route.requires_approval ? 'true' : 'false'}`,
+      '',
+      `task_id: ${task.task_id}`,
+      `project: ${this.projectName(task.project_id)}`,
+      `title: ${safe(task.title)}`,
+      `status: ${this.statusName(task.status)}`,
+      '',
+      'goal:',
+      safe(task.goal || task.user_request || 'не задано'),
+      '',
+      'readiness_criteria:',
+      ...(criteria.length ? criteria.map((item) => `- ${safe(item)}`) : ['- не задано']),
+      '',
+      `next_step: ${safe(task.next_step || 'не задано')}`,
+      '',
+      'artifact_refs:',
+      ...(artifacts.length ? artifacts.map((artifact) => `- ${artifact.artifact_id}: ${safe(artifact.title || artifact.type)}`) : ['- нет']),
+      '',
+      'file_refs_metadata_only:',
+      ...(files.length ? files.map((file) => `- ${file.file_id}: ${safe(file.name || 'file')} (${file.role || 'attachment'})`) : ['- нет']),
+      '',
+      'handoff_rules:',
+      '- Не выполнять команды автоматически.',
+      '- Не входить в аккаунты автоматически.',
+      '- Не читать cookies/tokens/passwords.',
+      '- Не запускать ADB, browser automation, deploy, push или delete.',
+      '- Если нужен опасный шаг, открыть Approval Center.',
+      '',
+      `privacy: ${this.privacyScanSummary(privacy)}`
+    ];
+    return { text: lines.join('\n'), privacy };
+  },
+
+  async prepareHandoffPackage(routeId) {
+    const task = this.getActiveWorkTask();
+    if (!task) {
+      this.toast('Сначала создай или выбери задачу');
+      return null;
+    }
+    const mesh = this.buildDeviceMeshSnapshot();
+    const route = this.buildHandoffRoutes(mesh, task).find((item) => item.route_id === routeId);
+    if (!route) {
+      this.toast('Маршрут не найден');
+      return null;
+    }
+    if (!route.can_prepare) {
+      this.toast(route.blocked_reason || 'Маршрут пока не готов');
+      return null;
+    }
+    const now = new Date().toISOString();
+    const pack = this.buildTaskHandoffPackageText(task, route);
+    const artifact = this.createArtifact(
+      task,
+      'CONTEXT_PACK',
+      `Handoff package: ${route.title}`,
+      `Пакет передачи задачи по маршруту ${route.title}. Privacy: ${this.privacyScanSummary(pack.privacy)}.`,
+      pack.text,
+      'handoff_route_planner'
+    );
+    artifact.status = pack.privacy.blocked ? 'needs_review' : 'ready_for_copy';
+    artifact.privacy_scan = pack.privacy;
+    const record = this.normalizeHandoffRecord({
+      task_id: task.task_id,
+      project_id: task.project_id,
+      task_title: task.title,
+      route_id: route.route_id,
+      route_title: route.title,
+      from: route.from,
+      to: route.to,
+      target_device_id: route.target_device_id,
+      target_label: route.target_label,
+      status: pack.privacy.blocked ? 'blocked' : 'prepared',
+      risk_level: route.risk_level,
+      requires_approval: route.requires_approval,
+      package_summary: `Пакет готов: ${route.title}`,
+      package_text: pack.text,
+      artifact_id: artifact.artifact_id,
+      privacy_status: pack.privacy.blocked ? 'blocked' : pack.privacy.findings.length ? 'redacted' : 'clean',
+      privacy_summary: this.privacyScanSummary(pack.privacy),
+      prepared_at: now,
+      created_at: now,
+      updated_at: now,
+      note: route.note,
+      artifact_refs: [artifact.artifact_id]
+    }, task);
+    task.handoff_records = [record, ...this.taskHandoffRecords(task).filter((item) => item.handoff_id !== record.handoff_id)];
+    task.device_context = task.device_context && typeof task.device_context === 'object' ? task.device_context : { device_ids: [], required_capabilities: [], device_events: [] };
+    task.device_context.device_ids = Array.from(new Set([...(task.device_context.device_ids || []), route.target_device_id].filter(Boolean)));
+    task.device_context.device_events = Array.isArray(task.device_context.device_events) ? task.device_context.device_events : [];
+    task.device_context.device_events.push({
+      event_id: this.generateWorkspaceId('DEVENT'),
+      type: 'handoff_package_prepared',
+      route_id: route.route_id,
+      handoff_id: record.handoff_id,
+      target_device_id: route.target_device_id,
+      created_at: now,
+      risk_level: route.risk_level
+    });
+    if (!this.devicePairingState) this.loadDevicePairingState();
+    this.devicePairingState.handoff = {
+      ...this.devicePairingState.handoff,
+      status: record.status,
+      direction: route.route_id,
+      active_task_id: task.task_id,
+      active_handoff_id: record.handoff_id,
+      active_route_id: route.route_id,
+      package_status: record.status,
+      last_handoff_at: now,
+      note: `Пакет передачи подготовлен: ${route.title}.`
+    };
+    this.saveDevicePairingState();
+    this.addWorkspaceMessage(task, 'handoff_event', 'Ноги', `Пакет передачи подготовлен: ${route.title}.`, {
+      linked_artifact_id: artifact.artifact_id
+    });
+    this.saveWorkTasks();
+    this.renderWorkTaskCard();
+    this.renderSystemStatus();
+    this.toast('Пакет передачи готов');
+    return record;
+  },
+
+  async copyHandoffPackage(handoffId) {
+    const { task, record } = this.findHandoffRecord(handoffId);
+    if (!task || !record) {
+      this.toast('Пакет передачи не найден');
+      return;
+    }
+    if (!record.package_text) {
+      this.toast('Пакет пустой');
+      return;
+    }
+    await this.copyWorkspaceText(record.package_text);
+    record.status = record.status === 'owner_confirmed' ? record.status : 'copied';
+    record.copied_at = new Date().toISOString();
+    record.updated_at = record.copied_at;
+    this.addWorkspaceMessage(task, 'handoff_event', 'Ноги', `Пакет передачи скопирован: ${record.route_title}.`);
+    this.saveWorkTasks();
+    this.renderWorkTaskCard();
+    this.renderSystemStatus();
+  },
+
+  async confirmHandoffDelivered(handoffId) {
+    const { task, record } = this.findHandoffRecord(handoffId);
+    if (!task || !record) {
+      this.toast('Маршрут передачи не найден');
+      return;
+    }
+    const now = new Date().toISOString();
+    record.status = 'owner_confirmed';
+    record.owner_confirmed_at = now;
+    record.updated_at = now;
+    if (!this.devicePairingState) this.loadDevicePairingState();
+    this.devicePairingState.handoff = {
+      ...this.devicePairingState.handoff,
+      status: 'owner_confirmed',
+      active_task_id: task.task_id,
+      active_handoff_id: record.handoff_id,
+      active_route_id: record.route_id,
+      package_status: 'owner_confirmed',
+      last_handoff_at: now,
+      note: `Владелец отметил ручную передачу: ${record.route_title}.`
+    };
+    this.saveDevicePairingState();
+    this.addWorkspaceMessage(task, 'handoff_event', 'Ноги', `Ручная передача подтверждена: ${record.route_title}.`);
+    this.saveWorkTasks();
+    this.renderWorkTaskCard();
+    this.renderSystemStatus();
+    this.toast('Передача отмечена');
+  },
+
+  async cancelHandoff(handoffId) {
+    const { task, record } = this.findHandoffRecord(handoffId);
+    if (!task || !record) {
+      this.toast('Маршрут передачи не найден');
+      return;
+    }
+    const now = new Date().toISOString();
+    record.status = 'cancelled';
+    record.cancelled_at = now;
+    record.updated_at = now;
+    this.addWorkspaceMessage(task, 'handoff_event', 'Ноги', `Передача отменена: ${record.route_title}.`);
+    this.saveWorkTasks();
+    this.renderWorkTaskCard();
+    this.renderSystemStatus();
+    this.toast('Передача отменена');
+  },
+
+  openHandoffTask(handoffId) {
+    const { task } = this.findHandoffRecord(handoffId);
+    if (!task) return;
+    this.activeWorkTaskId = task.task_id;
+    this.workspaceActiveTab = 'handoff';
+    this.go('work');
+    this.renderWorkTaskCard();
+  },
+
+  async handleHandoffAction(action, button) {
+    if (action === 'prepare') {
+      await this.prepareHandoffPackage(button?.dataset?.routeId || '');
+      return;
+    }
+    if (action === 'copy') {
+      await this.copyHandoffPackage(button?.dataset?.handoffId || '');
+      return;
+    }
+    if (action === 'confirm') {
+      await this.confirmHandoffDelivered(button?.dataset?.handoffId || '');
+      return;
+    }
+    if (action === 'cancel') {
+      await this.cancelHandoff(button?.dataset?.handoffId || '');
+      return;
+    }
+    if (action === 'open_task') {
+      this.openHandoffTask(button?.dataset?.handoffId || '');
+      return;
+    }
+    if (action === 'prepare_phone') {
+      await this.handleDeviceAction('prepare_phone_pairing', { dataset: { deviceId: 'device_owner_phone' } });
+      return;
+    }
+    if (action === 'open_devices') {
+      this.go('system');
+      window.setTimeout(() => document.getElementById('system-device-preview')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    }
   },
 
   buildDevicePresenceReport(snapshot = this.buildDevicePresenceSnapshot()) {
@@ -10538,7 +11037,7 @@ const App = {
         ? 'Проверить мобильную версию и работу без сети перед мобильным сценарием.'
         : attention
           ? 'Разобрать устройства со статусом “не проверено” или “не настроено”.'
-          : 'Связь устройств готова к следующему слою маршрутизации.';
+          : 'Связь устройств готова; передачу задач ведёт Handoff Planner.';
     return { devices, pwa, direct, taskStore, agent, ownedRegistry, presence, trusted, connected, attention, riskyCapabilities, readiness, status, routes, next };
   },
 
@@ -10709,12 +11208,86 @@ const App = {
     `;
   },
 
+  renderHandoffPlannerPanel(mesh = this.buildDeviceMeshSnapshot(), options = {}) {
+    const task = options.task || this.getActiveWorkTask();
+    const planner = this.buildHandoffRoutePlannerSnapshot(mesh, task);
+    const active = planner.active;
+    return `
+      <section class="handoff-route-panel handoff-route-panel--${this.escapeHtml(planner.status)}">
+        <div class="handoff-route-head">
+          <div>
+            <span>Handoff / Route Planner</span>
+            <h3>Передача задачи</h3>
+            <p>Маршрут выбирает, куда безопасно передать контекст: телефон/PWA, ПК, Совет мозгов или внешний исполнитель. Никаких автокликов, ADB, автологина и команд устройствам.</p>
+          </div>
+          <strong>${this.escapeHtml(String(planner.readiness))}%<small>${this.escapeHtml(this.deviceMeshStatusText(planner.status))}</small></strong>
+        </div>
+        <div class="handoff-task-strip">
+          <article>
+            <span>Активная задача</span>
+            <strong>${this.escapeHtml(task?.title || 'не выбрана')}</strong>
+            <p>${this.escapeHtml(task ? `${task.task_id} · ${this.projectName(task.project_id)} · ${this.statusName(task.status)}` : 'Создайте или выберите задачу в Рабочем.')}</p>
+          </article>
+          <article>
+            <span>Следующий шаг</span>
+            <strong>${this.escapeHtml(planner.next)}</strong>
+            <p>Передача считается завершённой только после ручного подтверждения владельца.</p>
+          </article>
+        </div>
+        <div class="handoff-route-grid">
+          ${planner.routes.map((route) => `
+            <article class="handoff-route-card handoff-route-card--${this.escapeHtml(route.status)}">
+              <span>${this.escapeHtml(this.handoffRouteStatusName(route.status))} · ${this.escapeHtml(DEVICE_RISK_LEVELS[route.risk_level] || route.risk_level)}</span>
+              <strong>${this.escapeHtml(route.title)}</strong>
+              <p>${this.escapeHtml(route.from)} -> ${this.escapeHtml(route.to)}</p>
+              <small>${this.escapeHtml(route.note)}</small>
+              <div>
+                ${route.route_id === 'workspace_to_phone_pwa' && !route.can_prepare ? '<button type="button" data-handoff-action="prepare_phone">Подготовить телефон</button>' : ''}
+                <button type="button" data-handoff-action="prepare" data-route-id="${this.escapeHtml(route.route_id)}" ${route.can_prepare ? '' : 'disabled'}>Подготовить пакет</button>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+        ${active ? this.renderHandoffRecordCard(active, { active: true }) : '<p class="mission-empty">Пакетов передачи по активной задаче ещё нет.</p>'}
+        <div class="handoff-log-list">
+          ${planner.records.slice(0, 5).map((item) => this.renderHandoffRecordCard(item.record || item, { task: item.task })).join('') || '<p class="mission-empty">История передач появится после подготовки первого пакета.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderHandoffRecordCard(record, options = {}) {
+    const task = options.task || (this.workTasks || []).find((item) => item.task_id === record.task_id);
+    return `
+      <article class="handoff-record-card handoff-record-card--${this.escapeHtml(record.status)} ${options.active ? 'active' : ''}">
+        <div>
+          <span>${this.escapeHtml(this.handoffStatusName(record.status))} · ${this.escapeHtml(record.privacy_summary || 'privacy не проверялась')}</span>
+          <strong>${this.escapeHtml(record.route_title)}</strong>
+          <p>${this.escapeHtml(record.task_title || task?.title || record.task_id || 'задача не найдена')}</p>
+          <small>${this.escapeHtml(record.note || 'ручная передача контекста')}</small>
+        </div>
+        <dl>
+          <div><dt>task_id</dt><dd>${this.escapeHtml(record.task_id || 'нет')}</dd></div>
+          <div><dt>куда</dt><dd>${this.escapeHtml(record.target_label || record.to)}</dd></div>
+          <div><dt>artifact</dt><dd>${this.escapeHtml(record.artifact_id || 'нет')}</dd></div>
+          <div><dt>когда</dt><dd>${this.escapeHtml(this.formatTaskTime(record.updated_at || record.created_at))}</dd></div>
+        </dl>
+        <div class="handoff-record-actions">
+          <button type="button" data-handoff-action="copy" data-handoff-id="${this.escapeHtml(record.handoff_id)}" ${record.package_text ? '' : 'disabled'}>Скопировать пакет</button>
+          <button type="button" data-handoff-action="confirm" data-handoff-id="${this.escapeHtml(record.handoff_id)}" ${record.status === 'owner_confirmed' || record.status === 'cancelled' ? 'disabled' : ''}>Отметить переданным</button>
+          <button type="button" data-handoff-action="open_task" data-handoff-id="${this.escapeHtml(record.handoff_id)}">Открыть задачу</button>
+          <button type="button" data-handoff-action="cancel" data-handoff-id="${this.escapeHtml(record.handoff_id)}" ${record.status === 'cancelled' || record.status === 'owner_confirmed' ? 'disabled' : ''}>Отменить</button>
+        </div>
+      </article>
+    `;
+  },
+
   renderDeviceHandoffPanel(mesh) {
     const steps = [
       ['Создать задачу', 'Рабочее создаёт task_id и привязывает проект.'],
       ['Собрать пакет', 'Context Pack передаётся исполнителю вручную, без скрытой автоматизации.'],
       ['Ожидать отчёт', 'Терминатор честно показывает ожидание, не притворяется, что видит Codex.'],
-      ['Продолжить на телефоне', 'Телефон и мобильная версия получат задачу позже через безопасную связь устройств.'],
+      ['Продолжить на телефоне', 'Handoff Planner готовит пакет передачи; владелец вручную переносит его на телефон/PWA.'],
       ['Вернуть в проверку', 'Проверка и Защитник оценивают результат перед памятью или действием.']
     ];
     return `
@@ -10743,8 +11316,9 @@ const App = {
   },
 
   buildDeviceMeshReport(mesh = this.buildDeviceMeshSnapshot()) {
+    const planner = this.buildHandoffRoutePlannerSnapshot(mesh, this.getActiveWorkTask());
     return [
-      'Ноги / Связь устройств V1',
+      'Ноги / Handoff + Route Planner V1',
       `Готовность: ${mesh.readiness}% (${this.deviceMeshStatusText(mesh.status)})`,
       `Устройств: ${mesh.devices.length}`,
       `Доверенные: ${mesh.trusted}`,
@@ -10753,11 +11327,16 @@ const App = {
       `Возможности через подтверждение владельца: ${mesh.riskyCapabilities}`,
       `Телефон: ${mesh.presence.phone.pairing_status}; подтверждён=${mesh.presence.phone.owner_confirmed ? 'да' : 'нет'}`,
       `PWA: ${mesh.presence.pwa.install_label}; service worker=${mesh.presence.pwa.service_worker}`,
+      `Handoff readiness: ${planner.readiness}% (${this.deviceMeshStatusText(planner.status)})`,
+      `Пакетов передачи: ${planner.records.length}; по активной задаче: ${planner.task_records.length}`,
       '',
       'Маршруты:',
       ...mesh.routes.map((route) => `- ${route.title}: ${this.deviceMeshStatusText(route.status)}; риск: ${DEVICE_RISK_LEVELS[route.risk] || route.risk}; ${route.note}`),
       '',
-      `Следующий шаг: ${mesh.next}`,
+      'Маршруты передачи задачи:',
+      ...planner.routes.map((route) => `- ${route.title}: ${this.handoffRouteStatusName(route.status)}; можно подготовить=${route.can_prepare ? 'да' : 'нет'}; ${route.note}`),
+      '',
+      `Следующий шаг: ${planner.next || mesh.next}`,
       'Опасные действия устройствам не отправлялись.'
     ].join('\n');
   },
@@ -10794,6 +11373,7 @@ const App = {
           </div>
         </section>
         ${this.renderDeviceRoutePlanner(mesh)}
+        ${this.renderHandoffPlannerPanel(mesh)}
         ${this.renderDeviceHandoffPanel(mesh)}
       </section>
     `;
@@ -11939,6 +12519,7 @@ const App = {
     const voiceStatus = voiceSnapshot.score >= 86 ? 'ready' : voiceSnapshot.score >= 60 ? 'partial' : 'waiting';
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const devicePresence = deviceMesh.presence || this.buildDevicePresenceSnapshot();
+    const handoffPlanner = this.buildHandoffRoutePlannerSnapshot(deviceMesh, this.getActiveWorkTask());
     const legsStatus = deviceMesh.readiness >= 80 || devicePhone?.status === 'connected' || pwa.installed || devicePresence.phone.owner_confirmed
       ? 'ready'
       : (deviceMesh.readiness >= 50 || (this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
@@ -12040,7 +12621,8 @@ const App = {
           ['Телефон', devicePresence.phone.owner_confirmed ? 'ручной вход отмечен' : (devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен')],
           ['PWA', `${devicePresence.pwa.install_label}; работа без сети: ${devicePresence.pwa.service_worker}`],
           ['Маршруты', `${deviceMesh.routes.length} описано`],
-          ['Передача задачи', devicePresence.handoff.status === 'route_ready' ? 'маршрут на телефон подготовлен' : 'локальный слой статуса'],
+          ['Handoff', `${handoffPlanner.task_records.length} по активной задаче · ${handoffPlanner.readiness}%`],
+          ['Передача задачи', devicePresence.handoff.status === 'route_ready' || handoffPlanner.active ? 'маршрут подготовлен' : 'локальный слой статуса'],
           ['Подтверждение', `${deviceMesh.riskyCapabilities} возможностей требуют решения владельца`]
         ]
       },
@@ -12428,6 +13010,7 @@ const App = {
       const devices = this.systemDevices || [];
       const mesh = this.buildDeviceMeshSnapshot();
       const ownedRegistry = mesh.ownedRegistry || this.buildOwnedAgentRegistrySnapshot();
+      const handoff = this.buildHandoffRoutePlannerSnapshot(mesh, this.getActiveWorkTask());
       return `
         <section class="scheme-config-block">
           <div class="scheme-chip-list">
@@ -12437,10 +13020,11 @@ const App = {
             <span>Основной агент: ${this.escapeHtml(ownedRegistry.primary_agent_id)}</span>
             <span>Heartbeat: ${this.escapeHtml(ownedRegistry.online_count ? 'online' : 'не получен')}</span>
             <span>${this.escapeHtml(String(mesh.routes.length))} маршрутов</span>
+            <span>Handoff: ${this.escapeHtml(String(handoff.task_records.length))} по задаче</span>
             <span>${this.escapeHtml(String(mesh.trusted))} доверенных</span>
             <span>${this.escapeHtml(String(mesh.attention))} требуют внимания</span>
           </div>
-          <p>Ноги доставляют задачу и контекст между средами. ${this.escapeHtml(mesh.next)} Исполнение остаётся за Руками и проходит через Защитник.</p>
+          <p>Ноги доставляют задачу и контекст между средами. ${this.escapeHtml(handoff.next)} Исполнение остаётся за Руками и проходит через Защитник.</p>
         </section>
       `;
     }
@@ -12509,6 +13093,7 @@ const App = {
       ],
       legs: [
         ['open_devices', 'Открыть устройства'],
+        ['open_work_handoff', 'Передача задачи'],
         ['select_body', 'Проверить Тело']
       ],
       voice: [
@@ -12588,6 +13173,14 @@ const App = {
 
     if (action === 'launch' || action === 'open_work' || action === 'open_work_voice') {
       this.go('work');
+      return;
+    }
+
+    if (action === 'open_work_handoff') {
+      this.go('work');
+      this.workspaceActiveTab = 'handoff';
+      this.renderWorkTaskCard();
+      window.setTimeout(() => document.getElementById('workspace-handoff-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
       return;
     }
 
@@ -13534,7 +14127,7 @@ const App = {
         status: 'offline',
         risk_level: 'review',
         owner_confirmed: false,
-        notes: 'Телефон владельца как будущий контроллер Mina UI/PWA. В Phase 18 без ADB, без автологина и без команд устройству.',
+        notes: 'Телефон владельца как будущий контроллер Mina UI/PWA. Без ADB, без автологина и без команд устройству.',
         route_role: 'устройство владельца для мобильного контроля и продолжения задачи',
         handoff_state: 'ожидает подготовки ссылки подключения',
         capabilities: [
@@ -14036,6 +14629,13 @@ const App = {
           ...plan,
           task_id: plan.task_id || task.task_id,
           project_id: plan.project_id || task.project_id
+        }, task))
+      : [];
+    task.handoff_records = Array.isArray(task.handoff_records)
+      ? task.handoff_records.map((record) => this.normalizeHandoffRecord({
+          ...record,
+          task_id: record.task_id || task.task_id,
+          project_id: record.project_id || task.project_id
         }, task))
       : [];
     task.input_source = task.input_source || 'keyboard';
@@ -14918,6 +15518,7 @@ const App = {
     this.renderWorkspaceCouncil(task);
     this.renderWorkspaceEyes(task);
     this.renderWorkspaceHands(task);
+    this.renderWorkspaceHandoff(task);
     this.renderWorkspaceMemory(task);
     this.renderVoicePanel();
     this.updateWorkspaceTimer();
@@ -17842,6 +18443,7 @@ const App = {
       research_event: 'исследование',
       eyes_evidence: 'глаза',
       hands_plan: 'руки',
+      handoff_event: 'передача',
       worker_runtime: 'runtime',
       brain_answer: 'ответ мозга',
       brain_council: 'совет',
