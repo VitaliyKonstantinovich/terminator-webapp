@@ -310,6 +310,7 @@ const SCHEMA_SAFETY_STATE_STORAGE_KEY = 'mina_schema_safety_state_v1';
 const SYSTEM_REGISTRY_STATE_STORAGE_KEY = 'mina_system_registry_state_v1';
 const POLICY_CENTER_STATE_STORAGE_KEY = 'mina_policy_center_state_v1';
 const LIVE_RUNTIME_STATE_STORAGE_KEY = 'mina_live_runtime_state_v1';
+const DEVICE_PAIRING_STATE_STORAGE_KEY = 'mina_device_pairing_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -1097,11 +1098,11 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 17 Owned Device / Agent Registry V1',
+  name: 'Phase 18 Phone / PWA Pairing + Multi-Device Presence V1',
   date: '2026-05-28',
   status: 'закрыт live',
-  previous: 'Phase 16 Controlled Bridge Rollout + Live Heartbeat Acceptance V1',
-  next: 'Финальный QA Max остаётся последним после сборки всех слоёв'
+  previous: 'Phase 17 Owned Device / Agent Registry V1',
+  next: 'Phase 19 Handoff / Route Planner V1'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1143,7 +1144,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 37, name: 'Live Runtime Binding V1', status: 'закрыт локально' },
   { id: 38, name: 'Real Health Endpoints + Agent Heartbeat V1', status: 'закрыт live' },
   { id: 39, name: 'Controlled Bridge Rollout + Live Heartbeat Acceptance V1', status: 'закрыт live' },
-  { id: 40, name: 'Owned Device / Agent Registry V1', status: 'закрыт live' }
+  { id: 40, name: 'Owned Device / Agent Registry V1', status: 'закрыт live' },
+  { id: 41, name: 'Phone / PWA Pairing + Multi-Device Presence V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2389,6 +2391,7 @@ const App = {
   liveRuntimeState: null,
   publicRuntimeHealth: null,
   liveRuntimeChecking: false,
+  devicePairingState: null,
   workspaceFileRuntime: new Map(),
   handsSafeState: null,
   activeHandsPlanId: '',
@@ -2421,6 +2424,8 @@ const App = {
     await this.loadWorkProjects();
     await this.loadWorkTasks();
     await this.loadSystemDevices();
+    this.loadDevicePairingState();
+    await this.syncDevicePresenceState({ silent: true });
     await this.loadHeadRuntime();
     await this.loadApprovalRecords();
     await this.loadSystemDiagnostics();
@@ -7721,6 +7726,7 @@ const App = {
     const hands = this.handsSnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
     const ownedRegistry = deviceMesh.ownedRegistry || this.buildOwnedAgentRegistrySnapshot();
+    const presence = deviceMesh.presence || this.buildDevicePresenceSnapshot();
     const integration = this.buildIntegrationSnapshot();
     const liveRuntime = this.buildLiveRuntimeSnapshot();
     const cards = [
@@ -7740,6 +7746,7 @@ const App = {
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
       ['Реестр владельца', `${ownedRegistry.readiness}%`, `агент ${ownedRegistry.primary_agent_id}; online=${ownedRegistry.online_count}; устройств на связи=${ownedRegistry.connected_devices}`],
       ['Ноги / Устройства', `${deviceMesh.readiness}%`, `${trustedDevices} доверенных; ${deviceMesh.routes.length} маршрутов; ${deviceMesh.attention} требуют внимания`],
+      ['Телефон / PWA', `${presence.readiness}%`, `${presence.phone.owner_confirmed ? 'телефон отмечен владельцем' : 'телефон ждёт подключения'}; PWA: ${presence.pwa.install_label}`],
       ['Мобильное приложение', pwa.installLabel, `offline shell: ${pwa.serviceWorker}`],
       ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'текстовый режим', 'без фонового прослушивания и без AI API'],
       ['Хранилище', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs и evidence на D'],
@@ -10231,6 +10238,226 @@ const App = {
     this.toast('Профиль создан');
   },
 
+  currentPhonePairingUrl() {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('screen', 'system');
+      url.searchParams.set('force', 'phase18-phone-pairing');
+      return url.toString();
+    } catch {
+      return 'https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase18-phone-pairing';
+    }
+  },
+
+  buildLocalPairingDisplayCode() {
+    const raw = `${window.location.host || 'local'}:${TERMINATOR_DEFAULT_AGENT_ID}:phone-pwa`;
+    let hash = 0;
+    for (let index = 0; index < raw.length; index += 1) {
+      hash = ((hash << 5) - hash + raw.charCodeAt(index)) | 0;
+    }
+    return `MINA-${String(Math.abs(hash) % 10000).padStart(4, '0')}`;
+  },
+
+  normalizeDevicePairingState(raw = null) {
+    const now = new Date().toISOString();
+    const pwa = this.pwaSnapshot();
+    const phone = raw?.phone || {};
+    const pwaState = raw?.pwa || {};
+    const handoff = raw?.handoff || {};
+    const pairingUrl = phone.pairing_url || this.currentPhonePairingUrl();
+    return {
+      schema_version: 1,
+      status: raw?.status || 'not_started',
+      updated_at: raw?.updated_at || now,
+      last_checked_at: raw?.last_checked_at || '',
+      phone: {
+        device_id: 'device_owner_phone',
+        display_name: phone.display_name || 'Телефон владельца',
+        pairing_status: phone.pairing_status || 'not_started',
+        presence_status: phone.presence_status || 'offline',
+        pairing_url: pairingUrl,
+        display_code: phone.display_code || this.buildLocalPairingDisplayCode(),
+        owner_confirmed_at: phone.owner_confirmed_at || '',
+        last_seen: phone.last_seen || '',
+        note: phone.note || 'Телефон пока не даёт heartbeat. Pairing V1 готовит ручной вход без паролей, cookies и API.'
+      },
+      pwa: {
+        device_id: 'device_pwa_shell',
+        install_status: pwaState.install_status || pwa.installStatus,
+        install_label: pwaState.install_label || pwa.installLabel,
+        service_worker: pwaState.service_worker || pwa.serviceWorker,
+        display_mode: pwaState.display_mode || pwa.displayMode,
+        scope: pwaState.scope || pwa.scope || '',
+        last_checked_at: pwaState.last_checked_at || pwa.lastCheckedAt || ''
+      },
+      handoff: {
+        status: handoff.status || 'not_started',
+        direction: handoff.direction || 'pc_to_phone',
+        active_task_id: handoff.active_task_id || '',
+        last_handoff_at: handoff.last_handoff_at || '',
+        note: handoff.note || 'Передача задачи на телефон пока работает как подготовленный маршрут, без автоматического открытия и без команд устройству.'
+      }
+    };
+  },
+
+  loadDevicePairingState() {
+    this.devicePairingState = this.normalizeDevicePairingState(this.readJsonStorage(DEVICE_PAIRING_STATE_STORAGE_KEY, null));
+    this.saveDevicePairingState();
+  },
+
+  saveDevicePairingState() {
+    if (!this.devicePairingState) return;
+    this.writeJsonStorage(DEVICE_PAIRING_STATE_STORAGE_KEY, this.devicePairingState);
+  },
+
+  buildDevicePresenceSnapshot() {
+    if (!this.devicePairingState) this.loadDevicePairingState();
+    const now = new Date().toISOString();
+    const pwa = this.pwaSnapshot();
+    const phoneDevice = (this.systemDevices || []).find((device) => device.device_id === 'device_owner_phone');
+    const pwaDevice = (this.systemDevices || []).find((device) => device.device_id === 'device_pwa_shell');
+    const ownedRegistry = this.buildOwnedAgentRegistrySnapshot();
+    const phone = this.devicePairingState.phone;
+    const phonePairingReady = ['link_ready', 'manual_confirmed'].includes(phone.pairing_status);
+    const phoneOwnerConfirmed = Boolean(phone.owner_confirmed_at);
+    const pwaReady = pwa.installed || pwa.serviceWorker === 'registered';
+    const webappOnline = navigator.onLine !== false;
+    const primaryAgentOnline = ownedRegistry.online_count > 0;
+    const readiness = Math.max(22, Math.min(94,
+      24
+      + (webappOnline ? 12 : 0)
+      + (primaryAgentOnline ? 18 : 0)
+      + (pwa.serviceWorker === 'registered' ? 16 : 0)
+      + (pwa.installed ? 8 : 0)
+      + (phonePairingReady ? 12 : 0)
+      + (phoneOwnerConfirmed ? 8 : 0)
+    ));
+    const status = readiness >= 82
+      ? 'ready'
+      : readiness >= 58
+        ? 'partial'
+        : webappOnline
+          ? 'waiting'
+          : 'review';
+    const next = !phonePairingReady
+      ? 'Подготовить ссылку подключения телефона.'
+      : !phoneOwnerConfirmed
+        ? 'Открыть ссылку на телефоне и подтвердить ручной вход.'
+        : !pwaReady
+          ? 'Установить или обновить PWA, чтобы телефон мог быть удобным контроллером.'
+          : !primaryAgentOnline
+            ? 'Проверить heartbeat основного агента ПК.'
+            : 'Мульти-устройство готово к следующему слою handoff.';
+    return {
+      now,
+      status,
+      readiness,
+      next,
+      webapp: {
+        status: webappOnline ? 'online' : 'offline',
+        note: webappOnline ? 'браузер владельца на связи' : 'браузер показывает offline'
+      },
+      primary_agent: {
+        agent_id: ownedRegistry.primary_agent_id,
+        status: primaryAgentOnline ? 'online' : 'not_seen',
+        online_count: ownedRegistry.online_count,
+        last_seen: ownedRegistry.primary?.last_seen || ''
+      },
+      phone: {
+        ...phone,
+        device_status: phoneDevice?.status || 'offline',
+        owner_confirmed: phoneOwnerConfirmed,
+        pairing_ready: phonePairingReady
+      },
+      pwa: {
+        ...this.devicePairingState.pwa,
+        install_status: pwa.installStatus,
+        install_label: pwa.installLabel,
+        service_worker: pwa.serviceWorker,
+        display_mode: pwa.displayMode,
+        scope: pwa.scope || '',
+        device_status: pwaDevice?.status || 'unknown',
+        ready: Boolean(pwaReady)
+      },
+      handoff: this.devicePairingState.handoff
+    };
+  },
+
+  async syncDevicePresenceState(options = {}) {
+    if (!this.devicePairingState) this.loadDevicePairingState();
+    const now = new Date().toISOString();
+    const pwa = this.pwaSnapshot();
+    const snapshot = this.buildDevicePresenceSnapshot();
+    this.devicePairingState = {
+      ...this.devicePairingState,
+      status: snapshot.status,
+      updated_at: now,
+      last_checked_at: now,
+      pwa: {
+        ...this.devicePairingState.pwa,
+        install_status: pwa.installStatus,
+        install_label: pwa.installLabel,
+        service_worker: pwa.serviceWorker,
+        display_mode: pwa.displayMode,
+        scope: pwa.scope || '',
+        last_checked_at: pwa.lastCheckedAt || now
+      }
+    };
+    this.systemDevices = (this.systemDevices || []).map((device) => {
+      const next = this.normalizeDevice(device);
+      if (next.device_id === 'device_pwa_shell') {
+        next.status = pwa.installed || pwa.serviceWorker === 'registered' ? 'ready' : 'unknown';
+        next.owner_confirmed = Boolean(pwa.installed || pwa.serviceWorker === 'registered');
+        next.last_seen = now;
+        next.handoff_state = pwa.installed
+          ? 'готов к мобильному входу как установленное приложение'
+          : pwa.serviceWorker === 'registered'
+            ? 'offline shell готов, установка PWA опциональна'
+            : 'ожидает установки или проверки PWA';
+        next.notes = 'PWA используется как мобильный контроллер интерфейса; не выполняет системные команды.';
+      }
+      if (next.device_id === 'device_owner_phone') {
+        const phone = this.devicePairingState.phone;
+        next.connection_type = 'pwa_manual_pairing';
+        next.owner_confirmed = Boolean(phone.owner_confirmed_at);
+        next.status = phone.presence_status === 'online'
+          ? 'connected'
+          : phone.owner_confirmed_at
+            ? 'offline'
+            : phone.pairing_status === 'link_ready'
+              ? 'pending_trust'
+              : 'offline';
+        next.handoff_state = phone.owner_confirmed_at
+          ? 'ручной вход телефона подтверждён; heartbeat телефона ещё не подключён'
+          : phone.pairing_status === 'link_ready'
+            ? 'ссылка подключения подготовлена; ждём ручной вход владельца на телефоне'
+            : 'ожидает подготовки ссылки подключения';
+        next.notes = 'Телефон владельца как контроллер Mina UI/PWA. ADB, скриншоты и команды не запускаются в Phase 18.';
+      }
+      return next;
+    });
+    this.saveDevicePairingState();
+    await this.saveSystemDevices();
+    if (!options.silent) this.toast('Присутствие устройств обновлено');
+    return this.buildDevicePresenceSnapshot();
+  },
+
+  buildDevicePresenceReport(snapshot = this.buildDevicePresenceSnapshot()) {
+    return [
+      'Phone / PWA Pairing + Multi-Device Presence V1',
+      `Статус: ${this.deviceMeshStatusText(snapshot.status)}`,
+      `Готовность: ${snapshot.readiness}%`,
+      `WebApp: ${snapshot.webapp.status}`,
+      `Основной агент: ${snapshot.primary_agent.agent_id} / ${snapshot.primary_agent.status}`,
+      `Телефон: ${snapshot.phone.pairing_status}; presence=${snapshot.phone.presence_status}; подтверждён=${snapshot.phone.owner_confirmed ? 'да' : 'нет'}`,
+      `PWA: ${snapshot.pwa.install_label}; service worker=${snapshot.pwa.service_worker}; режим=${snapshot.pwa.display_mode}`,
+      `Передача задачи: ${snapshot.handoff.status}; ${snapshot.handoff.note}`,
+      '',
+      `Следующий шаг: ${snapshot.next}`,
+      'Пароли, cookies, tokens, AI API, ADB, сетевое сканирование и команды устройствам не использовались.'
+    ].join('\n');
+  },
+
   buildDeviceMeshSnapshot() {
     const devices = this.systemDevices || [];
     const pwa = this.pwaSnapshot();
@@ -10238,6 +10465,7 @@ const App = {
     const taskStore = this.taskStoreStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
     const ownedRegistry = this.buildOwnedAgentRegistrySnapshot();
+    const presence = this.buildDevicePresenceSnapshot();
     const trusted = devices.filter((device) => ['trusted', 'owner_device', 'system_device'].includes(device.trust_level)).length;
     const connected = devices.filter((device) => ['connected', 'ready', 'trusted'].includes(device.status)).length;
     const attention = devices.filter((device) => ['unknown', 'offline', 'degraded', 'blocked', 'not_configured', 'pending_trust'].includes(device.status)).length;
@@ -10251,6 +10479,8 @@ const App = {
       + (taskStore.tone === 'synced' ? 6 : 0)
       + (direct.status === 'сессия активна' ? 5 : 0)
       + (ownedRegistry.online_count ? 6 : 0)
+      + (presence.phone.pairing_ready ? 4 : 0)
+      + (presence.pwa.ready ? 4 : 0)
     ));
     const status = readiness >= 80 ? 'ready' : readiness >= 55 ? 'partial' : attention ? 'review' : 'not_checked';
     const routes = [
@@ -10274,12 +10504,14 @@ const App = {
       },
       {
         id: 'webapp_phone',
-        title: 'WebApp → Телефон / мобильная версия',
+        title: 'WebApp → Телефон / PWA',
         from: 'Mina UI',
         to: 'Телефон владельца',
-        status: pwa.installed || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting',
+        status: presence.phone.owner_confirmed || presence.pwa.ready ? 'partial' : 'waiting',
         risk: 'safe',
-        note: pwa.installed ? 'мобильная версия установлена.' : `Мобильная версия: ${pwa.installLabel}; работа без сети: ${pwa.serviceWorker}.`
+        note: presence.phone.owner_confirmed
+          ? 'ручной вход телефона подтверждён; heartbeat телефона появится в следующем слое.'
+          : `Pairing: ${presence.phone.pairing_status}; PWA: ${pwa.installLabel}; работа без сети: ${pwa.serviceWorker}.`
       },
       {
         id: 'diagnost_repair',
@@ -10307,7 +10539,7 @@ const App = {
         : attention
           ? 'Разобрать устройства со статусом “не проверено” или “не настроено”.'
           : 'Связь устройств готова к следующему слою маршрутизации.';
-    return { devices, pwa, direct, taskStore, agent, ownedRegistry, trusted, connected, attention, riskyCapabilities, readiness, status, routes, next };
+    return { devices, pwa, direct, taskStore, agent, ownedRegistry, presence, trusted, connected, attention, riskyCapabilities, readiness, status, routes, next };
   },
 
   deviceMeshStatusText(status) {
@@ -10373,6 +10605,53 @@ const App = {
           <button type="button" data-device-action="copy_owned_registry_report">Скопировать паспорт</button>
         </div>
         <p class="owned-agent-registry__next">${this.escapeHtml(registry.next)}</p>
+      </section>
+    `;
+  },
+
+  renderDevicePresencePanel(snapshot = this.buildDevicePresenceSnapshot()) {
+    const statusLabel = this.deviceMeshStatusText(snapshot.status);
+    const rows = [
+      ['WebApp', snapshot.webapp.status === 'online' ? 'на связи' : 'offline', snapshot.webapp.note],
+      ['ПК runtime', snapshot.primary_agent.status === 'online' ? 'агент online' : 'heartbeat не получен', `agent_id=${snapshot.primary_agent.agent_id}`],
+      ['Телефон', snapshot.phone.owner_confirmed ? 'ручной вход подтверждён' : (snapshot.phone.pairing_ready ? 'ссылка готова' : 'не подключён'), snapshot.phone.note],
+      ['PWA', snapshot.pwa.ready ? 'готово' : snapshot.pwa.install_label, `Service Worker: ${snapshot.pwa.service_worker}; режим: ${snapshot.pwa.display_mode}`]
+    ];
+    return `
+      <section class="device-presence-panel device-presence-panel--${this.escapeHtml(snapshot.status)}">
+        <div class="device-presence-head">
+          <div>
+            <span>Phone / PWA Presence</span>
+            <h3>Присутствие устройств</h3>
+            <p>Здесь видно, какие устройства реально готовы быть частью контура: WebApp, ПК, телефон владельца и PWA. Телефон не считается online без подтверждённого сигнала.</p>
+          </div>
+          <strong>${this.escapeHtml(String(snapshot.readiness))}%<small>${this.escapeHtml(statusLabel)}</small></strong>
+        </div>
+        <div class="device-presence-grid">
+          ${rows.map(([name, value, note]) => `
+            <article>
+              <span>${this.escapeHtml(name)}</span>
+              <strong>${this.escapeHtml(value)}</strong>
+              <p>${this.escapeHtml(note)}</p>
+            </article>
+          `).join('')}
+        </div>
+        <div class="phone-pairing-card">
+          <div>
+            <span>Подключение телефона</span>
+            <strong>${this.escapeHtml(snapshot.phone.pairing_status === 'not_started' ? 'ожидает подготовки' : snapshot.phone.pairing_status === 'manual_confirmed' ? 'ручной вход подтверждён' : 'ссылка готова')}</strong>
+            <p>Ссылка открывает Mina UI на телефоне. Это не пароль и не токен; она не даёт системных прав и не запускает команды.</p>
+          </div>
+          <code>${this.escapeHtml(snapshot.phone.display_code)}</code>
+        </div>
+        <div class="device-mesh-actions">
+          <button type="button" data-device-action="prepare_phone_pairing" data-device-id="device_owner_phone">Подготовить ссылку телефона</button>
+          <button type="button" data-device-action="copy_phone_pairing_link" data-device-id="device_owner_phone">Скопировать ссылку</button>
+          <button type="button" data-device-action="mark_phone_pairing_manual" data-device-id="device_owner_phone">Я открыл на телефоне</button>
+          <button type="button" data-device-action="refresh_device_presence" data-device-id="device_owner_phone">Обновить присутствие</button>
+          <button type="button" data-device-action="copy_device_presence_report" data-device-id="device_owner_phone">Скопировать отчёт</button>
+        </div>
+        <p class="device-presence-next">${this.escapeHtml(snapshot.next)}</p>
       </section>
     `;
   },
@@ -10472,6 +10751,8 @@ const App = {
       `На связи: ${mesh.connected}`,
       `Требуют внимания: ${mesh.attention}`,
       `Возможности через подтверждение владельца: ${mesh.riskyCapabilities}`,
+      `Телефон: ${mesh.presence.phone.pairing_status}; подтверждён=${mesh.presence.phone.owner_confirmed ? 'да' : 'нет'}`,
+      `PWA: ${mesh.presence.pwa.install_label}; service worker=${mesh.presence.pwa.service_worker}`,
       '',
       'Маршруты:',
       ...mesh.routes.map((route) => `- ${route.title}: ${this.deviceMeshStatusText(route.status)}; риск: ${DEVICE_RISK_LEVELS[route.risk] || route.risk}; ${route.note}`),
@@ -10495,6 +10776,7 @@ const App = {
       <section class="device-mesh-center">
         ${this.renderDeviceMeshHero(mesh)}
         ${this.renderOwnedAgentRegistryPanel(this.buildOwnedAgentRegistrySnapshot())}
+        ${this.renderDevicePresencePanel(mesh.presence)}
         <div class="device-mesh-actions">
           <button type="button" data-device-action="refresh_mesh">Обновить состояние</button>
           <button type="button" data-device-action="refresh_owned_registry">Проверить heartbeat</button>
@@ -10910,6 +11192,7 @@ const App = {
         installed_at: choice?.outcome === 'accepted' ? new Date().toISOString() : undefined,
         install_available: false
       });
+      await this.syncDevicePresenceState({ silent: true });
       this.renderSystemPwaPanel();
       this.renderMinaSystemScheme();
       this.toast(choice?.outcome === 'accepted' ? 'Установка принята' : 'Установка не выполнена');
@@ -10918,6 +11201,7 @@ const App = {
     if (action === 'refresh') {
       this.pwaDisplayMode = this.detectPwaDisplayMode();
       this.savePwaState({ checked_at: new Date().toISOString(), service_worker: this.pwaServiceWorkerStatus });
+      await this.syncDevicePresenceState({ silent: true });
       this.renderSystemPwaPanel();
       this.renderMinaSystemScheme();
       this.toast('PWA статус обновлён');
@@ -10932,7 +11216,8 @@ const App = {
       return;
     }
     if (action === 'copy_link') {
-      await this.copyWorkspaceText(window.location.origin + window.location.pathname + '?screen=scheme');
+      await this.copyWorkspaceText(this.currentPhonePairingUrl());
+      this.toast('Ссылка Mina UI для телефона скопирована');
     }
   },
 
@@ -10940,10 +11225,12 @@ const App = {
     const host = document.getElementById('system-pwa-panel');
     if (!host) return;
     const pwa = this.pwaSnapshot();
+    const presence = this.buildDevicePresenceSnapshot();
     const rows = [
       ['Установка', pwa.installLabel, pwa.installed ? 'открывается как приложение' : 'можно открыть в браузере и установить через prompt/меню'],
       ['Offline shell', pwa.serviceWorker === 'registered' ? 'готов' : pwa.serviceWorker, pwa.scope || 'service worker проверяется'],
       ['Display mode', pwa.displayMode, pwa.displayMode === 'browser' ? 'обычная вкладка браузера' : 'standalone / app mode'],
+      ['Телефон', presence.phone.owner_confirmed ? 'ручной вход отмечен' : (presence.phone.pairing_ready ? 'ссылка готова' : 'не подключён'), presence.next],
       ['Mobile smoke', 'готов к проверке', 'адаптивная вёрстка и sticky console проверяются на 390/430px']
     ];
     host.innerHTML = `
@@ -10954,6 +11241,7 @@ const App = {
         <button type="button" data-pwa-action="install">Установить приложение</button>
         <button type="button" data-pwa-action="refresh">Обновить статус</button>
         <button type="button" data-pwa-action="copy_link">Скопировать ссылку</button>
+        <button type="button" data-device-action="prepare_phone_pairing" data-device-id="device_owner_phone">Подключить телефон</button>
         <button type="button" data-pwa-action="open_scheme">Схема Мины</button>
       </div>
     `;
@@ -11650,7 +11938,8 @@ const App = {
     const voiceSnapshot = this.buildVoiceReadinessSnapshot();
     const voiceStatus = voiceSnapshot.score >= 86 ? 'ready' : voiceSnapshot.score >= 60 ? 'partial' : 'waiting';
     const deviceMesh = this.buildDeviceMeshSnapshot();
-    const legsStatus = deviceMesh.readiness >= 80 || devicePhone?.status === 'connected' || pwa.installed
+    const devicePresence = deviceMesh.presence || this.buildDevicePresenceSnapshot();
+    const legsStatus = deviceMesh.readiness >= 80 || devicePhone?.status === 'connected' || pwa.installed || devicePresence.phone.owner_confirmed
       ? 'ready'
       : (deviceMesh.readiness >= 50 || (this.systemDevices || []).length || pwa.serviceWorker === 'registered' ? 'partial' : 'waiting');
 
@@ -11741,17 +12030,17 @@ const App = {
       legs: {
         status: legsStatus,
         readiness: deviceMesh.readiness,
-        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · ${ownedRegistry.online_count} агент online`,
-        note: `Ноги маршрутизируют задачи и контекст. ${deviceMesh.next}`,
+        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · ${ownedRegistry.online_count} агент online · телефон ${devicePresence.phone.pairing_status}`,
+        note: `Ноги маршрутизируют задачи и контекст. ${devicePresence.next}`,
         snapshot_source: 'Реестр владельца / Центр связи устройств / мобильная версия / хранилище задач',
         is_mock: false,
         checks: [
           ['Основной агент', ownedRegistry.primary_agent_id],
           ['Heartbeat', ownedRegistry.online_count ? 'online' : 'не получен'],
-          ['Телефон', devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен'],
-          ['Мобильная версия', `${pwa.installLabel}; работа без сети: ${pwa.serviceWorker}`],
+          ['Телефон', devicePresence.phone.owner_confirmed ? 'ручной вход отмечен' : (devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен')],
+          ['PWA', `${devicePresence.pwa.install_label}; работа без сети: ${devicePresence.pwa.service_worker}`],
           ['Маршруты', `${deviceMesh.routes.length} описано`],
-          ['Передача задачи', pwa.serviceWorker === 'registered' ? 'работа без сети готова' : 'локальный слой статуса'],
+          ['Передача задачи', devicePresence.handoff.status === 'route_ready' ? 'маршрут на телефон подготовлен' : 'локальный слой статуса'],
           ['Подтверждение', `${deviceMesh.riskyCapabilities} возможностей требуют решения владельца`]
         ]
       },
@@ -13240,18 +13529,19 @@ const App = {
         device_id: 'device_owner_phone',
         name: 'Телефон владельца',
         type: 'android_phone',
-        connection_type: 'adb_usb',
+        connection_type: 'pwa_manual_pairing',
         trust_level: 'owner_device',
         status: 'offline',
         risk_level: 'review',
         owner_confirmed: false,
-        notes: 'Будущий первый реальный adapter: ADB USB для mobile QA.',
-        route_role: 'устройство владельца для мобильной проверки и продолжения задачи',
-        handoff_state: 'ожидает ручного подключения владельцем',
+        notes: 'Телефон владельца как будущий контроллер Mina UI/PWA. В Phase 18 без ADB, без автологина и без команд устройству.',
+        route_role: 'устройство владельца для мобильного контроля и продолжения задачи',
+        handoff_state: 'ожидает подготовки ссылки подключения',
         capabilities: [
-          ['cap_phone_status', 'read_status', 'Определить подключение телефона позже', 'safe', false],
-          ['cap_phone_open_url', 'open_url', 'Открыть WebApp на телефоне после approval', 'review', true],
-          ['cap_phone_screenshot', 'screenshot', 'Скриншот для evidence после approval', 'approval_required', true]
+          ['cap_phone_status', 'read_status', 'Показать ручной pairing/status телефона', 'safe', false],
+          ['cap_phone_open_url', 'copy_url', 'Скопировать ссылку Mina UI для ручного открытия на телефоне', 'safe', false],
+          ['cap_phone_heartbeat', 'phone_heartbeat', 'Online heartbeat телефона позже и только через owner session', 'review', true],
+          ['cap_phone_screenshot', 'screenshot', 'Скриншот для evidence позже и только после Approval', 'approval_required', true]
         ]
       }),
       this.normalizeDevice({
@@ -13475,6 +13765,57 @@ const App = {
     if (action === 'copy_owned_registry_report') {
       await this.copyWorkspaceText(this.buildOwnedAgentRegistryReport());
       this.toast('Паспорт реестра владельца скопирован');
+      return;
+    }
+    if (action === 'prepare_phone_pairing') {
+      const now = new Date().toISOString();
+      if (!this.devicePairingState) this.loadDevicePairingState();
+      this.devicePairingState.phone.pairing_status = 'link_ready';
+      this.devicePairingState.phone.pairing_url = this.currentPhonePairingUrl();
+      this.devicePairingState.phone.note = 'Ссылка подключения подготовлена. Телефон станет “на связи” только после отдельного heartbeat/подтверждённого входа.';
+      this.devicePairingState.status = 'partial';
+      this.devicePairingState.updated_at = now;
+      if (device) this.addDeviceEvent(device, 'phone_pairing_link_ready', 'Подготовлена ссылка для ручного открытия Mina UI на телефоне. Команды телефону не отправлялись.', 'safe');
+      await this.syncDevicePresenceState({ silent: true });
+      this.renderSystemStatus();
+      this.toast('Ссылка телефона подготовлена');
+      return;
+    }
+    if (action === 'copy_phone_pairing_link') {
+      if (!this.devicePairingState) this.loadDevicePairingState();
+      if (this.devicePairingState.phone.pairing_status === 'not_started') {
+        this.devicePairingState.phone.pairing_status = 'link_ready';
+        this.devicePairingState.phone.pairing_url = this.currentPhonePairingUrl();
+        this.saveDevicePairingState();
+      }
+      await this.copyWorkspaceText(this.devicePairingState.phone.pairing_url);
+      this.toast('Ссылка для телефона скопирована');
+      return;
+    }
+    if (action === 'mark_phone_pairing_manual') {
+      const now = new Date().toISOString();
+      if (!this.devicePairingState) this.loadDevicePairingState();
+      this.devicePairingState.phone.pairing_status = 'manual_confirmed';
+      this.devicePairingState.phone.owner_confirmed_at = now;
+      this.devicePairingState.phone.presence_status = 'offline';
+      this.devicePairingState.phone.note = 'Владелец отметил ручной вход. Online heartbeat телефона пока не подключён, поэтому статус присутствия остаётся честно offline.';
+      this.devicePairingState.handoff.status = 'route_ready';
+      this.devicePairingState.handoff.last_handoff_at = now;
+      if (device) this.addDeviceEvent(device, 'phone_manual_pairing_confirmed', 'Владелец отметил, что Mina UI открыта на телефоне. Online heartbeat не подделывался.', 'safe');
+      await this.syncDevicePresenceState({ silent: true });
+      this.renderSystemStatus();
+      this.toast('Ручной вход телефона отмечен');
+      return;
+    }
+    if (action === 'refresh_device_presence') {
+      await this.syncDevicePresenceState({ silent: true });
+      this.renderSystemStatus();
+      this.toast('Присутствие устройств обновлено');
+      return;
+    }
+    if (action === 'copy_device_presence_report') {
+      await this.copyWorkspaceText(this.buildDevicePresenceReport());
+      this.toast('Отчёт присутствия устройств скопирован');
       return;
     }
     if (action === 'refresh_mesh') {
