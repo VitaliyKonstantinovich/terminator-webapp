@@ -4173,6 +4173,212 @@ button:not(:disabled) {
   border-color: rgba(255, 209, 102, 0.32);
 }
 
+.handoff-route-panel {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(82, 203, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(2, 14, 32, 0.62);
+}
+
+.handoff-route-panel--ready {
+  border-color: rgba(56, 246, 160, 0.32);
+}
+
+.handoff-route-panel--partial,
+.handoff-route-panel--review,
+.handoff-route-panel--waiting {
+  border-color: rgba(255, 209, 102, 0.26);
+}
+
+.handoff-route-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.handoff-route-head span,
+.handoff-task-strip span,
+.handoff-route-card span,
+.handoff-record-card span {
+  color: #9fc4df;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.handoff-route-head h3 {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.handoff-route-head p,
+.handoff-task-strip p,
+.handoff-route-card p,
+.handoff-route-card small,
+.handoff-record-card p,
+.handoff-record-card small {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.38;
+}
+
+.handoff-route-head > strong {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border: 1px solid rgba(110, 231, 255, 0.34);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(28, 130, 180, 0.34), rgba(2, 14, 32, 0.88));
+  color: var(--cyan);
+  font-size: 24px;
+  line-height: 1;
+  text-align: center;
+}
+
+.handoff-route-head > strong small {
+  color: #bcecff;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.handoff-task-strip,
+.handoff-route-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.handoff-task-strip article,
+.handoff-route-card,
+.handoff-record-card {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(82, 203, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(1, 11, 27, 0.58);
+}
+
+.handoff-task-strip strong,
+.handoff-route-card strong,
+.handoff-record-card strong {
+  display: block;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.handoff-route-card {
+  display: grid;
+  gap: 8px;
+}
+
+.handoff-route-card--ready {
+  border-color: rgba(56, 246, 160, 0.34);
+}
+
+.handoff-route-card--partial,
+.handoff-route-card--waiting,
+.handoff-route-card--review {
+  border-color: rgba(255, 209, 102, 0.32);
+}
+
+.handoff-route-card--blocked,
+.handoff-record-card--blocked {
+  border-color: rgba(255, 111, 111, 0.42);
+}
+
+.handoff-route-card div,
+.handoff-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.handoff-route-card button,
+.handoff-record-actions button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(110, 231, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(8, 46, 91, 0.78);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.handoff-route-card button:disabled,
+.handoff-record-actions button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.handoff-record-card {
+  display: grid;
+  gap: 10px;
+}
+
+.handoff-record-card.active {
+  border-color: rgba(110, 231, 255, 0.48);
+  background: rgba(7, 40, 82, 0.72);
+}
+
+.handoff-record-card dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.handoff-record-card dl div {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(82, 203, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(2, 14, 32, 0.55);
+}
+
+.handoff-record-card dt {
+  color: #9fc4df;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.handoff-record-card dd {
+  margin: 4px 0 0;
+  color: #eafaff;
+  overflow-wrap: anywhere;
+}
+
+.handoff-log-list {
+  display: grid;
+  gap: 8px;
+}
+
+.handoff-workspace-intro {
+  padding: 12px;
+  border: 1px solid rgba(82, 203, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(2, 14, 32, 0.58);
+}
+
+.handoff-workspace-intro strong {
+  color: #ffffff;
+}
+
+.handoff-workspace-intro p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.42;
+}
+
 .device-handoff-panel {
   display: grid;
   grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1fr) minmax(220px, 0.72fr);
@@ -4413,6 +4619,8 @@ button:not(:disabled) {
 @media (max-width: 1120px) {
   .device-mesh-metrics,
   .device-route-grid,
+  .handoff-task-strip,
+  .handoff-route-grid,
   .device-presence-grid,
   .owned-agent-registry__metrics,
   .owned-agent-registry__agents {
@@ -4429,6 +4637,7 @@ button:not(:disabled) {
   .owned-agent-registry__head,
   .device-presence-head,
   .phone-pairing-card,
+  .handoff-route-head,
   .device-route-head,
   .device-hub {
     grid-template-columns: 1fr;
@@ -4443,6 +4652,9 @@ button:not(:disabled) {
 
   .device-mesh-metrics,
   .device-route-grid,
+  .handoff-task-strip,
+  .handoff-route-grid,
+  .handoff-record-card dl,
   .device-presence-grid,
   .owned-agent-registry__metrics,
   .owned-agent-registry__agents,
