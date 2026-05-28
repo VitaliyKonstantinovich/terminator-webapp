@@ -1091,13 +1091,16 @@ const APPROVAL_RISK_LEVELS = {
 const WEBAPP_TRANSPORT_MODE = 'auto'; // telegram | direct | auto
 const WEBAPP_TRANSPORT_MODES = new Set(['telegram', 'direct', 'auto']);
 const DEFAULT_DIRECT_BRIDGE_URL = 'https://mina-direct-bridge.glebik2807.workers.dev';
-const TERMINATOR_LOCAL_AGENT_ID = 'Terminator-PC';
+const TERMINATOR_DEFAULT_AGENT_ID = 'Terminator-PC';
+const TERMINATOR_LOCAL_AGENT_ID = TERMINATOR_DEFAULT_AGENT_ID;
+const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
+const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 16 Controlled Bridge Rollout + Live Heartbeat Acceptance V1',
-  date: '2026-05-27',
+  name: 'Phase 17 Owned Device / Agent Registry V1',
+  date: '2026-05-28',
   status: 'закрыт live',
-  previous: 'Phase 15 Real Health Endpoints + Agent Heartbeat V1',
+  previous: 'Phase 16 Controlled Bridge Rollout + Live Heartbeat Acceptance V1',
   next: 'Финальный QA Max остаётся последним после сборки всех слоёв'
 };
 const TERMINATOR_PHASE_STEPS = [
@@ -1139,7 +1142,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 36, name: 'Integration Hardening V1', status: 'закрыт локально' },
   { id: 37, name: 'Live Runtime Binding V1', status: 'закрыт локально' },
   { id: 38, name: 'Real Health Endpoints + Agent Heartbeat V1', status: 'закрыт live' },
-  { id: 39, name: 'Controlled Bridge Rollout + Live Heartbeat Acceptance V1', status: 'закрыт live' }
+  { id: 39, name: 'Controlled Bridge Rollout + Live Heartbeat Acceptance V1', status: 'закрыт live' },
+  { id: 40, name: 'Owned Device / Agent Registry V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2851,9 +2855,11 @@ const App = {
     const brainIcon = document.getElementById('brain-icon');
 
     document.getElementById('brain-title').textContent = model.name;
-    document.getElementById('brain-subtitle').textContent = 'Подключение к официальному окну через ПК Терминатора';
+    document.getElementById('brain-subtitle').textContent = `Подключение к официальному окну через runtime владельца (${this.getPrimaryOwnedAgentId()})`;
     document.getElementById('open-model-label').textContent = `Открыть ${model.name}`;
     document.getElementById('brain-profile').textContent = model.profile;
+    const runtimeAgent = document.getElementById('brain-runtime-agent');
+    if (runtimeAgent) runtimeAgent.textContent = this.getPrimaryOwnedAgentId();
 
     brainIcon.textContent = model.short;
     brainIcon.className = `brain-mark model-icon ${model.iconClass}`;
@@ -4323,7 +4329,7 @@ const App = {
     const baseUrl = getConfiguredDirectBridgeBaseUrl();
     if (!baseUrl) return null;
     try {
-      const params = new URLSearchParams({ agent_id: TERMINATOR_LOCAL_AGENT_ID });
+      const params = new URLSearchParams({ agent_id: this.getPrimaryOwnedAgentId() });
       const result = await directBridgeRequest(baseUrl, `/public/runtime-health?${params.toString()}`, {
         method: 'GET',
         skipAuth: true,
@@ -4333,6 +4339,7 @@ const App = {
         timeoutMs: LIVE_RUNTIME_CHECK_TIMEOUT_MS
       });
       this.publicRuntimeHealth = result?.ok ? result : null;
+      if (this.publicRuntimeHealth) await this.applyPublicRuntimeHealthToOwnedRegistry(this.publicRuntimeHealth);
       return this.publicRuntimeHealth;
     } catch {
       this.publicRuntimeHealth = null;
@@ -7430,10 +7437,191 @@ const App = {
     if (!agent) return { status: 'не найден', note: 'Local Agent отсутствует в Device Registry' };
     const status = DEVICE_STATUSES[agent.status] || agent.status || 'не проверено';
     const trust = DEVICE_TRUST_LEVELS[agent.trust_level] || agent.trust_level || 'неизвестно';
+    const heartbeatStatus = agent.heartbeat_status
+      ? `; heartbeat=${agent.heartbeat_status}${agent.heartbeat_age_ms !== null && agent.heartbeat_age_ms !== undefined ? ` ${this.formatDuration(agent.heartbeat_age_ms)} назад` : ''}`
+      : '';
     return {
       status,
-      note: `${agent.name}: ${trust}; ${agent.notes || 'runtime не опрашивался в этом слое'}`
+      note: `${agent.name}: ${trust}; agent_id=${agent.agent_id || this.getPrimaryOwnedAgentId()}${heartbeatStatus}; ${agent.notes || 'runtime не опрашивался в этом слое'}`
     };
+  },
+
+  getPrimaryOwnedAgentDevice() {
+    const devices = this.systemDevices || [];
+    return devices.find((device) => device.primary_agent && device.agent_id)
+      || devices.find((device) => device.type === 'local_agent' && device.agent_id)
+      || devices.find((device) => device.device_id === 'device_local_agent')
+      || null;
+  },
+
+  getPrimaryOwnedAgentId() {
+    const primary = this.getPrimaryOwnedAgentDevice();
+    return primary?.agent_id || TERMINATOR_DEFAULT_AGENT_ID;
+  },
+
+  findOwnedAgentDevice(agentId) {
+    const normalizedAgentId = String(agentId || '').trim();
+    if (!normalizedAgentId) return null;
+    const devices = this.systemDevices || [];
+    return devices.find((device) => device.agent_id === normalizedAgentId)
+      || devices.find((device) => Array.isArray(device.agent_aliases) && device.agent_aliases.includes(normalizedAgentId))
+      || (normalizedAgentId === this.getPrimaryOwnedAgentId() ? this.getPrimaryOwnedAgentDevice() : null);
+  },
+
+  shouldRecordOwnedAgentHeartbeatEvent(device, heartbeat) {
+    const events = Array.isArray(device.events) ? device.events : [];
+    const lastHeartbeatEvent = events
+      .filter((event) => event.type === 'agent_heartbeat')
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0];
+    if (!lastHeartbeatEvent) return true;
+    if (device.heartbeat_status && device.heartbeat_status !== heartbeat.status) return true;
+    const lastAt = new Date(lastHeartbeatEvent.created_at || 0).getTime();
+    return !Number.isFinite(lastAt) || Date.now() - lastAt > OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS;
+  },
+
+  async applyPublicRuntimeHealthToOwnedRegistry(snapshot) {
+    const heartbeat = snapshot?.agent_heartbeat;
+    if (!heartbeat || heartbeat.status === 'missing' || !heartbeat.agent_id) return false;
+    const now = new Date().toISOString();
+    let agent = this.findOwnedAgentDevice(heartbeat.agent_id);
+    if (!agent) {
+      agent = this.normalizeDevice({
+        device_id: `device_agent_${String(heartbeat.agent_id).replace(/[^a-z0-9_-]/gi, '_').toLowerCase()}`,
+        name: `Локальный агент ${heartbeat.agent_id}`,
+        type: 'local_agent',
+        connection_type: 'bridge_polling',
+        trust_level: 'paired',
+        status: 'unknown',
+        risk_level: 'review',
+        owner_confirmed: false,
+        agent_id: heartbeat.agent_id,
+        owned_registry_role: 'discovered_agent',
+        notes: 'Агент обнаружен через публичный heartbeat моста. Доверие владельца нужно подтвердить вручную.',
+        route_role: 'обнаруженный runtime-агент',
+        handoff_state: 'ожидает решения владельца',
+        capabilities: [
+          ['cap_agent_health', 'read_status', 'Показать heartbeat и read-only health', 'safe', false],
+          ['cap_agent_commands', 'poll_commands', 'Получать только разрешённые команды после политики владельца', 'review', true]
+        ]
+      });
+      this.systemDevices.push(agent);
+    }
+
+    const recordEvent = this.shouldRecordOwnedAgentHeartbeatEvent(agent, heartbeat);
+    agent.agent_id = heartbeat.agent_id;
+    const agentAliases = [...(agent.agent_aliases || []), heartbeat.agent_id];
+    if (agent.primary_agent || heartbeat.agent_id === TERMINATOR_DEFAULT_AGENT_ID) {
+      agentAliases.push(TERMINATOR_DEFAULT_AGENT_ID);
+    }
+    agent.agent_aliases = Array.from(new Set(agentAliases.filter(Boolean)));
+    agent.heartbeat_status = heartbeat.status || 'missing';
+    agent.heartbeat_stale = Boolean(heartbeat.stale);
+    agent.heartbeat_age_ms = heartbeat.age_ms === null || heartbeat.age_ms === undefined ? null : Number(heartbeat.age_ms);
+    agent.heartbeat_bridge_seen_at = heartbeat.bridge_seen_at || now;
+    agent.heartbeat_version = heartbeat.version || '';
+    agent.poll_interval_ms = heartbeat.poll_interval_ms === null || heartbeat.poll_interval_ms === undefined ? null : Number(heartbeat.poll_interval_ms);
+    agent.storage_root_status = heartbeat.storage_root_status || agent.storage_root_status || 'unknown';
+    agent.last_seen = heartbeat.bridge_seen_at || now;
+    agent.status = heartbeat.status === 'online' && !heartbeat.stale ? 'connected' : 'degraded';
+    agent.handoff_state = agent.status === 'connected'
+      ? 'heartbeat активен, агент виден через мост'
+      : 'heartbeat устарел, требуется проверка локального агента';
+    agent.notes = `Runtime-агент владельца. Последний heartbeat: ${agent.status === 'connected' ? 'online' : 'stale'}; storage=${agent.storage_root_status}.`;
+    agent.updated_at = now;
+    const capabilities = Array.isArray(heartbeat.capabilities) ? heartbeat.capabilities : [];
+    if (capabilities.length) {
+      agent.runtime_capabilities = capabilities.slice(0, 20);
+    }
+    if (recordEvent) {
+      this.addDeviceEvent(agent, 'agent_heartbeat', `Heartbeat: ${agent.heartbeat_status}; storage=${agent.storage_root_status}; version=${agent.heartbeat_version || 'unknown'}.`, agent.status === 'connected' ? 'safe' : 'review');
+    }
+
+    const pc = (this.systemDevices || []).find((device) => device.device_id === 'device_terminator_pc');
+    if (pc) {
+      pc.linked_agent_id = heartbeat.agent_id;
+      pc.status = agent.status === 'connected' ? 'connected' : pc.status;
+      pc.last_seen = agent.last_seen;
+      pc.handoff_state = agent.status === 'connected' ? 'ПК подтверждён через heartbeat локального агента' : pc.handoff_state;
+      pc.updated_at = now;
+    }
+
+    await this.saveSystemDevices();
+    return true;
+  },
+
+  buildOwnedAgentRegistrySnapshot() {
+    const devices = this.systemDevices || [];
+    const agents = devices.filter((device) => device.agent_id || device.type === 'local_agent');
+    const primary = this.getPrimaryOwnedAgentDevice();
+    const publicRegistry = this.publicRuntimeHealth?.agent_registry || null;
+    const onlineAgents = agents.filter((device) => device.heartbeat_status === 'online' && !device.heartbeat_stale);
+    const staleAgents = agents.filter((device) => (device.heartbeat_status && device.heartbeat_status !== 'online') || device.heartbeat_stale);
+    const unknownAgents = agents.filter((device) => !device.heartbeat_status);
+    const connectedDevices = devices.filter((device) => ['connected', 'ready', 'trusted'].includes(device.status));
+    const trustedDevices = devices.filter((device) => ['trusted', 'owner_device', 'system_device'].includes(device.trust_level));
+    const readiness = Math.max(35, Math.min(100,
+      36
+      + (primary ? 14 : 0)
+      + (onlineAgents.length ? 24 : 0)
+      + (trustedDevices.length ? Math.min(14, trustedDevices.length * 2) : 0)
+      + (connectedDevices.length ? Math.min(10, connectedDevices.length * 2) : 0)
+      + (publicRegistry?.agent_count ? 2 : 0)
+    ));
+    const status = onlineAgents.length && primary ? 'ready' : staleAgents.length ? 'review' : primary ? 'partial' : 'waiting';
+    const next = !primary
+      ? 'Выбрать основной агент владельца.'
+      : !onlineAgents.length
+        ? 'Проверить heartbeat локального агента.'
+        : unknownAgents.length
+          ? 'Разобрать агентов без live heartbeat.'
+          : 'Реестр владельца видит основной runtime.';
+    return {
+      schema_version: OWNED_DEVICE_REGISTRY_SCHEMA_VERSION,
+      status,
+      readiness,
+      primary_agent_id: primary?.agent_id || TERMINATOR_DEFAULT_AGENT_ID,
+      primary_device_id: primary?.device_id || '',
+      agent_count: agents.length,
+      online_count: onlineAgents.length,
+      stale_count: staleAgents.length,
+      unknown_count: unknownAgents.length,
+      trusted_devices: trustedDevices.length,
+      connected_devices: connectedDevices.length,
+      agents,
+      primary,
+      public_registry: publicRegistry,
+      next
+    };
+  },
+
+  ownedAgentRegistryStatusText(status) {
+    return {
+      ready: 'готово',
+      partial: 'частично',
+      review: 'нужна проверка',
+      waiting: 'не настроено',
+      blocked: 'заблокировано'
+    }[status] || status || 'не проверено';
+  },
+
+  buildOwnedAgentRegistryReport(snapshot = this.buildOwnedAgentRegistrySnapshot()) {
+    return [
+      'Owned Device / Agent Registry V1',
+      `Готовность: ${snapshot.readiness}% (${this.ownedAgentRegistryStatusText(snapshot.status)})`,
+      `Основной agent_id: ${snapshot.primary_agent_id}`,
+      `Агентов: ${snapshot.agent_count}`,
+      `Online: ${snapshot.online_count}`,
+      `Устарели: ${snapshot.stale_count}`,
+      `Без heartbeat: ${snapshot.unknown_count}`,
+      `Доверенных устройств: ${snapshot.trusted_devices}`,
+      `На связи: ${snapshot.connected_devices}`,
+      '',
+      'Агенты:',
+      ...snapshot.agents.map((agent) => `- ${agent.name}: agent_id=${agent.agent_id || 'not_set'}; status=${DEVICE_STATUSES[agent.status] || agent.status}; heartbeat=${agent.heartbeat_status || 'not_checked'}; last_seen=${agent.last_seen || 'never'}; storage=${agent.storage_root_status || 'unknown'}`),
+      '',
+      `Следующий шаг: ${snapshot.next}`,
+      'Секреты, cookies, токены и пароли не сохраняются в реестре.'
+    ].join('\n');
   },
 
   taskStoreStatusSnapshot() {
@@ -7532,6 +7720,7 @@ const App = {
     const eyes = this.eyesVisualSnapshot();
     const hands = this.handsSnapshot();
     const deviceMesh = this.buildDeviceMeshSnapshot();
+    const ownedRegistry = deviceMesh.ownedRegistry || this.buildOwnedAgentRegistrySnapshot();
     const integration = this.buildIntegrationSnapshot();
     const liveRuntime = this.buildLiveRuntimeSnapshot();
     const cards = [
@@ -7549,6 +7738,7 @@ const App = {
       ['Глаза', eyes.label, eyes.note],
       ['Руки', hands.label, hands.note],
       ['Подтверждения', approvals, 'опасные действия не выполняются автоматически'],
+      ['Реестр владельца', `${ownedRegistry.readiness}%`, `агент ${ownedRegistry.primary_agent_id}; online=${ownedRegistry.online_count}; устройств на связи=${ownedRegistry.connected_devices}`],
       ['Ноги / Устройства', `${deviceMesh.readiness}%`, `${trustedDevices} доверенных; ${deviceMesh.routes.length} маршрутов; ${deviceMesh.attention} требуют внимания`],
       ['Мобильное приложение', pwa.installLabel, `offline shell: ${pwa.serviceWorker}`],
       ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'текстовый режим', 'без фонового прослушивания и без AI API'],
@@ -10047,6 +10237,7 @@ const App = {
     const direct = this.directModeStatusSnapshot();
     const taskStore = this.taskStoreStatusSnapshot();
     const agent = this.localAgentStatusSnapshot();
+    const ownedRegistry = this.buildOwnedAgentRegistrySnapshot();
     const trusted = devices.filter((device) => ['trusted', 'owner_device', 'system_device'].includes(device.trust_level)).length;
     const connected = devices.filter((device) => ['connected', 'ready', 'trusted'].includes(device.status)).length;
     const attention = devices.filter((device) => ['unknown', 'offline', 'degraded', 'blocked', 'not_configured', 'pending_trust'].includes(device.status)).length;
@@ -10059,6 +10250,7 @@ const App = {
       + (pwa.serviceWorker === 'registered' ? 8 : 0)
       + (taskStore.tone === 'synced' ? 6 : 0)
       + (direct.status === 'сессия активна' ? 5 : 0)
+      + (ownedRegistry.online_count ? 6 : 0)
     ));
     const status = readiness >= 80 ? 'ready' : readiness >= 55 ? 'partial' : attention ? 'review' : 'not_checked';
     const routes = [
@@ -10067,9 +10259,9 @@ const App = {
         title: 'ПК → WebApp',
         from: 'ПК Терминатора',
         to: 'Mina UI',
-        status: devices.some((device) => device.device_id === 'device_terminator_pc' && device.status === 'connected') ? 'ready' : 'partial',
+        status: ownedRegistry.online_count || devices.some((device) => device.device_id === 'device_terminator_pc' && device.status === 'connected') ? 'ready' : 'partial',
         risk: 'safe',
-        note: 'Рабочий экран и локальный контур видимы владельцу.'
+        note: `Рабочий экран и локальный контур видимы владельцу; основной агент: ${ownedRegistry.primary_agent_id}.`
       },
       {
         id: 'webapp_taskstore',
@@ -10115,7 +10307,7 @@ const App = {
         : attention
           ? 'Разобрать устройства со статусом “не проверено” или “не настроено”.'
           : 'Связь устройств готова к следующему слою маршрутизации.';
-    return { devices, pwa, direct, taskStore, agent, trusted, connected, attention, riskyCapabilities, readiness, status, routes, next };
+    return { devices, pwa, direct, taskStore, agent, ownedRegistry, trusted, connected, attention, riskyCapabilities, readiness, status, routes, next };
   },
 
   deviceMeshStatusText(status) {
@@ -10126,6 +10318,63 @@ const App = {
       waiting: 'ожидает настройки',
       not_checked: 'не проверено'
     }[status] || status || 'не проверено';
+  },
+
+  renderOwnedAgentRegistryPanel(registry = this.buildOwnedAgentRegistrySnapshot()) {
+    const primary = registry.primary;
+    const primaryLastSeen = primary?.last_seen ? this.formatTaskTime(primary.last_seen) : 'не проверялось';
+    const publicRegistry = registry.public_registry;
+    const publicNote = publicRegistry
+      ? `${publicRegistry.agent_count || 0} агентов в мосте; online=${publicRegistry.online_count || 0}; stale=${publicRegistry.stale_count || 0}`
+      : 'публичный snapshot моста появится после проверки живого контура';
+    return `
+      <section class="owned-agent-registry owned-agent-registry--${this.escapeHtml(registry.status)}">
+        <div class="owned-agent-registry__head">
+          <div>
+            <span>Реестр владельца</span>
+            <h3>Доверенные устройства и агенты</h3>
+            <p>Это слой “кто имеет право быть runtime”. Он хранит agent_id, доверие, последний сигнал и возможности, но не хранит пароли, cookies, токены или API-ключи.</p>
+          </div>
+          <strong>${this.escapeHtml(String(registry.readiness))}%<small>${this.escapeHtml(this.ownedAgentRegistryStatusText(registry.status))}</small></strong>
+        </div>
+        <div class="owned-agent-registry__metrics">
+          <article>
+            <span>Основной агент</span>
+            <strong>${this.escapeHtml(registry.primary_agent_id)}</strong>
+            <p>${this.escapeHtml(primary?.name || 'ожидает привязки')}</p>
+          </article>
+          <article>
+            <span>Heartbeat</span>
+            <strong>${this.escapeHtml(primary?.heartbeat_status || 'не проверено')}</strong>
+            <p>${this.escapeHtml(primaryLastSeen)}</p>
+          </article>
+          <article>
+            <span>Storage</span>
+            <strong>${this.escapeHtml(primary?.storage_root_status || 'unknown')}</strong>
+            <p>${this.escapeHtml(primary?.heartbeat_version || 'версия не получена')}</p>
+          </article>
+          <article>
+            <span>Мост</span>
+            <strong>${this.escapeHtml(publicRegistry?.status || 'ожидает')}</strong>
+            <p>${this.escapeHtml(publicNote)}</p>
+          </article>
+        </div>
+        <div class="owned-agent-registry__agents">
+          ${registry.agents.map((agent) => `
+            <article>
+              <span>${this.escapeHtml(DEVICE_TYPES[agent.type] || agent.type)} · ${this.escapeHtml(DEVICE_TRUST_LEVELS[agent.trust_level] || agent.trust_level)}</span>
+              <strong>${this.escapeHtml(agent.name)}</strong>
+              <p>agent_id=${this.escapeHtml(agent.agent_id || 'не задан')} · ${this.escapeHtml(DEVICE_STATUSES[agent.status] || agent.status)} · heartbeat=${this.escapeHtml(agent.heartbeat_status || 'не проверено')}</p>
+            </article>
+          `).join('') || '<p class="mission-empty">Агенты появятся после настройки локального runtime.</p>'}
+        </div>
+        <div class="owned-agent-registry__actions">
+          <button type="button" data-device-action="refresh_owned_registry">Проверить heartbeat</button>
+          <button type="button" data-device-action="copy_owned_registry_report">Скопировать паспорт</button>
+        </div>
+        <p class="owned-agent-registry__next">${this.escapeHtml(registry.next)}</p>
+      </section>
+    `;
   },
 
   renderDeviceMeshHero(mesh) {
@@ -10245,9 +10494,12 @@ const App = {
     host.innerHTML = `
       <section class="device-mesh-center">
         ${this.renderDeviceMeshHero(mesh)}
+        ${this.renderOwnedAgentRegistryPanel(this.buildOwnedAgentRegistrySnapshot())}
         <div class="device-mesh-actions">
           <button type="button" data-device-action="refresh_mesh">Обновить состояние</button>
+          <button type="button" data-device-action="refresh_owned_registry">Проверить heartbeat</button>
           <button type="button" data-device-action="copy_mesh_report">Скопировать отчёт</button>
+          <button type="button" data-device-action="copy_owned_registry_report">Скопировать паспорт агента</button>
           <button type="button" data-device-action="create_pairing_note" data-device-id="${this.escapeHtml(active.device_id)}">Создать заметку подключения</button>
           <button type="button" data-device-action="open_legs_scheme">Открыть в Схеме Мины</button>
         </div>
@@ -11364,12 +11616,13 @@ const App = {
     const memoryCandidates = tasks.filter((task) => task.memory_preview || task.memory_status || task.memory_candidate).length;
     const researchTasks = tasks.filter((task) => this.ensureResearchOpsState(task).status !== 'not_started').length;
     const devicePhone = (this.systemDevices || []).find((device) => device.device_id === 'device_owner_phone');
+    const ownedRegistry = this.buildOwnedAgentRegistrySnapshot();
     const repairIncidents = guardian.openIncidents.filter((incident) => incident.repair_workspace || incident.diagnostic_pack || incident.repair?.status !== 'not_started');
     const criticalIncident = guardian.openIncidents.find((incident) => incident.severity === 'critical');
     const costUnknown = COST_GUARD_SERVICES.some(([, , status]) => status === 'unknown');
     const directReady = direct.status === 'сессия активна';
     const directNeedsOwner = direct.status === 'ожидает вход';
-    const localAgentReady = /на связи|доверено|системное|готов/i.test(agent.status) && !/не проверено|не найден/i.test(agent.status);
+    const localAgentReady = ownedRegistry.online_count > 0 || (/на связи|доверено|системное|готов/i.test(agent.status) && !/не проверено|не найден/i.test(agent.status));
     const localAgentKnown = !/не найден/i.test(agent.status);
     const bodyScore = this.taskRuntimeReady
       ? 54 + (taskStore.tone === 'synced' ? 14 : 0) + (directReady ? 12 : directNeedsOwner ? 6 : 0) + (localAgentReady ? 10 : localAgentKnown ? 4 : 0)
@@ -11475,25 +11728,26 @@ const App = {
         status: bodyStatus,
         readiness: Math.min(92, bodyScore),
         summary: this.taskRuntimeReady ? 'контур задач активен' : 'контур задач требует внимания',
-        note: `Мост: ${direct.status}; локальный агент: ${agent.status}; хранилище задач: ${taskStore.status}.`,
+        note: `Мост: ${direct.status}; локальный агент: ${agent.status}; agent_id=${ownedRegistry.primary_agent_id}; хранилище задач: ${taskStore.status}.`,
         snapshot_source: 'Task Runtime / Bridge / Local Agent / TaskStore',
         is_mock: false,
         checks: [
           ['Контур задач', this.taskRuntimeReady ? 'локальная база активна' : 'резервный режим'],
           ['Мост', direct.status],
-          ['Локальный агент', agent.status],
+          ['Локальный агент', `${agent.status}; ${ownedRegistry.primary_agent_id}`],
           ['Подтверждения', 'включены']
         ]
       },
       legs: {
         status: legsStatus,
         readiness: deviceMesh.readiness,
-        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных`,
+        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · ${ownedRegistry.online_count} агент online`,
         note: `Ноги маршрутизируют задачи и контекст. ${deviceMesh.next}`,
-        snapshot_source: 'Центр связи устройств / мобильная версия / хранилище задач / реестр устройств',
+        snapshot_source: 'Реестр владельца / Центр связи устройств / мобильная версия / хранилище задач',
         is_mock: false,
         checks: [
-          ['Основное устройство', 'ПК Терминатора'],
+          ['Основной агент', ownedRegistry.primary_agent_id],
+          ['Heartbeat', ownedRegistry.online_count ? 'online' : 'не получен'],
           ['Телефон', devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен'],
           ['Мобильная версия', `${pwa.installLabel}; работа без сети: ${pwa.serviceWorker}`],
           ['Маршруты', `${deviceMesh.routes.length} описано`],
@@ -11884,12 +12138,15 @@ const App = {
     if (zoneId === 'legs') {
       const devices = this.systemDevices || [];
       const mesh = this.buildDeviceMeshSnapshot();
+      const ownedRegistry = mesh.ownedRegistry || this.buildOwnedAgentRegistrySnapshot();
       return `
         <section class="scheme-config-block">
           <div class="scheme-chip-list">
             ${devices.slice(0, 5).map((device) => `<span>${this.escapeHtml(String(device.name || '').replace(/Local Agent/g, 'Локальный агент'))} · ${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)}</span>`).join('')}
           </div>
           <div class="scheme-chip-list">
+            <span>Основной агент: ${this.escapeHtml(ownedRegistry.primary_agent_id)}</span>
+            <span>Heartbeat: ${this.escapeHtml(ownedRegistry.online_count ? 'online' : 'не получен')}</span>
             <span>${this.escapeHtml(String(mesh.routes.length))} маршрутов</span>
             <span>${this.escapeHtml(String(mesh.trusted))} доверенных</span>
             <span>${this.escapeHtml(String(mesh.attention))} требуют внимания</span>
@@ -11935,6 +12192,7 @@ const App = {
           <span>Хранилище задач: ${this.escapeHtml(this.taskStoreStatusSnapshot().status)}</span>
           <span>Мост: ${this.escapeHtml(this.directModeStatusSnapshot().status)}</span>
           <span>Локальный агент: ${this.escapeHtml(this.localAgentStatusSnapshot().status)}</span>
+          <span>agent_id: ${this.escapeHtml(this.getPrimaryOwnedAgentId())}</span>
         </div>
         <p>Тело держит маршрут задачи, политики, статусы и следующий лучший шаг.</p>
       </section>
@@ -12890,6 +13148,7 @@ const App = {
         status: 'connected',
         risk_level: 'safe',
         owner_confirmed: true,
+        linked_agent_id: TERMINATOR_DEFAULT_AGENT_ID,
         last_seen: now,
         notes: 'Главная рабочая машина и будущий runtime/storage узел.',
         route_role: 'основной runtime и рабочая станция',
@@ -12964,6 +13223,11 @@ const App = {
         status: 'unknown',
         risk_level: 'review',
         owner_confirmed: true,
+        agent_id: TERMINATOR_DEFAULT_AGENT_ID,
+        agent_aliases: [TERMINATOR_DEFAULT_AGENT_ID],
+        primary_agent: true,
+        owned_registry_role: 'primary_runtime_agent',
+        storage_root_status: 'unknown',
         notes: 'Runtime-исполнитель. В этом слое команды агенту не отправляются.',
         route_role: 'локальный исполнитель только по разрешённым командам',
         handoff_state: 'ожидает проверки health',
@@ -13072,6 +13336,19 @@ const App = {
       status: device.status || 'unknown',
       risk_level: device.risk_level || 'review',
       fingerprint: device.fingerprint || `${device.type || 'device'}:${device.connection_type || 'manual'}:${device.device_id || 'local'}`,
+      agent_id: device.agent_id || '',
+      agent_aliases: Array.isArray(device.agent_aliases) ? device.agent_aliases : [],
+      linked_agent_id: device.linked_agent_id || '',
+      primary_agent: Boolean(device.primary_agent),
+      owned_registry_role: device.owned_registry_role || '',
+      heartbeat_status: device.heartbeat_status || '',
+      heartbeat_stale: Boolean(device.heartbeat_stale),
+      heartbeat_age_ms: device.heartbeat_age_ms === null || device.heartbeat_age_ms === undefined ? null : Number(device.heartbeat_age_ms),
+      heartbeat_bridge_seen_at: device.heartbeat_bridge_seen_at || '',
+      heartbeat_version: device.heartbeat_version || '',
+      poll_interval_ms: device.poll_interval_ms === null || device.poll_interval_ms === undefined ? null : Number(device.poll_interval_ms),
+      storage_root_status: device.storage_root_status || '',
+      runtime_capabilities: Array.isArray(device.runtime_capabilities) ? device.runtime_capabilities : [],
       capabilities: [],
       events: [],
       last_seen: device.last_seen || '',
@@ -13189,6 +13466,17 @@ const App = {
     const device = this.systemDevices.find((item) => item.device_id === deviceId);
     if (!device) return;
     this.activeDeviceId = device.device_id;
+    if (action === 'refresh_owned_registry') {
+      await this.probePublicRuntimeHealth();
+      this.renderSystemStatus();
+      this.toast('Реестр владельца обновлён');
+      return;
+    }
+    if (action === 'copy_owned_registry_report') {
+      await this.copyWorkspaceText(this.buildOwnedAgentRegistryReport());
+      this.toast('Паспорт реестра владельца скопирован');
+      return;
+    }
     if (action === 'refresh_mesh') {
       const now = new Date().toISOString();
       this.systemDevices = (this.systemDevices || []).map((item) => {

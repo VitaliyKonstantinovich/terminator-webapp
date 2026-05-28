@@ -3891,6 +3891,128 @@ button:not(:disabled) {
   font-weight: 900;
 }
 
+.owned-agent-registry {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(110, 231, 255, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(0, 255, 183, 0.12), transparent 30%),
+    linear-gradient(135deg, rgba(4, 29, 66, 0.78), rgba(1, 10, 26, 0.8));
+  box-shadow: inset 0 0 32px rgba(42, 168, 255, 0.08);
+}
+
+.owned-agent-registry--ready {
+  border-color: rgba(56, 246, 160, 0.36);
+}
+
+.owned-agent-registry--review,
+.owned-agent-registry--partial {
+  border-color: rgba(255, 209, 102, 0.34);
+}
+
+.owned-agent-registry__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.owned-agent-registry__head span,
+.owned-agent-registry__metrics span,
+.owned-agent-registry__agents span {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owned-agent-registry__head h3 {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.12;
+}
+
+.owned-agent-registry__head p,
+.owned-agent-registry__metrics p,
+.owned-agent-registry__agents p,
+.owned-agent-registry__next {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.38;
+}
+
+.owned-agent-registry__head > strong {
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 86px;
+  border: 1px solid rgba(110, 231, 255, 0.38);
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 25px;
+  box-shadow: inset 0 0 24px rgba(64, 202, 255, 0.16), 0 0 16px rgba(64, 202, 255, 0.16);
+}
+
+.owned-agent-registry__head > strong small {
+  color: var(--cyan);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.owned-agent-registry__metrics,
+.owned-agent-registry__agents {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.owned-agent-registry__agents {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.owned-agent-registry__metrics article,
+.owned-agent-registry__agents article {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(82, 203, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(2, 14, 32, 0.54);
+}
+
+.owned-agent-registry__metrics strong,
+.owned-agent-registry__agents strong {
+  display: block;
+  margin-top: 5px;
+  color: #eafaff;
+  overflow-wrap: anywhere;
+}
+
+.owned-agent-registry__metrics strong {
+  color: var(--cyan);
+  font-size: 18px;
+}
+
+.owned-agent-registry__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.owned-agent-registry__actions button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(110, 231, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(8, 46, 91, 0.74);
+  color: var(--text);
+  font-weight: 900;
+}
+
 .device-route-panel {
   display: grid;
   gap: 10px;
@@ -4160,7 +4282,9 @@ button:not(:disabled) {
 
 @media (max-width: 1120px) {
   .device-mesh-metrics,
-  .device-route-grid {
+  .device-route-grid,
+  .owned-agent-registry__metrics,
+  .owned-agent-registry__agents {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -4171,6 +4295,7 @@ button:not(:disabled) {
 
 @media (max-width: 760px) {
   .device-mesh-hero,
+  .owned-agent-registry__head,
   .device-route-head,
   .device-hub {
     grid-template-columns: 1fr;
@@ -4184,6 +4309,8 @@ button:not(:disabled) {
 
   .device-mesh-metrics,
   .device-route-grid,
+  .owned-agent-registry__metrics,
+  .owned-agent-registry__agents,
   .capability-grid,
   .device-passport-grid {
     grid-template-columns: 1fr;
