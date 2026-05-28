@@ -86,7 +86,7 @@ jobs:
             {
               name: 'html',
               url: `${root}?force=workflow-smoke-${Date.now()}`,
-              validate: (text) => text.includes('20260528-phase23-windows-companion-hardening-v1') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),
+              validate: (text) => text.includes('20260528-phase24-windows-companion-installed-v1') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),
             },
             {
               name: 'manifest',
@@ -99,7 +99,7 @@ jobs:
             {
               name: 'service-worker',
               url: `${root}sw.js?force=workflow-smoke-${Date.now()}`,
-              validate: (text) => text.includes('terminator-mina-pwa-20260528-phase23-windows-companion-hardening-v1'),
+              validate: (text) => text.includes('terminator-mina-pwa-20260528-phase24-windows-companion-installed-v1'),
             },
           ];
 

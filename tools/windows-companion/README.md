@@ -1,6 +1,6 @@
 # Mina Windows Companion
 
-Phase 7 adds a local Windows companion foundation for Terminator Mina.
+Phase 24 keeps the Windows companion as the safe installed user layer for Terminator Mina.
 
 It is not a hidden remote-control tool. It is a tray shell and installer readiness layer around the existing WebApp and Local Agent.
 
@@ -38,6 +38,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File .\mina-w
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-mina-windows-companion.ps1 -DryRun
+```
+
+## Recommended Install
+
+This creates a Start Menu shortcut only. It does not enable tray autostart and does not change the Local Agent autostart.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-mina-windows-companion.ps1 -CreateStartMenuShortcut
 ```
 
 ## Optional Install Actions

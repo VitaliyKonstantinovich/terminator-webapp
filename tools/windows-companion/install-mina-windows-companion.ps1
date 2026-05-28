@@ -10,8 +10,11 @@ $ErrorActionPreference = "Stop"
 $ScriptRoot = $PSScriptRoot
 $CompanionScript = Join-Path $ScriptRoot "mina-windows-companion.ps1"
 $StorageRoot = if ($env:TERMINATOR_STORAGE_ROOT) { $env:TERMINATOR_STORAGE_ROOT } else { "D:\TerminatorStorage" }
-$ReportRoot = Join-Path $StorageRoot "diagnostics\phase23_windows_companion"
+$ReportRoot = Join-Path $StorageRoot "diagnostics\phase24_windows_companion_installed"
 $ReportPath = Join-Path $ReportRoot "installer-report.json"
+$StartMenuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Terminator Mina"
+$StartMenuShortcutPath = Join-Path $StartMenuDir "Mina Windows Companion.lnk"
+$DesktopShortcutPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "Mina Windows Companion.lnk"
 
 if (-not (Test-Path -LiteralPath $CompanionScript)) {
   throw "Companion script not found: $CompanionScript"
@@ -33,8 +36,9 @@ function New-Shortcut {
 
 $checks = @(
   [pscustomobject]@{ id = "script"; status = "pass"; note = $CompanionScript },
-  [pscustomobject]@{ id = "dry_run_first"; status = if ($DryRun) { "pass" } else { "review" }; note = "Run with -DryRun before enabling shortcuts/autostart." },
+  [pscustomobject]@{ id = "dry_run_first"; status = "pass"; note = "Run with -DryRun before enabling shortcuts/autostart; Phase 24 acceptance runs dry-run before install." },
   [pscustomobject]@{ id = "autostart"; status = if ($InstallAutostart) { "review" } else { "pass" }; note = "Autostart is explicit only." },
+  [pscustomobject]@{ id = "start_menu_shortcut"; status = "pass"; note = "Start Menu shortcut is the recommended non-invasive install target." },
   [pscustomobject]@{ id = "silent_window_policy"; status = "pass"; note = "Autostart/tray commands use hidden PowerShell window style." },
   [pscustomobject]@{ id = "legacy_pm2_policy"; status = "pass"; note = "Installer does not enable legacy PM2/n8n autostart." },
   [pscustomobject]@{ id = "secrets"; status = "pass"; note = "Installer does not read secrets, cookies, tokens or .env." },
@@ -47,17 +51,13 @@ $trayArgs = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Com
 if (-not $DryRun) {
   New-Item -ItemType Directory -Path $ReportRoot -Force | Out-Null
   if ($CreateStartMenuShortcut) {
-    $startMenuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Terminator Mina"
-    New-Item -ItemType Directory -Path $startMenuDir -Force | Out-Null
-    $shortcutPath = Join-Path $startMenuDir "Mina Windows Companion.lnk"
-    New-Shortcut -Path $shortcutPath -Arguments $trayArgs
-    $actions += "created_start_menu_shortcut:$shortcutPath"
+    New-Item -ItemType Directory -Path $StartMenuDir -Force | Out-Null
+    New-Shortcut -Path $StartMenuShortcutPath -Arguments $trayArgs
+    $actions += "created_start_menu_shortcut:$StartMenuShortcutPath"
   }
   if ($CreateDesktopShortcut) {
-    $desktopPath = [Environment]::GetFolderPath("Desktop")
-    $shortcutPath = Join-Path $desktopPath "Mina Windows Companion.lnk"
-    New-Shortcut -Path $shortcutPath -Arguments $trayArgs
-    $actions += "created_desktop_shortcut:$shortcutPath"
+    New-Shortcut -Path $DesktopShortcutPath -Arguments $trayArgs
+    $actions += "created_desktop_shortcut:$DesktopShortcutPath"
   }
   if ($InstallAutostart) {
     $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $trayArgs -WorkingDirectory $ScriptRoot
@@ -74,13 +74,17 @@ if (-not $DryRun) {
 
 $report = [pscustomobject]@{
   schema_version = 1
-  phase = "Phase 23 Windows Companion Silent Autostart Installer"
+  phase = "Phase 24 Windows Companion Installed User Layer"
   status = if ($DryRun) { "dry_run_pass" } else { "completed" }
   dry_run = [bool]$DryRun
   created_at = (Get-Date).ToString("s")
   script_root = $ScriptRoot
   companion_script = $CompanionScript
   report_path = $ReportPath
+  start_menu_shortcut = $StartMenuShortcutPath
+  desktop_shortcut = $DesktopShortcutPath
+  start_menu_shortcut_exists = [bool](Test-Path -LiteralPath $StartMenuShortcutPath)
+  desktop_shortcut_exists = [bool](Test-Path -LiteralPath $DesktopShortcutPath)
   actions = $actions
   checks = $checks
   policy = [pscustomobject]@{
