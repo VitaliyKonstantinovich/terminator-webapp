@@ -1160,7 +1160,7 @@ const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
   name: 'Phase 23 Windows-компаньон / тихая автозагрузка V1',
   date: '2026-05-28',
-  status: 'закрыт локально, live pending',
+  status: 'live PASS',
   previous: 'Phase 22 Единый источник истины / снимок состояния V1',
   next: 'Следующий слой финального road map перед QAMAX'
 };
@@ -1210,7 +1210,7 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 43, name: 'Continuity / Offline Recovery / Task Teleport V1', status: 'закрыт live' },
   { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' },
   { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' },
-  { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт локально, live pending' }
+  { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт live' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',

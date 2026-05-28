@@ -1,6 +1,6 @@
 # Phase 23: Windows Companion / Silent Autostart V1
 
-Status: local PASS, live pending.
+Status: live PASS.
 Date: 2026-05-28.
 
 ## Purpose
@@ -53,12 +53,24 @@ Owner-facing meaning:
 - Direct Bridge code untouched: PASS.
 - Local Agent code untouched: PASS.
 
+## Live Checks
+
+- GitHub Actions deploy `26602507005`: PASS.
+- Live HTML Phase 23 marker: PASS.
+- Live `app.js` Phase 23 marker: PASS.
+- Live service worker Phase 23 marker: PASS.
+- Live desktop System companion smoke: PASS.
+- Live mobile 390px no horizontal overflow: PASS.
+
 ## Evidence
 
 - `D:\TerminatorStorage\diagnostics\phase23_windows_companion\companion-self-test.json`.
 - `D:\TerminatorStorage\evidence_backups\phase23_windows_companion\phase23-local-system-companion-desktop.png`.
 - `D:\TerminatorStorage\evidence_backups\phase23_windows_companion\phase23-local-system-companion-mobile.png`.
 - `D:\TerminatorStorage\evidence_backups\phase23_windows_companion\phase23-local-smoke.json`.
+- `D:\TerminatorStorage\evidence_backups\phase23_windows_companion\phase23-live-system-companion-desktop.png`.
+- `D:\TerminatorStorage\evidence_backups\phase23_windows_companion\phase23-live-system-companion-mobile.png`.
+- `D:\TerminatorStorage\evidence_backups\phase23_windows_companion\phase23-live-smoke.json`.
 
 ## Not Touched
 
@@ -72,10 +84,7 @@ Owner-facing meaning:
 - No direct Local Agent implementation changes.
 - No Direct Bridge code changes.
 
-## Residual Before Live Close
+## Residual
 
-- Publish GitHub Pages marker.
-- Verify live System companion panel.
-- Verify live mobile no horizontal overflow.
-- Update this status to live PASS after deployment smoke.
-
+- No blocking residual for Phase 23.
+- WebApp cannot directly read `D:\TerminatorStorage` from the public browser page; it exposes the command and report path, while the real self-test report stays local.
