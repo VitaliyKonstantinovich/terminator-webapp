@@ -69,11 +69,19 @@ Task Teleport is a portable context package under owner control. It is not remot
 - No horizontal overflow on local mobile smoke: PASS.
 - Direct Bridge code unchanged: PASS.
 - Local Agent code unchanged: PASS.
+- GitHub Pages Actions deploy `26591720775`: PASS.
+- Live HTML marker `20260528-phase20-continuity-teleport-v1`: PASS.
+- Live `app.js` marker `Continuity / Offline Recovery / Task Teleport V1`: PASS.
+- Live `sw.js` marker `terminator-mina-pwa-20260528-phase20-continuity-teleport-v1`: PASS.
+- Live desktop System continuity smoke: PASS.
+- Live mobile 390px no horizontal overflow: PASS.
 
 ## Evidence
 
 - `D:\TerminatorStorage\evidence_backups\phase20_continuity_teleport\phase20-local-system-continuity-desktop.png`
 - `D:\TerminatorStorage\evidence_backups\phase20_continuity_teleport\phase20-local-work-continuity-mobile.png`
+- `D:\TerminatorStorage\evidence_backups\phase20_continuity_teleport\phase20-live-system-continuity-desktop.png`
+- `D:\TerminatorStorage\evidence_backups\phase20_continuity_teleport\phase20-live-system-continuity-mobile.png`
 - `evidence/phase20_continuity_teleport/PHASE20_CONTINUITY_TELEPORT_RESULT.md`
 
 ## Residual
@@ -84,13 +92,17 @@ Task Teleport is a portable context package under owner control. It is not remot
 
 ## Live Acceptance
 
-GitHub Pages live acceptance must verify:
+GitHub Pages live acceptance verified:
 
 - HTML marker `20260528-phase20-continuity-teleport-v1`;
 - `app.js` marker `Continuity / Offline Recovery / Task Teleport V1`;
 - `sw.js` cache marker `terminator-mina-pwa-20260528-phase20-continuity-teleport-v1`;
 - live System continuity panel;
 - no horizontal overflow.
+
+Live URL:
+
+- `https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=phase20-final-live`
 
 ## Next
 
