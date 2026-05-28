@@ -8392,6 +8392,7 @@ button:not(:disabled) {
 }
 
 .release-center-panel,
+.pre-qamax-gate-panel,
 .backup-center-panel,
 .observability-panel,
 .schema-safety-panel,
@@ -8431,6 +8432,118 @@ button:not(:disabled) {
   background:
     radial-gradient(circle at 16% 20%, rgba(255, 83, 112, 0.2), transparent 36%),
     linear-gradient(135deg, rgba(59, 13, 28, 0.9), rgba(2, 15, 36, 0.88));
+}
+
+.pre-qamax-hero {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.8fr) minmax(0, 1fr) minmax(210px, 0.72fr);
+  gap: 12px;
+  align-items: stretch;
+  padding: 15px;
+  border: 1px solid rgba(96, 213, 255, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 14% 14%, rgba(97, 239, 255, 0.22), transparent 36%),
+    radial-gradient(circle at 86% 20%, rgba(61, 247, 165, 0.14), transparent 32%),
+    linear-gradient(135deg, rgba(4, 36, 77, 0.9), rgba(2, 13, 32, 0.94));
+  box-shadow: inset 0 0 30px rgba(42, 168, 255, 0.1), 0 0 24px rgba(35, 156, 255, 0.1);
+}
+
+.pre-qamax-hero--ready {
+  border-color: rgba(61, 247, 165, 0.5);
+}
+
+.pre-qamax-hero--review,
+.pre-qamax-hero--not_checked {
+  border-color: rgba(255, 209, 102, 0.46);
+}
+
+.pre-qamax-hero--blocked {
+  border-color: rgba(255, 116, 116, 0.58);
+  background:
+    radial-gradient(circle at 14% 14%, rgba(255, 80, 112, 0.22), transparent 36%),
+    linear-gradient(135deg, rgba(67, 15, 32, 0.92), rgba(2, 13, 32, 0.94));
+}
+
+.pre-qamax-hero span,
+.pre-qamax-scope strong {
+  display: block;
+  color: #9ed0ef;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.pre-qamax-hero strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+  font-size: clamp(22px, 3vw, 38px);
+  line-height: 1.05;
+}
+
+.pre-qamax-hero p {
+  margin: 8px 0 0;
+  color: #c8ecff;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pre-qamax-check-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pre-qamax-scope {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.pre-qamax-scope > div,
+.pre-qamax-scope article {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(86, 196, 255, 0.23);
+  border-radius: 8px;
+  background: rgba(2, 18, 43, 0.76);
+}
+
+.pre-qamax-scope ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: #dff5ff;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pre-qamax-scope article + article {
+  margin-top: 8px;
+}
+
+.pre-qamax-scope article span {
+  display: block;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pre-qamax-scope code {
+  display: block;
+  margin-top: 5px;
+  color: #67efff;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pre-qamax-scope p {
+  margin: 6px 0 0;
+  color: #b6d7f5;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .schema-safety-hero {
@@ -9042,6 +9155,8 @@ button:not(:disabled) {
   .workspace-voice-dock-head,
   .voice-preview-grid,
   .phase7-companion-hero,
+  .pre-qamax-hero,
+  .pre-qamax-scope,
   .phase6-hero,
   .phase6-hero dl,
   .phase6-check-grid,

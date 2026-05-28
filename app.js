@@ -302,6 +302,7 @@ const PWA_STATE_STORAGE_KEY = 'mina_pwa_state_v1';
 const VOICE_SETTINGS_STORAGE_KEY = 'mina_voice_settings_v1';
 const VOICE_EVENTS_STORAGE_KEY = 'mina_voice_events_v1';
 const PRODUCTION_RELEASE_STATE_KEY = 'mina_production_release_state_v1';
+const PRE_QAMAX_GATE_STATE_KEY = 'mina_pre_qamax_gate_state_v1';
 const BACKUP_RESTORE_STATE_KEY = 'mina_backup_restore_state_v1';
 const OBSERVABILITY_STATE_KEY = 'mina_observability_state_v1';
 const WINDOWS_COMPANION_STATE_STORAGE_KEY = 'mina_windows_companion_state_v1';
@@ -1160,11 +1161,11 @@ const OWNED_DEVICE_REGISTRY_SCHEMA_VERSION = 1;
 const OWNED_AGENT_HEARTBEAT_EVENT_MIN_MS = 15 * 60 * 1000;
 const TERMINATOR_STORAGE_ROOT = 'D:\\TerminatorStorage';
 const TERMINATOR_LAST_CHECKPOINT = {
-  name: 'Phase 24 Windows-компаньон / установленный пользовательский слой V1',
+  name: 'Phase 25 Pre-QAMAX Release Candidate Gate V1',
   date: '2026-05-28',
-  status: 'live PASS',
-  previous: 'Phase 23 Windows-компаньон / тихая автозагрузка V1',
-  next: 'Следующий слой финального road map перед QAMAX'
+  status: 'в работе',
+  previous: 'Phase 24 Windows-компаньон / установленный пользовательский слой V1',
+  next: 'Остановиться перед финальным QAMAX'
 };
 const TERMINATOR_PHASE_STEPS = [
   { id: 1, name: 'Product Core Reset + Task Runtime V1', status: 'закрыт' },
@@ -1213,7 +1214,8 @@ const TERMINATOR_PHASE_STEPS = [
   { id: 44, name: 'Controlled Apply Pipeline / Verifier Gate V1', status: 'закрыт live' },
   { id: 45, name: 'Единый источник истины / снимок состояния V1', status: 'закрыт live' },
   { id: 46, name: 'Windows-компаньон / тихая автозагрузка V1', status: 'закрыт live' },
-  { id: 47, name: 'Windows-компаньон / установленный пользовательский слой V1', status: 'закрыт live' }
+  { id: 47, name: 'Windows-компаньон / установленный пользовательский слой V1', status: 'закрыт live' },
+  { id: 48, name: 'Pre-QAMAX Release Candidate Gate V1', status: 'в работе' }
 ];
 const DIRECT_BRIDGE_NAMES = [
   'TerminatorCommandBridge',
@@ -2448,6 +2450,7 @@ const App = {
   pwaDisplayMode: 'browser',
   pwaLastCheckedAt: '',
   productionReleaseState: null,
+  preQamaxGateState: null,
   backupRestoreState: null,
   observabilityState: null,
   windowsCompanionState: null,
@@ -4213,6 +4216,17 @@ const App = {
       history: [],
       last_checked_at: ''
     });
+    this.preQamaxGateState = this.readJsonStorage(PRE_QAMAX_GATE_STATE_KEY, {
+      status: 'not_checked',
+      score: 0,
+      checked_at: '',
+      checks: [],
+      qamax_scope: [],
+      blockers: [],
+      warnings: [],
+      evidence_manifest: [],
+      history: []
+    });
     this.backupRestoreState = this.readJsonStorage(BACKUP_RESTORE_STATE_KEY, {
       checkpoints: [],
       last_checkpoint_at: '',
@@ -4248,6 +4262,7 @@ const App = {
 
   saveProductionState() {
     this.writeJsonStorage(PRODUCTION_RELEASE_STATE_KEY, this.productionReleaseState || {});
+    this.writeJsonStorage(PRE_QAMAX_GATE_STATE_KEY, this.preQamaxGateState || {});
     this.writeJsonStorage(BACKUP_RESTORE_STATE_KEY, this.backupRestoreState || {});
     this.writeJsonStorage(OBSERVABILITY_STATE_KEY, this.observabilityState || {});
     this.writeJsonStorage(SCHEMA_SAFETY_STATE_STORAGE_KEY, this.schemaSafetyState || {});
@@ -6976,6 +6991,265 @@ const App = {
     };
   },
 
+  preQamaxGateCheck(id, name, status, note, severity = 'safe') {
+    return {
+      check_id: id,
+      name,
+      status,
+      severity,
+      note,
+      checked_at: new Date().toISOString()
+    };
+  },
+
+  preQamaxEvidenceManifest() {
+    return [
+      {
+        name: 'Phase 21 Controlled Apply Pipeline',
+        path: `${TERMINATOR_STORAGE_ROOT}\\evidence_backups\\phase21_controlled_apply_pipeline`,
+        note: 'Verifier Gate, rollback и безопасное применение.'
+      },
+      {
+        name: 'Phase 22 Source of Truth',
+        path: `${TERMINATOR_STORAGE_ROOT}\\evidence_backups\\phase22_source_of_truth`,
+        note: 'Единый снимок состояния системы.'
+      },
+      {
+        name: 'Phase 23 Windows Companion Autostart',
+        path: `${TERMINATOR_STORAGE_ROOT}\\evidence_backups\\phase23_windows_companion`,
+        note: 'Тихая автозагрузка, отсутствие лишних окон, legacy PM2 disabled.'
+      },
+      {
+        name: 'Phase 24 Windows Companion Installed',
+        path: `${TERMINATOR_STORAGE_ROOT}\\evidence_backups\\phase24_windows_companion_installed`,
+        note: 'Ярлык меню Пуск и installer report.'
+      },
+      {
+        name: 'Phase 25 Pre-QAMAX Gate',
+        path: `${TERMINATOR_STORAGE_ROOT}\\evidence_backups\\phase25_pre_qamax_gate`,
+        note: 'Финальный gate перед большим QAMAX.'
+      }
+    ];
+  },
+
+  preQamaxScope() {
+    return [
+      'Start → Главное меню → Рабочее / Центр управления / Система / Схема Мины.',
+      'Рабочее: проект, задача, reload persistence, Context Pack, отчёт, Verifier, Memory Preview.',
+      'Голова: Стратег, Совет мозгов, поисковики, ResearchOps, BrainAnswer, Decision Passport.',
+      'Память: Memory Preview, Memory Search, индексы, no secrets, refs на D.',
+      'Guardian: Safe Mode, Emergency Stop, Approval Center, Cost Guard, incidents.',
+      'Руки: Controlled Worker Runtime, Controlled Apply Pipeline, rollback before apply.',
+      'Глаза: visual evidence, screenshots, desktop/mobile layout, no horizontal overflow.',
+      'Ноги: Device Mesh, handoff, continuity, phone/PWA presence.',
+      'Голос: push-to-talk, transcript, intent preview, dangerous command block.',
+      'Windows-компаньон: меню Пуск, Local Agent, тихая автозагрузка, отсутствие лишних окон.',
+      'Cloud/Live: GitHub Pages marker, PWA service worker, TaskStore sync, Direct Bridge health.',
+      'Security: no AI API, no paid services, no secrets in docs/evidence/logs, no heavy files on C.',
+      'Premium UI: Mina style, readable Russian text, no mojibake, real buttons, mobile smoke.'
+    ];
+  },
+
+  buildPreQamaxGateSnapshot() {
+    const now = new Date().toISOString();
+    const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: true, persist: false });
+    const integration = this.buildIntegrationSnapshot();
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const guardian = this.guardianSnapshot();
+    const companion = this.windowsCompanionState?.checked_at ? this.windowsCompanionState : this.buildWindowsCompanionSnapshot();
+    const memory = this.memorySearchSnapshot();
+    const eyes = this.eyesVisualSnapshot();
+    const hands = this.handsSnapshot();
+    const applyPipeline = this.controlledApplySnapshot();
+    const runtime = this.controlledRuntimeSnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
+    const continuity = this.buildContinuitySnapshot(this.getActiveWorkTask());
+    const voice = this.buildVoiceReadinessSnapshot();
+    const pwa = this.pwaSnapshot();
+    const schemaSafety = this.schemaSafetyState?.last_checked_at ? this.schemaSafetyState : this.buildSchemaSafetySnapshot();
+    const registry = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
+    const policy = this.policyCenterState?.last_checked_at ? this.policyCenterState : this.buildPolicyCenterSnapshot();
+    const localText = this.localStorageSnapshotText();
+    const privacy = this.scanPrivacyText(this.safeLocalStorageAuditText());
+    const currentHost = window.location.host || '';
+    const isLive = /github\.io$/i.test(currentHost);
+    const checks = [
+      this.preQamaxGateCheck(
+        'qamax_boundary',
+        'Граница QAMAX',
+        'pass',
+        'Gate подтверждает готовность к финальному тесту, но сам QAMAX не запускает.',
+        'safe'
+      ),
+      this.preQamaxGateCheck(
+        'phase_roadmap',
+        'Закрытые слои roadmap',
+        TERMINATOR_PHASE_STEPS.filter((step) => /закрыт/.test(step.status)).length >= 47 ? 'pass' : 'review',
+        `${TERMINATOR_PHASE_STEPS.filter((step) => /закрыт/.test(step.status)).length}/${TERMINATOR_PHASE_STEPS.length} слоёв отмечены закрытыми; текущий слой: ${TERMINATOR_LAST_CHECKPOINT.name}.`,
+        'safe'
+      ),
+      this.preQamaxGateCheck(
+        'live_publication',
+        'Live публикация',
+        isLive ? 'pass' : 'manual_check',
+        isLive ? 'Открыта live-версия GitHub Pages.' : 'Локальная проверка; live подтверждается отдельным smoke после публикации.',
+        isLive ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'source_truth',
+        'Единый источник истины',
+        truth.status === 'blocked' ? 'blocked' : truth.score >= 60 ? 'pass' : 'review',
+        `${truth.score}% · ${truth.summary}`,
+        truth.status === 'blocked' ? 'blocked' : truth.score >= 60 ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'integration',
+        'Интеграция слоёв',
+        integration.status === 'blocked' ? 'blocked' : integration.score >= 60 ? 'pass' : 'review',
+        `${integration.score}% · ${integration.summary}`,
+        integration.status === 'blocked' ? 'blocked' : integration.score >= 60 ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'release_readiness',
+        'Производственный контур',
+        release.status === 'blocked' ? 'blocked' : release.score >= 70 ? 'pass' : 'review',
+        `${release.score || 0}% · ${release.summary || 'релизный снимок не собран'}`,
+        release.status === 'blocked' ? 'blocked' : release.score >= 70 ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'guardian',
+        'Guardian / защита',
+        guardian.state?.emergency_stop_active ? 'blocked' : guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'pass',
+        `${guardian.label}; ${guardian.note}`,
+        guardian.state?.emergency_stop_active || guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'safe'
+      ),
+      this.preQamaxGateCheck(
+        'controlled_apply',
+        'Руки / безопасное применение',
+        hands.status === 'blocked' || applyPipeline.status === 'blocked' ? 'blocked' : Math.max(hands.readiness || 0, applyPipeline.readiness || 0, runtime.readiness || 0) >= 60 ? 'pass' : 'review',
+        `${hands.note}; apply: ${applyPipeline.note}; runtime: ${runtime.note}`,
+        hands.status === 'blocked' || applyPipeline.status === 'blocked' ? 'blocked' : Math.max(hands.readiness || 0, applyPipeline.readiness || 0, runtime.readiness || 0) >= 60 ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'windows_companion',
+        'Windows-компаньон',
+        companion.status === 'ready' ? 'pass' : companion.status === 'blocked' ? 'blocked' : 'review',
+        `готовность ${companion.score || 0}%; окна: ${companion.visible_window_status}; legacy PM2: ${companion.legacy_pm2_status}`,
+        companion.status === 'blocked' ? 'blocked' : companion.status === 'ready' ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'memory_search',
+        'Память и поиск',
+        memory.status === 'ready' || memory.status === 'stale' ? 'pass' : 'review',
+        memory.note,
+        memory.status === 'ready' || memory.status === 'stale' ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'eyes_visual',
+        'Глаза / visual evidence',
+        eyes.status === 'ready' || eyes.readiness >= 70 ? 'pass' : 'review',
+        eyes.note,
+        eyes.status === 'blocked' ? 'blocked' : eyes.readiness >= 70 ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'legs_device_mesh',
+        'Ноги / устройства',
+        Math.max(deviceMesh.readiness || 0, continuity.readiness || 0) >= 70 ? 'pass' : 'review',
+        `${deviceMesh.next}; continuity: ${continuity.next}`,
+        'review'
+      ),
+      this.preQamaxGateCheck(
+        'voice_layer',
+        'Голос Мины',
+        voice.score >= 60 ? 'pass' : 'review',
+        voice.note,
+        'safe'
+      ),
+      this.preQamaxGateCheck(
+        'pwa_mobile',
+        'Mobile / PWA',
+        pwa.serviceWorker === 'registered' ? 'pass' : 'review',
+        `PWA: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}.`,
+        pwa.serviceWorker === 'registered' ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'schema_backup_registry_policy',
+        'Схемы / backup / реестр / policy',
+        [schemaSafety.status, registry.status, policy.status].includes('blocked') ? 'blocked' : (schemaSafety.score || 0) >= 20 && (registry.score || 0) >= 60 && (policy.score || 0) >= 80 ? 'pass' : 'review',
+        `схемы ${schemaSafety.score || 0}%; реестр ${registry.score || 0}%; правила ${policy.score || 0}%.`,
+        [schemaSafety.status, registry.status, policy.status].includes('blocked') ? 'blocked' : 'safe'
+      ),
+      this.preQamaxGateCheck(
+        'task_runtime',
+        'Рабочее / Task Runtime',
+        this.taskRuntimeReady ? 'pass' : 'review',
+        this.taskRuntimeReady ? `${(this.workTasks || []).length} задач в IndexedDB/local mirror.` : 'IndexedDB недоступен, fallback localStorage.',
+        this.taskRuntimeReady ? 'safe' : 'review'
+      ),
+      this.preQamaxGateCheck(
+        'privacy',
+        'Privacy / secrets',
+        privacy.blocked ? 'blocked' : privacy.findings.length ? 'review' : 'pass',
+        privacy.findings.length ? `Privacy Guard: ${this.privacyScanSummary(privacy)}.` : 'Секреты в локальном состоянии не обнаружены.',
+        privacy.blocked ? 'blocked' : privacy.findings.length ? 'review' : 'safe'
+      ),
+      this.preQamaxGateCheck(
+        'no_raw_storage',
+        'Файлы / raw storage',
+        RAW_FILE_STORAGE_PATTERN.test(localText) ? 'review' : 'pass',
+        RAW_FILE_STORAGE_PATTERN.test(localText) ? 'Найдены признаки raw/base64 в браузерном storage.' : 'Raw/base64 file data в браузерном storage не обнаружены.',
+        RAW_FILE_STORAGE_PATTERN.test(localText) ? 'review' : 'safe'
+      ),
+      this.preQamaxGateCheck(
+        'ai_api_policy',
+        'AI API / платные сервисы',
+        policy.security?.ai_api_policy === 'disabled' && guardian.state?.paid_services_allowed !== true ? 'pass' : 'review',
+        'AI API и платные сервисы должны оставаться выключены до отдельного Approval.',
+        'safe'
+      ),
+      this.preQamaxGateCheck(
+        'live_runtime',
+        'Живой runtime',
+        liveRuntime.status === 'ready' ? 'pass' : liveRuntime.status === 'blocked' ? 'blocked' : 'review',
+        `${liveRuntime.score || 0}% · ${liveRuntime.summary || liveRuntime.label || 'не проверен'}`,
+        liveRuntime.status === 'blocked' ? 'blocked' : liveRuntime.status === 'ready' ? 'safe' : 'review'
+      )
+    ];
+    const blockers = checks.filter((check) => check.status === 'blocked' || check.severity === 'blocked').map((check) => `${check.name}: ${check.note}`);
+    const warnings = checks.filter((check) => ['review', 'manual_check'].includes(check.status) || check.severity === 'review').map((check) => `${check.name}: ${check.note}`);
+    const pass = checks.filter((check) => check.status === 'pass').length;
+    const reviewCount = checks.filter((check) => ['review', 'manual_check'].includes(check.status) || check.severity === 'review').length;
+    const score = Math.round(((pass + reviewCount * 0.5) / Math.max(1, checks.length)) * 100);
+    const status = blockers.length ? 'blocked' : score >= 80 ? 'ready' : 'review';
+    const qamaxScope = this.preQamaxScope();
+    const evidenceManifest = this.preQamaxEvidenceManifest();
+    return {
+      schema_version: 1,
+      gate_id: this.generateWorkspaceId('QAGATE'),
+      phase: 'Phase 25 Pre-QAMAX Release Candidate Gate V1',
+      status,
+      score,
+      checked_at: now,
+      summary: `${pass}/${checks.length} gate checks PASS; ${warnings.length} пунктов уйдут в QAMAX; ${blockers.length} блокеров`,
+      decision: status === 'ready'
+        ? 'Можно переходить к финальному QAMAX после явной команды владельца. Предупреждения остаются scope тестирования, не скрываются.'
+        : status === 'blocked'
+          ? 'QAMAX запускать нельзя, пока не сняты блокеры.'
+          : 'Перед QAMAX нужно разобрать предупреждения или принять их осознанно.',
+      checks,
+      qamax_scope: qamaxScope,
+      blockers: [...new Set(blockers)].slice(0, 20),
+      warnings: [...new Set(warnings)].slice(0, 30),
+      evidence_manifest: evidenceManifest,
+      stop_rule: 'QAMAX не запускается автоматически. Gate останавливается перед финальным тестом.',
+      live_url: 'https://vitaliykonstantinovich.github.io/terminator-webapp/',
+      storage_root: TERMINATOR_STORAGE_ROOT,
+      no_ai_api: true,
+      no_paid_services: true
+    };
+  },
+
   updateObservabilitySample() {
     const tasks = this.workTasks || [];
     const approvals = this.pendingApprovalRecords();
@@ -8481,6 +8755,7 @@ const App = {
     const guardian = this.guardianSnapshot();
     const pwa = this.pwaSnapshot();
     const release = this.productionReleaseState?.checked_at ? this.productionReleaseState : this.buildProductionReadinessSnapshot();
+    const preQamax = this.preQamaxGateState?.checked_at ? this.preQamaxGateState : this.buildPreQamaxGateSnapshot();
     const schemaSafety = this.schemaSafetyState?.last_checked_at ? this.schemaSafetyState : this.buildSchemaSafetySnapshot();
     const registry = this.systemRegistryState?.last_checked_at ? this.systemRegistryState : this.buildSystemRegistrySnapshot();
     const policy = this.policyCenterState?.last_checked_at ? this.policyCenterState : this.buildPolicyCenterSnapshot();
@@ -8498,6 +8773,7 @@ const App = {
       ['Интеграция', `${integration.score}%`, `${integration.label}: ${integration.next.name}`],
       ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.label}: ${liveRuntime.next.name}`],
       ['Guardian', guardian.label, guardian.note],
+      ['Ворота перед QAMAX', this.phase6StatusName(preQamax.status), `${preQamax.score || 0}% · ${preQamax.summary || 'финальный gate ожидает запуска'}`],
       ['Производственный контур', this.phase6StatusName(release.status), `готовность ${release.score || 0}% · ${release.summary || 'проверка ожидает запуска'}`],
       ['Схемы данных', this.phase6StatusName(schemaSafety.status), `готовность ${schemaSafety.score || 0}% · ${schemaSafety.summary || 'dry-run ожидает запуска'}`],
       ['Реестр системы', this.systemRegistryStatusName(registry.status), `готовность ${registry.score || 0}% · ${registry.summary || 'проверка ожидает запуска'}`],
@@ -8543,6 +8819,7 @@ const App = {
     this.renderSystemVoiceHooks();
     this.renderSystemPwaPanel();
     this.renderSystemCompanionPanel();
+    this.renderSystemPreQamaxGatePanel();
     this.renderSystemReleaseCenter();
     this.renderSystemSchemaSafetyPanel();
     this.renderSystemBackupCenter();
@@ -13590,6 +13867,78 @@ const App = {
     return names[status] || status || 'не проверялось';
   },
 
+  renderSystemPreQamaxGatePanel() {
+    const host = document.getElementById('system-pre-qamax-gate');
+    if (!host) return;
+    const gate = this.preQamaxGateState?.checked_at
+      ? this.preQamaxGateState
+      : this.buildPreQamaxGateSnapshot();
+    const checks = gate.checks || [];
+    const scope = gate.qamax_scope || this.preQamaxScope();
+    const evidence = gate.evidence_manifest || this.preQamaxEvidenceManifest();
+    const rows = [
+      ['Статус', this.phase6StatusName(gate.status), gate.decision || 'Gate не запускался.'],
+      ['Готовность', `${gate.score || 0}%`, gate.summary || 'финальный снимок не собран'],
+      ['Правило остановки', 'QAMAX не запущен', gate.stop_rule || 'Финальный тест запускается только отдельной командой владельца.'],
+      ['Evidence root', TERMINATOR_STORAGE_ROOT, 'Доказательства и screenshots лежат на D, не в localStorage.']
+    ];
+    host.innerHTML = `
+      <section class="pre-qamax-hero pre-qamax-hero--${this.escapeHtml(gate.status || 'not_checked')}">
+        <div>
+          <span>Ворота финальной сборки</span>
+          <strong>${this.escapeHtml(String(gate.score || 0))}%</strong>
+          <p>${this.escapeHtml(gate.summary || 'Проверка перед QAMAX ещё не запускалась.')}</p>
+        </div>
+        <div>
+          <span>Решение</span>
+          <strong>${this.escapeHtml(this.phase6StatusName(gate.status))}</strong>
+          <p>${this.escapeHtml(gate.decision || 'Сначала собрать gate snapshot.')}</p>
+        </div>
+        <div>
+          <span>Граница</span>
+          <strong>СТОП перед QAMAX</strong>
+          <p>Эта панель подтверждает готовность, но не запускает финальный QA Max автоматически.</p>
+        </div>
+      </section>
+      <div class="voice-system-grid">
+        ${rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('')}
+      </div>
+      <div class="phase6-check-grid pre-qamax-check-grid">
+        ${checks.map((check) => `
+          <article class="phase6-check phase6-check--${this.escapeHtml(check.status)}">
+            <strong>${this.escapeHtml(check.name)}</strong>
+            <span>${this.escapeHtml(this.phase6StatusName(check.status))}</span>
+            <p>${this.escapeHtml(check.note)}</p>
+          </article>
+        `).join('')}
+      </div>
+      <section class="pre-qamax-scope">
+        <div>
+          <strong>Что проверит финальный QAMAX</strong>
+          <ol>
+            ${scope.map((item) => `<li>${this.escapeHtml(item)}</li>`).join('')}
+          </ol>
+        </div>
+        <div>
+          <strong>Evidence manifest</strong>
+          ${evidence.map((item) => `
+            <article>
+              <span>${this.escapeHtml(item.name)}</span>
+              <code>${this.escapeHtml(item.path)}</code>
+              <p>${this.escapeHtml(item.note)}</p>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+      <div class="system-action-strip system-action-strip--wrap">
+        <button type="button" data-phase6-action="run_pre_qamax_gate">Проверить Gate</button>
+        <button type="button" data-phase6-action="export_pre_qamax_manifest">Скачать manifest</button>
+        <button type="button" data-phase6-action="copy_qamax_scope">Скопировать scope QAMAX</button>
+        <button type="button" data-phase6-action="stop_before_qamax">Остановиться перед QAMAX</button>
+      </div>
+    `;
+  },
+
   renderSystemReleaseCenter() {
     const host = document.getElementById('system-release-center');
     if (!host) return;
@@ -13775,6 +14124,55 @@ const App = {
   },
 
   async handlePhase6Action(action) {
+    if (action === 'run_pre_qamax_gate') {
+      const snapshot = this.buildPreQamaxGateSnapshot();
+      this.preQamaxGateState = {
+        ...snapshot,
+        history: [snapshot, ...((this.preQamaxGateState?.history || []).slice(0, 9))]
+      };
+      this.updateObservabilitySample();
+      this.saveProductionState();
+      this.renderSystemStatus();
+      this.toast(`Pre-QAMAX Gate: ${this.phase6StatusName(snapshot.status)}`);
+      return;
+    }
+
+    if (action === 'export_pre_qamax_manifest') {
+      const snapshot = this.preQamaxGateState?.checked_at ? this.preQamaxGateState : this.buildPreQamaxGateSnapshot();
+      const text = JSON.stringify({
+        type: 'pre_qamax_release_candidate_gate',
+        generated_at: new Date().toISOString(),
+        gate: snapshot,
+        policy: {
+          qamax_not_started: true,
+          no_ai_api: true,
+          no_paid_services: true,
+          no_secrets: true,
+          storage_root: TERMINATOR_STORAGE_ROOT
+        }
+      }, null, 2);
+      const ok = this.downloadTextFile(`terminator-pre-qamax-gate-${Date.now()}.json`, text);
+      if (!ok) await this.copyWorkspaceText(text);
+      this.toast(ok ? 'Pre-QAMAX manifest скачан' : 'Pre-QAMAX manifest скопирован');
+      return;
+    }
+
+    if (action === 'copy_qamax_scope') {
+      await this.copyWorkspaceText([
+        'Final QAMAX scope:',
+        ...this.preQamaxScope().map((item, index) => `${index + 1}. ${item}`),
+        '',
+        'Boundary: Pre-QAMAX Gate only. Do not start final QAMAX without explicit owner command.'
+      ].join('\n'));
+      this.toast('Scope QAMAX скопирован');
+      return;
+    }
+
+    if (action === 'stop_before_qamax') {
+      this.toast('Остановлено перед QAMAX. Финальный QA Max не запускаю без отдельной команды владельца.', 5200);
+      return;
+    }
+
     if (action === 'run_release_check') {
       const snapshot = this.buildProductionReadinessSnapshot();
       this.productionReleaseState = {
