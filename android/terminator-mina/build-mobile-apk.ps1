@@ -26,7 +26,12 @@ $SigningConfigPath = Join-Path $BuildRoot "debug-signing.local.json"
 
 function New-LocalSigningSecret {
   $bytes = New-Object byte[] 24
-  [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $rng.GetBytes($bytes)
+  } finally {
+    $rng.Dispose()
+  }
   return [Convert]::ToBase64String($bytes).TrimEnd("=")
 }
 
@@ -36,7 +41,7 @@ function Get-DebugSigningConfig {
   if ($storePass -and $keyPass) {
     return [pscustomobject]@{
       storepass = $storePass
-      keypass = $keyPass
+      keypass = $storePass
       source = "environment"
     }
   }
@@ -46,7 +51,7 @@ function Get-DebugSigningConfig {
     if ($local.storepass -and $local.keypass) {
       return [pscustomobject]@{
         storepass = [string]$local.storepass
-        keypass = [string]$local.keypass
+        keypass = [string]$local.storepass
         source = "local_ignored_file"
       }
     }
@@ -58,10 +63,10 @@ function Get-DebugSigningConfig {
 
   $generated = [pscustomobject]@{
     storepass = New-LocalSigningSecret
-    keypass = New-LocalSigningSecret
     created_at = (Get-Date).ToString("s")
     note = "Local debug signing only. Do not commit this file."
   }
+  $generated | Add-Member -NotePropertyName keypass -NotePropertyValue $generated.storepass
   $generated | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $SigningConfigPath -Encoding UTF8
   return [pscustomobject]@{
     storepass = [string]$generated.storepass

@@ -1,10 +1,7 @@
 package app.terminator.mina;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.view.ViewGroup;
@@ -24,15 +21,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(MINA_URL));
-        try {
-            startActivity(browserIntent);
-            finish();
-            return;
-        } catch (ActivityNotFoundException ignored) {
-            // Fallback for locked-down Android images without a browser.
-        }
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(2, 7, 16));

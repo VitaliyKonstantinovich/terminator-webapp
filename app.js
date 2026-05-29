@@ -510,7 +510,7 @@ const DATA_SCHEMA_VERSION = 1;
 const SAFE_BACKUP_PACKAGE_VERSION = 1;
 const SCHEMA_SAFETY_TARGETS = [
   ['projects', 'Проекты', 'хранилище проектов', true],
-  ['tasks', 'Задачи', 'хранилище задач (TaskStore / IndexedDB)', true],
+  ['tasks', 'Задачи', 'локальное и общее хранилище задач', true],
   ['messages', 'Сообщения', 'история задачи', false],
   ['artifacts', 'Артефакты', 'полка результатов', true],
   ['files', 'Метаданные файлов', 'файловый контур', true],
@@ -528,7 +528,8 @@ const SCHEMA_SAFETY_TARGETS = [
 const DEFAULT_PROJECT_TYPE = 'custom';
 const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
 const DIAGNOSTIC_MANUAL_REVIEW_STALE_MS = 24 * 60 * 60 * 1000;
-const DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS = 6000;
+const DIAGNOSTIC_PUBLIC_HEALTH_TIMEOUT_MS = 1500;
+const DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS = 2500;
 const LIVE_RUNTIME_CHECK_TIMEOUT_MS = 3500;
 const TASK_STORAGE_SCHEMA_VERSION = 3;
 const FILE_HASH_MAX_BYTES = 50 * 1024 * 1024;
@@ -603,7 +604,7 @@ const COST_GUARD_SERVICES = [
 
 const GUARDIAN_CAPABILITY_MATRIX = [
   ['user', 'Владелец', 'все разрешённые данные', 'после осознанного решения', 'ручные подтверждения', 'только через Approval', 'критичные действия', 'owner-approved paths', 'critical'],
-  ['system', 'Система', 'runtime state', 'events/artifacts metadata', 'нет', 'нет', 'secrets/delete/deploy', 'IndexedDB / TaskStore metadata', 'medium'],
+  ['system', 'Система', 'состояние рабочего контура', 'events/artifacts metadata', 'нет', 'нет', 'secrets/delete/deploy', 'локальная база / TaskStore metadata', 'medium'],
   ['guardian', 'Guardian', 'policies/incidents', 'incident/status', 'нет', 'нет', 'опасные действия без Approval', 'system policy state', 'high'],
   ['diagnost', 'Диагност', 'health/status/log summaries', 'diagnostic reports/incidents', 'read-only checks', 'нет', 'repair/delete/network', 'diagnostic records', 'review'],
   ['local_agent', 'Local Agent', 'allowlisted local metadata', 'D storage task outputs после разрешения', 'только allowlist', 'нет', '.env/secrets/network/security', 'D:\\TerminatorStorage allowlist', 'high'],
@@ -734,7 +735,7 @@ const DEPENDENCY_REGISTRY_CATALOG = [
   ['local_agent_runtime', 'Local Agent Runtime', 'локальный исполнитель и future workers', 'System / Local Agent status', 'browser-only safe mode', 'high'],
   ['task_scheduler', 'Windows Task Scheduler', 'autostart Local Agent', 'LastTaskResult / single-instance', 'ручной запуск агента', 'review'],
   ['terminator_storage_d', 'D:\\TerminatorStorage', 'files/evidence/backups/restore points', 'проверить путь и screenshots', 'lightweight browser metadata only', 'high'],
-  ['indexeddb', 'IndexedDB', 'локальная база задач и metadata', 'Task Runtime статус', 'localStorage fallback', 'medium'],
+  ['indexeddb', 'Локальное хранилище браузера', 'локальная база задач и metadata', 'статус рабочего ядра', 'резерв браузера', 'medium'],
   ['service_worker', 'Service Worker', 'PWA/offline shell', 'service worker marker', 'online-only browser mode', 'medium'],
   ['github_actions_secrets', 'GitHub Actions secrets', 'controlled deploy secrets', 'GitHub settings без вывода значений', 'manual local deploy prohibited', 'critical'],
   ['future_sqlite_fts', 'SQLite FTS', 'future fast memory search', 'not active', 'current keyword index', 'review'],
@@ -2132,6 +2133,7 @@ function parseDirectBridgeResponse(response, options = {}) {
 }
 
 function shouldRetryDirectRequest(options) {
+  if (options.retry === false) return false;
   const method = String(options.method || 'GET').toUpperCase();
   if (method === 'GET') return true;
   if (options.skipAuth) return options.idempotent === true;
@@ -3257,7 +3259,7 @@ const App = {
       count.textContent = `${activeProjects.length} активных проектов${archived ? `, ${archived} в архиве` : ''}`;
     }
     if (storage) {
-      storage.textContent = this.taskRuntimeReady ? 'IndexedDB: активен' : 'IndexedDB: fallback localStorage';
+      storage.textContent = this.taskRuntimeReady ? 'Локальное хранилище: активно' : 'Локальное хранилище: резервный режим';
     }
   },
 
@@ -3466,7 +3468,7 @@ const App = {
       ['Источник истины', `${truth.score}%`, `${truth.summary}; следующий шаг: ${truth.next.name}`],
       ['Интеграция контура', `${integration.score}%`, `${integration.summary}; следующий шаг: ${integration.next.name}`],
       ['Живой контур', `${liveRuntime.score}%`, `${liveRuntime.summary}; следующий шаг: ${liveRuntime.next.name}`],
-      ['Task Runtime', this.taskRuntimeReady ? 'OK' : 'Fallback', this.taskRuntimeReady ? `${tasks.length} задач в IndexedDB/local mirror` : 'Работает localStorage fallback'],
+      ['Рабочее ядро', this.taskRuntimeReady ? 'OK' : 'резерв', this.taskRuntimeReady ? `${tasks.length} задач в локальном хранилище и резервной копии` : 'Работает резервное хранение в браузере'],
       ['Guardian', guardian.label, guardian.note],
       ['Ноги / Device Mesh', `${deviceMesh.readiness}%`, `${deviceMesh.devices.length} устройств; следующий шаг: ${deviceMesh.next}`],
       ['Общее хранилище задач', this.taskStoreSyncStatus || 'не проверен', this.taskStoreLastSyncAt ? `синхронизация: ${this.formatTaskTime(this.taskStoreLastSyncAt)}` : (this.taskStoreSyncError || 'ожидает вход владельца')],
@@ -3488,7 +3490,7 @@ const App = {
     const guardian = this.guardianSnapshot();
     const activeIncident = guardian.openIncidents[0];
     let title = 'Создать первую задачу';
-    let body = 'Task Runtime готов. Следующий шаг — создать задачу в Рабочем окне.';
+    let body = 'Рабочее ядро готово. Следующий шаг — создать задачу в Рабочем окне.';
     let action = 'open_work';
     let taskId = '';
 
@@ -3523,7 +3525,7 @@ const App = {
       action = 'open_task';
       taskId = task.task_id;
     } else if (projects.length) {
-      title = 'Runtime чистый';
+      title = 'Рабочее ядро свободно';
       body = 'Активных задач нет. Можно открыть Рабочее и создать следующий управляемый процесс.';
     }
 
@@ -4023,7 +4025,7 @@ const App = {
       `Guardian: ${guardian.label}`,
       `Safe Mode: ${guardian.state.safe_mode ? 'on' : 'off'}`,
       `Emergency Stop: ${guardian.state.emergency_stop_active ? 'on' : 'off'}`,
-      `Task Runtime: ${this.taskRuntimeReady ? 'IndexedDB active' : 'localStorage fallback'}`,
+      `Рабочее ядро: ${this.taskRuntimeReady ? 'локальное хранилище активно' : 'резерв браузера'}`,
       `TaskStore sync: ${this.taskStoreSyncStatus || 'unknown'}`,
       `Storage root: ${TERMINATOR_STORAGE_ROOT}`,
       '',
@@ -4465,7 +4467,7 @@ const App = {
     };
   },
 
-  async probePublicRuntimeHealth() {
+  async probePublicRuntimeHealth(options = {}) {
     const baseUrl = getConfiguredDirectBridgeBaseUrl();
     if (!baseUrl) return null;
     try {
@@ -4474,9 +4476,11 @@ const App = {
         method: 'GET',
         skipAuth: true,
         idempotent: true,
-        preferFrame: true,
+        preferFrame: options.preferFrame !== false,
+        frameTransport: options.frameTransport,
         allowPopup: false,
-        timeoutMs: LIVE_RUNTIME_CHECK_TIMEOUT_MS
+        timeoutMs: options.timeoutMs || LIVE_RUNTIME_CHECK_TIMEOUT_MS,
+        retry: options.retry
       });
       this.publicRuntimeHealth = result?.ok ? result : null;
       if (this.publicRuntimeHealth) await this.applyPublicRuntimeHealthToOwnedRegistry(this.publicRuntimeHealth);
@@ -4510,7 +4514,12 @@ const App = {
     let host = baseUrl;
     try { host = new URL(baseUrl).host; } catch {}
     const started = performance.now();
-    const publicHealth = await this.probePublicRuntimeHealth();
+    const publicHealth = await this.probePublicRuntimeHealth({
+      timeoutMs: DIAGNOSTIC_PUBLIC_HEALTH_TIMEOUT_MS,
+      preferFrame: false,
+      frameTransport: false,
+      retry: false
+    });
     const publicLatency = Math.round(performance.now() - started);
     if (publicHealth?.ok) {
       const queue = publicHealth.command_queue || {};
@@ -5433,7 +5442,7 @@ const App = {
           ? `активная задача: ${activeTask.title || activeTask.task_id}; всего задач ${tasks.length}`
           : this.taskRuntimeReady
             ? 'локальная база задач готова, активную задачу можно создать в Рабочем'
-            : 'IndexedDB недоступен, работает резервный режим',
+            : 'Локальное хранилище недоступно, работает резервный режим',
         'open_work'
       ),
       this.integrationCheck(
@@ -7020,7 +7029,7 @@ const App = {
     checks.push(this.phase6Check(
       'Хранилище задач',
       this.taskRuntimeReady ? 'pass' : 'review',
-      this.taskRuntimeReady ? 'IndexedDB активен; localStorage mirror остаётся fallback.' : 'IndexedDB недоступен, работает резерв localStorage.',
+      this.taskRuntimeReady ? 'Локальное хранилище активно; резервная копия браузера остаётся запасным вариантом.' : 'Локальное хранилище недоступно, работает резервный режим браузера.',
       this.taskRuntimeReady ? 'safe' : 'review'
     ));
     checks.push(this.phase6Check(
@@ -7277,9 +7286,9 @@ const App = {
       ),
       this.preQamaxGateCheck(
         'task_runtime',
-        'Рабочее / Task Runtime',
+        'Рабочее / рабочее ядро',
         this.taskRuntimeReady ? 'pass' : 'review',
-        this.taskRuntimeReady ? `${(this.workTasks || []).length} задач в IndexedDB/local mirror.` : 'IndexedDB недоступен, fallback localStorage.',
+        this.taskRuntimeReady ? `${(this.workTasks || []).length} задач в локальном хранилище и резервной копии.` : 'Локальное хранилище недоступно, работает резервный режим.',
         this.taskRuntimeReady ? 'safe' : 'review'
       ),
       this.preQamaxGateCheck(
@@ -8230,10 +8239,10 @@ const App = {
       const activeDeviceExists = !this.activeDeviceId || this.systemDevices.some((device) => device.device_id === this.activeDeviceId);
 
       checks.push(this.diagnosticCheck(
-        'Runtime задач',
+        'Рабочее ядро задач',
         this.taskRuntimeReady ? 'pass' : 'review',
         this.taskRuntimeReady ? 'safe' : 'review',
-        this.taskRuntimeReady ? 'IndexedDB активен, localStorage mirror остаётся fallback.' : 'IndexedDB недоступен, работает fallback. Требуется ручная проверка браузера.'
+        this.taskRuntimeReady ? 'Локальное хранилище активно, резервная копия браузера остаётся запасным вариантом.' : 'Локальное хранилище недоступно, работает резервный режим. Требуется ручная проверка браузера.'
       ));
 
       const taskEventGaps = tasks.filter((task) => (task.messages?.length || task.artifacts?.length || task.audit_log?.length) && !(task.events?.length));
@@ -8254,7 +8263,7 @@ const App = {
         this.taskStoreSyncStatus === 'synced'
           ? `Общее хранилище задач синхронизировано: ${this.formatTaskTime(this.taskStoreLastSyncAt)}.`
           : this.taskStoreSyncStatus === 'owner_session_required'
-            ? 'Общее хранилище задач ждёт вход владельца; данные остаются в IndexedDB.'
+            ? 'Общее хранилище задач ждёт вход владельца; данные остаются в локальном хранилище.'
             : this.taskStoreSyncError || `Текущий статус: ${this.taskStoreSyncStatus || 'не проверено'}.`,
         'sync_task_store'
       ));
@@ -8263,14 +8272,14 @@ const App = {
         'Local Agent',
         agent.status === 'на связи' || agent.status === 'connected' ? 'pass' : 'manual_check',
         'review',
-        `${agent.note}. Browser-side Diagnost не опрашивает процессы Windows без Local Agent runtime.`
+        `${agent.note}. Браузерный Диагност не опрашивает процессы Windows без локального агента.`
       ));
 
       checks.push(this.diagnosticCheck(
         'Storage D',
         'manual_check',
         'review',
-        `${TERMINATOR_STORAGE_ROOT} является рабочим storage root. Browser не проверяет свободное место и папки без Local Agent storage.`
+        `${TERMINATOR_STORAGE_ROOT} является рабочей папкой хранения. Браузерный Диагност не проверяет свободное место и папки без локального агента.`
       ));
 
       const storageManifestGaps = tasks.filter((task) => !task.storage_manifest?.task_path || !Array.isArray(task.storage_manifest?.folders) || task.storage_manifest.folders.length < TASK_STORAGE_SUBFOLDERS.length);
@@ -8283,12 +8292,12 @@ const App = {
 
       const storageContractGaps = tasks.filter((task) => !task.storage_manifest?.local_agent_contract || task.storage_manifest.schema_version < TASK_STORAGE_SCHEMA_VERSION);
       checks.push(this.diagnosticCheck(
-        'Local Agent storage contract',
+        'Контракт хранилища локального агента',
         storageContractGaps.length ? 'review' : 'pass',
         storageContractGaps.length ? 'review' : 'safe',
         storageContractGaps.length
-          ? `${storageContractGaps.length} задач требуют обновления storage contract до v${TASK_STORAGE_SCHEMA_VERSION}.`
-          : `Storage contract v${TASK_STORAGE_SCHEMA_VERSION} готов: prepare_task_storage без destructive actions.`
+          ? `${storageContractGaps.length} задач требуют обновления контракта хранилища до v${TASK_STORAGE_SCHEMA_VERSION}.`
+          : `Контракт хранилища v${TASK_STORAGE_SCHEMA_VERSION} готов: подготовка папок без опасных действий.`
       ));
 
       const rawFilePolicyBroken = tasks.some((task) => (task.files || []).some((file) => file.raw_file_saved || file.base64 || file.dataUrl || file.content));
@@ -8403,16 +8412,16 @@ const App = {
         'Browser-side Diagnost не видит окна Windows. После Windows app/tray этот check должен перейти в Local Agent/desktop companion.'
       ));
 
-      if (!this.taskRuntimeReady) suggestions.push(this.diagnosticSuggestion('Проверить браузерный storage', 'review', 'manual_review', 'IndexedDB в fallback. Проверьте разрешения/режим браузера перед QA Max.'));
+      if (!this.taskRuntimeReady) suggestions.push(this.diagnosticSuggestion('Проверить локальное хранилище браузера', 'review', 'manual_review', 'Локальное хранилище работает в резервном режиме. Проверьте разрешения/режим браузера перед QA Max.'));
       if (this.taskStoreSyncStatus !== 'synced') suggestions.push(this.diagnosticSuggestion('Синхронизировать задачи', 'safe', 'sync_task_store', 'Общее хранилище задач переводит данные из локального браузерного кеша в общий контур Direct Mode.'));
       if (storageManifestGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить storage manifests', 'safe', 'refresh_runtime', 'Безопасно открыть задачи и пересобрать planned storage paths.'));
       if (missingDevices.length || devicesWithoutCapabilities.length) suggestions.push(this.diagnosticSuggestion('Обновить Device Registry', 'safe', 'refresh_runtime', 'Безопасно перечитать локальный реестр устройств и default passports.'));
-      if (taskEventGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить старые задачи при открытии', 'safe', 'refresh_runtime', 'Безопасно перечитать runtime state и пересобрать панели.'));
+      if (taskEventGaps.length) suggestions.push(this.diagnosticSuggestion('Обновить старые задачи при открытии', 'safe', 'refresh_runtime', 'Безопасно перечитать состояние рабочего контура и пересобрать панели.'));
       if (!activeTaskExists || !activeDeviceExists) suggestions.push(this.diagnosticSuggestion('Очистить stale selection', 'safe', 'clear_stale_selection', 'Сбросить несуществующий active task/device pointer.'));
       if (pendingApprovals.length) suggestions.push(this.diagnosticSuggestion('Разобрать Approval queue', 'approval_required', 'open_approval_center', 'Опасные действия не выполнять, только принять решение владельца.'));
       if (staleWaiting.length || staleManual.length) suggestions.push(this.diagnosticSuggestion('Подготовить recovery plan', 'review', 'create_recovery_plan', 'Сформировать план восстановления без выполнения команд.'));
       if (releaseSnapshot.status !== 'ready') suggestions.push(this.diagnosticSuggestion('Проверить производственный контур', 'review', 'manual_review', 'Откройте панель Производственный контур: она покажет release, backup и observability readiness.'));
-      suggestions.push(this.diagnosticSuggestion('Обновить runtime панели', 'safe', 'refresh_runtime', 'Безопасно перечитать локальное состояние и перерисовать Mission/System.'));
+      suggestions.push(this.diagnosticSuggestion('Обновить панели рабочего контура', 'safe', 'refresh_runtime', 'Безопасно перечитать локальное состояние и перерисовать Центр управления и Систему.'));
 
       const run = await this.saveSystemDiagnostic({
         diagnostic_id: this.generateWorkspaceId('DIAG'),
@@ -8575,11 +8584,11 @@ const App = {
     const status = DEVICE_STATUSES[agent.status] || agent.status || 'не проверено';
     const trust = DEVICE_TRUST_LEVELS[agent.trust_level] || agent.trust_level || 'неизвестно';
     const heartbeatStatus = agent.heartbeat_status
-      ? `; heartbeat=${agent.heartbeat_status}${agent.heartbeat_age_ms !== null && agent.heartbeat_age_ms !== undefined ? ` ${this.formatDuration(agent.heartbeat_age_ms)} назад` : ''}`
+      ? `; сигнал=${agent.heartbeat_status}${agent.heartbeat_age_ms !== null && agent.heartbeat_age_ms !== undefined ? ` ${this.formatDuration(agent.heartbeat_age_ms)} назад` : ''}`
       : '';
     return {
       status,
-      note: `${agent.name}: ${trust}; agent_id=${agent.agent_id || this.getPrimaryOwnedAgentId()}${heartbeatStatus}; ${agent.notes || 'runtime не опрашивался в этом слое'}`
+      note: `${agent.name}: ${trust}${heartbeatStatus}; ${agent.notes || 'локальный агент не опрашивался в этом слое'}`
     };
   },
 
@@ -9670,7 +9679,7 @@ const App = {
   renderGuardianWorkerReportRows() {
     const reports = (this.guardianWorkerReports || []).slice(0, 6);
     if (!reports.length) {
-      return '<p class="mission-empty">Worker reports ещё не создавались. Нажмите «Проверить Eyes/Hands».</p>';
+      return '<p class="mission-empty">Отчёты модулей ещё не создавались. Нажмите «Проверить Глаза/Руки».</p>';
     }
     return reports.map((report) => `
       <article class="guardian-mini-card guardian-worker-report" data-worker-report="${this.escapeHtml(report.report_id)}">
@@ -10038,7 +10047,7 @@ const App = {
           ${results.length ? results.map((record) => `
             <article class="memory-result memory-result--${this.escapeHtml(record.type)} memory-result--${this.escapeHtml(record.relevance || 'recent')}">
               <div>
-                <span>${this.escapeHtml(record.label)} · ${this.escapeHtml(this.memorySearchRelevanceName(record.relevance))} · score ${this.escapeHtml(String(Math.round(record.score || 0)))}</span>
+                <span>${this.escapeHtml(record.label)} · ${this.escapeHtml(this.memorySearchRelevanceName(record.relevance))} · оценка ${this.escapeHtml(String(Math.round(record.score || 0)))}</span>
                 <strong>${this.escapeHtml(record.title)}</strong>
                 <p>${this.escapeHtml(record.summary)}</p>
                 <small>${this.escapeHtml(record.project_name || 'проект не задан')} ${record.task_id ? `· ${this.escapeHtml(record.task_id)}` : ''} · privacy: ${this.escapeHtml(record.privacy_status)}</small>
@@ -12812,7 +12821,7 @@ const App = {
       `Статус: ${this.deviceMeshStatusText(snapshot.status)}`,
       `Готовность: ${snapshot.readiness}%`,
       `WebApp: ${snapshot.webapp.status}`,
-      `Основной агент: ${snapshot.primary_agent.agent_id} / ${snapshot.primary_agent.status}`,
+      `Основной агент: ${snapshot.primary_agent.name || snapshot.primary_agent.agent_id} / ${snapshot.primary_agent.status}`,
       `Телефон: ${snapshot.phone.pairing_status}; presence=${snapshot.phone.presence_status}; подтверждён=${snapshot.phone.owner_confirmed ? 'да' : 'нет'}`,
       `PWA: ${snapshot.pwa.install_label}; service worker=${snapshot.pwa.service_worker}; режим=${snapshot.pwa.display_mode}`,
       `Передача задачи: ${snapshot.handoff.status}; ${snapshot.handoff.note}`,
@@ -12929,7 +12938,7 @@ const App = {
           <div>
             <span>Реестр владельца</span>
             <h3>Доверенные устройства и агенты</h3>
-            <p>Это слой “кто имеет право быть runtime”. Он хранит agent_id, доверие, последний сигнал и возможности, но не хранит пароли, cookies, токены или API-ключи.</p>
+            <p>Это слой доверия устройств и локальных агентов. Он хранит уровень доверия, последний сигнал и возможности, но не хранит пароли, cookies, токены или API-ключи.</p>
           </div>
           <strong>${this.escapeHtml(String(registry.readiness))}%<small>${this.escapeHtml(this.ownedAgentRegistryStatusText(registry.status))}</small></strong>
         </div>
@@ -12960,9 +12969,9 @@ const App = {
             <article>
               <span>${this.escapeHtml(DEVICE_TYPES[agent.type] || agent.type)} · ${this.escapeHtml(DEVICE_TRUST_LEVELS[agent.trust_level] || agent.trust_level)}</span>
               <strong>${this.escapeHtml(agent.name)}</strong>
-              <p>agent_id=${this.escapeHtml(agent.agent_id || 'не задан')} · ${this.escapeHtml(DEVICE_STATUSES[agent.status] || agent.status)} · heartbeat=${this.escapeHtml(agent.heartbeat_status || 'не проверено')}</p>
+              <p>Состояние: ${this.escapeHtml(DEVICE_STATUSES[agent.status] || agent.status)} · сигнал=${this.escapeHtml(agent.heartbeat_status || 'не проверено')}</p>
             </article>
-          `).join('') || '<p class="mission-empty">Агенты появятся после настройки локального runtime.</p>'}
+          `).join('') || '<p class="mission-empty">Агенты появятся после настройки локального контура.</p>'}
         </div>
         <div class="owned-agent-registry__actions">
           <button type="button" data-device-action="refresh_owned_registry">Проверить heartbeat</button>
@@ -12977,7 +12986,7 @@ const App = {
     const statusLabel = this.deviceMeshStatusText(snapshot.status);
     const rows = [
       ['WebApp', snapshot.webapp.status === 'online' ? 'на связи' : 'offline', snapshot.webapp.note],
-      ['ПК runtime', snapshot.primary_agent.status === 'online' ? 'агент online' : 'heartbeat не получен', `agent_id=${snapshot.primary_agent.agent_id}`],
+      ['ПК Терминатора', snapshot.primary_agent.status === 'online' ? 'агент на связи' : 'сигнал не получен', `основной агент: ${snapshot.primary_agent.name || snapshot.primary_agent.agent_id}`],
       ['Телефон', snapshot.phone.owner_confirmed ? 'ручной вход подтверждён' : (snapshot.phone.pairing_ready ? 'ссылка готова' : 'не подключён'), snapshot.phone.note],
       ['PWA', snapshot.pwa.ready ? 'готово' : snapshot.pwa.install_label, `Service Worker: ${snapshot.pwa.service_worker}; режим: ${snapshot.pwa.display_mode}`]
     ];
@@ -14731,7 +14740,7 @@ const App = {
         status: bodyStatus,
         readiness: Math.min(92, bodyScore),
         summary: this.taskRuntimeReady ? 'контур задач активен' : 'контур задач требует внимания',
-        note: `Мост: ${direct.status}; локальный агент: ${agent.status}; agent_id=${ownedRegistry.primary_agent_id}; хранилище задач: ${taskStore.status}.`,
+        note: `Мост: ${direct.status}; локальный агент: ${agent.status}; основной агент: ${ownedRegistry.primary_agent_id}; хранилище задач: ${taskStore.status}.`,
         snapshot_source: 'Task Runtime / Bridge / Local Agent / TaskStore',
         is_mock: false,
         checks: [
@@ -15156,12 +15165,12 @@ const App = {
       return `
         <section class="scheme-config-block">
           <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\repair_workspaces\\&lt;incident_id&gt;</div>
-          <p>${this.escapeHtml(hands.note)} Phase 12 добавляет Controlled Runtime: выполняются только allowlist LOW-risk действия без shell и без active project write.</p>
+          <p>${this.escapeHtml(hands.note)} Руки выполняют только заранее разрешённые безопасные проверки. Активный проект не меняется без Защитника, проверки и подтверждения владельца.</p>
           <div class="scheme-chip-list">
             <span>Планы: ${this.escapeHtml(String(hands.count))}</span>
-            <span>Approval: ${this.escapeHtml(String(hands.approval_count))}</span>
-            <span>Worker reports: ${this.escapeHtml(String(hands.worker_reports))}</span>
-            <span>LOW-run: ${this.escapeHtml(String(runtime.completed_count))}</span>
+            <span>Подтверждения: ${this.escapeHtml(String(hands.approval_count))}</span>
+            <span>Отчёты модулей: ${this.escapeHtml(String(hands.worker_reports))}</span>
+            <span>Безопасные проверки: ${this.escapeHtml(String(runtime.completed_count))}</span>
             <span>Опасная автоматика: заблокирована</span>
           </div>
           ${latest ? `<div class="scheme-chip-list"><span>Последний план: ${this.escapeHtml(latest.title)}</span><span>${this.escapeHtml(this.handsRiskName(latest.risk_level))}</span></div>` : ''}
@@ -15182,12 +15191,12 @@ const App = {
           </div>
           <div class="scheme-chip-list">
             <span>Основной агент: ${this.escapeHtml(ownedRegistry.primary_agent_id)}</span>
-            <span>Heartbeat: ${this.escapeHtml(ownedRegistry.online_count ? 'online' : 'не получен')}</span>
+            <span>Сигнал: ${this.escapeHtml(ownedRegistry.online_count ? 'online' : 'не получен')}</span>
             <span>${this.escapeHtml(String(mesh.routes.length))} маршрутов</span>
-            <span>Handoff: ${this.escapeHtml(String(handoff.task_records.length))} по задаче</span>
-            <span>Checkpoint: ${this.escapeHtml(String(continuity.checkpoint_count))}</span>
-            <span>Task Teleport: ${this.escapeHtml(String(continuity.teleport_count))}</span>
-            <span>Offline recovery: ${this.escapeHtml(continuity.label)}</span>
+            <span>Передачи: ${this.escapeHtml(String(handoff.task_records.length))} по задаче</span>
+            <span>Точки продолжения: ${this.escapeHtml(String(continuity.checkpoint_count))}</span>
+            <span>Перенос задачи: ${this.escapeHtml(String(continuity.teleport_count))}</span>
+            <span>Восстановление офлайн: ${this.escapeHtml(continuity.label)}</span>
             <span>${this.escapeHtml(String(mesh.trusted))} доверенных</span>
             <span>${this.escapeHtml(String(mesh.attention))} требуют внимания</span>
           </div>
@@ -15232,7 +15241,7 @@ const App = {
           <span>Хранилище задач: ${this.escapeHtml(this.taskStoreStatusSnapshot().status)}</span>
           <span>Мост: ${this.escapeHtml(this.directModeStatusSnapshot().status)}</span>
           <span>Локальный агент: ${this.escapeHtml(this.localAgentStatusSnapshot().status)}</span>
-          <span>agent_id: ${this.escapeHtml(this.getPrimaryOwnedAgentId())}</span>
+          <span>Основной агент: ${this.escapeHtml(this.getPrimaryOwnedAgentId())}</span>
         </div>
         <p>Тело держит маршрут задачи, политики, статусы и следующий лучший шаг.</p>
       </section>
