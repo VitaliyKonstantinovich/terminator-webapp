@@ -1,0 +1,204 @@
+{
+  "generated_at": "2026-05-29T08:15:55.814Z",
+  "target": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "marker": "20260529-qamax-fix-block-1-v1",
+  "cacheMarker": "terminator-mina-pwa-20260529-qamax-fix-block-1-v1",
+  "chrome_user_data_dir": "C:\\Users\\glebi\\AppData\\Local\\Temp\\terminator-live-smoke-chrome-9355",
+  "checks": {
+    "initial": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=scheme-live-smoke-1780042556949",
+      "title": "TERMINATOR MINA UI",
+      "readyState": "interactive",
+      "marker": true,
+      "activeScreen": "screen-scheme",
+      "schemeActive": true,
+      "mojibake": false,
+      "imgCount": 0,
+      "bgImage": "none",
+      "svgZoneCount": 8,
+      "ariaCount": 8
+    },
+    "schemeZones": [
+      {
+        "zone": "head",
+        "found": true,
+        "active": "head",
+        "panelTitle": "Голова / Мозги",
+        "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+        "shapeTag": "ellipse",
+        "cx": "160",
+        "cy": "96",
+        "x": "",
+        "y": ""
+      },
+      {
+        "zone": "eyes",
+        "found": true,
+        "active": "eyes",
+        "panelTitle": "Глаза",
+        "aria": "Открыть настройку Глаза. Статус: не настроено.",
+        "shapeTag": "rect",
+        "cx": "",
+        "cy": "",
+        "x": "135",
+        "y": "76"
+      },
+      {
+        "zone": "voice",
+        "found": true,
+        "active": "voice",
+        "panelTitle": "Голос",
+        "aria": "Открыть настройку Голос. Статус: готово.",
+        "shapeTag": "circle",
+        "cx": "160",
+        "cy": "126",
+        "x": "",
+        "y": ""
+      },
+      {
+        "zone": "memory",
+        "found": true,
+        "active": "memory",
+        "panelTitle": "Память",
+        "aria": "Открыть настройку Память. Статус: готово.",
+        "shapeTag": "circle",
+        "cx": "218",
+        "cy": "230",
+        "x": "",
+        "y": ""
+      },
+      {
+        "zone": "body",
+        "found": true,
+        "active": "body",
+        "panelTitle": "Тело",
+        "aria": "Открыть настройку Тело. Статус: частично.",
+        "shapeTag": "path",
+        "cx": "",
+        "cy": "",
+        "x": "",
+        "y": ""
+      },
+      {
+        "zone": "hands",
+        "found": true,
+        "active": "hands",
+        "panelTitle": "Руки",
+        "aria": "Открыть настройку Руки. Статус: не настроено.",
+        "shapeTag": "path",
+        "cx": "",
+        "cy": "",
+        "x": "",
+        "y": ""
+      },
+      {
+        "zone": "legs",
+        "found": true,
+        "active": "legs",
+        "panelTitle": "Ноги",
+        "aria": "Открыть настройку Ноги. Статус: частично.",
+        "shapeTag": "path",
+        "cx": "",
+        "cy": "",
+        "x": "",
+        "y": ""
+      },
+      {
+        "zone": "diagnost",
+        "found": true,
+        "active": "diagnost",
+        "panelTitle": "Диагност",
+        "aria": "Открыть настройку Диагност. Статус: частично.",
+        "shapeTag": "path",
+        "cx": "",
+        "cy": "",
+        "x": "",
+        "y": ""
+      }
+    ],
+    "schemeAnatomy": {
+      "voiceMouth": true,
+      "eyesEyes": true
+    },
+    "memory": {
+      "seeded": true,
+      "totalRecords": 7,
+      "existing": {
+        "count": 1,
+        "quality": "strong",
+        "first": "live-smoke-task"
+      },
+      "artifact": {
+        "count": 1,
+        "quality": "strong",
+        "first": "live-smoke-artifact"
+      },
+      "impossible": {
+        "count": 0,
+        "quality": "empty",
+        "warning": "Ничего релевантного не найдено."
+      },
+      "weak": {
+        "query": "markerzz",
+        "count": 1,
+        "quality": "strong",
+        "warning": "",
+        "firstRelevance": "strong",
+        "first": "live-smoke-weak"
+      }
+    },
+    "guardian": {
+      "afterStop": true,
+      "afterSafeOff": true,
+      "afterWrong": true,
+      "afterCorrect": false,
+      "events": [
+        "emergency_stop.reset_confirmed",
+        "emergency_stop.reset_requested",
+        "emergency_stop.reset_cancelled",
+        "emergency_stop.reset_requested",
+        "emergency_stop.reset_requested",
+        "emergency_stop.activated"
+      ]
+    },
+    "serviceWorker": {
+      "htmlMarker": true,
+      "swMarker": true,
+      "hasOldPhase25Marker": false
+    },
+    "hardRefreshMarker": true,
+    "security": {
+      "noSecretPatterns": true,
+      "noAiApiClientEndpoints": true
+    },
+    "mobile": {
+      "390": {
+        "innerWidth": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "activeScreen": "screen-scheme",
+        "zones": 8,
+        "marker": true,
+        "mojibake": false
+      },
+      "430": {
+        "innerWidth": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "activeScreen": "screen-scheme",
+        "zones": 8,
+        "marker": true,
+        "mojibake": false
+      }
+    }
+  },
+  "screenshots": {
+    "desktopScheme": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\live_deploy_workflow_marker_fix\\screenshots\\live-marker-fix-desktop-scheme.png",
+    "mobile390": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\live_deploy_workflow_marker_fix\\screenshots\\live-marker-fix-mobile-390.png",
+    "mobile430": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\live_deploy_workflow_marker_fix\\screenshots\\live-marker-fix-mobile-430.png"
+  },
+  "errors": [
+    "memory weak query did not produce weak result"
+  ],
+  "status": "FAIL"
+}

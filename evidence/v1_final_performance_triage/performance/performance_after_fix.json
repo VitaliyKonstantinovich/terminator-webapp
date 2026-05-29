@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-05-29T14:20:33.325Z",
+  "target": "http://127.0.0.1:8801/?screen=menu&force=v1-final-performance-triage-after",
+  "marker": "20260529-qamax-fix-block-1-v1",
+  "budgets_ms": {
+    "first_visible_ui": 3000,
+    "app_interactive": 5000,
+    "scheme_open": 2000,
+    "screen_switch": 1000,
+    "quick_diagnost_initial_local": 5000
+  },
+  "measurements": {
+    "first_visible_ui_ms": 115,
+    "app_interactive_ms": 740,
+    "document_complete_ms": 7,
+    "navigation": {
+      "responseEnd": 270,
+      "domInteractive": 793,
+      "domContentLoaded": 797,
+      "loadEventEnd": 0,
+      "transferSize": 60196,
+      "decodedBodySize": 59896
+    },
+    "appReadyState": {
+      "readyState": "interactive",
+      "title": "TERMINATOR MINA UI",
+      "visible": true,
+      "appReady": true,
+      "current": "start",
+      "marker": ""
+    },
+    "routes": [
+      {
+        "screen": "menu",
+        "duration_ms": 17,
+        "current": "menu",
+        "overflow": false
+      },
+      {
+        "screen": "system",
+        "duration_ms": 456,
+        "current": "system",
+        "overflow": false
+      },
+      {
+        "screen": "scheme",
+        "duration_ms": 84,
+        "current": "scheme",
+        "overflow": false
+      },
+      {
+        "screen": "work",
+        "duration_ms": 114,
+        "current": "work",
+        "overflow": false
+      }
+    ],
+    "quick_diagnost": {
+      "duration_ms": 918,
+      "measures": [
+        {
+          "name": "probePublicRuntimeHealth",
+          "duration_ms": 760,
+          "ok": true,
+          "status": "ready"
+        },
+        {
+          "name": "probeDirectBridgeHealth",
+          "duration_ms": 761,
+          "status": "pass",
+          "severity": "safe",
+          "note": "mina-direct-bridge.glebik2807.workers.dev: публичный read-only runtime status получен; очередь=ready; хранилище задач=ready; локальный агент=online."
+        }
+      ],
+      "status": "review",
+      "checks": 21,
+      "directCheck": {
+        "check_id": "CHECK-MPR0EILD-XD11MD",
+        "name": "Direct Bridge health",
+        "status": "pass",
+        "severity": "safe",
+        "note": "mina-direct-bridge.glebik2807.workers.dev: публичный read-only runtime status получен; очередь=ready; хранилище задач=ready; локальный агент=online.",
+        "safe_action": "",
+        "created_at": "2026-05-29T14:20:32.545Z"
+      }
+    },
+    "mobile_390": {
+      "current": "scheme",
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "horizontalOverflow": false
+    },
+    "network_failed": []
+  },
+  "classification": {
+    "first_visible_ui": "PASS",
+    "app_interactive": "PASS",
+    "document_complete": "PASS",
+    "screen_switch": "PASS",
+    "scheme_open": "PASS",
+    "quick_diagnost": "PASS",
+    "mobile_390": "PASS"
+  },
+  "notes": [
+    "Quick Diagnost measured after narrow quick bridge probe fix.",
+    "Document complete is tracked separately because first visible UI and app interactive are the V1 user-facing readiness targets."
+  ],
+  "chrome_stderr_tail": "\r\nDevTools listening on ws://127.0.0.1:9341/devtools/browser/44779902-f809-4f89-865f-5f054fb24055\r\n"
+}

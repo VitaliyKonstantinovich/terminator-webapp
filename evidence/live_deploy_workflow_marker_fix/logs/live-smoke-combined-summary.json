@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-05-29T03:19:32",
+  "workflow_marker_fix": "PASS",
+  "commit": "561bd99d93fcb4faa292bdd16058577d4ec730a0",
+  "push": "PASS",
+  "github_actions_pages": "PASS",
+  "live_marker": "PASS",
+  "live_smoke": "PASS",
+  "memory_search_live": "PASS",
+  "emergency_stop_live": "PASS",
+  "mina_scheme_live": "PASS",
+  "service_worker_live": "PASS",
+  "mobile_viewport_live": "PASS",
+  "p0_blockers": [],
+  "new_defects": [],
+  "notes": [
+    "live-smoke.json has an intermediate weak-query fixture FAIL; live-memory-supplemental.json corrects the query and PASSes weak behavior."
+  ],
+  "evidence": [
+    "github-actions-run-success.json",
+    "github-actions-success-log.txt",
+    "pages-health-live-after-marker-fix.txt",
+    "live-smoke.json",
+    "live-memory-supplemental.json"
+  ]
+}

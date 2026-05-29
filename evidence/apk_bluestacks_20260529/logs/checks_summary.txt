@@ -1,0 +1,5 @@
+Checks performed:
+- PowerShell build-mobile-apk.ps1 executed successfully.
+- apksigner verify PASS: v1/v2/v3 true.
+- WebView launch verified visually in BlueStacks (no external Chrome address bar after wrapper update).
+- ADB install attempted with HD-Adb and failed with: Connect error for write: closed. UI APK install used instead.

@@ -1,0 +1,53 @@
+deploy	Live smoke	﻿2026-05-29T07:45:03.1447111Z ##[group]Run set -euo pipefail
+deploy	Live smoke	2026-05-29T07:45:03.1447419Z ^[[36;1mset -euo pipefail^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1447635Z ^[[36;1mnode <<'NODE'^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1448029Z ^[[36;1mconst pageUrl = process.env.PAGE_URL || 'https://vitaliykonstantinovich.github.io/terminator-webapp/';^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1448527Z ^[[36;1mconst root = pageUrl.endsWith('/') ? pageUrl : `${pageUrl}/`;^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1448826Z ^[[36;1mconst checks = [^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1449014Z ^[[36;1m  {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1449372Z ^[[36;1m    name: 'html',^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1449611Z ^[[36;1m    url: `${root}?force=workflow-smoke-${Date.now()}`,^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1450228Z ^[[36;1m    validate: (text) => text.includes('20260528-phase25-pre-qamax-gate-v1') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1450807Z ^[[36;1m  },^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1450976Z ^[[36;1m  {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1451147Z ^[[36;1m    name: 'manifest',^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1451479Z ^[[36;1m    url: `${root}manifest.webmanifest?force=workflow-smoke-${Date.now()}`,^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1451966Z ^[[36;1m    validate: (text) => {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1452206Z ^[[36;1m      const manifest = JSON.parse(text);^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1452734Z ^[[36;1m      return manifest.name === 'Terminator Mina UI' && manifest.display === 'standalone' && Array.isArray(manifest.icons) && manifest.icons.length >= 3;^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1453223Z ^[[36;1m    },^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1453384Z ^[[36;1m  },^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1453544Z ^[[36;1m  {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1453719Z ^[[36;1m    name: 'service-worker',^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1453988Z ^[[36;1m    url: `${root}sw.js?force=workflow-smoke-${Date.now()}`,^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1454422Z ^[[36;1m    validate: (text) => text.includes('terminator-mina-pwa-20260528-phase25-pre-qamax-gate-v1'),^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1454787Z ^[[36;1m  },^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1454954Z ^[[36;1m];^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1455106Z ^[[36;1m^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1455279Z ^[[36;1mfor (const check of checks) {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1455582Z ^[[36;1m  const response = await fetch(check.url, { cache: 'no-store' });^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1455894Z ^[[36;1m  if (!response.ok) {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1456186Z ^[[36;1m    throw new Error(`${check.name} returned HTTP ${response.status}`);^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1456483Z ^[[36;1m  }^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1456672Z ^[[36;1m  const text = await response.text();^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1456923Z ^[[36;1m  if (!check.validate(text)) {^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1457192Z ^[[36;1m    throw new Error(`${check.name} validation failed`);^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1457448Z ^[[36;1m  }^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1457637Z ^[[36;1m  console.log(`${check.name}: PASS`);^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1457855Z ^[[36;1m}^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1458008Z ^[[36;1mNODE^[[0m
+deploy	Live smoke	2026-05-29T07:45:03.1480550Z shell: /usr/bin/bash -e {0}
+deploy	Live smoke	2026-05-29T07:45:03.1480777Z env:
+deploy	Live smoke	2026-05-29T07:45:03.1480943Z   GITHUB_PAGES: true
+deploy	Live smoke	2026-05-29T07:45:03.1481232Z   PAGE_URL: https://vitaliykonstantinovich.github.io/terminator-webapp/
+deploy	Live smoke	2026-05-29T07:45:03.1481556Z ##[endgroup]
+deploy	Live smoke	2026-05-29T07:45:03.3958264Z file:///home/runner/work/terminator-webapp/terminator-webapp/[eval1]:31
+deploy	Live smoke	2026-05-29T07:45:03.3959577Z     throw new Error(`${check.name} validation failed`);
+deploy	Live smoke	2026-05-29T07:45:03.3960110Z           ^
+deploy	Live smoke	2026-05-29T07:45:03.3960278Z 
+deploy	Live smoke	2026-05-29T07:45:03.3960419Z Error: html validation failed
+deploy	Live smoke	2026-05-29T07:45:03.3961006Z     at file:///home/runner/work/terminator-webapp/terminator-webapp/[eval1]:31:11
+deploy	Live smoke	2026-05-29T07:45:03.3961710Z     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+deploy	Live smoke	2026-05-29T07:45:03.3962125Z 
+deploy	Live smoke	2026-05-29T07:45:03.3962226Z Node.js v22.22.3
+deploy	Live smoke	2026-05-29T07:45:03.4341121Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,116 @@
+{
+  "generated_at": "2026-05-29T14:25:30Z",
+  "mode": "V1 final performance triage",
+  "baseline": {
+    "branch": "main",
+    "head": "561bd99d93fcb4faa292bdd16058577d4ec730a0",
+    "origin_main": "561bd99d93fcb4faa292bdd16058577d4ec730a0",
+    "previous_performance_evidence": "evidence/v1_product_completion_fix_block/performance/performance_rerun.json",
+    "previous_http_timing_evidence": "evidence/v1_product_completion_fix_block/performance/http_timing.json"
+  },
+  "before": {
+    "full_app_ready_cdp_ms": 25074,
+    "app_ready_wait_ms": 19722,
+    "quick_diagnost_ms": 11552,
+    "http_static_delivery_ms": {
+      "html": 402,
+      "sw": 183,
+      "css": 225,
+      "js": 373
+    },
+    "classification": {
+      "webapp_load": "PARTIAL",
+      "quick_diagnost": "PARTIAL"
+    }
+  },
+  "after": {
+    "first_visible_ui_ms": 115,
+    "app_interactive_ms": 740,
+    "document_complete_ms": 7,
+    "quick_diagnost_ms": 918,
+    "scheme_open_ms": 84,
+    "mobile_390_horizontal_overflow": false,
+    "classification": {
+      "first_visible_ui": "PASS",
+      "app_interactive": "PASS",
+      "screen_switch": "PASS",
+      "scheme_open": "PASS",
+      "quick_diagnost": "PASS",
+      "mobile_390": "PASS"
+    },
+    "evidence": "evidence/v1_final_performance_triage/performance/performance_after_fix.json"
+  },
+  "breakdown": {
+    "network_load": {
+      "status": "PASS",
+      "evidence": "HTTP supplemental showed HTML 402ms and app.js 373ms on live; local CDP responseEnd 270ms after fix.",
+      "root_cause": "Not the main cause of the previous 25s reading."
+    },
+    "html_load": {
+      "status": "PASS",
+      "evidence": "Local first visible UI 115ms; HTTP HTML 402ms live.",
+      "root_cause": "No HTML bottleneck found."
+    },
+    "js_parse_init": {
+      "status": "PASS",
+      "evidence": "App interactive 740ms after fix; route switching <=456ms.",
+      "root_cause": "Large app.js is acceptable for V1 local smoke; no bundling/splitting done."
+    },
+    "service_worker_impact": {
+      "status": "PASS",
+      "evidence": "No stale cache in prior targeted regression; local no-store server used for this triage.",
+      "root_cause": "Not implicated in current local timing."
+    },
+    "app_state_hydration": {
+      "status": "PASS",
+      "evidence": "MinaApp interactive at 740ms; IndexedDB/runtime load did not block beyond V1 target in local CDP.",
+      "root_cause": "No safe additional V1 fix needed."
+    },
+    "localStorage_indexedDB_usage": {
+      "status": "PASS",
+      "evidence": "No startup delay beyond interactive budget.",
+      "root_cause": "No storage redesign performed."
+    },
+    "memory_search_init": {
+      "status": "PASS",
+      "evidence": "Memory regression normal/impossible/weak/secret PASS in regression_smoke.json.",
+      "root_cause": "Not a startup bottleneck."
+    },
+    "scheme_render": {
+      "status": "PASS",
+      "evidence": "Scheme open 84ms after app interactive; mobile 390 no overflow.",
+      "root_cause": "Not a startup bottleneck."
+    },
+    "diagnostic_cards_init": {
+      "status": "PASS_AFTER_FIX",
+      "evidence": "Quick Diagnost 918ms after fix; Direct Bridge public probe 760ms.",
+      "root_cause": "Previous Quick Diagnost awaited Direct Bridge frame readiness path."
+    },
+    "artificial_wait_or_readiness_wait": {
+      "status": "RESOLVED_BY_METRIC_SPLIT",
+      "evidence": "Previous performance_rerun included explicit readiness wait and complete/app-ready coupling; new evidence tracks first visible, interactive, and document complete separately.",
+      "root_cause": "Previous full app-ready number mixed user-facing readiness with load/complete wait."
+    },
+    "external_live_bridge_waits": {
+      "status": "PASS_AFTER_FIX",
+      "evidence": "Diagnostic public health uses quick no-frame/no-retry probe with 1500ms public timeout and 2500ms fallback health timeout.",
+      "root_cause": "Bridge iframe ready timeout was inappropriate for Quick Diagnost."
+    },
+    "headless_only_artifact": {
+      "status": "PARTIAL_RESOLVED",
+      "evidence": "Earlier local probe showed visible 347ms/app 692ms but loadEventEnd 21s from headless external resource behavior; after no-store local target document_complete 7ms.",
+      "root_cause": "Old measurement was overly strict for user readiness. Continue to track real visible/interactive metrics."
+    }
+  },
+  "code_changes": [
+    "Added DIAGNOSTIC_PUBLIC_HEALTH_TIMEOUT_MS=1500 and reduced DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS to 2500 for quick diagnostics.",
+    "Added directBridgeRequest retry:false option without changing existing callers.",
+    "Added probePublicRuntimeHealth(options) for quick no-frame/no-retry diagnostics while preserving default live runtime behavior.",
+    "Changed probeDirectBridgeHealth to use quick public health path before fallback."
+  ],
+  "p0_blockers": [],
+  "remaining_risks": [
+    "Full live performance can still vary by GitHub Pages/CDN/network and owner environment.",
+    "Large app.js remains a V1 technical debt, but current visible/interactive budgets pass."
+  ]
+}

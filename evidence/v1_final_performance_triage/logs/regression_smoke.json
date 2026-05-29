@@ -1,0 +1,106 @@
+{
+  "generated_at": "2026-05-29T14:24:36.995Z",
+  "target": "http://127.0.0.1:8803/",
+  "ready_ms": 3276,
+  "desktop": [
+    {
+      "screen": "menu",
+      "current": "menu",
+      "overflow": false
+    },
+    {
+      "screen": "work",
+      "current": "work",
+      "overflow": false
+    },
+    {
+      "screen": "system",
+      "current": "system",
+      "overflow": false
+    },
+    {
+      "screen": "scheme",
+      "current": "scheme",
+      "overflow": false
+    }
+  ],
+  "memory": {
+    "normal": {
+      "query": "GitHub Pages",
+      "count": 1,
+      "quality": "strong",
+      "warning": "",
+      "first": "known-task",
+      "rel": "strong",
+      "score": 52
+    },
+    "artifact": {
+      "query": "artifact evidence",
+      "count": 1,
+      "quality": "strong",
+      "warning": "",
+      "first": "known-task",
+      "rel": "strong",
+      "score": 8
+    },
+    "impossible": {
+      "query": "zzzz-impossible-no-match-20260529",
+      "count": 0,
+      "quality": "empty",
+      "warning": "Ничего релевантного не найдено.",
+      "first": "",
+      "rel": "",
+      "score": 0
+    },
+    "weak": {
+      "query": "markerzz othernomatch",
+      "count": 1,
+      "quality": "weak",
+      "warning": "Найдены только слабые совпадения, проверьте вручную.",
+      "first": "weak-note",
+      "rel": "weak",
+      "score": 2
+    },
+    "secret": {
+      "query": "FAKE_SECRET_DO_NOT_USE",
+      "count": 0,
+      "quality": "empty",
+      "warning": "Ничего релевантного не найдено.",
+      "first": "",
+      "rel": "",
+      "score": 0
+    }
+  },
+  "emergency": {
+    "afterSafeOff": {
+      "safe_mode": true,
+      "emergency_stop_active": true,
+      "status": "emergency_stop"
+    },
+    "afterWrong": {
+      "safe_mode": true,
+      "emergency_stop_active": true,
+      "status": "emergency_stop"
+    },
+    "afterCorrect": {
+      "safe_mode": false,
+      "emergency_stop_active": false,
+      "status": "active",
+      "last_event": "Emergency Stop reset confirmed by owner"
+    },
+    "pass": true
+  },
+  "mobile": {
+    "current": "scheme",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "horizontalOverflow": false
+  },
+  "classification": {
+    "desktop": "PASS",
+    "memory": "PASS",
+    "emergency": "PASS",
+    "mobile": "PASS"
+  },
+  "chrome_stderr_tail": "\r\nDevTools listening on ws://127.0.0.1:9343/devtools/browser/a74c34c2-8d77-4ba9-93d8-2c135667b567\r\n"
+}

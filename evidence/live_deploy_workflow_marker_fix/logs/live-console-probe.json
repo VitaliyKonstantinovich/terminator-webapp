@@ -1,0 +1,25 @@
+{
+  "eval": {
+    "ready": "interactive",
+    "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=probe-console",
+    "title": "TERMINATOR MINA UI",
+    "hasMina": true,
+    "hasApp": true,
+    "scripts": [
+      {
+        "src": "https://telegram.org/js/telegram-web-app.js",
+        "async": true,
+        "defer": false
+      },
+      {
+        "src": "https://vitaliykonstantinovich.github.io/terminator-webapp/app.js?v=20260529-qamax-fix-block-1-v1",
+        "async": false,
+        "defer": false
+      }
+    ],
+    "bodyText": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управления\n›\nSYS\nСистема\n›\n\nРабочее активно • Runtime готов\n\n←\nMINA UI\n×\nРабочее\n\nЦентр управления задачами\n\nПроекты\n4 активных проектов\nIndexedDB: активен\nНАЗВАНИЕ ПРОЕКТА\nТИП\nОбычный проект\nТерминатор\nДиплом / QA\nРазработка / Codex / Antigravity\nИсследования / документы / анализ\nЦЕЛЬ ПРОЕКТА\nСоздать проект\nПереименовать выбранный\nАрхивировать ",
+    "htmlMarker": true
+  },
+  "events": [],
+  "chromeLog": "\r\nDevTools listening on ws://127.0.0.1:9352/devtools/browser/4fb2201f-b6e4-4b61-bed6-4e554bda4bea\r\n[8160:6952:0529/030703.698:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n"
+}

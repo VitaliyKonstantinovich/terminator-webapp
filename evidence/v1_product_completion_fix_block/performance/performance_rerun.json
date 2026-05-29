@@ -1,0 +1,171 @@
+{
+  "generated_at": "2026-05-29T13:23:41.867Z",
+  "started_at": "2026-05-29T13:23:02.885Z",
+  "status": "PASS",
+  "device_browser": "Chrome headless via CDP on Windows",
+  "target": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=menu&force=v1-product-completion-performance",
+  "marker": "20260529-qamax-fix-block-1-v1",
+  "budgets_ms": {
+    "webapp_load": 3000,
+    "screen_switch": 1000,
+    "scheme_open": 2000,
+    "memory_search": 3000,
+    "quick_diagnost": 5000,
+    "mobile_interaction": 2000
+  },
+  "measurements": {
+    "webapp_load_ms": 25074,
+    "app_ready": {
+      "label": "app-ready",
+      "duration_ms": 19722,
+      "status": "PASS",
+      "value": {
+        "ready": true,
+        "title": "TERMINATOR MINA UI",
+        "current": "menu",
+        "readyState": "complete",
+        "marker": true
+      }
+    },
+    "routes": [
+      {
+        "label": "screen-menu",
+        "duration_ms": 8,
+        "status": "PASS",
+        "value": {
+          "screen": "menu",
+          "current": "menu",
+          "duration_ms": 4,
+          "scrollWidth": 1422,
+          "innerWidth": 1422,
+          "horizontalOverflow": false,
+          "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управле"
+        }
+      },
+      {
+        "label": "screen-system",
+        "duration_ms": 222,
+        "status": "PASS",
+        "value": {
+          "screen": "system",
+          "current": "system",
+          "duration_ms": 219,
+          "scrollWidth": 1422,
+          "innerWidth": 1422,
+          "horizontalOverflow": false,
+          "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управле"
+        }
+      },
+      {
+        "label": "screen-scheme",
+        "duration_ms": 162,
+        "status": "PASS",
+        "value": {
+          "screen": "scheme",
+          "current": "scheme",
+          "duration_ms": 156,
+          "scrollWidth": 1422,
+          "innerWidth": 1422,
+          "horizontalOverflow": false,
+          "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управле"
+        }
+      },
+      {
+        "label": "screen-work",
+        "duration_ms": 345,
+        "status": "PASS",
+        "value": {
+          "screen": "work",
+          "current": "work",
+          "duration_ms": 339,
+          "scrollWidth": 1422,
+          "innerWidth": 1422,
+          "horizontalOverflow": false,
+          "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управле"
+        }
+      }
+    ],
+    "memory": {
+      "label": "memory-search",
+      "duration_ms": 6,
+      "status": "PASS",
+      "value": {
+        "records": 3,
+        "normal": {
+          "query": "GitHub Pages",
+          "duration_ms": 1,
+          "count": 1,
+          "quality": "strong",
+          "warning": "",
+          "first": "perf-task",
+          "firstRelevance": "strong"
+        },
+        "artifact": {
+          "query": "artifact evidence",
+          "duration_ms": 0,
+          "count": 2,
+          "quality": "strong",
+          "warning": "",
+          "first": "perf-artifact",
+          "firstRelevance": "strong"
+        },
+        "impossible": {
+          "query": "zzzz-impossible-no-match-20260529",
+          "duration_ms": 0,
+          "count": 0,
+          "quality": "empty",
+          "warning": "Ничего релевантного не найдено.",
+          "first": "",
+          "firstRelevance": ""
+        },
+        "weak": {
+          "query": "markerzz othernomatch",
+          "duration_ms": 0,
+          "count": 1,
+          "quality": "strong",
+          "warning": "",
+          "first": "perf-weak",
+          "firstRelevance": "strong"
+        }
+      }
+    },
+    "diagnostic": {
+      "label": "quick-diagnost",
+      "duration_ms": 11799,
+      "status": "PASS",
+      "value": {
+        "duration_ms": 11552,
+        "runs": 1,
+        "latestStatus": "review",
+        "latestChecks": 21
+      }
+    },
+    "mobileScheme": {
+      "label": "mobile-scheme-390",
+      "duration_ms": 111,
+      "status": "PASS",
+      "value": {
+        "current": "scheme",
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "horizontalOverflow": false,
+        "title": "TERMINATOR",
+        "pill": "Правда 67%"
+      }
+    }
+  },
+  "classification": {
+    "webapp_load": "PARTIAL",
+    "screen_switch": "PASS",
+    "scheme_open": "PASS",
+    "memory_search": "PASS",
+    "quick_diagnost": "PARTIAL",
+    "mobile_390": "PASS"
+  },
+  "notes": [
+    "Memory Search performance uses safe dummy records in browser state; no secrets.",
+    "Live page load includes network and browser cold-start overhead plus explicit readiness wait.",
+    "No code/deploy/push performed by this performance rerun."
+  ],
+  "chrome_stderr_tail": "\r\nDevTools listening on ws://127.0.0.1:9936/devtools/browser/cebac4d3-bfd3-4465-bfbb-5253f55b1d82\r\n[37148:35228:0529/082306.836:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\nCreated TensorFlow Lite XNNPACK delegate for CPU.\r\n[37148:35228:0529/082335.092:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n"
+}

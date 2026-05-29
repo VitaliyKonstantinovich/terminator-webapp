@@ -1,0 +1,29 @@
+git status --short --branch:
+## main...origin/main
+ M android/terminator-mina/AndroidManifest.xml
+ M android/terminator-mina/build-mobile-apk.ps1
+ M android/terminator-mina/src/app/terminator/mina/MainActivity.java
+?? docs/APK_BLUESTACKS_SMOKE_2026-05-29.md
+?? docs/LIVE_DEPLOY_SMOKE_QAMAX_FIX_BLOCK_1_2026-05-29.md
+?? docs/LIVE_DEPLOY_WORKFLOW_MARKER_FIX_2026-05-29.md
+?? docs/QAMAX_V1_ACCEPTANCE_2026-05-29.md
+?? docs/QAMAX_V1_MAX_ACCEPTANCE_2026-05-29.md
+?? evidence/apk_bluestacks_20260529/
+?? evidence/live_deploy_qamax_fix_block_1/
+?? evidence/live_deploy_workflow_marker_fix/
+?? evidence/v1_product_completion_audit/
+
+branch:
+main
+
+HEAD:
+561bd99d93fcb4faa292bdd16058577d4ec730a0
+
+origin/main:
+561bd99d93fcb4faa292bdd16058577d4ec730a0
+
+live URL:
+https://vitaliykonstantinovich.github.io/terminator-webapp/
+
+APK:
+D:\TerminatorStorage\codex_outputs\apk_bluestacks_20260529\terminator-mina-phase5-debug.apk

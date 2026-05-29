@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-05-29T13:24:29.3667789Z",
+  "mode": "read-only live HTTP timing supplemental",
+  "results": [
+    {
+      "name": "html",
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=v1-product-completion-http-timing",
+      "status_code": 200,
+      "duration_ms": 402,
+      "bytes": 53562,
+      "marker_found": true
+    },
+    {
+      "name": "sw",
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/sw.js",
+      "status_code": 200,
+      "duration_ms": 183,
+      "bytes": 3423,
+      "marker_found": true
+    },
+    {
+      "name": "css",
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/styles.css?v=20260529-qamax-fix-block-1-v1",
+      "status_code": 200,
+      "duration_ms": 225,
+      "bytes": 178633,
+      "marker_found": false
+    },
+    {
+      "name": "js",
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/app.js?v=20260529-qamax-fix-block-1-v1",
+      "status_code": 200,
+      "duration_ms": 373,
+      "bytes": 988796,
+      "marker_found": false
+    }
+  ],
+  "classification": "PASS"
+}

@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-05-29T13:34:24.778Z",
+  "target": "http://127.0.0.1:9226/",
+  "status": "PASS",
+  "ready": {
+    "label": "ready",
+    "status": "PASS",
+    "value": {
+      "ready": true,
+      "current": "scheme",
+      "title": "TERMINATOR MINA UI",
+      "readyState": "interactive"
+    }
+  },
+  "zones": {
+    "label": "scheme-zones",
+    "status": "PASS",
+    "value": {
+      "results": [
+        {
+          "id": "head",
+          "active": "head",
+          "ok": true,
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+          "focusable": "0"
+        },
+        {
+          "id": "eyes",
+          "active": "eyes",
+          "ok": true,
+          "aria": "Открыть настройку Глаза. Статус: не настроено.",
+          "focusable": "0"
+        },
+        {
+          "id": "voice",
+          "active": "voice",
+          "ok": true,
+          "aria": "Открыть настройку Голос. Статус: готово.",
+          "focusable": "0"
+        },
+        {
+          "id": "memory",
+          "active": "memory",
+          "ok": true,
+          "aria": "Открыть настройку Память. Статус: готово.",
+          "focusable": "0"
+        },
+        {
+          "id": "body",
+          "active": "body",
+          "ok": true,
+          "aria": "Открыть настройку Тело. Статус: частично.",
+          "focusable": "0"
+        },
+        {
+          "id": "hands",
+          "active": "hands",
+          "ok": true,
+          "aria": "Открыть настройку Руки. Статус: не настроено.",
+          "focusable": "0"
+        },
+        {
+          "id": "legs",
+          "active": "legs",
+          "ok": true,
+          "aria": "Открыть настройку Ноги. Статус: частично.",
+          "focusable": "0"
+        },
+        {
+          "id": "diagnost",
+          "active": "diagnost",
+          "ok": true,
+          "aria": "Открыть настройку Диагност. Статус: частично.",
+          "focusable": "0"
+        }
+      ],
+      "allPass": true
+    }
+  },
+  "vocabulary": {
+    "label": "normal-vocabulary",
+    "status": "PASS",
+    "value": {
+      "out": [
+        {
+          "screen": "menu",
+          "hasIndexedDB": false,
+          "hasAgentId": false,
+          "hasWorkerReports": false,
+          "hasRuntimeReady": false,
+          "sample": "←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управления\n›\nSYS\nСистема\n›\n\nРабочее активно • рабочее ядро готово"
+        },
+        {
+          "screen": "system",
+          "hasIndexedDB": false,
+          "hasAgentId": false,
+          "hasWorkerReports": false,
+          "hasRuntimeReady": false,
+          "sample": "←\nMINA UI\n×\nСистема\n\nРабочее ядро, безопасность и будущие устройства\n\nСхема Мины\nВизуальная настройка и readiness Терминатора\nОткрыть схему\n\nОдин экран показывает, что работает, чт"
+        },
+        {
+          "screen": "mission",
+          "hasIndexedDB": false,
+          "hasAgentId": false,
+          "hasWorkerReports": false,
+          "hasRuntimeReady": false,
+          "sample": "←\nMINA UI\n×\nЦентр управления\n\nСводка проектов, задач и рисков\n\nИСТОЧНИК ИСТИНЫ\n66%\n\nнужно закрыть связи: Интеграция контура\n\nПРОЕКТЫ\n4\n\nактивные проекты\n\nАКТИВНЫЕ ЗАДАЧИ\n0\n\nв работ"
+        },
+        {
+          "screen": "scheme",
+          "hasIndexedDB": false,
+          "hasAgentId": false,
+          "hasWorkerReports": false,
+          "hasRuntimeReady": false,
+          "sample": "△\nTERMINATOR\nМИНА\n•\nОбзор\n◇\nСхема Мины\n▤\nРабочее\n▣\nПамять\n•\nЗадачи\n◈\nДиагност\n•\nИнциденты\n•\nНастройки\nM\nОператор\nГлавный пользователь\n33%\nГОТОВНОСТЬ\nНАСТРОЙКА СИСТЕМЫ\nСхема Мины\n\nН"
+        }
+      ],
+      "pass": true
+    }
+  },
+  "mobile": {
+    "label": "mobile-390",
+    "status": "PASS",
+    "value": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "horizontalOverflow": false,
+      "pill": "Правда 66%"
+    }
+  },
+  "chrome_stderr_tail": "\r\nDevTools listening on ws://127.0.0.1:10595/devtools/browser/b48ca2e4-4bae-48a9-985d-1168848b3520\r\n[39348:2004:0529/083405.159:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\nCreated TensorFlow Lite XNNPACK delegate for CPU.\r\n"
+}

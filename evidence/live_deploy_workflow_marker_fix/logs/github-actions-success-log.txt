@@ -1,0 +1,409 @@
+deploy	Set up job	﻿2026-05-29T07:54:07.2191781Z Current runner version: '2.334.0'
+deploy	Set up job	2026-05-29T07:54:07.2227200Z ##[group]Runner Image Provisioner
+deploy	Set up job	2026-05-29T07:54:07.2228543Z Hosted Compute Agent
+deploy	Set up job	2026-05-29T07:54:07.2229396Z Version: 20260520.533
+deploy	Set up job	2026-05-29T07:54:07.2230332Z Commit: 189110e25284a9812c124fd27b339e2fb4f2f9db
+deploy	Set up job	2026-05-29T07:54:07.2231702Z Build Date: 2026-05-20T17:44:04Z
+deploy	Set up job	2026-05-29T07:54:07.2232691Z Worker ID: {d58f0112-8f39-41ad-ad02-217593690a66}
+deploy	Set up job	2026-05-29T07:54:07.2233933Z Azure Region: eastus2
+deploy	Set up job	2026-05-29T07:54:07.2234754Z ##[endgroup]
+deploy	Set up job	2026-05-29T07:54:07.2236792Z ##[group]Operating System
+deploy	Set up job	2026-05-29T07:54:07.2237869Z Ubuntu
+deploy	Set up job	2026-05-29T07:54:07.2238628Z 24.04.4
+deploy	Set up job	2026-05-29T07:54:07.2239500Z LTS
+deploy	Set up job	2026-05-29T07:54:07.2240283Z ##[endgroup]
+deploy	Set up job	2026-05-29T07:54:07.2241069Z ##[group]Runner Image
+deploy	Set up job	2026-05-29T07:54:07.2242334Z Image: ubuntu-24.04
+deploy	Set up job	2026-05-29T07:54:07.2243218Z Version: 20260525.161.1
+deploy	Set up job	2026-05-29T07:54:07.2245324Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260525.161/images/ubuntu/Ubuntu2404-Readme.md
+deploy	Set up job	2026-05-29T07:54:07.2248142Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260525.161
+deploy	Set up job	2026-05-29T07:54:07.2249732Z ##[endgroup]
+deploy	Set up job	2026-05-29T07:54:07.2251784Z ##[group]GITHUB_TOKEN Permissions
+deploy	Set up job	2026-05-29T07:54:07.2254863Z Contents: write
+deploy	Set up job	2026-05-29T07:54:07.2255778Z Metadata: read
+deploy	Set up job	2026-05-29T07:54:07.2256771Z Pages: write
+deploy	Set up job	2026-05-29T07:54:07.2257634Z ##[endgroup]
+deploy	Set up job	2026-05-29T07:54:07.2261510Z Secret source: Actions
+deploy	Set up job	2026-05-29T07:54:07.2263068Z Prepare workflow directory
+deploy	Set up job	2026-05-29T07:54:07.2727034Z Prepare all required actions
+deploy	Set up job	2026-05-29T07:54:07.2780728Z Getting action download info
+deploy	Set up job	2026-05-29T07:54:07.7435598Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+deploy	Set up job	2026-05-29T07:54:07.8472718Z Download action repository 'actions/configure-pages@v5' (SHA:983d7736d9b0ae728b81ab479565c72886d7745b)
+deploy	Set up job	2026-05-29T07:54:08.0320407Z Download action repository 'actions/upload-pages-artifact@v3' (SHA:56afc609e74202658d3ffba0e8f6dda462b719fa)
+deploy	Set up job	2026-05-29T07:54:08.1302401Z Download action repository 'actions/deploy-pages@v4' (SHA:d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e)
+deploy	Set up job	2026-05-29T07:54:08.4745479Z Getting action download info
+deploy	Set up job	2026-05-29T07:54:08.6122930Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+deploy	Set up job	2026-05-29T07:54:08.7830145Z Complete job name: deploy
+deploy	Checkout	﻿2026-05-29T07:54:08.8727231Z ##[group]Run actions/checkout@v4
+deploy	Checkout	2026-05-29T07:54:08.8728904Z with:
+deploy	Checkout	2026-05-29T07:54:08.8730044Z   repository: VitaliyKonstantinovich/terminator-webapp
+deploy	Checkout	2026-05-29T07:54:08.8742227Z   token: ***
+deploy	Checkout	2026-05-29T07:54:08.8743277Z   ssh-strict: true
+deploy	Checkout	2026-05-29T07:54:08.8744291Z   ssh-user: git
+deploy	Checkout	2026-05-29T07:54:08.8745319Z   persist-credentials: true
+deploy	Checkout	2026-05-29T07:54:08.8746508Z   clean: true
+deploy	Checkout	2026-05-29T07:54:08.8747500Z   sparse-checkout-cone-mode: true
+deploy	Checkout	2026-05-29T07:54:08.8748783Z   fetch-depth: 1
+deploy	Checkout	2026-05-29T07:54:08.8749736Z   fetch-tags: false
+deploy	Checkout	2026-05-29T07:54:08.8750807Z   show-progress: true
+deploy	Checkout	2026-05-29T07:54:08.8752107Z   lfs: false
+deploy	Checkout	2026-05-29T07:54:08.8753071Z   submodules: false
+deploy	Checkout	2026-05-29T07:54:08.8754124Z   set-safe-directory: true
+deploy	Checkout	2026-05-29T07:54:08.8755598Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:08.9999276Z Syncing repository: VitaliyKonstantinovich/terminator-webapp
+deploy	Checkout	2026-05-29T07:54:09.0003173Z ##[group]Getting Git version info
+deploy	Checkout	2026-05-29T07:54:09.0004934Z Working directory is '/home/runner/work/terminator-webapp/terminator-webapp'
+deploy	Checkout	2026-05-29T07:54:09.0007677Z [command]/usr/bin/git version
+deploy	Checkout	2026-05-29T07:54:09.0289309Z git version 2.54.0
+deploy	Checkout	2026-05-29T07:54:09.0335645Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.0346982Z Temporarily overriding HOME='/home/runner/work/_temp/e3d74287-63df-463f-80b4-4a90d3ebdfe5' before making global git config changes
+deploy	Checkout	2026-05-29T07:54:09.0351205Z Adding repository directory to the temporary git global config as a safe directory
+deploy	Checkout	2026-05-29T07:54:09.0355546Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/terminator-webapp/terminator-webapp
+deploy	Checkout	2026-05-29T07:54:09.0397609Z Deleting the contents of '/home/runner/work/terminator-webapp/terminator-webapp'
+deploy	Checkout	2026-05-29T07:54:09.0401992Z ##[group]Initializing the repository
+deploy	Checkout	2026-05-29T07:54:09.0406715Z [command]/usr/bin/git init /home/runner/work/terminator-webapp/terminator-webapp
+deploy	Checkout	2026-05-29T07:54:09.3385519Z hint: Using 'master' as the name for the initial branch. This default branch name
+deploy	Checkout	2026-05-29T07:54:09.3388688Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+deploy	Checkout	2026-05-29T07:54:09.3391924Z hint: to use in all of your new repositories, which will suppress this warning,
+deploy	Checkout	2026-05-29T07:54:09.3394543Z hint: call:
+deploy	Checkout	2026-05-29T07:54:09.3395826Z hint:
+deploy	Checkout	2026-05-29T07:54:09.3397521Z hint: 	git config --global init.defaultBranch <name>
+deploy	Checkout	2026-05-29T07:54:09.3399431Z hint:
+deploy	Checkout	2026-05-29T07:54:09.3401194Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+deploy	Checkout	2026-05-29T07:54:09.3404604Z hint: 'development'. The just-created branch can be renamed via this command:
+deploy	Checkout	2026-05-29T07:54:09.3406971Z hint:
+deploy	Checkout	2026-05-29T07:54:09.3408480Z hint: 	git branch -m <name>
+deploy	Checkout	2026-05-29T07:54:09.3409905Z hint:
+deploy	Checkout	2026-05-29T07:54:09.3412197Z hint: Disable this message with "git config set advice.defaultBranchName false"
+deploy	Checkout	2026-05-29T07:54:09.3414751Z Initialized empty Git repository in /home/runner/work/terminator-webapp/terminator-webapp/.git/
+deploy	Checkout	2026-05-29T07:54:09.3419521Z [command]/usr/bin/git remote add origin https://github.com/VitaliyKonstantinovich/terminator-webapp
+deploy	Checkout	2026-05-29T07:54:09.3450708Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.3453528Z ##[group]Disabling automatic garbage collection
+deploy	Checkout	2026-05-29T07:54:09.3455831Z [command]/usr/bin/git config --local gc.auto 0
+deploy	Checkout	2026-05-29T07:54:09.3489724Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.3492456Z ##[group]Setting up auth
+deploy	Checkout	2026-05-29T07:54:09.3497844Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+deploy	Checkout	2026-05-29T07:54:09.3535134Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+deploy	Checkout	2026-05-29T07:54:09.3857765Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+deploy	Checkout	2026-05-29T07:54:09.3890918Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+deploy	Checkout	2026-05-29T07:54:09.4131678Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+deploy	Checkout	2026-05-29T07:54:09.4164432Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+deploy	Checkout	2026-05-29T07:54:09.4403417Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+deploy	Checkout	2026-05-29T07:54:09.4447642Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.4449413Z ##[group]Fetching the repository
+deploy	Checkout	2026-05-29T07:54:09.4456756Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +561bd99d93fcb4faa292bdd16058577d4ec730a0:refs/remotes/origin/main
+deploy	Checkout	2026-05-29T07:54:09.9297032Z From https://github.com/VitaliyKonstantinovich/terminator-webapp
+deploy	Checkout	2026-05-29T07:54:09.9299919Z  * [new ref]         561bd99d93fcb4faa292bdd16058577d4ec730a0 -> origin/main
+deploy	Checkout	2026-05-29T07:54:09.9338120Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.9424675Z ##[group]Determining the checkout info
+deploy	Checkout	2026-05-29T07:54:09.9427390Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.9428830Z [command]/usr/bin/git sparse-checkout disable
+deploy	Checkout	2026-05-29T07:54:09.9450542Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+deploy	Checkout	2026-05-29T07:54:09.9454432Z ##[group]Checking out the ref
+deploy	Checkout	2026-05-29T07:54:09.9456420Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+deploy	Checkout	2026-05-29T07:54:09.9781585Z Switched to a new branch 'main'
+deploy	Checkout	2026-05-29T07:54:09.9783252Z branch 'main' set up to track 'origin/main'.
+deploy	Checkout	2026-05-29T07:54:09.9797035Z ##[endgroup]
+deploy	Checkout	2026-05-29T07:54:09.9839314Z [command]/usr/bin/git log -1 --format=%H
+deploy	Checkout	2026-05-29T07:54:09.9865124Z 561bd99d93fcb4faa292bdd16058577d4ec730a0
+deploy	Configure Pages	﻿2026-05-29T07:54:10.0133744Z ##[group]Run actions/configure-pages@v5
+deploy	Configure Pages	2026-05-29T07:54:10.0134936Z with:
+deploy	Configure Pages	2026-05-29T07:54:10.0144947Z   token: ***
+deploy	Configure Pages	2026-05-29T07:54:10.0145835Z   enablement: false
+deploy	Configure Pages	2026-05-29T07:54:10.0146738Z ##[endgroup]
+deploy	Prepare static site	﻿2026-05-29T07:54:10.3835240Z ##[group]Run rm -rf _site
+deploy	Prepare static site	2026-05-29T07:54:10.3836402Z ^[[36;1mrm -rf _site^[[0m
+deploy	Prepare static site	2026-05-29T07:54:10.3837356Z ^[[36;1mmkdir -p _site^[[0m
+deploy	Prepare static site	2026-05-29T07:54:10.3838793Z ^[[36;1mcp .nojekyll index.html app.js styles.css manifest.webmanifest sw.js _site/^[[0m
+deploy	Prepare static site	2026-05-29T07:54:10.3840427Z ^[[36;1mrsync -av assets/ _site/assets/^[[0m
+deploy	Prepare static site	2026-05-29T07:54:10.3875442Z shell: /usr/bin/bash -e {0}
+deploy	Prepare static site	2026-05-29T07:54:10.3876480Z env:
+deploy	Prepare static site	2026-05-29T07:54:10.3877288Z   GITHUB_PAGES: true
+deploy	Prepare static site	2026-05-29T07:54:10.3878188Z ##[endgroup]
+deploy	Prepare static site	2026-05-29T07:54:10.4258143Z sending incremental file list
+deploy	Prepare static site	2026-05-29T07:54:10.4263443Z created directory _site/assets
+deploy	Prepare static site	2026-05-29T07:54:10.4267608Z ./
+deploy	Prepare static site	2026-05-29T07:54:10.4268846Z bg_menu.webp
+deploy	Prepare static site	2026-05-29T07:54:10.4274110Z bg_personal.webp
+deploy	Prepare static site	2026-05-29T07:54:10.4277317Z terminator_skull.png
+deploy	Prepare static site	2026-05-29T07:54:10.4278682Z terminator_woman.webp
+deploy	Prepare static site	2026-05-29T07:54:10.4283785Z icons/
+deploy	Prepare static site	2026-05-29T07:54:10.4284914Z icons/chatgpt.png
+deploy	Prepare static site	2026-05-29T07:54:10.4285811Z icons/deepseek.png
+deploy	Prepare static site	2026-05-29T07:54:10.4286820Z icons/gemini.png
+deploy	Prepare static site	2026-05-29T07:54:10.4287781Z icons/qwen.png
+deploy	Prepare static site	2026-05-29T07:54:10.4288892Z mina-ui/
+deploy	Prepare static site	2026-05-29T07:54:10.4290008Z mina-ui/desktop/
+deploy	Prepare static site	2026-05-29T07:54:10.4291250Z mina-ui/desktop/01_start_screen_desktop_red.png
+deploy	Prepare static site	2026-05-29T07:54:10.4303978Z mina-ui/desktop/02_main_menu_desktop_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4319020Z mina-ui/desktop/03_personal_models_desktop_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4333034Z mina-ui/desktop/04_brain_control_template_desktop_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4345109Z mina-ui/desktop/05_remote_access_ready_desktop_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4358428Z mina-ui/desktop/06_session_complete_desktop_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4372793Z mina-ui/mobile/
+deploy	Prepare static site	2026-05-29T07:54:10.4373996Z mina-ui/mobile/01_start_screen_mobile_red.png
+deploy	Prepare static site	2026-05-29T07:54:10.4380248Z mina-ui/mobile/02_main_menu_mobile_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4382617Z mina-ui/mobile/03_personal_models_mobile_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4385009Z mina-ui/mobile/04_brain_control_template_mobile_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4387458Z mina-ui/mobile/05_remote_access_ready_mobile_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4389683Z mina-ui/mobile/06_session_complete_mobile_blue.png
+deploy	Prepare static site	2026-05-29T07:54:10.4391991Z mina-ui/system-scheme/
+deploy	Prepare static site	2026-05-29T07:54:10.4393206Z mina-ui/system-scheme/mina_hologram_silhouette.png
+deploy	Prepare static site	2026-05-29T07:54:10.4396661Z pwa/
+deploy	Prepare static site	2026-05-29T07:54:10.4397823Z pwa/apple-touch-icon.png
+deploy	Prepare static site	2026-05-29T07:54:10.4399053Z pwa/icon-192.png
+deploy	Prepare static site	2026-05-29T07:54:10.4400081Z pwa/icon-512.png
+deploy	Prepare static site	2026-05-29T07:54:10.4402182Z pwa/icon-maskable-512.png
+deploy	Prepare static site	2026-05-29T07:54:10.4812026Z 
+deploy	Prepare static site	2026-05-29T07:54:10.4813752Z sent 14,036,239 bytes  received 577 bytes  28,073,632.00 bytes/sec
+deploy	Prepare static site	2026-05-29T07:54:10.4815798Z total size is 14,030,631  speedup is 1.00
+deploy	Upload Pages artifact	﻿2026-05-29T07:54:10.5038003Z ##[group]Run actions/upload-pages-artifact@v3
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5039225Z with:
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5040015Z   path: _site
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5040846Z   name: github-pages
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5041888Z   retention-days: 1
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5042739Z env:
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5043513Z   GITHUB_PAGES: true
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5044361Z ##[endgroup]
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5176103Z ##[group]Run echo ::group::Archive artifact
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5177357Z ^[[36;1mecho ::group::Archive artifact^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5178410Z ^[[36;1mtar \^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5179341Z ^[[36;1m  --dereference --hard-dereference \^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5180517Z ^[[36;1m  --directory "$INPUT_PATH" \^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5182038Z ^[[36;1m  -cvf "$RUNNER_TEMP/artifact.tar" \^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5183191Z ^[[36;1m  --exclude=.git \^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5184192Z ^[[36;1m  --exclude=.github \^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5185161Z ^[[36;1m  .^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5186008Z ^[[36;1mecho ::endgroup::^[[0m
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5217028Z shell: /usr/bin/sh -e {0}
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5218049Z env:
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5218840Z   GITHUB_PAGES: true
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5219728Z   INPUT_PATH: _site
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5220574Z ##[endgroup]
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5275430Z ##[group]Archive artifact
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5288898Z ./
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5290034Z ./styles.css
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5291197Z ./.nojekyll
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5292576Z ./manifest.webmanifest
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5293817Z ./app.js
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5301885Z ./index.html
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5303047Z ./sw.js
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5304107Z ./assets/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5305198Z ./assets/icons/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5306403Z ./assets/icons/deepseek.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5307794Z ./assets/icons/chatgpt.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5309127Z ./assets/icons/qwen.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5310405Z ./assets/icons/gemini.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5311873Z ./assets/bg_menu.webp
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5313180Z ./assets/terminator_skull.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5314603Z ./assets/terminator_woman.webp
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5316017Z ./assets/pwa/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5317229Z ./assets/pwa/icon-192.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5318599Z ./assets/pwa/icon-maskable-512.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5320096Z ./assets/pwa/icon-512.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5321665Z ./assets/pwa/apple-touch-icon.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5323154Z ./assets/bg_personal.webp
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5324463Z ./assets/mina-ui/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5325653Z ./assets/mina-ui/mobile/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5327286Z ./assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5329331Z ./assets/mina-ui/mobile/02_main_menu_mobile_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5331299Z ./assets/mina-ui/mobile/06_session_complete_mobile_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5333506Z ./assets/mina-ui/mobile/03_personal_models_mobile_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5335493Z ./assets/mina-ui/mobile/01_start_screen_mobile_red.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5339077Z ./assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5341007Z ./assets/mina-ui/desktop/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5342870Z ./assets/mina-ui/desktop/06_session_complete_desktop_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5357258Z ./assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5372245Z ./assets/mina-ui/desktop/01_start_screen_desktop_red.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5390322Z ./assets/mina-ui/desktop/03_personal_models_desktop_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5406340Z ./assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5420538Z ./assets/mina-ui/desktop/02_main_menu_desktop_blue.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5436192Z ./assets/mina-ui/system-scheme/
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5437923Z ./assets/mina-ui/system-scheme/mina_hologram_silhouette.png
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5445442Z ##[endgroup]
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5604556Z ##[group]Run actions/upload-artifact@v4
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5605646Z with:
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5606410Z   name: github-pages
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5607336Z   path: /home/runner/work/_temp/artifact.tar
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5608417Z   retention-days: 1
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5609297Z   if-no-files-found: error
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5610484Z   compression-level: 6
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5611519Z   overwrite: false
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5612399Z   include-hidden-files: false
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5613359Z env:
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5614116Z   GITHUB_PAGES: true
+deploy	Upload Pages artifact	2026-05-29T07:54:10.5614954Z ##[endgroup]
+deploy	Upload Pages artifact	2026-05-29T07:54:10.7845327Z With the provided path, there will be 1 file uploaded
+deploy	Upload Pages artifact	2026-05-29T07:54:10.7848739Z Artifact name is valid!
+deploy	Upload Pages artifact	2026-05-29T07:54:10.7850405Z Root directory input is valid!
+deploy	Upload Pages artifact	2026-05-29T07:54:10.9202138Z Beginning upload of artifact content to blob storage
+deploy	Upload Pages artifact	2026-05-29T07:54:11.4978159Z Uploaded bytes 8388608
+deploy	Upload Pages artifact	2026-05-29T07:54:11.6960618Z Uploaded bytes 14196153
+deploy	Upload Pages artifact	2026-05-29T07:54:11.7161979Z Finished uploading artifact content to blob storage!
+deploy	Upload Pages artifact	2026-05-29T07:54:11.7164651Z SHA256 digest of uploaded artifact zip is aea77086ab7758121036b1d3eee1657abaa64e7d7269367809a1cdd9edfd01f6
+deploy	Upload Pages artifact	2026-05-29T07:54:11.7166465Z Finalizing artifact upload
+deploy	Upload Pages artifact	2026-05-29T07:54:11.8327233Z Artifact github-pages.zip successfully finalized. Artifact ID 7285837732
+deploy	Upload Pages artifact	2026-05-29T07:54:11.8329096Z Artifact github-pages has been successfully uploaded! Final size is 14196153 bytes. Artifact ID is 7285837732
+deploy	Upload Pages artifact	2026-05-29T07:54:11.8335925Z Artifact download URL: https://github.com/VitaliyKonstantinovich/terminator-webapp/actions/runs/26625372098/artifacts/7285837732
+deploy	Deploy to GitHub Pages	﻿2026-05-29T07:54:11.8576673Z ##[group]Run actions/deploy-pages@v4
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8577033Z with:
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8580177Z   token: ***
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8580430Z   timeout: 600000
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8580690Z   error_count: 10
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8580934Z   reporting_interval: 5000
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8581217Z   artifact_name: github-pages
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8581660Z   preview: false
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8581906Z env:
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8582138Z   GITHUB_PAGES: true
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:11.8582389Z ##[endgroup]
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.1930981Z Fetching artifact metadata for "github-pages" in this workflow run
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3250916Z Found 1 artifact(s)
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3273636Z Creating Pages deployment with payload:
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3274247Z {
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3274628Z 	"artifact_id": 7285837732,
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3275297Z 	"pages_build_version": "561bd99d93fcb4faa292bdd16058577d4ec730a0",
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3340482Z 	"oidc_token": "***"
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.3341061Z }
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:12.6515652Z Created deployment for 561bd99d93fcb4faa292bdd16058577d4ec730a0, ID: 561bd99d93fcb4faa292bdd16058577d4ec730a0
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:17.6540194Z Getting Pages deployment status...
+deploy	Deploy to GitHub Pages	2026-05-29T07:54:17.7853295Z Reported success!
+deploy	Sync static gh-pages mirror	﻿2026-05-29T07:54:17.8051322Z ##[group]Run set -euo pipefail
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8052016Z ^[[36;1mset -euo pipefail^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8052359Z ^[[36;1mgit config --global user.name "github-actions[bot]"^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8052917Z ^[[36;1mgit config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8053411Z ^[[36;1mrm -rf gh-pages-worktree^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8054084Z ^[[36;1mif git ls-remote --exit-code --heads "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" gh-pages >/dev/null 2>&1; then^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8054983Z ^[[36;1m  git clone --single-branch --branch gh-pages "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" gh-pages-worktree^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8055557Z ^[[36;1melse^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8055969Z ^[[36;1m  git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" gh-pages-worktree^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8056452Z ^[[36;1m  cd gh-pages-worktree^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8056751Z ^[[36;1m  git checkout --orphan gh-pages^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8057109Z ^[[36;1m  git rm -rf . >/dev/null 2>&1 || true^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8057412Z ^[[36;1m  cd ..^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8057766Z ^[[36;1mfi^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8058090Z ^[[36;1mrsync -av --delete --exclude='.git' _site/ gh-pages-worktree/^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8058485Z ^[[36;1mcd gh-pages-worktree^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8058770Z ^[[36;1mtouch .nojekyll^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8059025Z ^[[36;1mgit add -A^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8059298Z ^[[36;1mif git diff --cached --quiet; then^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8059658Z ^[[36;1m  echo "gh-pages mirror already up to date."^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8059982Z ^[[36;1melse^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8060292Z ^[[36;1m  git commit -m "deploy: sync static pages mirror [skip ci]"^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8060683Z ^[[36;1m  git push origin gh-pages^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8060955Z ^[[36;1mfi^[[0m
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8089441Z shell: /usr/bin/bash -e {0}
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8089731Z env:
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8089953Z   GITHUB_PAGES: true
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8093367Z   GH_TOKEN: ***
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8093688Z   REPOSITORY: VitaliyKonstantinovich/terminator-webapp
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:17.8094040Z ##[endgroup]
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.0509229Z Cloning into 'gh-pages-worktree'...
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7479970Z sending incremental file list
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7486868Z ./
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7487310Z .nojekyll
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7487708Z app.js
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7500446Z index.html
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7501896Z manifest.webmanifest
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7502263Z styles.css
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7509716Z sw.js
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7510050Z assets/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7510369Z assets/bg_menu.webp
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7515707Z assets/bg_personal.webp
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7519317Z assets/terminator_skull.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7519744Z assets/terminator_woman.webp
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7526718Z assets/icons/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7527099Z assets/icons/chatgpt.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7527475Z assets/icons/deepseek.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7527753Z assets/icons/gemini.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7528043Z assets/icons/qwen.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7528282Z assets/mina-ui/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7528516Z assets/mina-ui/desktop/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7528821Z assets/mina-ui/desktop/01_start_screen_desktop_red.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7549173Z assets/mina-ui/desktop/02_main_menu_desktop_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7566455Z assets/mina-ui/desktop/03_personal_models_desktop_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7582596Z assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7597389Z assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7613595Z assets/mina-ui/desktop/06_session_complete_desktop_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7630271Z assets/mina-ui/mobile/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7630745Z assets/mina-ui/mobile/01_start_screen_mobile_red.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7641553Z assets/mina-ui/mobile/02_main_menu_mobile_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7645521Z assets/mina-ui/mobile/03_personal_models_mobile_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7649604Z assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7653514Z assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7663492Z assets/mina-ui/mobile/06_session_complete_mobile_blue.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7664427Z assets/mina-ui/system-scheme/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7665040Z assets/mina-ui/system-scheme/mina_hologram_silhouette.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7665864Z assets/pwa/
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7666279Z assets/pwa/apple-touch-icon.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7666731Z assets/pwa/icon-192.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7667120Z assets/pwa/icon-512.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.7674580Z assets/pwa/icon-maskable-512.png
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.8086622Z 
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.8087342Z sent 15,346,643 bytes  received 664 bytes  30,694,614.00 bytes/sec
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.8087800Z total size is 15,340,300  speedup is 1.00
+deploy	Sync static gh-pages mirror	2026-05-29T07:54:18.8576123Z gh-pages mirror already up to date.
+deploy	Live smoke	﻿2026-05-29T07:54:18.8606385Z ##[group]Run set -euo pipefail
+deploy	Live smoke	2026-05-29T07:54:18.8606808Z ^[[36;1mset -euo pipefail^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8607078Z ^[[36;1mnode <<'NODE'^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8607605Z ^[[36;1mconst pageUrl = process.env.PAGE_URL || 'https://vitaliykonstantinovich.github.io/terminator-webapp/';^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8608260Z ^[[36;1mconst root = pageUrl.endsWith('/') ? pageUrl : `${pageUrl}/`;^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8608639Z ^[[36;1mconst checks = [^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8608890Z ^[[36;1m  {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8609156Z ^[[36;1m    name: 'html',^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8609476Z ^[[36;1m    url: `${root}?force=workflow-smoke-${Date.now()}`,^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8610250Z ^[[36;1m    validate: (text) => text.includes('20260529-qamax-fix-block-1-v1') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8610948Z ^[[36;1m  },^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8611164Z ^[[36;1m  {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8611609Z ^[[36;1m    name: 'manifest',^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8612045Z ^[[36;1m    url: `${root}manifest.webmanifest?force=workflow-smoke-${Date.now()}`,^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8612455Z ^[[36;1m    validate: (text) => {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8612763Z ^[[36;1m      const manifest = JSON.parse(text);^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8613423Z ^[[36;1m      return manifest.name === 'Terminator Mina UI' && manifest.display === 'standalone' && Array.isArray(manifest.icons) && manifest.icons.length >= 3;^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8614031Z ^[[36;1m    },^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8614444Z ^[[36;1m  },^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8614654Z ^[[36;1m  {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8614879Z ^[[36;1m    name: 'service-worker',^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8615215Z ^[[36;1m    url: `${root}sw.js?force=workflow-smoke-${Date.now()}`,^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8615743Z ^[[36;1m    validate: (text) => text.includes('terminator-mina-pwa-20260529-qamax-fix-block-1-v1'),^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8616195Z ^[[36;1m  },^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8616424Z ^[[36;1m];^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8616634Z ^[[36;1m^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8616868Z ^[[36;1mfor (const check of checks) {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8617245Z ^[[36;1m  const response = await fetch(check.url, { cache: 'no-store' });^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8617629Z ^[[36;1m  if (!response.ok) {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8617999Z ^[[36;1m    throw new Error(`${check.name} returned HTTP ${response.status}`);^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8618393Z ^[[36;1m  }^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8618644Z ^[[36;1m  const text = await response.text();^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8618966Z ^[[36;1m  if (!check.validate(text)) {^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8619331Z ^[[36;1m    throw new Error(`${check.name} validation failed`);^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8619664Z ^[[36;1m  }^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8619898Z ^[[36;1m  console.log(`${check.name}: PASS`);^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8620187Z ^[[36;1m}^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8620401Z ^[[36;1mNODE^[[0m
+deploy	Live smoke	2026-05-29T07:54:18.8647830Z shell: /usr/bin/bash -e {0}
+deploy	Live smoke	2026-05-29T07:54:18.8648120Z env:
+deploy	Live smoke	2026-05-29T07:54:18.8648370Z   GITHUB_PAGES: true
+deploy	Live smoke	2026-05-29T07:54:18.8648751Z   PAGE_URL: https://vitaliykonstantinovich.github.io/terminator-webapp/
+deploy	Live smoke	2026-05-29T07:54:18.8649183Z ##[endgroup]
+deploy	Live smoke	2026-05-29T07:54:19.1739489Z html: PASS
+deploy	Live smoke	2026-05-29T07:54:19.1977931Z manifest: PASS
+deploy	Live smoke	2026-05-29T07:54:19.2130870Z service-worker: PASS
+deploy	Post Checkout	﻿2026-05-29T07:54:19.2463010Z Post job cleanup.
+deploy	Post Checkout	2026-05-29T07:54:19.3486106Z [command]/usr/bin/git version
+deploy	Post Checkout	2026-05-29T07:54:19.3523932Z git version 2.54.0
+deploy	Post Checkout	2026-05-29T07:54:19.3559166Z Copying '/home/runner/.gitconfig' to '/home/runner/work/_temp/cef621e8-15d4-4f94-8c7f-bd749c3b7c78/.gitconfig'
+deploy	Post Checkout	2026-05-29T07:54:19.3569717Z Temporarily overriding HOME='/home/runner/work/_temp/cef621e8-15d4-4f94-8c7f-bd749c3b7c78' before making global git config changes
+deploy	Post Checkout	2026-05-29T07:54:19.3583967Z Adding repository directory to the temporary git global config as a safe directory
+deploy	Post Checkout	2026-05-29T07:54:19.3585051Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/terminator-webapp/terminator-webapp
+deploy	Post Checkout	2026-05-29T07:54:19.3625210Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+deploy	Post Checkout	2026-05-29T07:54:19.3660482Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+deploy	Post Checkout	2026-05-29T07:54:19.3918172Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+deploy	Post Checkout	2026-05-29T07:54:19.3949153Z http.https://github.com/.extraheader
+deploy	Post Checkout	2026-05-29T07:54:19.3967695Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+deploy	Post Checkout	2026-05-29T07:54:19.4008176Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+deploy	Post Checkout	2026-05-29T07:54:19.4266500Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+deploy	Post Checkout	2026-05-29T07:54:19.4309165Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+deploy	Complete job	﻿2026-05-29T07:54:19.4705165Z Evaluate and set environment url
+deploy	Complete job	2026-05-29T07:54:19.4708841Z Evaluated environment url: https://vitaliykonstantinovich.github.io/terminator-webapp/
+deploy	Complete job	2026-05-29T07:54:19.4709846Z Cleaning up orphan processes
+deploy	Complete job	2026-05-29T07:54:19.5063175Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/configure-pages@v5, actions/deploy-pages@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
