@@ -1,0 +1,89 @@
+{
+  "perf": [
+    {
+      "name": "create_simple_task",
+      "duration_ms": 205,
+      "budget_ms": 20000,
+      "status": "PASS"
+    },
+    {
+      "name": "attach_evidence_file",
+      "duration_ms": 216,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "generate_artifacts",
+      "duration_ms": 5,
+      "budget_ms": 10000,
+      "status": "PASS"
+    },
+    {
+      "name": "verifier_path",
+      "duration_ms": 3,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "controlled_hands_metadata_and_apply_gate",
+      "duration_ms": 1868,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "diagnost_fault_injection",
+      "duration_ms": 123,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "quick_diagnost",
+      "duration_ms": 2315,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "memory_preview_and_search",
+      "duration_ms": 65,
+      "budget_ms": 3000,
+      "status": "PASS"
+    },
+    {
+      "name": "qualified_acceptance_answer",
+      "duration_ms": 309,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "screen_switches",
+      "duration_ms": 197,
+      "budget_ms": 1000,
+      "status": "PASS"
+    }
+  ],
+  "screenPerf": [
+    {
+      "screen": "work",
+      "duration_ms": 0
+    },
+    {
+      "screen": "system",
+      "duration_ms": 195
+    },
+    {
+      "screen": "scheme",
+      "duration_ms": 2
+    },
+    {
+      "screen": "menu",
+      "duration_ms": 0
+    }
+  ],
+  "budgets": {
+    "screen_switch_ms": 1000,
+    "scheme_open_ms": 2000,
+    "memory_search_ms": 3000,
+    "quick_diagnost_ms": 5000,
+    "simple_task_ms": 20000
+  }
+}

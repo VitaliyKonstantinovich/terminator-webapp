@@ -1,0 +1,19 @@
+{
+  "screenshots": {
+    "workShot": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop2\\screenshots\\loop2_work_desktop.png",
+    "schemeShot": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop2\\screenshots\\loop2_scheme_desktop.png",
+    "systemShot": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop2\\screenshots\\loop2_system_diagnost_desktop.png",
+    "mobileScheme": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop2\\screenshots\\loop2_scheme_mobile_390.png",
+    "mobileWork": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop2\\screenshots\\loop2_work_mobile_430.png"
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "overflow": false
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "overflow": false
+  }
+}

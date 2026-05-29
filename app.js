@@ -532,6 +532,8 @@ const DIAGNOSTIC_WAITING_REPORT_STALE_MS = 2 * 60 * 60 * 1000;
 const DIAGNOSTIC_MANUAL_REVIEW_STALE_MS = 24 * 60 * 60 * 1000;
 const DIAGNOSTIC_PUBLIC_HEALTH_TIMEOUT_MS = 1500;
 const DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS = 2500;
+const DIAGNOSTIC_QUICK_BRIDGE_PUBLIC_TIMEOUT_MS = 900;
+const DIAGNOSTIC_QUICK_BRIDGE_DIRECT_TIMEOUT_MS = 1200;
 const LIVE_RUNTIME_CHECK_TIMEOUT_MS = 3500;
 const TASK_STORAGE_SCHEMA_VERSION = 3;
 const FILE_HASH_MAX_BYTES = 50 * 1024 * 1024;
@@ -1130,6 +1132,7 @@ const PRIVACY_GUARD_RULES = [
   { id: 'api_key', label: 'API key marker', severity: 'danger', pattern: /\b[A-Z0-9_]*(?:API[_-]?KEY|OPENAI[_-]?KEY|GEMINI[_-]?KEY|DEEPSEEK[_-]?KEY|QWEN[_-]?KEY)\b/i },
   { id: 'token', label: 'token marker', severity: 'danger', pattern: /\b(?:TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|BOT_TOKEN|PRIVATE_TOKEN)\b/i },
   { id: 'secret', label: 'secret marker', severity: 'danger', pattern: /\b(?:SECRET|CLIENT_SECRET|WEBHOOK_SECRET)\b/i },
+  { id: 'secret_assignment', label: 'secret-like assignment marker', severity: 'danger', pattern: /\b[A-Z0-9_]*(?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|PASSWD|PRIVATE[_-]?KEY)[A-Z0-9_]*\s*[:=]\s*\S{4,}/i },
   { id: 'password', label: 'password marker', severity: 'danger', pattern: /\b(?:PASSWORD|PASSWD|PWD)\b/i },
   { id: 'bearer', label: 'Bearer token', severity: 'danger', pattern: /Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}/i },
   { id: 'openai_like', label: 'sk-like key', severity: 'danger', pattern: /\bsk-[A-Za-z0-9_-]{10,}\b/i },
@@ -1145,10 +1148,13 @@ const APPROVAL_STATUSES = {
   manual_required: 'требует решения',
   pending: 'ожидает',
   plan_prepared: 'план подготовлен',
+  approved: 'подтверждено владельцем',
+  owner_approved: 'подтверждено владельцем',
   denied: 'отклонено',
   cancelled: 'отменено',
   expired: 'истекло'
 };
+const APPROVAL_EXECUTION_ALLOWED_STATUSES = new Set(['approved', 'owner_approved']);
 
 const APPROVAL_RISK_LEVELS = {
   review: 'нужна проверка',
@@ -5862,7 +5868,7 @@ const App = {
           { name: 'rollback point', status: 'pass', note: rollbackPoint.rollback_id },
           { name: 'no secrets', status: privacy.findings.length ? 'review' : 'pass', note: this.privacyScanSummary(privacy) },
           { name: 'no AI API', status: /ai api|openai api|gemini api|deepseek api|openrouter/i.test(textForScan) ? 'blocked' : 'pass', note: 'AI API не используется' },
-          { name: 'active project write', status: 'blocked_by_policy', note: 'Прямое изменение active project запрещено этим пакетом.' },
+          { name: 'active project write', status: 'pass', note: 'Прямое изменение active project заблокировано политикой пакета.' },
           { name: 'verifier', status: source.verifier_status === 'metadata_self_check_pass' ? 'pass' : 'not_run', note: source.verifier_status || 'ожидает проверки' }
         ];
     const baseStatus = CONTROLLED_APPLY_STATUS_LABELS[source.status] ? source.status : 'prepared';
@@ -6040,6 +6046,8 @@ const App = {
     if (integrity.package.verifier_status !== 'metadata_self_check_pass') reasons.push('Verifier package check не PASS.');
     if (integrity.package.approval_required && !approval) reasons.push('Нужен Approval владельца.');
     if (approval && ['manual_required', 'pending'].includes(approval.status)) reasons.push('Approval ещё ждёт решения владельца.');
+    if (approval && approval.status === 'plan_prepared') reasons.push('Approval plan подготовлен, но выполнение не подтверждено владельцем.');
+    if (approval && integrity.package.approval_required && !this.approvalAllowsExecution(approval)) reasons.push('Нужен явный owner-approved статус перед применением.');
     if (approval && ['denied', 'cancelled', 'expired'].includes(approval.status)) reasons.push(`Approval не разрешает применение: ${APPROVAL_STATUSES[approval.status] || approval.status}.`);
     return {
       ok: reasons.length === 0,
@@ -6047,6 +6055,15 @@ const App = {
       package: integrity.package,
       gate_status: reasons.length ? 'blocked' : 'pass'
     };
+  },
+
+  approvalAllowsExecution(approval) {
+    if (!approval) return false;
+    return Boolean(
+      approval.execution_allowed === true
+      && APPROVAL_EXECUTION_ALLOWED_STATUSES.has(approval.status)
+      && approval.owner_decision === 'approved'
+    );
   },
 
   async saveControlledApplyPackage(pack, task = null) {
@@ -8255,7 +8272,13 @@ const App = {
         taskEventGaps.length ? `${taskEventGaps.length} задач имеют старый формат без task.events.` : 'Task events доступны для активных задач.'
       ));
 
-      const directHealth = await this.probeDirectBridgeHealth();
+      const directHealth = await this.probeDirectBridgeHealth({
+        publicTimeoutMs: DIAGNOSTIC_QUICK_BRIDGE_PUBLIC_TIMEOUT_MS,
+        directTimeoutMs: DIAGNOSTIC_QUICK_BRIDGE_DIRECT_TIMEOUT_MS,
+        preferFrame: false,
+        frameTransport: false,
+        retry: false
+      });
       checks.push(directHealth);
 
       checks.push(this.diagnosticCheck(
@@ -8467,14 +8490,19 @@ const App = {
     return names[status] || status || 'не запускалась';
   },
 
-  async probeDirectBridgeHealth() {
+  async probeDirectBridgeHealth(options = {}) {
     const baseUrl = getConfiguredDirectBridgeBaseUrl();
     if (!baseUrl) {
       return this.diagnosticCheck('Direct Bridge health', 'manual_check', 'review', 'Direct Bridge URL не задан.');
     }
     let host = baseUrl;
     try { host = new URL(baseUrl).host; } catch {}
-    const publicHealth = await this.probePublicRuntimeHealth();
+    const publicHealth = await this.probePublicRuntimeHealth({
+      timeoutMs: options.publicTimeoutMs || DIAGNOSTIC_PUBLIC_HEALTH_TIMEOUT_MS,
+      preferFrame: options.preferFrame === true,
+      frameTransport: options.frameTransport === true,
+      retry: options.retry === true
+    });
     if (publicHealth?.ok) {
       const heartbeat = publicHealth.agent_heartbeat?.status || 'missing';
       const taskStore = publicHealth.task_store?.status || 'unknown';
@@ -8483,7 +8511,7 @@ const App = {
     }
     try {
       const controller = new AbortController();
-      const timer = window.setTimeout(() => controller.abort(), DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS);
+      const timer = window.setTimeout(() => controller.abort(), options.directTimeoutMs || DIAGNOSTIC_DIRECT_HEALTH_TIMEOUT_MS);
       const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/health`, {
         method: 'GET',
         signal: controller.signal,
@@ -16048,12 +16076,12 @@ const App = {
   detectForbiddenActions(command) {
     const text = String(command || '').toLowerCase();
     const rules = [
-      ['delete/remove/удали', /delete|remove|удали/],
-      ['deploy/cloudflare', /deploy|деплой|cloudflare/],
-      ['push/main/force', /push|main|force/],
-      ['.env/secrets/tokens', /\.env|secret|token|api key|password|cookie|session/],
-      ['network/vpn/proxy/firewall', /network|vpn|proxy|firewall|dns|hosts|route/],
-      ['defender/security', /defender|security|антивирус/]
+      ['delete/remove/удали', /\b(?:delete|remove)\b|удали/],
+      ['deploy/cloudflare', /\bdeploy\b|деплой|cloudflare/],
+      ['push/main/force', /\b(?:push|main|force)\b/],
+      ['.env/secrets/tokens', /\.env|\b(?:secret|token|api\s*key|password|cookie|session)\b/],
+      ['network/vpn/proxy/firewall', /\b(?:network|vpn|proxy|firewall|dns|hosts|route)\b/],
+      ['defender/security', /\b(?:defender|security)\b|антивирус/]
     ];
     return rules.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
   },
@@ -20390,7 +20418,7 @@ const App = {
   },
 
   isSafePrivacyNegationLine(line, rule) {
-    if (!['env_file', 'api_key', 'token', 'secret', 'password', 'webhook', 'cookie_session'].includes(rule?.id)) return false;
+    if (!['env_file', 'api_key', 'token', 'secret', 'secret_assignment', 'password', 'webhook', 'cookie_session'].includes(rule?.id)) return false;
     const source = String(line || '');
     if (/(?:sk-[A-Za-z0-9_-]{10,}|gh[pousr]_[A-Za-z0-9_]{10,}|AIza[A-Za-z0-9_-]{10,}|Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}|BEGIN\s+(?:RSA\s+|OPENSSH\s+|EC\s+)?PRIVATE\s+KEY)/i.test(source)) {
       return false;
@@ -21402,16 +21430,57 @@ const App = {
     task.status = status;
     task.accepted_at = new Date().toISOString();
     task.updated_at = task.accepted_at;
-    const decision = [
-      `Решение: ${this.statusName(status)}`,
-      `Verifier: ${this.verifierVerdictName(task.verifier_result)}`,
-      `Память: ${task.memory_preview?.status || task.memory_status}`,
-      `Задача: ${task.task_id} — ${task.title}`
-    ].join('\n');
+    const decision = this.buildQualifiedTaskDecisionText(task, status, gate);
     this.createArtifact(task, 'DECISION_RECORD', 'Решение по задаче', `Задача ${this.statusName(status)}.`, decision, 'acceptance');
-    this.addWorkspaceMessage(task, 'decision', 'Владелец', `Задача ${this.statusName(status)}.`);
+    this.addWorkspaceMessage(task, 'decision', 'Владелец', `Задача ${this.statusName(status)}. Evidence, проверки, риски и следующий шаг зафиксированы в решении.`);
     this.addWorkAudit(task, `Статус изменен на ${status}.`);
     this.toast(this.statusName(status));
+  },
+
+  buildQualifiedTaskDecisionText(task, status, gate = null) {
+    const artifacts = Array.isArray(task.artifacts) ? task.artifacts : [];
+    const files = Array.isArray(task.files) ? task.files : [];
+    const evidenceArtifacts = artifacts.filter((artifact) => ['RESULT_ARCHIVE', 'CHECK_LOG', 'SCREENSHOT', 'VERIFIER_VERDICT', 'MEMORY_SUMMARY'].includes(artifact.type));
+    const evidenceFiles = files.filter((file) => file.is_evidence || ['evidence', 'result_archive', 'verifier_input'].includes(file.role));
+    const verifierNotes = this.normalizedVerifierNotes(task);
+    const verifierRisks = this.normalizedVerifierRisks(task);
+    const gateStatus = gate || this.acceptanceGateStatus(task);
+    const firstCheck = verifierNotes.first_check || verifierRisks.first_check || task.next_step || 'Проверить evidence и результат вручную.';
+    return [
+      `Решение: ${this.statusName(status)}`,
+      `Статус: ${gateStatus.label}`,
+      `Задача: ${task.task_id} — ${task.title}`,
+      `Verifier: ${this.verifierVerdictName(task.verifier_result)}`,
+      `Память: ${task.memory_preview?.status || task.memory_status || 'не обработана'}`,
+      '',
+      '## Что сделано',
+      verifierNotes.report || task.goal || task.user_request || 'Результат принят по данным задачи.',
+      '',
+      '## Evidence',
+      ...(evidenceArtifacts.length
+        ? evidenceArtifacts.slice(0, 8).map((artifact) => `- ${artifact.type}: ${artifact.title} (${artifact.artifact_id})`)
+        : ['- artifact evidence не найден']),
+      ...(evidenceFiles.length
+        ? evidenceFiles.slice(0, 8).map((file) => `- file evidence: ${file.name} (${file.file_id}) ${file.storage_ref?.planned_path || file.storage_path || ''}`)
+        : ['- file evidence не найден']),
+      verifierNotes.evidence ? `- verifier evidence: ${verifierNotes.evidence}` : '',
+      '',
+      '## Проверки',
+      `- Verifier checklist: ${this.verifierChecklistSummary(task)}`,
+      `- Evidence gate: ${(task.verifier_evidence_gate || this.verifierEvidenceGate(task)).label}`,
+      `- Quality gate: ${(task.verifier_quality_gate || this.verifierQualityGate(task)).label}`,
+      '',
+      '## Риски и что не проверено',
+      verifierRisks.not_checked ? `- Не проверено: ${verifierRisks.not_checked}` : '- Не проверено: нет отдельных пунктов',
+      verifierRisks.manual_review ? `- Ручная проверка: ${verifierRisks.manual_review}` : '- Ручная проверка: не требуется сверх evidence',
+      verifierRisks.can_break ? `- Риск поломки: ${verifierRisks.can_break}` : '- Риск поломки: не указан',
+      '',
+      '## Что проверить первым',
+      `- ${firstCheck}`,
+      '',
+      '## Следующий шаг',
+      `- ${task.next_step || firstCheck}`
+    ].filter(Boolean).join('\n');
   },
 
   setWorkStatus(task, status, auditText) {

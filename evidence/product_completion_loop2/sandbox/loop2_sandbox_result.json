@@ -1,0 +1,131 @@
+{
+  "created_at": "2026-05-29T12:41:02.1185919-05:00",
+  "sandbox_root": "D:\\TerminatorStorage\\temp_outputs\\product_loop2",
+  "evidence_backup_root": "D:\\TerminatorStorage\\evidence_backups\\product_loop2",
+  "python": {
+    "path": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\hello_world.py",
+    "version": "Python 3.12.10",
+    "stdout": "Hello, world!",
+    "exit_code": 0,
+    "duration_ms": 76,
+    "sha256": "81AEA769E255576FE8CC95E8A4D401ACCA04C8C3A8697224BE92FB0669E51577",
+    "status": "PASS"
+  },
+  "controlled_apply": {
+    "target": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\dummy_apply_target.txt",
+    "rollback": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\rollback\\dummy_apply_target.before.txt",
+    "before_hash": "A7ECC0CD9B4DB1656BFF76DDBC2ACA770A8E50512E5446E5CC4FCA8BCBB77CD2",
+    "after_hash": "B08F7B70EF232A0E9FADA39408E13AD4F2AFD2B4972B0611488CEB877D2C1320",
+    "rollback_hash": "A7ECC0CD9B4DB1656BFF76DDBC2ACA770A8E50512E5446E5CC4FCA8BCBB77CD2",
+    "diff": "--- dummy_apply_target.txt\n+++ dummy_apply_target.txt\n-ORIGINAL: product loop2 controlled apply target\n+UPDATED: product loop2 controlled apply target\n+status=applied_in_sandbox_only",
+    "guardian": {
+      "ok": true,
+      "risk": "low",
+      "reasons": [
+        "target under D:\\TerminatorStorage\\temp_outputs\\product_loop2",
+        "dummy file only",
+        "rollback point exists",
+        "active project untouched"
+      ]
+    },
+    "verifier_before": {
+      "status": "PASS",
+      "checks": [
+        "rollback_exists",
+        "target_in_sandbox",
+        "no_project_files",
+        "no_secrets",
+        "no_ai_api"
+      ]
+    },
+    "post_check": {
+      "status": "PASS",
+      "changed": true,
+      "content": "UPDATED: product loop2 controlled apply target\nstatus=applied_in_sandbox_only\r\n"
+    },
+    "rollback_restored": true,
+    "duration_ms": 10,
+    "negative_checks": [
+      {
+        "id": "apply_without_rollback",
+        "expected": "blocked",
+        "actual": "blocked",
+        "pass": true,
+        "reason": "rollback_path required before apply"
+      },
+      {
+        "id": "verifier_fail",
+        "expected": "blocked",
+        "actual": "blocked",
+        "pass": true,
+        "reason": "verifier status FAIL blocks apply"
+      },
+      {
+        "id": "guardian_high_risk",
+        "expected": "approval_required",
+        "actual": "approval_required",
+        "pass": true,
+        "reason": "high risk cannot auto-apply"
+      },
+      {
+        "id": "active_project_target",
+        "expected": "blocked_without_explicit_approval",
+        "actual": "blocked_without_explicit_approval",
+        "pass": true,
+        "reason": "target outside sandbox is not allowed in Loop 2"
+      }
+    ],
+    "status": "PASS"
+  },
+  "fault_injection": [
+    {
+      "id": "stale_task_timer",
+      "detected": true,
+      "severity": "warning",
+      "explanation": "Таймер задачи устарел и требует проверки владельца.",
+      "safe_next_action": "Открыть Диагност и обновить статус задачи."
+    },
+    {
+      "id": "missing_dummy_evidence_ref",
+      "detected": true,
+      "severity": "warning",
+      "explanation": "У dummy-задачи ссылка evidence отсутствует.",
+      "safe_next_action": "Создать evidence или снять ссылку с результата."
+    },
+    {
+      "id": "corrupted_dummy_memory_index",
+      "detected": true,
+      "severity": "warning",
+      "explanation": "Dummy index повреждён; нужен безопасный reindex.",
+      "safe_next_action": "Пересобрать индекс памяти без удаления данных."
+    },
+    {
+      "id": "repair_workspace_unavailable",
+      "detected": true,
+      "severity": "error",
+      "explanation": "Repair workspace недоступен.",
+      "safe_next_action": "Проверить D:\\TerminatorStorage и создать workspace после подтверждения."
+    },
+    {
+      "id": "fake_secret_in_dummy_file",
+      "detected": true,
+      "severity": "error",
+      "explanation": "Найден только фейковый marker секрета в test fixture.",
+      "safe_next_action": "Privacy Guard должен редактировать/блокировать отправку."
+    },
+    {
+      "id": "codex_report_verifier_fail",
+      "detected": true,
+      "severity": "warning",
+      "explanation": "Отчёт Codex не проходит Verifier.",
+      "safe_next_action": "Вернуть на доработку, apply заблокирован."
+    }
+  ],
+  "fake_secret_fixture": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\fault_injection\\dummy_fake_secret.txt",
+  "restrictions": {
+    "active_project_mutated": false,
+    "ai_api_used": false,
+    "billing_touched": false,
+    "secrets_exposed": false
+  }
+}

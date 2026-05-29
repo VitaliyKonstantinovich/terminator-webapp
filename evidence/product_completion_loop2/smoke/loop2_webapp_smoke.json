@@ -1,0 +1,278 @@
+{
+  "marker": "20260529-product-loop2-functional-reality-v1",
+  "task_id": "TASK-2026-0001",
+  "final_status": "accepted",
+  "artifacts": [
+    {
+      "id": "ART-MPR8BAKP-35IPRL",
+      "type": "DECISION_RECORD",
+      "title": "Решение по задаче",
+      "status": "draft"
+    },
+    {
+      "id": "ART-MPR8BAIW-52DJTQ",
+      "type": "MEMORY_SUMMARY",
+      "title": "Memory preview",
+      "status": "draft"
+    },
+    {
+      "id": "ART-MPR8B8QL-XDGE40",
+      "type": "CHECK_LOG",
+      "title": "Diagnost controlled fault injection",
+      "status": "ready"
+    },
+    {
+      "id": "ART-MPR8B8N6-7E14NS",
+      "type": "CHECK_LOG",
+      "title": "Controlled apply negative checks",
+      "status": "ready"
+    },
+    {
+      "id": "ART-MPR8B7PL-1C1YHT",
+      "type": "CONTROLLED_APPLY_PACKAGE",
+      "title": "Пакет применения: Loop 2 sandbox apply proof",
+      "status": "ready"
+    },
+    {
+      "id": "ART-MPR8B7JE-78THNT",
+      "type": "WORKER_RUNTIME_REPORT",
+      "title": "Runtime: Loop 2 sandbox apply proof",
+      "status": "verified"
+    },
+    {
+      "id": "ART-MPR8B77C-LBRAOY",
+      "type": "HANDS_ACTION_PLAN",
+      "title": "Loop 2 sandbox apply proof",
+      "status": "ready"
+    },
+    {
+      "id": "ART-MPR8B77A-74XFKW",
+      "type": "VERIFIER_VERDICT",
+      "title": "Вердикт проверки: принять",
+      "status": "accepted"
+    },
+    {
+      "id": "ART-MPR8B777-IXYKZX",
+      "type": "RESULT_ARCHIVE",
+      "title": "Loop 2 sandbox evidence",
+      "status": "ready"
+    },
+    {
+      "id": "ART-MPR8B777-2WNV40",
+      "type": "CHECK_LOG",
+      "title": "Python hello world command log",
+      "status": "ready"
+    },
+    {
+      "id": "ART-MPR8B777-EPGOJA",
+      "type": "EXECUTOR_REPORT",
+      "title": "Отчёт исполнителя",
+      "status": "draft"
+    },
+    {
+      "id": "ART-MPR8B776-4V7GIC",
+      "type": "CONTEXT_PACK",
+      "title": "Пакет для Codex",
+      "status": "ready_for_copy"
+    },
+    {
+      "id": "ART-MPR8B6VJ-7J52ME",
+      "type": "SPEC",
+      "title": "Исходная задача",
+      "status": "draft"
+    }
+  ],
+  "files": [
+    {
+      "id": "FILE-MPR8B714-S6Q25K",
+      "name": "hello_world.py",
+      "role": "evidence",
+      "is_evidence": true,
+      "sha256": "81AEA769E255576FE8CC95E8A4D401ACCA04C8C3A8697224BE92FB0669E51577",
+      "storage_path": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\hello_world.py"
+    }
+  ],
+  "verifier": {
+    "verdict": "PASS",
+    "reasons": [
+      "Ключевые проверки отмечены, явных рисков не указано."
+    ],
+    "evidenceGate": {
+      "ok": true,
+      "honestAbsence": false,
+      "label": "evidence есть",
+      "reason": "Есть evidence-файл, проверочный artifact или описанный путь/архив."
+    },
+    "qualityGate": {
+      "ok": true,
+      "label": "quality gate закрыт",
+      "reason": "Отчёт, проверки, evidence gate и ключевой checklist согласованы."
+    }
+  },
+  "hands": {
+    "plan_id": "HAND-MPR8B77A-CPD3FK",
+    "run_status": "completed",
+    "package_status": "approved_for_manual_apply",
+    "manual_status": "manual_applied",
+    "gate_ok": true,
+    "negative": {
+      "apply_without_rollback": true,
+      "verifier_fail": true,
+      "guardian_high_risk": true,
+      "active_project_target": true
+    }
+  },
+  "diagnostic": [
+    {
+      "id": "INCIDENT-MPR8B8N6-25BH9Q",
+      "title": "Loop 2 fault: stale_task_timer",
+      "severity": "warning",
+      "has_pack": true,
+      "safe_action": "Открыть Диагност и обновить статус задачи."
+    },
+    {
+      "id": "INCIDENT-MPR8B8PA-FH3680",
+      "title": "Loop 2 fault: missing_dummy_evidence_ref",
+      "severity": "warning",
+      "has_pack": true,
+      "safe_action": "Создать evidence или снять ссылку с результата."
+    },
+    {
+      "id": "INCIDENT-MPR8B8Q4-A2OQWW",
+      "title": "Loop 2 fault: corrupted_dummy_memory_index",
+      "severity": "warning",
+      "has_pack": true,
+      "safe_action": "Пересобрать индекс памяти без удаления данных."
+    },
+    {
+      "id": "INCIDENT-MPR8B8QC-ZP76FM",
+      "title": "Loop 2 fault: repair_workspace_unavailable",
+      "severity": "error",
+      "has_pack": true,
+      "safe_action": "Проверить D:\\TerminatorStorage и создать workspace после подтверждения."
+    },
+    {
+      "id": "INCIDENT-MPR8B8QF-26QHJX",
+      "title": "Loop 2 fault: fake_secret_in_dummy_file",
+      "severity": "error",
+      "has_pack": true,
+      "safe_action": "Privacy Guard должен редактировать/блокировать отправку."
+    },
+    {
+      "id": "INCIDENT-MPR8B8QI-GM4DSU",
+      "title": "Loop 2 fault: codex_report_verifier_fail",
+      "severity": "warning",
+      "has_pack": true,
+      "safe_action": "Вернуть на доработку, apply заблокирован."
+    }
+  ],
+  "quickDiag": {
+    "before": 0,
+    "after": 1,
+    "latest_status": "danger",
+    "checks": 21
+  },
+  "memory": {
+    "hello_count": 9,
+    "hello_quality": "strong",
+    "hello_duration_ms": 7,
+    "first": "Память: Напиши Python hello world и объясни, как проверить резу...",
+    "impossible_count": 0,
+    "impossible_warning": "Ничего релевантного не найдено."
+  },
+  "acceptance": {
+    "gate_before": {
+      "ready": true,
+      "label": "можно принять",
+      "reason": "Ключевые gates закрыты."
+    },
+    "final_status": "accepted",
+    "decision_id": "ART-MPR8BAKP-35IPRL",
+    "decision_content": "Решение: accepted\nСтатус: можно принять\nЗадача: TASK-2026-0001 — Напиши Python hello world и объясни, как проверить резу...\nVerifier: принять\nПамять: saved_local\n## Что сделано\nРезультат: создан sandbox Python файл hello_world.py и выполнен в безопасной папке D:\\TerminatorStorage\\temp_outputs\\product_loop2.\nПроверки PASS: python --version; python hello_world.py; stdout содержит Hello, world!; exit_code 0; SHA-256 файла зафиксирован.\nИзменённые файлы: D:\\TerminatorStorage\\temp_outputs\\product_loop2\\hello_world.py; D:\\TerminatorStorage\\temp_outputs\\product_loop2\\dummy_apply_target.txt только в sandbox.\nDirect Bridge и Local Agent не менялись. AI API не использовались. Секреты не добавлялись. Legacy Personal не развивался.\nЧто проверить первым: открыть command log и убедиться, что stdout равен Hello, world!\n## Evidence\n- MEMORY_SUMMARY: Memory preview (ART-MPR8BAIW-52DJTQ)\n- CHECK_LOG: Diagnost controlled fault injection (ART-MPR8B8QL-XDGE40)\n- CHECK_LOG: Controlled apply negative checks (ART-MPR8B8N6-7E14NS)\n- VERIFIER_VERDICT: Вердикт проверки: принять (ART-MPR8B77A-74XFKW)\n- RESULT_ARCHIVE: Loop 2 sandbox evidence (ART-MPR8B777-IXYKZX)\n- CHECK_LOG: Python hello world command log (ART-MPR8B777-2WNV40)\n- file evidence: hello_world.py (FILE-MPR8B714-S6Q25K) D:\\TerminatorStorage\\temp_outputs\\product_loop2\\hello_world.py\n- verifier evidence: Evidence: D:\\TerminatorStorage\\temp_outputs\\product_loop2\\loop2_sandbox_result.json; stdout Hello, world!; exit_code 0; artifact CHECK_LOG and RESULT_ARCHIVE created.\n## Проверки\n- Verifier checklist: 16/16\n- Evidence gate: evidence есть\n- Quality gate: quality gate закрыт\n## Риски и что не проверено\n- Не проверено: нет отдельных пунктов\n- Ручная проверка: не требуется сверх evidence\n- Риск поломки: не указан\n## Что проверить первым\n- Запустить python D:\\TerminatorStorage\\temp_outputs\\product_loop2\\hello_world.py и проверить stdout Hello, world!.\n## Следующий шаг\n- Уточнить контекст и подготовить безопасный план"
+  },
+  "perf": [
+    {
+      "name": "create_simple_task",
+      "duration_ms": 205,
+      "budget_ms": 20000,
+      "status": "PASS"
+    },
+    {
+      "name": "attach_evidence_file",
+      "duration_ms": 216,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "generate_artifacts",
+      "duration_ms": 5,
+      "budget_ms": 10000,
+      "status": "PASS"
+    },
+    {
+      "name": "verifier_path",
+      "duration_ms": 3,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "controlled_hands_metadata_and_apply_gate",
+      "duration_ms": 1868,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "diagnost_fault_injection",
+      "duration_ms": 123,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "quick_diagnost",
+      "duration_ms": 2315,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "memory_preview_and_search",
+      "duration_ms": 65,
+      "budget_ms": 3000,
+      "status": "PASS"
+    },
+    {
+      "name": "qualified_acceptance_answer",
+      "duration_ms": 309,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "screen_switches",
+      "duration_ms": 197,
+      "budget_ms": 1000,
+      "status": "PASS"
+    }
+  ],
+  "screenPerf": [
+    {
+      "screen": "work",
+      "duration_ms": 0
+    },
+    {
+      "screen": "system",
+      "duration_ms": 195
+    },
+    {
+      "screen": "scheme",
+      "duration_ms": 2
+    },
+    {
+      "screen": "menu",
+      "duration_ms": 0
+    }
+  ],
+  "security": {
+    "privacy_fake_secret_status": "blocked",
+    "disallowed_ai_api": false,
+    "pending_approvals": 0
+  }
+}
