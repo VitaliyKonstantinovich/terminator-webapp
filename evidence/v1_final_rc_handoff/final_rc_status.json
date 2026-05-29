@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-05-29",
+  "status": "PASS",
+  "v1_rc_status": "PASS",
+  "final_owner_assisted": "pending",
+  "branch": "main",
+  "head": "77dcc04f8c7061eaa5a0831a0a5c52f7160dc3c9",
+  "origin_main": "77dcc04f8c7061eaa5a0831a0a5c52f7160dc3c9",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "live_marker": "20260529-qamax-fix-block-1-v1",
+  "github_actions_run": "26644623257",
+  "important_commits": {
+    "qamax_fix_block_1": "0bf2a3561b17e94de1dc08e9681696c59f75ef2d",
+    "workflow_marker_fix": "561bd99d93fcb4faa292bdd16058577d4ec730a0",
+    "v1_source_performance_anchoring": "5434aa2",
+    "v1_docs_evidence_anchoring": "77dcc04"
+  },
+  "apk": {
+    "path": "D:\\TerminatorStorage\\codex_outputs\\apk_bluestacks_20260529\\terminator-mina-phase5-debug.apk",
+    "sha256": "A5F2B70171C129FF54D6D3CE11318081699AF870C6EC51D6255679BB418C2A44",
+    "type": "debug_v1_rc",
+    "bluestacks": "PASS",
+    "real_phone": "pending"
+  },
+  "accepted_areas": {
+    "webapp_pc_live": "PASS",
+    "github_pages_deploy": "PASS",
+    "live_smoke": "PASS",
+    "memory_search": "PASS",
+    "emergency_stop": "PASS",
+    "mina_scheme": "PASS",
+    "service_worker": "PASS",
+    "guardian_security": "PASS_FOR_V1_RC",
+    "apk_bluestacks": "PASS_FOR_V1_RC",
+    "performance": "PASS"
+  },
+  "owner_assisted_pending": [
+    "real_phone_apk",
+    "pwa_web_mobile",
+    "billing_dashboards",
+    "production_signing",
+    "production_rollback",
+    "legacy_profile_cleanup"
+  ],
+  "safety": {
+    "ai_api_used": false,
+    "secrets_exposed": false,
+    "billing_touched": false,
+    "cloudflare_github_settings_touched": false,
+    "deploy_push_in_handoff": false,
+    "code_changed_in_handoff": false,
+    "v2_started": false
+  },
+  "can_pause_v1_coding": true,
+  "can_start_v2_design_after_owner_decision": true
+}
