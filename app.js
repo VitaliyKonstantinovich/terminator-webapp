@@ -9575,21 +9575,21 @@ const App = {
 
       <div class="guardian-actions">
         <button type="button" class="guardian-danger" data-guardian-action="emergency_stop">Стоп действия</button>
-        <button type="button" data-guardian-action="${state.safe_mode ? 'safe_mode_off' : 'safe_mode_on'}">${state.safe_mode ? 'Снять Safe Mode' : 'Включить Safe Mode'}</button>
-        <button type="button" data-guardian-action="create_manual_incident">Создать incident</button>
-        <button type="button" data-guardian-action="refresh_guardian">Обновить Guardian</button>
+        <button type="button" data-guardian-action="${state.safe_mode ? 'safe_mode_off' : 'safe_mode_on'}">${state.safe_mode ? 'Снять безопасный режим' : 'Включить безопасный режим'}</button>
+        <button type="button" data-guardian-action="create_manual_incident">Создать инцидент</button>
+        <button type="button" data-guardian-action="refresh_guardian">Обновить Защитника</button>
       </div>
 
       ${state.emergency_stop_active ? `
-        <section class="guardian-emergency-reset" aria-label="Сброс Emergency Stop">
-          <strong>Emergency Stop активен</strong>
-          <p>Safe Mode нельзя снять так, чтобы Стоп действия исчез молча. Для сброса введите точную фразу: <code>RESET EMERGENCY STOP</code>.</p>
+        <section class="guardian-emergency-reset" aria-label="Сброс режима Стоп действия">
+          <strong>Стоп действия активен</strong>
+          <p>Безопасный режим нельзя снять так, чтобы Стоп действия исчез молча. Для сброса введите точную фразу: <code>RESET EMERGENCY STOP</code>.</p>
           <label class="work-field">
-            <span>Typed confirmation</span>
+            <span>Точное подтверждение</span>
             <input id="guardian-emergency-reset-phrase" type="text" autocomplete="off" placeholder="RESET EMERGENCY STOP">
           </label>
           <div class="guardian-actions">
-            <button type="button" class="guardian-danger" data-guardian-action="reset_emergency_stop">Сбросить Emergency Stop</button>
+            <button type="button" class="guardian-danger" data-guardian-action="reset_emergency_stop">Сбросить Стоп действия</button>
             <button type="button" data-guardian-action="cancel_emergency_stop_reset">Отмена</button>
           </div>
         </section>
@@ -10085,7 +10085,7 @@ const App = {
         message: 'Emergency Stop reset confirmed by exact typed phrase.'
       });
       this.renderSystemStatus();
-      this.toast('Emergency Stop сброшен после typed confirmation');
+      this.toast('Стоп действия сброшен после точного подтверждения');
       return;
     }
 
