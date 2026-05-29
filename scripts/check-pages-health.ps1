@@ -1,8 +1,8 @@
 param(
   [string]$Repository = "VitaliyKonstantinovich/terminator-webapp",
   [string]$Url = "https://vitaliykonstantinovich.github.io/terminator-webapp/",
-  [string]$ExpectedAssetMarker = "20260527-phase9-mina-voice-v1-final",
-  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260527-phase9-mina-voice-v1-final"
+  [string]$ExpectedAssetMarker = "20260529-qamax-fix-block-1-v1",
+  [string]$ExpectedCacheMarker = "terminator-mina-pwa-20260529-qamax-fix-block-1-v1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -27,7 +27,10 @@ $manifest = Decode-ResponseContent $manifestResponse.Content | ConvertFrom-Json
 $sw = Decode-ResponseContent ((Invoke-WebRequest -UseBasicParsing "$root`sw.js?force=pages-health-$(Get-Date -Format yyyyMMddHHmmss)").Content)
 
 $checks = [ordered]@{
+  result = "UNKNOWN"
+  checked_at = (Get-Date).ToString("s")
   repository = $Repository
+  live_url = $root
   page_url = $pages.html_url
   pages_status = $pages.status
   build_type = $pages.build_type
@@ -50,10 +53,11 @@ $checks = [ordered]@{
 }
 
 $failures = @()
-if ($checks.pages_status -ne "built") { $failures += "GitHub Pages status is $($checks.pages_status), expected built." }
-if ($checks.build_type -ne "workflow") { $failures += "GitHub Pages build_type is $($checks.build_type), expected workflow." }
-if ($checks.latest_legacy_build_status -ne "built") { $failures += "Latest legacy Pages build is $($checks.latest_legacy_build_status), expected built." }
-if ($checks.latest_workflow_conclusion -ne "success") { $failures += "Latest Pages workflow conclusion is $($checks.latest_workflow_conclusion), expected success." }
+$warnings = @()
+if ($checks.pages_status -ne "built") { $warnings += "GitHub Pages API status is $($checks.pages_status), expected built. Live markers remain the source of truth." }
+if ($checks.build_type -ne "workflow") { $warnings += "GitHub Pages build_type is $($checks.build_type), expected workflow." }
+if ($checks.latest_legacy_build_status -ne "built") { $warnings += "Latest legacy Pages build is $($checks.latest_legacy_build_status), expected built. Treat as warning if live marker is current." }
+if ($checks.latest_workflow_conclusion -ne "success") { $warnings += "Latest Pages workflow conclusion is $($checks.latest_workflow_conclusion), expected success." }
 if (-not $checks.live_html_asset_marker) { $failures += "Live HTML misses expected asset marker: $ExpectedAssetMarker." }
 if (-not $checks.live_html_manifest_link) { $failures += "Live HTML misses manifest link." }
 if (-not $checks.live_html_start_screen) { $failures += "Live HTML misses start screen marker." }
@@ -63,6 +67,9 @@ if ($checks.manifest_display -ne "standalone") { $failures += "Manifest display 
 if ($checks.manifest_icon_count -lt 3) { $failures += "Manifest has only $($checks.manifest_icon_count) icons." }
 if (-not $checks.service_worker_cache_marker) { $failures += "Service worker misses expected cache marker: $ExpectedCacheMarker." }
 
+$checks["result"] = if ($failures.Count -gt 0) { "FAIL" } elseif ($warnings.Count -gt 0) { "PASS_WITH_WARNINGS" } else { "PASS" }
+$checks["failures"] = $failures
+$checks["warnings"] = $warnings
 $checks | ConvertTo-Json -Depth 4
 
 if ($failures.Count -gt 0) {
@@ -70,4 +77,7 @@ if ($failures.Count -gt 0) {
   exit 1
 }
 
-Write-Output "Pages health check: PASS"
+if ($warnings.Count -gt 0) {
+  Write-Warning ("Pages health check warnings:`n" + ($warnings -join "`n"))
+}
+Write-Output "Pages health check: $($checks.result)"

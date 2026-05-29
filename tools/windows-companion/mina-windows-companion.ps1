@@ -5,7 +5,11 @@
   [switch]$WriteReport,
   [string]$WebAppUrl = "https://vitaliykonstantinovich.github.io/terminator-webapp/",
   [string]$LocalAgentDir = "",
-  [string]$TaskName = "Terminator-Mina-Local-Agent"
+  [string]$TaskName = "Terminator-Mina-Local-Agent",
+  [ValidateSet("", "start", "stop", "restart")]
+  [string]$AgentAction = "",
+  [string]$ApprovedActionId = "",
+  [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,6 +107,64 @@ function Get-VisibleTerminatorWindows {
         }
       }
     }
+}
+
+function Write-CompanionGuardianEvent {
+  param(
+    [string]$Action,
+    [string]$Status,
+    [string]$Risk,
+    [string]$Message,
+    [bool]$IsDryRun = [bool]$DryRun
+  )
+  $paths = Resolve-CompanionPaths
+  $eventRoot = Join-Path $paths.StorageRoot "diagnostics\windows_companion_guardian"
+  $eventPath = Join-Path $eventRoot "events.jsonl"
+  New-Item -ItemType Directory -Path $eventRoot -Force | Out-Null
+  $event = [pscustomobject]@{
+    schema_version = 1
+    event_id = "COMPANION-" + ([guid]::NewGuid().ToString("N"))
+    action = $Action
+    status = $Status
+    risk_level = $Risk
+    message = $Message
+    approved_action_id = $ApprovedActionId
+    dry_run = $IsDryRun
+    created_at = (Get-Date).ToString("s")
+  }
+  ($event | ConvertTo-Json -Compress -Depth 5) | Add-Content -LiteralPath $eventPath -Encoding UTF8
+  return $event
+}
+
+function Invoke-CompanionLocalAgentAction {
+  param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("start", "stop", "restart")]
+    [string]$Action,
+    [switch]$ForceDryRun
+  )
+  $paths = Resolve-CompanionPaths
+  $risk = if ($Action -eq "start") { "medium" } else { "high" }
+  if (-not $paths.LocalAgentDir) {
+    return Write-CompanionGuardianEvent -Action $Action -Status "blocked" -Risk $risk -Message "Local Agent folder not found." -IsDryRun $true
+  }
+
+  if ($Action -in @("stop", "restart") -and -not $ApprovedActionId) {
+    return Write-CompanionGuardianEvent -Action $Action -Status "approval_required" -Risk $risk -Message "Stop/restart Local Agent requires explicit Guardian/Approval path." -IsDryRun $true
+  }
+
+  if ($DryRun -or $ForceDryRun) {
+    return Write-CompanionGuardianEvent -Action $Action -Status "dry_run" -Risk $risk -Message "Controlled dry-run only; no Local Agent process was changed." -IsDryRun $true
+  }
+
+  if ($Action -in @("stop", "restart")) {
+    Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", (Join-Path $paths.LocalAgentDir "stop-local-agent.ps1")) -WindowStyle Hidden
+  }
+  if ($Action -in @("start", "restart")) {
+    Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", (Join-Path $paths.LocalAgentDir "start-local-agent.ps1")) -WindowStyle Hidden
+  }
+
+  return Write-CompanionGuardianEvent -Action $Action -Status "dispatched" -Risk $risk -Message "Controlled Local Agent action dispatched by Windows Companion."
 }
 
 function Invoke-CompanionSelfTest {
@@ -243,14 +305,16 @@ function Show-CompanionTray {
       [System.Windows.Forms.MessageBox]::Show("Статус: $($result.status)`nГотовность: $($result.score)%", "Mina Windows Companion")
     } },
     @{ Text = "Запустить Local Agent"; Action = {
-      if ($paths.LocalAgentDir) {
-        Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", (Join-Path $paths.LocalAgentDir "start-local-agent.ps1")) -WindowStyle Hidden
+      $answer = [System.Windows.Forms.MessageBox]::Show("Запуск Local Agent будет записан как controlled owner action. Продолжить?", "Mina Guardian", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+      if ($answer -eq [System.Windows.Forms.DialogResult]::Yes) {
+        $result = Invoke-CompanionLocalAgentAction -Action "start"
+        [System.Windows.Forms.MessageBox]::Show("Статус: $($result.status)`nРиск: $($result.risk_level)", "Mina Guardian")
       }
     } },
-    @{ Text = "Остановить Local Agent"; Action = {
-      if ($paths.LocalAgentDir) {
-        Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", (Join-Path $paths.LocalAgentDir "stop-local-agent.ps1")) -WindowStyle Hidden
-      }
+    @{ Text = "Остановить Local Agent через Approval"; Action = {
+      $result = Invoke-CompanionLocalAgentAction -Action "stop" -ForceDryRun
+      [System.Windows.Forms.MessageBox]::Show("Остановка Local Agent требует Approval в Guardian.`nСтатус: $($result.status)`nДействие не выполнено.", "Mina Guardian")
+      Start-Process ($WebAppUrl.TrimEnd("/") + "/?screen=system&source=tray-approval-required")
     } },
     @{ Text = "Открыть логи"; Action = {
       if ($paths.LogPath -and (Test-Path -LiteralPath $paths.LogPath)) { Start-Process "notepad.exe" $paths.LogPath }
@@ -268,6 +332,13 @@ function Show-CompanionTray {
   $notify.ContextMenuStrip = $menu
   $notify.ShowBalloonTip(2500, "Mina", "Windows-компаньон запущен. Опасные действия не выполняются автоматически.", [System.Windows.Forms.ToolTipIcon]::Info)
   [System.Windows.Forms.Application]::Run()
+}
+
+if ($AgentAction) {
+  $result = Invoke-CompanionLocalAgentAction -Action $AgentAction
+  $result | ConvertTo-Json -Depth 5
+  if ($result.status -in @("blocked", "approval_required")) { exit 2 }
+  exit 0
 }
 
 if ($SelfTest -or $StatusJson) {

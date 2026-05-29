@@ -1,10 +1,11 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260528-phase25-pre-qamax-gate-v1';
+const MINA_CACHE = 'terminator-mina-pwa-20260529-qamax-fix-block-1-v1';
+const HTML_FALLBACK = './index.html';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260528-phase25-pre-qamax-gate-v1',
-  './app.js?v=20260528-phase25-pre-qamax-gate-v1',
+  './styles.css?v=20260529-qamax-fix-block-1-v1',
+  './app.js?v=20260529-qamax-fix-block-1-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
@@ -13,9 +14,30 @@ const PRECACHE_URLS = [
   './assets/mina-ui/desktop/01_start_screen_desktop_red.png',
   './assets/mina-ui/desktop/02_main_menu_desktop_blue.png',
   './assets/mina-ui/mobile/01_start_screen_mobile_red.png',
-  './assets/mina-ui/mobile/02_main_menu_mobile_blue.png',
-  './assets/mina-ui/system-scheme/mina_hologram_silhouette.png'
+  './assets/mina-ui/mobile/02_main_menu_mobile_blue.png'
 ];
+
+const STATIC_EXTENSIONS = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.webmanifest', '.woff2']);
+const DYNAMIC_PATH_MARKERS = ['/api/', '/health', '/diagnostics', '/evidence', '/reports', '/task', '/tasks', '/state', '/command', '/commands', '/queue', '/storage'];
+
+function pathnameExtension(pathname) {
+  const match = pathname.toLowerCase().match(/\.[a-z0-9]+$/);
+  return match ? match[0] : '';
+}
+
+function isDynamicPath(pathname) {
+  const lower = pathname.toLowerCase();
+  return DYNAMIC_PATH_MARKERS.some((marker) => lower.includes(marker));
+}
+
+function isCacheableStaticRequest(request, url) {
+  if (request.method !== 'GET') return false;
+  if (url.origin !== self.location.origin) return false;
+  if (isDynamicPath(url.pathname)) return false;
+  if (PRECACHE_URLS.some((entry) => new URL(entry, self.location.href).pathname === url.pathname)) return true;
+  if (['style', 'script', 'image', 'font', 'manifest'].includes(request.destination)) return true;
+  return STATIC_EXTENSIONS.has(pathnameExtension(url.pathname));
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -43,12 +65,20 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(MINA_CACHE).then((cache) => cache.put('./index.html', clone));
+          const contentType = response.headers.get('content-type') || '';
+          if (response && response.ok && contentType.includes('text/html')) {
+            const clone = response.clone();
+            caches.open(MINA_CACHE).then((cache) => cache.put(HTML_FALLBACK, clone));
+          }
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(HTML_FALLBACK))
     );
+    return;
+  }
+
+  if (!isCacheableStaticRequest(request, url)) {
+    event.respondWith(fetch(request));
     return;
   }
 
