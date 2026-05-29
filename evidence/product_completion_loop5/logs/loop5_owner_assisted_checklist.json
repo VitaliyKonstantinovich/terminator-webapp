@@ -1,0 +1,35 @@
+{
+  "status": "OWNER_ASSISTED_PENDING_ONLY",
+  "mobile_acceptance_rule": {
+    "real_phone_apk": "OWNER_ASSISTED_POSTPONED_UNTIL_PRODUCTION_V2_FINAL",
+    "bluestacks": "RC_SUPPORT_ONLY_NOT_FINAL_PHONE_PASS",
+    "blocks_current_loop": false
+  },
+  "checks": [
+    {
+      "item": "real phone APK/PWA postponed until production V2 final",
+      "required_evidence": "owner evidence only at production V2 final",
+      "blocks_v1_rc": false
+    },
+    {
+      "item": "billing dashboards",
+      "required_evidence": "owner screenshot or manual confirmation",
+      "blocks_v1_rc": false
+    },
+    {
+      "item": "production signing",
+      "required_evidence": "owner screenshot or manual confirmation",
+      "blocks_v1_rc": false
+    },
+    {
+      "item": "production rollback",
+      "required_evidence": "owner screenshot or manual confirmation",
+      "blocks_v1_rc": false
+    },
+    {
+      "item": "legacy cleanup",
+      "required_evidence": "owner screenshot or manual confirmation",
+      "blocks_v1_rc": false
+    }
+  ]
+}

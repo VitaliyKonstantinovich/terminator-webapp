@@ -3134,7 +3134,7 @@ const App = {
       time: new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(now),
       date: new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now),
       screen: this.sideHudScreenLabel(),
-      marker: '20260529-product-loop4-final-experience-v1',
+      marker: 'Loop 5 visual parity',
       guardian,
       guardianNote: (guardian.note || '')
         .replace(/dangerous actions/gi, 'опасные действия')
@@ -3169,6 +3169,23 @@ const App = {
       unknown: 'неизвестно'
     };
     return labels[normalized] || String(value || 'не проверен').replace(/_/g, ' ');
+  },
+
+  sideHudGuardianLabel(guardian = {}) {
+    const status = guardian.state?.emergency_stop_active
+      ? 'emergency_stop'
+      : guardian.state?.safe_mode
+        ? 'safe_mode'
+        : guardian.status;
+    const labels = {
+      active: 'активна',
+      review: 'требует внимания',
+      safe_mode: 'безопасный режим',
+      emergency_stop: 'стоп включён',
+      blocked: 'заблокирована',
+      error: 'ошибка'
+    };
+    return labels[status] || guardian.label || 'не проверена';
   },
 
   sideHudNotifications(guardian, facts) {
@@ -3258,7 +3275,7 @@ const App = {
       <aside class="mina-side-hud-panel mina-side-hud-panel--left" aria-label="Состояние задач и памяти">
         <section class="mina-hud-card mina-hud-card--${this.escapeHtml(snapshot.tone)}">
           <span>Система</span>
-          <strong>${this.escapeHtml(snapshot.guardian.label)}</strong>
+          <strong>${this.escapeHtml(this.sideHudGuardianLabel(snapshot.guardian))}</strong>
           <p>${this.escapeHtml(snapshot.guardianNote)}</p>
         </section>
         <section class="mina-hud-card">
@@ -4204,10 +4221,10 @@ const App = {
       label: GUARDIAN_STATUS_LABELS[state.status] || state.status,
       tone: state.emergency_stop_active ? 'danger' : state.safe_mode ? 'review' : critical ? 'danger' : warnings ? 'review' : 'safe',
       note: state.emergency_stop_active
-        ? 'Стоп действия включён. Новые risky actions заблокированы.'
+        ? 'Стоп действия включён. Новые рискованные действия заблокированы.'
         : state.safe_mode
-          ? 'Safe Mode включён. Автоматические действия ограничены.'
-          : 'Guardian контролирует риски, стоимость и dangerous actions.',
+          ? 'Безопасный режим включён. Автоматические действия ограничены.'
+          : 'Защитник контролирует риски, стоимость и опасные действия.',
       openIncidents,
       critical,
       warnings,
@@ -15333,19 +15350,25 @@ const App = {
           <ellipse class="scheme-aura-ring" cx="160" cy="406" rx="116" ry="264" />
           <ellipse class="scheme-aura-ring scheme-aura-ring--inner" cx="160" cy="402" rx="88" ry="198" />
           <path class="scheme-hair" d="M108 103 C102 46 130 19 160 18 C194 23 221 56 211 129 C205 185 207 235 225 286 C194 266 184 216 186 165 C177 180 144 180 134 165 C136 218 125 264 95 286 C112 234 116 181 108 103 Z" />
+          <path class="scheme-hair-highlight scheme-hair-highlight--left" d="M126 68 C116 112 120 186 104 246 C126 226 134 174 134 126" />
+          <path class="scheme-hair-highlight scheme-hair-highlight--right" d="M194 68 C204 112 200 186 216 246 C194 226 186 174 186 126" />
           <path class="scheme-head" d="M125 100 C126 64 144 44 161 44 C181 45 195 67 195 101 C195 138 179 160 160 160 C141 160 125 138 125 100 Z" />
           <path class="scheme-neck" d="M145 156 L176 156 L184 199 C172 209 148 209 136 199 Z" />
           <path class="scheme-body" d="M112 204 C126 181 194 181 208 204 C230 251 224 318 206 362 C192 398 204 450 219 512 C236 587 224 676 199 728 C186 664 176 588 169 512 C165 469 155 469 151 512 C144 588 133 664 121 728 C96 676 84 587 101 512 C116 450 128 398 114 362 C96 318 90 251 112 204 Z" />
           <path class="scheme-core" d="M128 224 C140 211 180 211 192 224 C204 277 197 330 181 373 C174 392 176 428 189 465 L131 465 C144 428 146 392 139 373 C123 330 116 277 128 224 Z" />
+          <path class="scheme-body-highlight" d="M142 218 C132 270 136 322 150 372 C156 392 154 430 145 463 M178 218 C188 270 184 322 170 372 C164 392 166 430 175 463" />
+          <path class="scheme-shoulder-glow" d="M111 210 C132 190 188 190 209 210" />
           <path class="scheme-arm scheme-arm-left" d="M116 214 C78 262 66 358 75 474 C79 530 59 575 43 619" />
           <path class="scheme-arm scheme-arm-right" d="M204 214 C242 262 254 358 245 474 C241 530 261 575 277 619" />
           <path class="scheme-leg scheme-leg-left" d="M143 463 C128 548 126 636 132 735" />
           <path class="scheme-leg scheme-leg-right" d="M177 463 C192 548 194 636 188 735" />
+          <path class="scheme-leg-highlight" d="M151 478 C146 552 145 638 147 722 M169 478 C174 552 175 638 173 722" />
           <path class="scheme-hand-dot" d="M35 611 C52 608 58 624 44 635 C31 633 28 621 35 611 Z" />
           <path class="scheme-hand-dot" d="M285 611 C268 608 262 624 276 635 C289 633 292 621 285 611 Z" />
           <path class="scheme-foot" d="M119 727 C136 724 147 731 149 744 C132 750 114 748 105 742 C107 735 112 731 119 727 Z" />
           <path class="scheme-foot" d="M201 727 C184 724 173 731 171 744 C188 750 206 748 215 742 C213 735 208 731 201 727 Z" />
           <path class="scheme-line-detail" d="M160 164 L160 724 M119 250 C142 268 178 268 201 250 M112 337 C139 352 181 352 208 337 M129 450 C148 464 172 464 191 450 M135 574 C149 587 171 587 185 574" />
+          <path class="scheme-diagnostic-shield" d="M222 445 L268 468 L257 536 C248 570 234 594 222 604 C210 594 196 570 187 536 L176 468 Z" />
           <circle class="scheme-face-dot scheme-face-dot--left" cx="149" cy="98" r="5" />
           <circle class="scheme-face-dot scheme-face-dot--right" cx="172" cy="98" r="5" />
           <circle class="scheme-face-dot scheme-face-dot--voice" cx="160" cy="126" r="5" />

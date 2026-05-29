@@ -1,0 +1,14 @@
+{
+  "mobile_390": {
+    "width": 390,
+    "document_width": 390,
+    "no_horizontal_overflow": true,
+    "body_text_ok": true,
+    "touch_targets_visible": 405
+  },
+  "mobile_430": {
+    "width": 430,
+    "document_width": 430,
+    "no_horizontal_overflow": true
+  }
+}

@@ -6478,13 +6478,15 @@ button:not(:disabled) {
     position: absolute;
     inset: 0;
     z-index: -1;
-    border: 1px solid rgba(75, 211, 255, 0.16);
+    border: 1px solid rgba(111, 226, 255, 0.24);
     background:
+      linear-gradient(90deg, rgba(96, 220, 255, 0.08), transparent 18%, transparent 82%, rgba(96, 220, 255, 0.08)),
       linear-gradient(180deg, rgba(1, 10, 26, 0.88), rgba(2, 17, 41, 0.92)),
       rgba(0, 9, 22, 0.86);
     box-shadow:
-      inset 0 0 30px rgba(0, 148, 255, 0.11),
-      0 0 24px rgba(0, 88, 165, 0.18);
+      inset 0 0 36px rgba(0, 148, 255, 0.16),
+      inset 0 0 1px rgba(206, 248, 255, 0.32),
+      0 0 30px rgba(0, 134, 218, 0.24);
     clip-path: polygon(8% 0, 92% 0, 100% 7%, 100% 93%, 92% 100%, 8% 100%, 0 93%, 0 7%);
   }
 
@@ -6505,11 +6507,13 @@ button:not(:disabled) {
     padding: 14px 16px;
     border: 1px solid rgba(77, 210, 255, 0.58);
     background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.045), transparent 28%),
       linear-gradient(92deg, rgba(1, 19, 45, 0.97), rgba(1, 54, 92, 0.84) 48%, rgba(2, 19, 45, 0.96)),
       rgba(3, 17, 38, 0.94);
     box-shadow:
       inset 0 0 22px rgba(0, 180, 255, 0.18),
-      0 0 24px rgba(0, 149, 255, 0.22);
+      0 0 26px rgba(0, 149, 255, 0.24),
+      0 12px 28px rgba(0, 0, 0, 0.22);
     clip-path: polygon(10% 0, 100% 0, 100% 72%, 90% 100%, 0 100%, 0 26%);
     color: #dff9ff;
     overflow: hidden;
@@ -7182,6 +7186,34 @@ button:not(:disabled) {
   filter: url("#minaGlow");
 }
 
+.scheme-hair-highlight,
+.scheme-body-highlight,
+.scheme-shoulder-glow,
+.scheme-leg-highlight {
+  fill: none;
+  stroke: rgba(159, 244, 255, 0.58);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 10px rgba(92, 223, 255, 0.62));
+}
+
+.scheme-hair-highlight {
+  stroke-width: 1.7;
+  opacity: 0.78;
+}
+
+.scheme-body-highlight,
+.scheme-leg-highlight {
+  stroke: rgba(116, 232, 255, 0.36);
+  stroke-width: 1.15;
+}
+
+.scheme-shoulder-glow {
+  stroke: rgba(155, 245, 255, 0.74);
+  stroke-width: 1.6;
+}
+
 .scheme-core {
   fill: rgba(10, 86, 162, 0.34);
   stroke-width: 1.5;
@@ -7205,6 +7237,14 @@ button:not(:disabled) {
   stroke: rgba(143, 235, 255, 0.42);
   stroke-width: 1;
   filter: none;
+}
+
+.scheme-diagnostic-shield {
+  fill: rgba(10, 78, 118, 0.12);
+  stroke: rgba(255, 61, 93, 0.48);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 9px rgba(255, 48, 72, 0.35));
 }
 
 .scheme-hand-dot,

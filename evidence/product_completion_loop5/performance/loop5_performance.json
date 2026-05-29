@@ -1,0 +1,74 @@
+[
+  {
+    "name": "app_interactive",
+    "duration_ms": 2383,
+    "budget_ms": 5000,
+    "status": "PASS"
+  },
+  {
+    "name": "screen_switch",
+    "duration_ms": 83,
+    "budget_ms": 1000,
+    "status": "PASS"
+  },
+  {
+    "name": "screen_switch",
+    "duration_ms": 211,
+    "budget_ms": 1000,
+    "status": "PASS"
+  },
+  {
+    "name": "side_hud",
+    "duration_ms": 421,
+    "budget_ms": 1000,
+    "status": "PASS"
+  },
+  {
+    "name": "screen_switch",
+    "duration_ms": 328,
+    "budget_ms": 1000,
+    "status": "PASS"
+  },
+  {
+    "name": "scheme_open",
+    "duration_ms": 209,
+    "budget_ms": 2000,
+    "status": "PASS"
+  },
+  {
+    "name": "demo_summary",
+    "duration_ms": 2776,
+    "budget_ms": 10000,
+    "status": "PASS"
+  },
+  {
+    "name": "memory_search",
+    "duration_ms": 8,
+    "budget_ms": 3000,
+    "status": "PASS"
+  },
+  {
+    "name": "memory_search",
+    "duration_ms": 3,
+    "budget_ms": 3000,
+    "status": "PASS"
+  },
+  {
+    "name": "memory_search",
+    "duration_ms": 1,
+    "budget_ms": 3000,
+    "status": "PASS"
+  },
+  {
+    "name": "screen_switch",
+    "duration_ms": 1289,
+    "budget_ms": 1000,
+    "status": "PARTIAL"
+  },
+  {
+    "name": "quick_diagnost",
+    "duration_ms": 2333,
+    "budget_ms": 5000,
+    "status": "PASS"
+  }
+]
