@@ -36,6 +36,7 @@ This is not a V2 feature expansion. The work tightened V1/V2 readiness truth:
 ## Evidence
 
 - Smoke JSON: `evidence/v2_product_truth_audit/smoke/v2_product_truth_audit_smoke.json`
+- Live/cache marker for this loop: `20260529-v2-product-truth-loop1`
 - Desktop Scheme: `evidence/v2_product_truth_audit/screenshots/desktop-scheme-final.png`
 - Golden path Workspace: `evidence/v2_product_truth_audit/screenshots/desktop-golden-work.png`
 - Mobile 390 Scheme: `evidence/v2_product_truth_audit/screenshots/mobile-390-scheme.png`

@@ -2,6 +2,7 @@
 
 Status: PASS
 Date: 2026-05-29
+Live/cache marker: `20260529-v2-product-truth-loop1`
 
 ## What Was Verified
 
