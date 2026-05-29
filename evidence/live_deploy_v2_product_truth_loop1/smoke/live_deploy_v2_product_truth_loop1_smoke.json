@@ -1,0 +1,146 @@
+{
+  "started_at": "2026-05-29T17:17:44.658Z",
+  "liveRoot": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "liveUrl": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=v2-product-truth-live-1780075064658",
+  "marker": "20260529-v2-product-truth-loop1",
+  "stages": {
+    "fetch": {
+      "htmlMarker": true,
+      "swMarker": true,
+      "appFresh": true,
+      "appBytes": 997704,
+      "htmlBytes": 53660,
+      "swBytes": 3429
+    },
+    "app_ready": {
+      "ready": true,
+      "screen": "start",
+      "title": "TERMINATOR MINA UI",
+      "markerCount": 2,
+      "serviceWorker": "supported"
+    },
+    "scheme": {
+      "rows": [
+        {
+          "zone": "head",
+          "exists": true,
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+          "active": "head"
+        },
+        {
+          "zone": "eyes",
+          "exists": true,
+          "aria": "Открыть настройку Глаза. Статус: не настроено.",
+          "active": "eyes"
+        },
+        {
+          "zone": "voice",
+          "exists": true,
+          "aria": "Открыть настройку Голос. Статус: готово.",
+          "active": "voice"
+        },
+        {
+          "zone": "memory",
+          "exists": true,
+          "aria": "Открыть настройку Память. Статус: готово.",
+          "active": "memory"
+        },
+        {
+          "zone": "body",
+          "exists": true,
+          "aria": "Открыть настройку Тело. Статус: частично.",
+          "active": "body"
+        },
+        {
+          "zone": "hands",
+          "exists": true,
+          "aria": "Открыть настройку Руки. Статус: не настроено.",
+          "active": "hands"
+        },
+        {
+          "zone": "legs",
+          "exists": true,
+          "aria": "Открыть настройку Ноги. Статус: частично.",
+          "active": "legs"
+        },
+        {
+          "zone": "diagnost",
+          "exists": true,
+          "aria": "Открыть настройку Диагност. Статус: частично.",
+          "active": "diagnost"
+        }
+      ],
+      "pngBackground": false,
+      "svgZoneCount": 8,
+      "cardZoneCount": 8,
+      "normalTechnicalText": false,
+      "desktopOverflow": false,
+      "docScrollWidth": 1440,
+      "innerWidth": 1440
+    },
+    "golden_path": {
+      "task_id": "TASK-2026-0001",
+      "status": "executor_report_received",
+      "verifier": {
+        "result": "PASS_WITH_RISKS",
+        "reasons": [
+          "Есть риски или пункты для ручной проверки."
+        ],
+        "privacy": {
+          "status": "clean",
+          "blocked": false,
+          "findings": [],
+          "checked_at": "2026-05-29T17:18:01.288Z"
+        },
+        "gateFindings": []
+      },
+      "memory": {
+        "status": "saved_local",
+        "index_count": 15
+      },
+      "search": {
+        "hello": [
+          {
+            "title": "Память: Напиши Python hello world: вывести hello world через pr...",
+            "type": "memory",
+            "relevance": "strong",
+            "score": 63
+          },
+          {
+            "title": "Задача: Напиши Python hello world: вывести hello world через pr...",
+            "type": "task",
+            "relevance": "strong",
+            "score": 60
+          },
+          {
+            "title": "Файл: hello_world.py",
+            "type": "evidence",
+            "relevance": "strong",
+            "score": 45
+          }
+        ],
+        "impossibleCount": 0,
+        "impossibleWarning": "Ничего релевантного не найдено."
+      }
+    },
+    "mobile_390": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false
+    },
+    "mobile_430": {
+      "width": 430,
+      "scrollWidth": 430,
+      "overflow": false
+    }
+  },
+  "screenshots": {
+    "live_scheme": "evidence\\live_deploy_v2_product_truth_loop1\\screenshots\\live-desktop-scheme.png",
+    "live_golden_work": "evidence\\live_deploy_v2_product_truth_loop1\\screenshots\\live-desktop-golden-work.png",
+    "live_mobile_390": "evidence\\live_deploy_v2_product_truth_loop1\\screenshots\\live-mobile-390-scheme.png",
+    "live_mobile_430": "evidence\\live_deploy_v2_product_truth_loop1\\screenshots\\live-mobile-430-scheme.png"
+  },
+  "errors": [],
+  "finished_at": "2026-05-29T17:18:11.690Z",
+  "verdict": "PASS"
+}
