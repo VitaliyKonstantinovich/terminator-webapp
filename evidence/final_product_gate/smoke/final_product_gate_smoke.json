@@ -1,14 +1,14 @@
 {
-  "checked_at": "2026-05-29T23:45:03.778Z",
-  "live_url": "http://127.0.0.1:8815/",
+  "checked_at": "2026-05-29T23:51:51.074Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
   "marker": "20260529-final-product-gate-v1",
   "cache_marker": "terminator-mina-pwa-20260529-final-product-gate-v1",
   "html_marker": true,
   "sw_marker": true,
   "manifest_ok": true,
-  "chrome_cold_start_to_ready_ms": 11523,
+  "chrome_cold_start_to_ready_ms": 12090,
   "ui": {
-    "checked_at": "2026-05-29T23:44:25.114Z",
+    "checked_at": "2026-05-29T23:51:07.358Z",
     "app_ready": true,
     "no_mojibake": true,
     "no_technical_junk_normal": true,
@@ -32,7 +32,7 @@
       "has_status": true,
       "notifications_opened": true,
       "stale_static_data": false,
-      "text": "СИСТЕМА активна Защитник контролирует риски, стоимость и опасные действия. ЗАДАЧИ 1/1 Прогресс: 0% · ждут отчёт: 0 ПАМЯТЬ 26 Записей в индексе. Поиск фильтрует слабые совпадения. 29.05.2026 18:44 Главное меню СВЯЗЬ на связи Bridge: ждёт вход владельца · Агент: ожидает вход УВЕДОМЛЕНИЯ 1 Просмотреть ГОТОВНОСТЬ 33% Final product gate"
+      "text": "СИСТЕМА активна Защитник контролирует риски, стоимость и опасные действия. ЗАДАЧИ 1/1 Прогресс: 0% · ждут отчёт: 0 ПАМЯТЬ 26 Записей в индексе. Поиск фильтрует слабые совпадения. 29.05.2026 18:50 Главное меню СВЯЗЬ на связи Bridge: ждёт вход владельца · Агент: ожидает вход УВЕДОМЛЕНИЯ 1 Просмотреть ГОТОВНОСТЬ 33% Final product gate"
     },
     "scheme": {
       "zone_count": 8,
@@ -137,31 +137,31 @@
     "performance": [
       {
         "name": "main_menu_open",
-        "duration_ms": 323,
+        "duration_ms": 375,
         "budget_ms": 1000,
         "status": "PASS"
       },
       {
         "name": "scheme_open",
-        "duration_ms": 476,
+        "duration_ms": 930,
         "budget_ms": 2000,
         "status": "PASS"
       },
       {
         "name": "workspace_open",
-        "duration_ms": 1269,
+        "duration_ms": 1574,
         "budget_ms": 1000,
         "status": "PARTIAL"
       },
       {
         "name": "memory_search",
-        "duration_ms": 714,
+        "duration_ms": 850,
         "budget_ms": 3000,
         "status": "PASS"
       },
       {
         "name": "quick_diagnost",
-        "duration_ms": 1078,
+        "duration_ms": 1075,
         "budget_ms": 5000,
         "status": "PASS"
       }

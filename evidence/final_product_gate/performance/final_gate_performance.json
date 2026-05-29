@@ -1,31 +1,31 @@
 [
   {
     "name": "main_menu_open",
-    "duration_ms": 323,
+    "duration_ms": 375,
     "budget_ms": 1000,
     "status": "PASS"
   },
   {
     "name": "scheme_open",
-    "duration_ms": 476,
+    "duration_ms": 930,
     "budget_ms": 2000,
     "status": "PASS"
   },
   {
     "name": "workspace_open",
-    "duration_ms": 1269,
+    "duration_ms": 1574,
     "budget_ms": 1000,
     "status": "PARTIAL"
   },
   {
     "name": "memory_search",
-    "duration_ms": 714,
+    "duration_ms": 850,
     "budget_ms": 3000,
     "status": "PASS"
   },
   {
     "name": "quick_diagnost",
-    "duration_ms": 1078,
+    "duration_ms": 1075,
     "budget_ms": 5000,
     "status": "PASS"
   }
