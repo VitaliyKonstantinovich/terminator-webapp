@@ -714,7 +714,7 @@ const SERVICE_INVENTORY_CATALOG = [
   ['github_repository', 'GitHub repository', 'source_control', 'active', 'кодовая база и история изменений', 'github', false, false, 'high', 'push main только осознанно'],
   ['github_actions', 'GitHub Actions', 'deployment', 'controlled', 'публикация WebApp и smoke-проверки', 'github_secrets', false, true, 'review', 'следить за workflow и лимитами'],
   ['cloudflare_worker', 'Cloudflare Worker / Direct Bridge', 'bridge', 'active', 'мост между WebApp и локальным контуром', 'owner_session', true, true, 'high', 'не менять route/secrets без отдельного решения'],
-  ['cloudflare_durable_object', 'Cloudflare Durable Object', 'state_sync', 'active', 'очередь команд и состояние задач', 'worker_binding', true, false, 'high', 'не смешивать команды и задачи'],
+  ['cloudflare_durable_object', 'Облачное состояние задач', 'state_sync', 'active', 'синхронизация очереди команд и состояния задач', 'worker_binding', true, false, 'high', 'не смешивать команды и задачи'],
   ['local_agent', 'Local Agent', 'local_runtime', 'active', 'локальный исполнитель и связь с ПК', 'local_config', true, false, 'high', 'опасные действия только через Approval'],
   ['windows_task_scheduler', 'Windows Task Scheduler', 'local_runtime', 'active', 'автозапуск локального агента', 'windows_user', false, false, 'review', 'проверять single-instance и LastTaskResult'],
   ['terminator_storage_d', 'D:\\TerminatorStorage', 'storage', 'active', 'тяжёлые файлы, evidence, backups и restore points', 'local_owner', true, false, 'medium', 'не хранить тяжёлое на C'],
@@ -3134,7 +3134,7 @@ const App = {
       time: new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(now),
       date: new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now),
       screen: this.sideHudScreenLabel(),
-      marker: 'Loop 5 visual parity',
+      marker: 'Final product gate',
       guardian,
       guardianNote: (guardian.note || '')
         .replace(/dangerous actions/gi, 'опасные действия')
