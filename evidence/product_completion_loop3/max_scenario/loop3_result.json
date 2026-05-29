@@ -1,0 +1,376 @@
+{
+  "status": "PASS",
+  "smoke": {
+    "marker": "20260529-product-loop3-max-scenario-v1",
+    "headSetup": [
+      {
+        "id": "brain_chatgpt",
+        "name": "ChatGPT",
+        "role": "Стратег",
+        "verified": true
+      },
+      {
+        "id": "brain_deepseek",
+        "name": "DeepSeek",
+        "role": "Критик",
+        "verified": true
+      },
+      {
+        "id": "brain_gemini",
+        "name": "Gemini",
+        "role": "Аналитик",
+        "verified": true
+      }
+    ],
+    "seedMemory": {
+      "task_id": "TASK-2026-0001",
+      "memory_results": 5,
+      "quality": "strong"
+    },
+    "task_id": "TASK-2026-0002",
+    "final_status": "accepted_with_risks",
+    "research": {
+      "brief": true,
+      "source_cards": 2,
+      "evidence_cards": 2,
+      "research_pack_status": "ready",
+      "prompt_packages": 3,
+      "package_statuses": [
+        "ready_manual",
+        "ready_manual",
+        "ready_manual"
+      ]
+    },
+    "brainCouncil": {
+      "roles": [
+        {
+          "id": "head_brain_chatgpt",
+          "account_verified": true,
+          "note": "аккаунт подтверждён"
+        },
+        {
+          "id": "head_brain_gemini",
+          "account_verified": true,
+          "note": "аккаунт подтверждён"
+        },
+        {
+          "id": "head_brain_deepseek",
+          "account_verified": true,
+          "note": "аккаунт подтверждён"
+        }
+      ],
+      "answers": 3,
+      "comparison_status": "ready",
+      "missing_answers": [],
+      "answer_contradictions": [
+        "Разные verdict: ChatGPT, Gemini, DeepSeek склоняются принять; Gemini видят блокер."
+      ],
+      "decision_status": "draft",
+      "council_status": "decision_passport_ready"
+    },
+    "verifier": {
+      "verdict": "PASS_WITH_RISKS",
+      "reasons": [
+        "Есть риски или пункты для ручной проверки."
+      ],
+      "evidenceGate": {
+        "ok": true,
+        "honestAbsence": false,
+        "label": "evidence есть",
+        "reason": "Есть evidence-файл, проверочный artifact или описанный путь/архив."
+      },
+      "qualityGate": {
+        "ok": false,
+        "label": "quality gate не закрыт",
+        "reason": "Для clean PASS нужны содержательный отчёт, явные проверки, первый шаг проверки, ключевой checklist и отсутствие blocking findings."
+      }
+    },
+    "hands": {
+      "plan_id": "HAND-MPR9E14U-LD7TSA",
+      "run_status": "completed",
+      "package_status": "approved_for_manual_apply",
+      "manual_status": "manual_applied",
+      "gate_ok": true,
+      "rollback_restored": true
+    },
+    "diagnostics": {
+      "incidents": [
+        {
+          "id": "INCIDENT-MPR9E66R-U8H7GJ",
+          "severity": "warning",
+          "safe_action": "Открыть Диагност и обновить статус задачи.",
+          "has_pack": true
+        },
+        {
+          "id": "INCIDENT-MPR9E6IZ-KMS9TV",
+          "severity": "warning",
+          "safe_action": "Создать evidence или снять ссылку.",
+          "has_pack": true
+        },
+        {
+          "id": "INCIDENT-MPR9E6VN-XOAOMI",
+          "severity": "warning",
+          "safe_action": "Вернуть на доработку, apply blocked.",
+          "has_pack": true
+        },
+        {
+          "id": "INCIDENT-MPR9E6XD-LDGP91",
+          "severity": "error",
+          "safe_action": "Privacy Guard blocks sending.",
+          "has_pack": true
+        },
+        {
+          "id": "INCIDENT-MPR9E6XH-BC54MQ",
+          "severity": "error",
+          "safe_action": "Проверить D storage and create after approval.",
+          "has_pack": true
+        }
+      ],
+      "diagnostic_status": "danger",
+      "checks": 21
+    },
+    "memory": {
+      "results": 24,
+      "quality": "strong",
+      "duration_ms": 18,
+      "first": "Память: Проведи мини-аудит тестового сайта/модуля: найди риски,...",
+      "impossible_count": 0,
+      "impossible_warning": "Ничего релевантного не найдено."
+    },
+    "acceptance": {
+      "gate_before": {
+        "ready": true,
+        "label": "можно принять с рисками",
+        "reason": "Ключевые gates закрыты."
+      },
+      "final_status": "accepted_with_risks",
+      "decision_id": "ART-MPR9E8O1-KKSHSR",
+      "decision_content": "Решение: accepted_with_risks\nСтатус: можно принять с рисками\nЗадача: TASK-2026-0002 — Проведи мини-аудит тестового сайта/модуля: найди риски,...\nVerifier: принять с рисками\nПамять: saved_local\n## Что сделано\nРезультат: выполнен мини-аудит sandbox test module и подготовлен Python/Playwright-style artifact.\nПроверки PASS: title, data-testid=start-button, aria-label, no token-like patterns, no AI API endpoints.\nРиск: нет отдельного offline-state сообщения; предложен следующий UX test.\nEvidence: D:\\TerminatorStorage\\temp_outputs\\product_loop3\\audit_stdout.json; D:\\TerminatorStorage\\temp_outputs\\product_loop3\\playwright_style_audit.py; D:\\TerminatorStorage\\temp_outputs\\product_loop3\\test_site.html\nЧто проверить первым: открыть audit_stdout.json и убедиться, что checks имеют PASS.\n## Evidence\n- MEMORY_SUMMARY: Memory preview (ART-MPR9E8FG-5U34CX)\n- VERIFIER_VERDICT: Вердикт проверки: принять с рисками (ART-MPR9E14T-O03H5M)\n- RESULT_ARCHIVE: Loop 3 max scenario evidence (ART-MPR9E14P-4CO8PJ)\n- CHECK_LOG: Python/Playwright-style audit artifact (ART-MPR9E14P-NLBSSE)\n- file evidence: playwright_style_audit.py (FILE-MPR9E0RE-S18UBJ) D:\\TerminatorStorage\\tasks\\TASK-2026-0002\\evidence\\FILE-MPR9E0RE-S18UBJ_playwright_style_audit.py\n- file evidence: audit_stdout.json (FILE-MPR9E0TQ-XRBHBV) D:\\TerminatorStorage\\tasks\\TASK-2026-0002\\evidence\\FILE-MPR9E0TQ-XRBHBV_audit_stdout.json\n- verifier evidence: Evidence: D:\\TerminatorStorage\\temp_outputs\\product_loop3\\audit_stdout.json; Decision Passport: ART-MPR9E14O-OJQMTH; Research Pack ready; Source Cards 2; BrainAnswers 3; audit checks PASS.\n## Проверки\n- Verifier checklist: 16/16\n- Evidence gate: evidence есть\n- Quality gate: quality gate не закрыт\n## Риски и что не проверено\n- Не проверено: real phone, billing dashboards, production rollback\n- Ручная проверка: owner-assisted checks pending\n- Риск поломки: production E2E not executed\n## Что проверить первым\n- Открыть audit_stdout.json и проверить checks PASS plus risk offline-state.\n## Следующий шаг\n- Разобрать критерии и составить проверочный план"
+    },
+    "regression": {
+      "routeChecks": [
+        {
+          "route": "start",
+          "duration_ms": 0,
+          "visible": true
+        },
+        {
+          "route": "menu",
+          "duration_ms": 0,
+          "visible": true
+        },
+        {
+          "route": "work",
+          "duration_ms": 0,
+          "visible": true
+        },
+        {
+          "route": "control",
+          "duration_ms": 0,
+          "visible": true
+        },
+        {
+          "route": "system",
+          "duration_ms": 1037,
+          "visible": true
+        },
+        {
+          "route": "scheme",
+          "duration_ms": 3,
+          "visible": true
+        }
+      ],
+      "schemeUsable": true,
+      "diagnostReadable": true
+    },
+    "safety": {
+      "fake_secret_blocked": true,
+      "dangerous_delete_detected": true,
+      "ai_api_detected": false,
+      "emergency_stop_safe_mode_off_blocked": true,
+      "emergency_stop_reset_cleared": true
+    },
+    "honesty": {
+      "no_strategist_blocked": true,
+      "no_sources_needs_sources": true,
+      "missing_answer_marked": true,
+      "missing_first_check_needs_fix": true,
+      "contradiction_detected": true
+    },
+    "artifact_summary": {
+      "count": 23,
+      "types": [
+        "DECISION_RECORD",
+        "MEMORY_SUMMARY",
+        "CONTROLLED_APPLY_PACKAGE",
+        "WORKER_RUNTIME_REPORT",
+        "HANDS_ACTION_PLAN",
+        "VERIFIER_VERDICT",
+        "RESULT_ARCHIVE",
+        "CHECK_LOG",
+        "DECISION_PASSPORT",
+        "BRAIN_COMPARISON",
+        "BRAIN_ANSWER",
+        "BRAIN_ANSWER",
+        "BRAIN_ANSWER",
+        "BRAIN_PROMPT_PACKAGE",
+        "RESEARCH_PACK",
+        "EVIDENCE_CARD",
+        "SOURCE_CARD",
+        "EVIDENCE_CARD",
+        "SOURCE_CARD",
+        "RESEARCH_BRIEF",
+        "EXECUTOR_REPORT",
+        "CONTEXT_PACK",
+        "SPEC"
+      ]
+    },
+    "evidence_files": [
+      {
+        "name": "playwright_style_audit.py",
+        "role": "evidence",
+        "is_evidence": true,
+        "storage_path": "D:\\TerminatorStorage\\temp_outputs\\product_loop3\\playwright_style_audit.py",
+        "sha256": "4EFD9FF6583EB686786064359E1A0D533021E0D649741EB4F5B5B23BF2E71732"
+      },
+      {
+        "name": "audit_stdout.json",
+        "role": "evidence",
+        "is_evidence": true,
+        "storage_path": "D:\\TerminatorStorage\\temp_outputs\\product_loop3\\audit_stdout.json",
+        "sha256": "88449D933E1D5EC4C89A4582D7CC5BBDAD352944D2F7D70A48399D61A73D9688"
+      }
+    ],
+    "perf": [
+      {
+        "name": "simple_task_route",
+        "duration_ms": 1170,
+        "budget_ms": 20000,
+        "status": "PASS"
+      },
+      {
+        "name": "maximum_scenario_route",
+        "duration_ms": 1032,
+        "budget_ms": 30000,
+        "status": "PASS"
+      },
+      {
+        "name": "brain_prompt_packages",
+        "duration_ms": 12,
+        "budget_ms": 5000,
+        "status": "PASS"
+      },
+      {
+        "name": "decision_passport",
+        "duration_ms": 6,
+        "budget_ms": 5000,
+        "status": "PASS"
+      },
+      {
+        "name": "verifier_after_artifact",
+        "duration_ms": 5,
+        "budget_ms": 5000,
+        "status": "PASS"
+      },
+      {
+        "name": "maximum_scenario_route",
+        "duration_ms": 6548,
+        "budget_ms": 30000,
+        "status": "PASS"
+      },
+      {
+        "name": "quick_diagnost",
+        "duration_ms": 2905,
+        "budget_ms": 5000,
+        "status": "PASS"
+      },
+      {
+        "name": "memory_search",
+        "duration_ms": 309,
+        "budget_ms": 3000,
+        "status": "PASS"
+      },
+      {
+        "name": "maximum_scenario_route",
+        "duration_ms": 1040,
+        "budget_ms": 30000,
+        "status": "PASS"
+      },
+      {
+        "name": "screen_switches",
+        "duration_ms": 1819,
+        "budget_ms": 6000,
+        "status": "PASS"
+      },
+      {
+        "name": "safety_negative_checks",
+        "duration_ms": 4533,
+        "budget_ms": 10000,
+        "status": "PASS"
+      },
+      {
+        "name": "decision_passport",
+        "duration_ms": 866,
+        "budget_ms": 5000,
+        "status": "PASS"
+      }
+    ],
+    "security": {
+      "disallowed_ai_api": false,
+      "secrets_exposed": false,
+      "billing_touched": false
+    }
+  },
+  "mobile": {
+    "mobile390": {
+      "menu": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "title": "Привет, Терминатор на связи!"
+      },
+      "work": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "title": "Рабочее"
+      },
+      "system": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "title": "Система"
+      },
+      "scheme": {
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "title": "Схема Мины"
+      }
+    },
+    "mobile430": {
+      "work": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "title": "Рабочее"
+      },
+      "scheme": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "title": "Схема Мины"
+      },
+      "system": {
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "title": "Система"
+      }
+    }
+  },
+  "screenshots": {
+    "desktop": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop3\\screenshots\\loop3_desktop_after_max_scenario.png",
+    "mobile390": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop3\\mobile\\loop3_mobile_390.png"
+  }
+}

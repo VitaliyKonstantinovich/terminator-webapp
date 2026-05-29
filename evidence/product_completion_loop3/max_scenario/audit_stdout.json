@@ -1,0 +1,46 @@
+{
+  "scenario": "mini audit of test module",
+  "site": "D:\\TerminatorStorage\\temp_outputs\\product_loop3\\test_site.html",
+  "script": "D:\\TerminatorStorage\\temp_outputs\\product_loop3\\playwright_style_audit.py",
+  "site_sha256": "88449D933E1D5EC4C89A4582D7CC5BBDAD352944D2F7D70A48399D61A73D9688",
+  "script_sha256": "4EFD9FF6583EB686786064359E1A0D533021E0D649741EB4F5B5B23BF2E71732",
+  "checks": [
+    {
+      "id": "title",
+      "status": "PASS",
+      "note": "Terminator Test Module"
+    },
+    {
+      "id": "start_button",
+      "status": "PASS",
+      "note": "data-testid=start-button"
+    },
+    {
+      "id": "aria",
+      "status": "PASS",
+      "note": "Тестовый модуль; Запустить тестовый сценарий"
+    },
+    {
+      "id": "no_real_secret",
+      "status": "PASS",
+      "note": "no token-like pattern"
+    },
+    {
+      "id": "no_ai_api",
+      "status": "PASS",
+      "note": "no AI API endpoint"
+    }
+  ],
+  "risks": [
+    "Риск: нет отдельного offline-state сообщения."
+  ],
+  "autotest_plan": [
+    "Проверить title и корневой landmark.",
+    "Проверить кнопку data-testid=start-button и aria-label.",
+    "Проверить отсутствие token-like и AI API endpoint patterns.",
+    "Добавить отдельный offline-state test в следующий UX polish pass."
+  ],
+  "stdout_summary": "PASS with UX risk",
+  "exit_code": 0,
+  "duration_ms": 9
+}

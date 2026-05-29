@@ -1,0 +1,76 @@
+{
+  "perf": [
+    {
+      "name": "simple_task_route",
+      "duration_ms": 1170,
+      "budget_ms": 20000,
+      "status": "PASS"
+    },
+    {
+      "name": "maximum_scenario_route",
+      "duration_ms": 1032,
+      "budget_ms": 30000,
+      "status": "PASS"
+    },
+    {
+      "name": "brain_prompt_packages",
+      "duration_ms": 12,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "decision_passport",
+      "duration_ms": 6,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "verifier_after_artifact",
+      "duration_ms": 5,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "maximum_scenario_route",
+      "duration_ms": 6548,
+      "budget_ms": 30000,
+      "status": "PASS"
+    },
+    {
+      "name": "quick_diagnost",
+      "duration_ms": 2905,
+      "budget_ms": 5000,
+      "status": "PASS"
+    },
+    {
+      "name": "memory_search",
+      "duration_ms": 309,
+      "budget_ms": 3000,
+      "status": "PASS"
+    },
+    {
+      "name": "maximum_scenario_route",
+      "duration_ms": 1040,
+      "budget_ms": 30000,
+      "status": "PASS"
+    },
+    {
+      "name": "screen_switches",
+      "duration_ms": 1819,
+      "budget_ms": 6000,
+      "status": "PASS"
+    },
+    {
+      "name": "safety_negative_checks",
+      "duration_ms": 4533,
+      "budget_ms": 10000,
+      "status": "PASS"
+    },
+    {
+      "name": "decision_passport",
+      "duration_ms": 866,
+      "budget_ms": 5000,
+      "status": "PASS"
+    }
+  ]
+}

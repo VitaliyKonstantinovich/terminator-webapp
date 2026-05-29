@@ -19658,26 +19658,41 @@ const App = {
       this.toast('Для сравнения нужно минимум два ответа');
       return;
     }
+    const roles = this.councilRolesForTask(task);
+    const answeredRoleIds = new Set(answers.map((answer) => answer.role_id));
+    const missingAnswers = roles
+      .filter((role) => !answeredRoleIds.has(role.id))
+      .map((role) => `${role.brain} / ${role.role}`);
     const research = this.ensureResearchOpsState(task);
     const riskAnswers = answers.filter((answer) => /(риск|опас|ошиб|слаб|risk)/i.test(answer.content));
     const checkAnswers = answers.filter((answer) => /(провер|verify|check|qa|тест)/i.test(answer.content));
     const contradictionMap = research.contradiction_map || this.buildResearchContradictionMap(task, research.source_cards || [], research.evidence_cards || []);
     const answerContradictions = this.detectBrainAnswerContradictions(answers);
-    const consensus = answers.length >= 3
-      ? 'Есть несколько независимых позиций. Стратег должен выбрать золотую середину качества, рисков и скорости.'
+    const consensus = missingAnswers.length
+      ? `Сравнение неполное: нет ответов ${missingAnswers.join('; ')}. Финальный PASS нельзя считать полным без ручного принятия риска.`
+      : answers.length >= 3
+        ? 'Есть несколько независимых позиций. Стратег должен выбрать золотую середину качества, рисков и скорости.'
       : 'Есть начальное сравнение двух позиций. Для более сильного решения желательно добавить ещё один ответ.';
     council.comparison = {
       comparison_id: this.generateWorkspaceId('BRAINCOMP'),
       answer_ids: answers.map((answer) => answer.answer_id),
+      expected_role_ids: roles.map((role) => role.id),
+      missing_answers: missingAnswers,
       research_pack_id: research.research_pack?.research_pack_id || '',
       consensus,
       disagreements: answers.map((answer) => `${answer.brain}: ${answer.summary}`).slice(0, 4),
       contradiction_map: {
         source_contradictions: contradictionMap.contradictions || [],
         answer_contradictions: answerContradictions,
-        source_gaps: contradictionMap.source_gaps || []
+        source_gaps: [
+          ...(contradictionMap.source_gaps || []),
+          ...missingAnswers.map((role) => `Нет BrainAnswer: ${role}`)
+        ]
       },
-      risks: riskAnswers.length ? riskAnswers.map((answer) => `${answer.brain}: риски указаны`) : ['Не все ответы явно указали риски'],
+      risks: [
+        ...(riskAnswers.length ? riskAnswers.map((answer) => `${answer.brain}: риски указаны`) : ['Не все ответы явно указали риски']),
+        ...missingAnswers.map((role) => `Отсутствует ответ роли: ${role}`)
+      ],
       checks: checkAnswers.length ? checkAnswers.map((answer) => `${answer.brain}: есть проверочный фокус`) : ['Не все ответы указали проверки'],
       source_support: research.research_pack
         ? `${(research.source_cards || []).length} источников, ${(research.evidence_cards || []).length} доказательств`
@@ -19689,7 +19704,8 @@ const App = {
       ...answer,
       contradictions_with_others: answerContradictions.filter((item) => item.includes(answer.brain))
     }));
-    council.status = 'comparison_ready';
+    council.status = missingAnswers.length ? 'comparison_needs_answers' : 'comparison_ready';
+    council.integrity_status = missingAnswers.length ? 'review' : this.brainCouncilIntegrityStatus(council);
     council.updated_at = council.comparison.created_at;
     const artifact = this.createArtifact(
       task,
@@ -19699,12 +19715,12 @@ const App = {
       JSON.stringify(council.comparison, null, 2),
       'brainops'
     );
-    artifact.status = 'ready';
+    artifact.status = missingAnswers.length ? 'needs_answers' : 'ready';
     this.addWorkspaceMessage(task, 'brain_council', 'Совет мозгов', 'Сравнение ответов Совета создано.', {
       linked_artifact_id: artifact.artifact_id,
       linked_artifacts: [artifact.artifact_id]
     });
-    this.toast('Сравнение Совета готово');
+    this.toast(missingAnswers.length ? 'Сравнение неполное: есть роли без ответа' : 'Сравнение Совета готово');
   },
 
   createBrainDecisionPassport(task) {
@@ -19718,10 +19734,20 @@ const App = {
     const profile = this.headProfileById(council.profile_id) || this.activeHeadProfile();
     const mainStrategistId = profile?.main_strategist_id || this.mainStrategistBrain()?.brain_id || '';
     const strategistBrain = this.headBrainById(mainStrategistId);
+    if (!mainStrategistId || !strategistBrain) {
+      council.status = 'needs_strategist';
+      council.integrity_status = 'review';
+      council.updated_at = new Date().toISOString();
+      this.addWorkspaceMessage(task, 'brain_council', 'Совет мозгов', 'Паспорт решения не создан: сначала владелец должен выбрать Главного Стратега.');
+      this.toast('Сначала выбери Главного Стратега');
+      return null;
+    }
     const strategist = answers.find((answer) => answer.brain_id && answer.brain_id === mainStrategistId)
       || answers.find((answer) => strategistBrain && answer.brain === strategistBrain.display_name)
       || answers[0];
     const research = this.ensureResearchOpsState(task);
+    const researchReady = research.research_pack?.status === 'ready';
+    const missingAnswers = council.comparison?.missing_answers || [];
     const decisionId = this.generateWorkspaceId('DECISION');
     council.answers = answers.map((answer) => ({
       ...answer,
@@ -19787,7 +19813,7 @@ const App = {
       this.listOrFallback(task.readiness_criteria, 'не заданы'),
       '',
       '## Можно выполнять сейчас?',
-      research.research_pack && !council.comparison?.contradiction_map?.source_gaps?.length ? 'да, после решения владельца и Verifier' : 'только после ручного принятия риска владельцем',
+      researchReady && !missingAnswers.length && !council.comparison?.contradiction_map?.source_gaps?.length ? 'да, после решения владельца и Verifier' : 'только после ручного принятия риска владельцем',
       '',
       '## Нужен Approval?',
       this.taskRequiresApproval(task) ? 'да' : 'нет опасного действия в рамках паспорта',
@@ -19811,13 +19837,14 @@ const App = {
       strategist_answer_id: strategist.answer_id,
       research_pack_id: research.research_pack?.research_pack_id || '',
       created_at: new Date().toISOString(),
-      status: 'draft'
+      status: researchReady && !missingAnswers.length ? 'draft' : 'needs_review'
     };
-    council.status = 'decision_passport_ready';
+    council.status = researchReady && !missingAnswers.length ? 'decision_passport_ready' : 'decision_passport_needs_review';
+    council.integrity_status = researchReady && !missingAnswers.length ? this.brainCouncilIntegrityStatus(council) : 'review';
     research.status = research.status === 'not_started' ? 'not_started' : 'decision_ready';
     council.updated_at = council.strategist_synthesis.created_at;
     const artifact = this.createArtifact(task, 'DECISION_PASSPORT', 'Паспорт решения Совета', 'Стратегический синтез, источники, риски и проверки.', content, 'brainops');
-    artifact.status = 'draft';
+    artifact.status = researchReady && !missingAnswers.length ? 'draft' : 'needs_review';
     this.addWorkspaceMessage(task, 'decision', 'Совет мозгов', 'Паспорт решения Совета создан и ждёт решения владельца.', {
       linked_artifact_id: artifact.artifact_id,
       linked_artifacts: [artifact.artifact_id]
@@ -19829,7 +19856,10 @@ const App = {
     const council = this.ensureBrainCouncilState(task);
     const research = this.ensureResearchOpsState(task);
     const answers = council.answers?.length || 0;
+    if (council.status === 'needs_strategist') return 'нужно выбрать Главного Стратега';
+    if (council.status === 'decision_passport_needs_review') return 'паспорт решения требует проверки источников или недостающих ответов';
     if (council.status === 'decision_passport_ready') return 'паспорт решения готов';
+    if (council.status === 'comparison_needs_answers') return `сравнение неполное, ответов: ${answers}`;
     if (council.status === 'comparison_ready') return `сравнение готово, ответов: ${answers}`;
     if (answers) return `ответы собираются: ${answers}`;
     if (council.status === 'prompts_need_account_check' || council.prompt_packages?.some((pack) => pack.account_verified === false)) {
@@ -20968,6 +20998,7 @@ const App = {
     const qualityGate = this.verifierQualityGate(task, input, gateFindings);
     const reasons = [];
     let verdict = 'MANUAL_REVIEW';
+    const explicitMissingFirstCheck = Boolean(input.checklist?.first_check && !String(input.first_check || '').trim());
 
     if (!input.report && !input.evidence && checkedItems.length === 0) {
       reasons.push('Недостаточно данных: нет отчета, evidence и checklist.');
@@ -20991,6 +21022,13 @@ const App = {
       reasons.push(...blockingFindings.map((finding) => finding.text));
     }
 
+    if (verdict !== 'REJECT' && explicitMissingFirstCheck) {
+      verdict = 'NEEDS_FIX';
+      if (!reasons.some((reason) => /что проверить первым|first check/i.test(reason))) {
+        reasons.push('Поле "что проверить первым" обязательно для приёмки и не заполнено.');
+      }
+    }
+
     if (verdict !== 'REJECT' && rejectCritical.length) {
       verdict = 'REJECT';
       reasons.push(...rejectCritical.map((item) => `Не подтверждено: ${item.label}.`));
@@ -21003,16 +21041,16 @@ const App = {
     } else if (verdict !== 'REJECT' && verdict !== 'NEEDS_FIX' && evidenceGate.honestAbsence) {
       verdict = 'PASS_WITH_RISKS';
       reasons.push(evidenceGate.reason);
-    } else if (verdict !== 'REJECT' && (checklistIncomplete || risksPresent || gateFindings.length || privacyScan.findings.length)) {
+    } else if (verdict !== 'REJECT' && verdict !== 'NEEDS_FIX' && (checklistIncomplete || risksPresent || gateFindings.length || privacyScan.findings.length)) {
       verdict = 'PASS_WITH_RISKS';
       if (checklistIncomplete) reasons.push('Есть неполные проверки.');
       if (risksPresent) reasons.push('Есть риски или пункты для ручной проверки.');
       if (privacyScan.findings.length) reasons.push(`Privacy Guard требует ручной проверки: ${this.privacyScanSummary(privacyScan)}.`);
       if (gateFindings.length) reasons.push('Есть дополнительные gate findings.');
-    } else if (verdict !== 'REJECT' && !qualityGate.ok) {
+    } else if (verdict !== 'REJECT' && verdict !== 'NEEDS_FIX' && !qualityGate.ok) {
       verdict = 'PASS_WITH_RISKS';
       reasons.push(qualityGate.reason);
-    } else if (verdict !== 'REJECT') {
+    } else if (verdict !== 'REJECT' && verdict !== 'NEEDS_FIX') {
       verdict = 'PASS';
       reasons.push('Ключевые проверки отмечены, явных рисков не указано.');
     }

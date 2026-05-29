@@ -1,0 +1,48 @@
+{
+  "mobile390": {
+    "menu": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "title": "Привет, Терминатор на связи!"
+    },
+    "work": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "title": "Рабочее"
+    },
+    "system": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "title": "Система"
+    },
+    "scheme": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "title": "Схема Мины"
+    }
+  },
+  "mobile430": {
+    "work": {
+      "width": 430,
+      "scrollWidth": 430,
+      "overflow": false,
+      "title": "Рабочее"
+    },
+    "scheme": {
+      "width": 430,
+      "scrollWidth": 430,
+      "overflow": false,
+      "title": "Схема Мины"
+    },
+    "system": {
+      "width": 430,
+      "scrollWidth": 430,
+      "overflow": false,
+      "title": "Система"
+    }
+  }
+}
