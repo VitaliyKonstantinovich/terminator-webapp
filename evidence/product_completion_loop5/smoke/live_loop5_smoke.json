@@ -1,0 +1,147 @@
+{
+  "checked_at": "2026-05-29T22:22:19.709Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "marker": "20260529-product-loop5-visual-parity-v1",
+  "cache_marker": "terminator-mina-pwa-20260529-product-loop5-visual-parity-v1",
+  "html_marker": true,
+  "sw_marker": true,
+  "manifest_ok": true,
+  "chrome_cold_start_to_ready_ms": 35901,
+  "ui": {
+    "location": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=loop5-live-ui-1780093292893",
+    "app_ready": true,
+    "text_ok": true,
+    "no_technical_junk_in_normal": true,
+    "side_hud": {
+      "active_dom": true,
+      "left_cards": 3,
+      "right_cards": 4,
+      "has_live_date": true,
+      "has_status": true,
+      "view_button": true,
+      "has_static_old_date": false,
+      "text": "СИСТЕМА активна Защитник контролирует риски, стоимость и опасные действия. ЗАДАЧИ 0/0 Прогресс: 0% · ждут отчёт: 0 ПАМЯТЬ 4 Записей в индексе. Поиск фильтрует слабые совпадения. 29.05.2026 17:21 Главное меню СВЯЗЬ на связи Bridge: ждёт вход владельца · Агент: ожидает вход УВЕДОМЛЕНИЯ 1 Просмотреть ГОТОВНОСТЬ 33% Loop 5",
+      "notifications_opened": true,
+      "notification_text": "ЦЕНТР УВЕДОМЛЕНИЙ × Критичных уведомлений нет Можно начать работу или проверить систему. Открыть Диагност"
+    },
+    "scheme": {
+      "zone_count": 8,
+      "zones": [
+        {
+          "zone": "head",
+          "card": true,
+          "svg": true,
+          "panel": "Голова / Мозги",
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено."
+        },
+        {
+          "zone": "eyes",
+          "card": true,
+          "svg": true,
+          "panel": "Глаза",
+          "aria": "Открыть настройку Глаза. Статус: не настроено."
+        },
+        {
+          "zone": "voice",
+          "card": true,
+          "svg": true,
+          "panel": "Голос",
+          "aria": "Открыть настройку Голос. Статус: готово."
+        },
+        {
+          "zone": "memory",
+          "card": true,
+          "svg": true,
+          "panel": "Память",
+          "aria": "Открыть настройку Память. Статус: готово."
+        },
+        {
+          "zone": "body",
+          "card": true,
+          "svg": true,
+          "panel": "Тело",
+          "aria": "Открыть настройку Тело. Статус: частично."
+        },
+        {
+          "zone": "hands",
+          "card": true,
+          "svg": true,
+          "panel": "Руки",
+          "aria": "Открыть настройку Руки. Статус: не настроено."
+        },
+        {
+          "zone": "legs",
+          "card": true,
+          "svg": true,
+          "panel": "Ноги",
+          "aria": "Открыть настройку Ноги. Статус: частично."
+        },
+        {
+          "zone": "diagnost",
+          "card": true,
+          "svg": true,
+          "panel": "Диагност",
+          "aria": "Открыть настройку Диагност. Статус: частично."
+        }
+      ],
+      "voice_points_to_mouth": true,
+      "eyes_points_to_eyes": true,
+      "png_background": false
+    },
+    "memory": {
+      "impossible_count": 0,
+      "impossible_warning": "Ничего релевантного не найдено.",
+      "weak_count": 1,
+      "weak_quality": "weak",
+      "weak_warning": "Найдены только слабые совпадения, проверьте вручную."
+    },
+    "emergency_stop": {
+      "emergencyActive": true,
+      "stillActiveAfterSafeOff": true,
+      "stillActiveAfterWrongPhrase": true,
+      "resetCleared": true
+    },
+    "perf": [
+      {
+        "name": "menu_open",
+        "duration_ms": 404
+      },
+      {
+        "name": "scheme_open",
+        "duration_ms": 573
+      }
+    ]
+  },
+  "mobile": {
+    "mobile390Main": {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true
+    },
+    "mobile390Scheme": {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true,
+      "schemeVisible": true
+    },
+    "mobile430": {
+      "width": 430,
+      "scrollWidth": 430,
+      "no_horizontal_overflow": true
+    }
+  },
+  "screenshots": {
+    "live_main_menu_side_hud": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_main_menu_side_hud.png",
+    "live_notifications_opened": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_notifications_opened.png",
+    "live_scheme_default": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_scheme_default.png",
+    "live_scheme_head": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_scheme_head.png",
+    "live_scheme_voice": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_scheme_voice.png",
+    "live_scheme_hands": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_scheme_hands.png",
+    "live_scheme_diagnost": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_scheme_diagnost.png",
+    "live_memory_search": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_memory_search.png",
+    "live_diagnost": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_diagnost.png",
+    "live_mobile_390_main": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_mobile_390_main.png",
+    "live_mobile_390_scheme": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop5\\screenshots\\live_mobile_390_scheme.png"
+  },
+  "status": "PASS"
+}

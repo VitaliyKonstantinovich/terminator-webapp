@@ -264,13 +264,27 @@ try {
   });
   const ui = JSON.parse(evalResult.result.value);
 
-  await cdp.send('Runtime.evaluate', { expression: `
-    window.MinaApp.go('menu', { immediate: true });
-    window.MinaApp.sideHudNotificationsOpen = false;
-    window.MinaApp.renderSideHud();
-    window.MinaApp.toastTimer && clearTimeout(window.MinaApp.toastTimer);
-    document.getElementById('toast')?.classList.remove('visible');
-  `, returnByValue: true });
+  await cdp.send('Runtime.evaluate', {
+    expression: `
+      (async () => {
+        window.MinaApp.guardianIncidents = [];
+        await window.MinaApp.saveGuardianState({
+          safe_mode: false,
+          emergency_stop_active: false,
+          status: 'active',
+          last_event: 'Loop 5 live visual screenshot reset'
+        }, { silent: true });
+        window.MinaApp.go('menu', { immediate: true });
+        window.MinaApp.sideHudNotificationsOpen = false;
+        window.MinaApp.renderSideHud();
+        window.MinaApp.toastTimer && clearTimeout(window.MinaApp.toastTimer);
+        document.getElementById('toast')?.classList.remove('visible');
+        return true;
+      })()
+    `,
+    awaitPromise: true,
+    returnByValue: true
+  });
   const liveMainMenu = await capture(cdp, 'live_main_menu_side_hud');
   await cdp.send('Runtime.evaluate', { expression: `document.querySelector('#screen-menu [data-side-hud-action="open_notifications"]')?.click();`, returnByValue: true });
   const liveNotifications = await capture(cdp, 'live_notifications_opened');
