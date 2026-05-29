@@ -1,0 +1,116 @@
+{
+  "checked_at": "2026-05-29T18:12:18.073Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "marker": "20260529-product-loop2-functional-reality-v1",
+  "html_marker": true,
+  "sw_marker": true,
+  "manifest_ok": true,
+  "ui": {
+    "location": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=loop2-live-ui-1780078309021",
+    "app_ready": true,
+    "text_ok": true,
+    "scheme": {
+      "title": "Схема Мины",
+      "zones": [
+        {
+          "zone": "head",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+          "panel": "Голова / Мозги"
+        },
+        {
+          "zone": "eyes",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Глаза. Статус: не настроено.",
+          "panel": "Глаза"
+        },
+        {
+          "zone": "voice",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Голос. Статус: готово.",
+          "panel": "Голос"
+        },
+        {
+          "zone": "memory",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Память. Статус: готово.",
+          "panel": "Память"
+        },
+        {
+          "zone": "body",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Тело. Статус: частично.",
+          "panel": "Тело"
+        },
+        {
+          "zone": "hands",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Руки. Статус: не настроено.",
+          "panel": "Руки"
+        },
+        {
+          "zone": "legs",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Ноги. Статус: частично.",
+          "panel": "Ноги"
+        },
+        {
+          "zone": "diagnost",
+          "card": true,
+          "svg": true,
+          "active": true,
+          "aria": "Открыть настройку Диагност. Статус: частично.",
+          "panel": "Диагност"
+        }
+      ],
+      "zone_count": 8,
+      "voice_points_to_mouth": true,
+      "eyes_points_to_eyes": true,
+      "png_background": false
+    },
+    "memory": {
+      "impossible_count": 0,
+      "warning": "Ничего релевантного не найдено.",
+      "quality": "empty"
+    },
+    "emergency_stop": {
+      "emergencyActive": true,
+      "stillActiveAfterSafeOff": true,
+      "stillActiveAfterWrongPhrase": true,
+      "resetCleared": true,
+      "guardianEvents": [
+        "emergency_stop.reset_confirmed",
+        "emergency_stop.reset_requested",
+        "emergency_stop.reset_cancelled",
+        "emergency_stop.reset_requested",
+        "emergency_stop.reset_requested",
+        "emergency_stop.activated"
+      ]
+    }
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "overflow": false,
+    "title": "Схема Мины"
+  },
+  "screenshots": {
+    "desktop": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\live_deploy_product_completion_loop2\\screenshots\\live_loop2_scheme_desktop.png",
+    "mobile390": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\live_deploy_product_completion_loop2\\screenshots\\live_loop2_scheme_mobile_390.png"
+  },
+  "status": "PASS"
+}
