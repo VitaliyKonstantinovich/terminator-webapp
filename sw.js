@@ -1,11 +1,11 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260529-qamax-fix-block-1-v1';
+const MINA_CACHE = 'terminator-mina-pwa-20260529-v2-product-truth-loop1';
 const HTML_FALLBACK = './index.html';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260529-qamax-fix-block-1-v1',
-  './app.js?v=20260529-qamax-fix-block-1-v1',
+  './styles.css?v=20260529-v2-product-truth-loop1',
+  './app.js?v=20260529-v2-product-truth-loop1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
