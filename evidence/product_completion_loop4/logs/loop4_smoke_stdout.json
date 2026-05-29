@@ -1,0 +1,276 @@
+{
+  "marker": "20260529-product-loop4-final-experience-v1",
+  "location": "http://127.0.0.1:8899/?force=product-loop4-local",
+  "first_visible_ms": 722,
+  "app_ready": true,
+  "text_ok": true,
+  "no_technical_junk_in_normal": true,
+  "menu": {
+    "has_work": true,
+    "has_mission": true,
+    "has_system": true,
+    "personal_active_path": false
+  },
+  "scheme": {
+    "title": "Схема Мины",
+    "zone_count": 8,
+    "zones": [
+      {
+        "zone": "head",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+        "panel": "Голова / Мозги",
+        "status_text": "◎ Голова / Мозги не настроено · 25%"
+      },
+      {
+        "zone": "eyes",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Глаза. Статус: не настроено.",
+        "panel": "Глаза",
+        "status_text": "◉ Глаза не настроено · 38%"
+      },
+      {
+        "zone": "voice",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Голос. Статус: готово.",
+        "panel": "Голос",
+        "status_text": "≋ Голос готово · 100%"
+      },
+      {
+        "zone": "memory",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Память. Статус: готово.",
+        "panel": "Память",
+        "status_text": "▣ Память готово · 88%"
+      },
+      {
+        "zone": "body",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Тело. Статус: частично.",
+        "panel": "Тело",
+        "status_text": "◆ Тело частично · 64%"
+      },
+      {
+        "zone": "hands",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Руки. Статус: не настроено.",
+        "panel": "Руки",
+        "status_text": "✦ Руки не настроено · 48%"
+      },
+      {
+        "zone": "legs",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Ноги. Статус: частично.",
+        "panel": "Ноги",
+        "status_text": "⌁ Ноги частично · 70%"
+      },
+      {
+        "zone": "diagnost",
+        "card": true,
+        "svg": true,
+        "active": false,
+        "aria": "Открыть настройку Диагност. Статус: частично.",
+        "panel": "Диагност",
+        "status_text": "◇ Диагност частично · 68%"
+      }
+    ],
+    "voice_points_to_mouth": true,
+    "eyes_points_to_eyes": true,
+    "png_background": false,
+    "normal_has_raw_state": false
+  },
+  "demo": {
+    "task_id": "TASK-2026-0001",
+    "artifact_count": 7,
+    "memory_status": "saved_local",
+    "final_answer": {
+      "result": "Мини-аудит тестового сайта и план автотеста представлены как финальная demo chain.",
+      "status": "accepted_with_risks",
+      "artifacts": [
+        "MEMORY_SUMMARY",
+        "MEMORY_SUMMARY",
+        "VERIFIER_VERDICT",
+        "DECISION_PASSPORT",
+        "BRAIN_COMPARISON",
+        "RESEARCH_BRIEF",
+        "SPEC"
+      ],
+      "evidence": [
+        "Loop 3 max scenario JSON",
+        "Loop 4 screenshots",
+        "Loop 4 performance JSON",
+        "D archive"
+      ],
+      "risks": [
+        "real phone APK/PWA postponed until production V2 final",
+        "billing dashboards owner-assisted",
+        "production rollback owner-assisted"
+      ],
+      "checked": [
+        "ResearchOps",
+        "Brain Council",
+        "Verifier",
+        "Memory Search",
+        "Controlled Hands sandbox rollback",
+        "Mina UI smoke"
+      ],
+      "not_checked": [
+        "real phone APK/PWA postponed by owner until production V2 final",
+        "billing cabinets",
+        "production signing",
+        "production rollback"
+      ],
+      "next_step": "Владелец проверяет финальный пакет и owner-assisted пункты: телефон, billing, production rollback."
+    }
+  },
+  "memory": {
+    "strong_count": 10,
+    "strong_quality": "strong",
+    "impossible_count": 0,
+    "impossible_warning": "",
+    "weak_count": 3,
+    "weak_warning": "",
+    "weak_quality": "strong"
+  },
+  "quick_diagnost": {
+    "duration_ms": 2480,
+    "checks": 21,
+    "status": "review"
+  },
+  "emergency_stop": {
+    "stillActiveAfterSafeOff": true,
+    "stillActiveAfterWrongPhrase": true,
+    "resetCleared": true
+  },
+  "owner_assisted_pending": [
+    "real phone APK/PWA postponed until production V2 final",
+    "billing dashboards",
+    "production signing",
+    "production rollback",
+    "legacy cleanup"
+  ],
+  "product_notes": {
+    "start": "clear",
+    "scheme": "clear/premium enough",
+    "work": "clear demo chain",
+    "recovery": "safe",
+    "mobile": "checked below"
+  },
+  "perf": [
+    {
+      "name": "app_interactive",
+      "duration_ms": 23064,
+      "budget_ms": 5000,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "screen_switch",
+      "duration_ms": 89,
+      "budget_ms": 1000,
+      "status": "PASS"
+    },
+    {
+      "name": "screen_switch",
+      "duration_ms": 195,
+      "budget_ms": 1000,
+      "status": "PASS"
+    },
+    {
+      "name": "screen_switch",
+      "duration_ms": 1462,
+      "budget_ms": 1000,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "scheme_open",
+      "duration_ms": 601,
+      "budget_ms": 2000,
+      "status": "PASS"
+    },
+    {
+      "name": "demo_summary",
+      "duration_ms": 1415,
+      "budget_ms": 10000,
+      "status": "PASS"
+    },
+    {
+      "name": "memory_search",
+      "duration_ms": 5,
+      "budget_ms": 3000,
+      "status": "PASS"
+    },
+    {
+      "name": "memory_search",
+      "duration_ms": 2,
+      "budget_ms": 3000,
+      "status": "PASS"
+    },
+    {
+      "name": "memory_search",
+      "duration_ms": 3,
+      "budget_ms": 3000,
+      "status": "PASS"
+    },
+    {
+      "name": "screen_switch",
+      "duration_ms": 1076,
+      "budget_ms": 1000,
+      "status": "PARTIAL"
+    },
+    {
+      "name": "quick_diagnost",
+      "duration_ms": 2479,
+      "budget_ms": 5000,
+      "status": "PASS"
+    }
+  ],
+  "navigation_timing": {
+    "first_visible_ms": 722,
+    "app_interactive_ms": 23064
+  },
+  "chrome_cold_start_to_ready_ms": 24170,
+  "app_interactive_ms": 23064,
+  "screenshots": {
+    "menu": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_main_menu.png",
+    "start": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_start_screen.png",
+    "scheme_head": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_scheme_head.png",
+    "scheme_voice": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_scheme_voice.png",
+    "work_demo": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_work_demo.png",
+    "brain": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_brain_council.png",
+    "system": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\screenshots\\loop4_system_diagnost.png",
+    "mobile_390": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\mobile\\loop4_mobile_390_scheme.png",
+    "mobile_430": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop4\\mobile\\loop4_mobile_430_scheme.png"
+  },
+  "mobile_390": {
+    "width": 390,
+    "document_width": 390,
+    "no_horizontal_overflow": true,
+    "body_text_ok": true,
+    "touch_targets_visible": 411
+  },
+  "mobile_430": {
+    "width": 430,
+    "document_width": 430,
+    "no_horizontal_overflow": true
+  },
+  "loop3_reused": {
+    "status": "PASS",
+    "source_cards": 2,
+    "verifier": "PASS_WITH_RISKS"
+  },
+  "status": "PASS"
+}

@@ -25,9 +25,9 @@ GitHub can keep an old `pages/builds/latest` legacy status even after the site i
 - The public Pages artifact is a whitelist:
   `index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, `sw.js`, `.nojekyll`, and `assets/`.
 - The deploy workflow runs a live smoke check for:
-  - current V1 HTML marker: `20260529-qamax-fix-block-1-v1`;
+  - current V1 HTML marker: `20260529-product-loop4-final-experience-v1`;
   - PWA manifest;
-  - current Service Worker cache marker: `terminator-mina-pwa-20260529-qamax-fix-block-1-v1`.
+  - current Service Worker cache marker: `terminator-mina-pwa-20260529-product-loop4-final-experience-v1`.
 - Historical phase markers may remain in older evidence, but they are not the current acceptance requirement.
 - Manual pushes to `gh-pages` are not part of the normal release flow.
 
@@ -47,8 +47,8 @@ Pages health check: PASS
 
 Current marker policy:
 
-- Current V1 marker: `20260529-qamax-fix-block-1-v1`.
-- Current cache marker: `terminator-mina-pwa-20260529-qamax-fix-block-1-v1`.
+- Current V1 marker: `20260529-product-loop4-final-experience-v1`.
+- Current cache marker: `terminator-mina-pwa-20260529-product-loop4-final-experience-v1`.
 - Future release blocks must update the workflow marker, health script marker and final acceptance index together.
 
 ## Scope

@@ -2490,6 +2490,8 @@ const App = {
   runtimeSavePromise: null,
   toastTimer: null,
   commandPollTimer: null,
+  sideHudTimer: null,
+  sideHudNotificationsOpen: false,
   tg: null,
   order: ['start', 'menu', 'work', 'mission', 'system', 'scheme'],
   anydesk: {
@@ -2541,6 +2543,8 @@ const App = {
     this.renderAnyDeskAccess();
     this.startWorkspaceTimer();
     this.go(this.initialScreenFromUrl(), { immediate: true });
+    this.startSideHudRuntime();
+    window.__MINA_APP_READY_AT = Math.round(performance.now());
     this.retryTelegramInit();
     this.startBackgroundTaskStoreSync('init');
   },
@@ -2669,6 +2673,12 @@ const App = {
       const eyesButton = event.target.closest('[data-eyes-action]');
       if (eyesButton) {
         this.handleEyesVisualAction(eyesButton.dataset.eyesAction, eyesButton);
+        return;
+      }
+
+      const sideHudButton = event.target.closest('[data-side-hud-action]');
+      if (sideHudButton) {
+        this.handleSideHudAction(sideHudButton.dataset.sideHudAction, sideHudButton);
         return;
       }
 
@@ -3011,6 +3021,7 @@ const App = {
     if (name === 'mission') this.renderMissionControl();
     if (name === 'system') this.renderSystemStatus();
     if (name === 'scheme') this.renderMinaSystemScheme();
+    this.renderSideHud();
     this.updateTelegramControls();
   },
 
@@ -3072,6 +3083,250 @@ const App = {
     } else {
       this.tg.BackButton.show();
     }
+  },
+
+  startSideHudRuntime() {
+    if (this.sideHudTimer) return;
+    this.renderSideHud();
+    this.sideHudTimer = window.setInterval(() => this.renderSideHud(), 1000);
+  },
+
+  sideHudScreenLabel(screenId = this.current) {
+    return {
+      menu: 'Главное меню',
+      work: 'Рабочее',
+      mission: 'Центр управления',
+      system: 'Система',
+      scheme: 'Схема Мины',
+      brain: 'Совет мозгов',
+      remote: 'Удалённый доступ',
+      complete: 'Завершение'
+    }[screenId] || 'Терминатор';
+  },
+
+  sideHudSnapshot() {
+    const now = new Date();
+    const guardian = this.guardianSnapshot();
+    const tasks = Array.isArray(this.workTasks) ? this.workTasks : [];
+    const activeTaskStatuses = new Set(['draft', 'created', 'ready_for_executor', 'waiting_executor_report', 'needs_verification', 'returned_for_fix', 'accepted_with_risks']);
+    const doneTaskStatuses = new Set(['accepted', 'closed', 'archived', 'done']);
+    const activeTasks = tasks.filter((task) => activeTaskStatuses.has(task.status)).length;
+    const doneTasks = tasks.filter((task) => doneTaskStatuses.has(task.status)).length;
+    const waitingReports = tasks.filter((task) => task.status === 'waiting_executor_report').length;
+    const taskProgress = tasks.length ? Math.round((doneTasks / tasks.length) * 100) : 0;
+    const pendingApprovals = (this.approvalRecords || []).filter((item) => !['approved', 'rejected', 'cancelled', 'expired', 'closed'].includes(item.status)).length;
+    const memoryRecords = this.memorySearchState?.records?.length || 0;
+    const memoryWarning = this.memorySearchState?.last_query_warning || (this.memorySearchState?.warnings || [])[0] || '';
+    const schemeHealth = this.minaSchemeHealth ? this.minaSchemeHealth() : null;
+    const readiness = schemeHealth?.readinessPercent || 0;
+    const notifications = this.sideHudNotifications(guardian, {
+      waitingReports,
+      pendingApprovals,
+      memoryWarning,
+      activeTasks
+    });
+    const tone = guardian.tone === 'danger'
+      ? 'danger'
+      : guardian.tone === 'review' || notifications.some((item) => item.tone === 'review')
+        ? 'review'
+        : 'safe';
+    return {
+      time: new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(now),
+      date: new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now),
+      screen: this.sideHudScreenLabel(),
+      marker: '20260529-product-loop4-final-experience-v1',
+      guardian,
+      guardianNote: (guardian.note || '')
+        .replace(/dangerous actions/gi, 'опасные действия')
+        .replace(/risky actions/gi, 'рискованные действия'),
+      tone,
+      readiness,
+      activeTasks,
+      totalTasks: tasks.length,
+      taskProgress,
+      waitingReports,
+      pendingApprovals,
+      memoryRecords,
+      network: navigator.onLine ? 'на связи' : 'нет связи',
+      bridge: this.sideHudRuntimeText(this.taskStoreSyncStatus || 'не проверен'),
+      localAgent: this.sideHudRuntimeText(this.publicRuntimeHealth?.local_agent?.status || this.liveRuntimeState?.agent_status || 'ожидает вход'),
+      notifications
+    };
+  },
+
+  sideHudRuntimeText(value = '') {
+    const normalized = String(value || '').toLowerCase();
+    const labels = {
+      owner_session_required: 'ждёт вход владельца',
+      not_connected: 'не подключён',
+      checking: 'проверяется',
+      synced: 'синхронизирован',
+      online: 'на связи',
+      offline: 'нет связи',
+      ready: 'готов',
+      ok: 'готов',
+      error: 'ошибка',
+      unknown: 'неизвестно'
+    };
+    return labels[normalized] || String(value || 'не проверен').replace(/_/g, ' ');
+  },
+
+  sideHudNotifications(guardian, facts) {
+    const items = [];
+    if (guardian.state?.emergency_stop_active) {
+      items.push({
+        tone: 'danger',
+        title: 'Стоп действия включён',
+        text: 'Новые рискованные действия заблокированы до точного подтверждения.'
+      });
+    }
+    if (guardian.state?.safe_mode) {
+      items.push({
+        tone: 'review',
+        title: 'Безопасный режим',
+        text: 'Автоматические действия ограничены. Диагност покажет следующий шаг.'
+      });
+    }
+    if (guardian.openIncidents?.length) {
+      items.push({
+        tone: guardian.critical ? 'danger' : 'review',
+        title: `Инциденты: ${guardian.openIncidents.length}`,
+        text: guardian.openIncidents[0]?.title || 'Есть открытые события Guardian.'
+      });
+    }
+    if (facts.pendingApprovals) {
+      items.push({
+        tone: 'review',
+        title: `Approval: ${facts.pendingApprovals}`,
+        text: 'Есть действия, которые ждут подтверждения владельца.'
+      });
+    }
+    if (facts.waitingReports) {
+      items.push({
+        tone: 'review',
+        title: `Ждут отчёт: ${facts.waitingReports}`,
+        text: 'Есть задачи во внешнем ожидании исполнителя.'
+      });
+    }
+    if (facts.memoryWarning) {
+      items.push({
+        tone: 'review',
+        title: 'Память требует внимания',
+        text: facts.memoryWarning
+      });
+    }
+    if (!items.length) {
+      items.push({
+        tone: 'safe',
+        title: 'Критичных уведомлений нет',
+        text: facts.activeTasks ? 'Рабочий контур активен, следующий шаг доступен в текущем экране.' : 'Можно начать работу или проверить систему.'
+      });
+    }
+    return items.slice(0, 6);
+  },
+
+  renderSideHud() {
+    const screens = document.querySelectorAll('.screen--blue');
+    if (!screens.length) return;
+    const snapshot = this.sideHudSnapshot();
+    screens.forEach((screen) => {
+      let hud = screen.querySelector(':scope > .mina-side-hud');
+      if (!hud) {
+        hud = document.createElement('div');
+        hud.className = 'mina-side-hud';
+        hud.setAttribute('aria-label', 'Живые боковые панели статуса Мины');
+        screen.appendChild(hud);
+      }
+      hud.innerHTML = this.renderSideHudMarkup(snapshot);
+    });
+  },
+
+  renderSideHudMarkup(snapshot) {
+    const notifications = snapshot.notifications;
+    const notificationTone = notifications.some((item) => item.tone === 'danger')
+      ? 'danger'
+      : notifications.some((item) => item.tone === 'review')
+        ? 'review'
+        : 'safe';
+    const notificationList = notifications.map((item) => `
+      <article class="mina-hud-notice mina-hud-notice--${this.escapeHtml(item.tone)}">
+        <strong>${this.escapeHtml(item.title)}</strong>
+        <span>${this.escapeHtml(item.text)}</span>
+      </article>
+    `).join('');
+    return `
+      <aside class="mina-side-hud-panel mina-side-hud-panel--left" aria-label="Состояние задач и памяти">
+        <section class="mina-hud-card mina-hud-card--${this.escapeHtml(snapshot.tone)}">
+          <span>Система</span>
+          <strong>${this.escapeHtml(snapshot.guardian.label)}</strong>
+          <p>${this.escapeHtml(snapshot.guardianNote)}</p>
+        </section>
+        <section class="mina-hud-card">
+          <span>Задачи</span>
+          <strong>${this.escapeHtml(String(snapshot.activeTasks))}/${this.escapeHtml(String(snapshot.totalTasks))}</strong>
+          <p>Прогресс: ${this.escapeHtml(String(snapshot.taskProgress))}% · ждут отчёт: ${this.escapeHtml(String(snapshot.waitingReports))}</p>
+        </section>
+        <section class="mina-hud-card">
+          <span>Память</span>
+          <strong>${this.escapeHtml(String(snapshot.memoryRecords))}</strong>
+          <p>Записей в индексе. Поиск фильтрует слабые совпадения.</p>
+        </section>
+      </aside>
+      <aside class="mina-side-hud-panel mina-side-hud-panel--right" aria-label="Время, связь и уведомления">
+        <section class="mina-hud-card mina-hud-card--time">
+          <span>${this.escapeHtml(snapshot.date)}</span>
+          <strong>${this.escapeHtml(snapshot.time)}</strong>
+          <p>${this.escapeHtml(snapshot.screen)}</p>
+        </section>
+        <section class="mina-hud-card">
+          <span>Связь</span>
+          <strong>${this.escapeHtml(snapshot.network)}</strong>
+          <p>Bridge: ${this.escapeHtml(snapshot.bridge)} · Агент: ${this.escapeHtml(snapshot.localAgent)}</p>
+        </section>
+        <section class="mina-hud-card mina-hud-card--${this.escapeHtml(notificationTone)}">
+          <span>Уведомления</span>
+          <strong>${this.escapeHtml(String(notifications.length))}</strong>
+          <button type="button" class="mina-hud-action" data-side-hud-action="open_notifications" aria-expanded="${this.sideHudNotificationsOpen ? 'true' : 'false'}">Просмотреть</button>
+        </section>
+        <section class="mina-hud-card mina-hud-card--readiness">
+          <span>Готовность</span>
+          <strong>${this.escapeHtml(String(snapshot.readiness))}%</strong>
+          <p>${this.escapeHtml(snapshot.marker)}</p>
+        </section>
+      </aside>
+      ${this.sideHudNotificationsOpen ? `
+        <section class="mina-hud-notification-panel" role="dialog" aria-label="Уведомления Мины">
+          <div>
+            <span>Центр уведомлений</span>
+            <button type="button" data-side-hud-action="close_notifications" aria-label="Закрыть уведомления">×</button>
+          </div>
+          ${notificationList}
+          <button type="button" class="mina-hud-action mina-hud-action--wide" data-side-hud-action="open_diagnost">Открыть Диагност</button>
+        </section>
+      ` : ''}
+    `;
+  },
+
+  handleSideHudAction(action) {
+    if (action === 'open_notifications') {
+      this.sideHudNotificationsOpen = !this.sideHudNotificationsOpen;
+      this.renderSideHud();
+      return;
+    }
+    if (action === 'close_notifications') {
+      this.sideHudNotificationsOpen = false;
+      this.renderSideHud();
+      return;
+    }
+    if (action === 'open_diagnost') {
+      this.sideHudNotificationsOpen = false;
+      this.go('system');
+      window.requestAnimationFrame(() => {
+        document.querySelector('[data-diagnost-action="quick_check"]')?.focus?.();
+      });
+      return;
+    }
+    this.toast('HUD: действие ожидает привязки к рабочему сценарию');
   },
 
   async initTaskRuntime() {
@@ -14922,6 +15177,7 @@ const App = {
     const activeMeta = MINA_SCHEME_SUBSYSTEMS.find((item) => item.id === this.activeMinaSchemeZone) || MINA_SCHEME_SUBSYSTEMS[0];
     const active = health.subsystems[activeMeta.id] || health.subsystems.body;
     const modeLabel = this.minaSchemeMode === 'first_run' ? 'Первый запуск' : this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen ? 'Экспертный режим' : 'Обычный режим';
+    const sourceTruthLabel = health.sourceTruth.score >= 90 ? 'Готово' : health.sourceTruth.score >= 70 ? 'Требует проверки' : 'Настраивается';
     host.innerHTML = `
       <section class="scheme-console" aria-label="Схема Мины">
         ${this.renderMinaSchemeSidebar(health)}
@@ -14933,8 +15189,8 @@ const App = {
               <p>Настройте ключевые подсистемы Мины.</p>
             </div>
             <div class="scheme-top-actions">
-              <span class="scheme-system-pill"><i></i> Правда ${this.escapeHtml(String(health.sourceTruth.score))}%</span>
-              <span class="scheme-system-pill"><i></i> Система активна</span>
+              <span class="scheme-system-pill"><i></i> Проверено ${this.escapeHtml(String(health.sourceTruth.score))}%</span>
+              <span class="scheme-system-pill"><i></i> ${this.escapeHtml(sourceTruthLabel)}</span>
               <button type="button" data-scheme-action="run_diagnostics" aria-label="Проверить систему">⌁</button>
               <button type="button" data-scheme-action="save_state" aria-label="Сохранить состояние">▣</button>
             </div>
@@ -15021,8 +15277,8 @@ const App = {
         </button>
         <button type="button" data-scheme-action="launch" class="scheme-launch-tile">
           <span>▷</span>
-          <strong>Запустить Мину</strong>
-          <small>Активировать рабочий контур</small>
+          <strong>Перейти в Рабочее</strong>
+          <small>Открыть рабочий контур</small>
         </button>
       </footer>
     `;
