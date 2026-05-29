@@ -29,6 +29,7 @@ The Loop 6 final product gate passed after a tiny Product Polish Fix. The normal
 - Emergency Stop typed reset: PASS
 - Mobile 390/430: PASS
 - No mojibake: PASS
+- GitHub Pages health marker check: PASS
 - No secrets exposed: PASS
 - No AI API: PASS
 - Billing not touched: PASS
@@ -39,6 +40,7 @@ The Loop 6 final product gate passed after a tiny Product Polish Fix. The normal
 - `evidence/final_product_gate/smoke/final_product_gate_smoke.json`
 - `evidence/final_product_gate/final_product_scorecard.json`
 - `evidence/final_product_gate/performance/final_gate_performance.json`
+- `evidence/final_product_gate/logs/pages_health_final_gate.txt`
 - `evidence/final_product_gate/screenshots/final_gate_system.png`
 - `evidence/final_product_gate/screenshots/final_gate_scheme_default.png`
 - `evidence/final_product_gate/screenshots/final_gate_memory_search.png`

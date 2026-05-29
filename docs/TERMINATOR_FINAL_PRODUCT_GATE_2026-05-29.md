@@ -43,6 +43,7 @@ Can move to V2 11/10 design: YES, after owner accepts this release candidate and
 - Emergency Stop typed reset: PASS
 - Mobile viewport 390/430 no horizontal overflow: PASS
 - No mojibake: PASS
+- GitHub Pages health marker check: PASS
 
 ## Scorecard
 
@@ -79,6 +80,7 @@ P2/P3 polish:
 - Smoke JSON: `evidence/final_product_gate/smoke/final_product_gate_smoke.json`
 - Scorecard JSON: `evidence/final_product_gate/final_product_scorecard.json`
 - Performance JSON: `evidence/final_product_gate/performance/final_gate_performance.json`
+- Pages health log: `evidence/final_product_gate/logs/pages_health_final_gate.txt`
 - Main menu screenshot: `evidence/final_product_gate/screenshots/final_gate_start_main_menu_with_side_hud.png`
 - Notifications screenshot: `evidence/final_product_gate/screenshots/final_gate_notifications_opened.png`
 - System screenshot after terminology fix: `evidence/final_product_gate/screenshots/final_gate_system.png`

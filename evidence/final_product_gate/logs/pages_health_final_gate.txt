@@ -1,0 +1,32 @@
+{
+    "result":  "PASS",
+    "checked_at":  "2026-05-29T18:54:05",
+    "repository":  "VitaliyKonstantinovich/terminator-webapp",
+    "live_url":  "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+    "page_url":  "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+    "pages_status":  "built",
+    "build_type":  "workflow",
+    "latest_legacy_build_status":  "built",
+    "latest_legacy_build_commit":  "ef152455af8d394d78b8b32a3ce338373c3272a6",
+    "latest_legacy_build_error":  null,
+    "latest_workflow_run_id":  26668068733,
+    "latest_workflow_status":  "completed",
+    "latest_workflow_conclusion":  "success",
+    "expected_asset_marker":  "20260529-final-product-gate-v1",
+    "expected_cache_marker":  "terminator-mina-pwa-20260529-final-product-gate-v1",
+    "live_html_asset_marker":  true,
+    "live_html_manifest_link":  true,
+    "live_html_start_screen":  true,
+    "live_html_start_button":  true,
+    "manifest_name":  "Terminator Mina UI",
+    "manifest_display":  "standalone",
+    "manifest_icon_count":  3,
+    "service_worker_cache_marker":  true,
+    "failures":  [
+
+                 ],
+    "warnings":  [
+
+                 ]
+}
+Pages health check: PASS
