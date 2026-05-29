@@ -6443,6 +6443,298 @@ button:not(:disabled) {
   outline: 2px solid rgba(255, 126, 136, 0.88);
 }
 
+/* Product Loop 4: live side HUD panels over the Mina mockup shell.
+   The background mockup may contain decorative panels, but this layer is real DOM UI. */
+.mina-side-hud {
+  display: none;
+}
+
+@media (min-width: 761px) {
+  #screen-menu.active > .mina-side-hud {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 7;
+    display: block;
+    width: var(--frame-w);
+    height: var(--frame-h);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .mina-side-hud-panel {
+    position: absolute;
+    top: 21.2%;
+    display: grid;
+    gap: 10px;
+    width: clamp(170px, 14.5%, 230px);
+    padding: 10px;
+    isolation: isolate;
+    pointer-events: auto;
+  }
+
+  .mina-side-hud-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: 1px solid rgba(75, 211, 255, 0.16);
+    background:
+      linear-gradient(180deg, rgba(1, 10, 26, 0.88), rgba(2, 17, 41, 0.92)),
+      rgba(0, 9, 22, 0.86);
+    box-shadow:
+      inset 0 0 30px rgba(0, 148, 255, 0.11),
+      0 0 24px rgba(0, 88, 165, 0.18);
+    clip-path: polygon(8% 0, 92% 0, 100% 7%, 100% 93%, 92% 100%, 8% 100%, 0 93%, 0 7%);
+  }
+
+  .mina-side-hud-panel--left {
+    left: 2.7%;
+  }
+
+  .mina-side-hud-panel--right {
+    right: 2.7%;
+  }
+
+  .mina-hud-card {
+    position: relative;
+    min-height: 88px;
+    display: grid;
+    align-content: center;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid rgba(77, 210, 255, 0.58);
+    background:
+      linear-gradient(92deg, rgba(1, 19, 45, 0.97), rgba(1, 54, 92, 0.84) 48%, rgba(2, 19, 45, 0.96)),
+      rgba(3, 17, 38, 0.94);
+    box-shadow:
+      inset 0 0 22px rgba(0, 180, 255, 0.18),
+      0 0 24px rgba(0, 149, 255, 0.22);
+    clip-path: polygon(10% 0, 100% 0, 100% 72%, 90% 100%, 0 100%, 0 26%);
+    color: #dff9ff;
+    overflow: hidden;
+  }
+
+  .mina-hud-card::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid rgba(156, 241, 255, 0.16);
+    background:
+      linear-gradient(90deg, rgba(94, 226, 255, 0.12), transparent 22%, transparent 78%, rgba(94, 226, 255, 0.08)),
+      radial-gradient(circle at 15% 42%, rgba(90, 229, 255, 0.18), transparent 27%);
+    clip-path: inherit;
+    pointer-events: none;
+  }
+
+  .mina-side-hud-panel--right .mina-hud-card {
+    clip-path: polygon(0 0, 90% 0, 100% 26%, 100% 100%, 10% 100%, 0 72%);
+  }
+
+  .mina-hud-card span,
+  .mina-hud-card strong,
+  .mina-hud-card p,
+  .mina-hud-card button {
+    position: relative;
+    z-index: 1;
+  }
+
+  .mina-hud-card span {
+    color: #62ecff;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .mina-hud-card strong {
+    color: #ffffff;
+    font-size: clamp(18px, 1.7vw, 28px);
+    font-weight: 950;
+    line-height: 1;
+    text-shadow: 0 0 18px rgba(99, 226, 255, 0.58);
+  }
+
+  .mina-hud-card p {
+    margin: 0;
+    color: #b8eaff;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.28;
+  }
+
+  .mina-hud-card--safe {
+    border-color: rgba(0, 255, 176, 0.55);
+    background:
+      linear-gradient(92deg, rgba(0, 48, 52, 0.96), rgba(0, 88, 94, 0.8) 48%, rgba(2, 20, 45, 0.96)),
+      rgba(3, 17, 38, 0.94);
+  }
+
+  .mina-hud-card--review {
+    border-color: rgba(255, 210, 72, 0.72);
+    box-shadow:
+      inset 0 0 22px rgba(255, 206, 65, 0.14),
+      0 0 24px rgba(255, 189, 46, 0.18);
+  }
+
+  .mina-hud-card--danger {
+    border-color: rgba(255, 70, 104, 0.78);
+    background:
+      linear-gradient(92deg, rgba(56, 4, 26, 0.96), rgba(94, 11, 38, 0.78) 48%, rgba(2, 18, 42, 0.96)),
+      rgba(3, 17, 38, 0.94);
+    box-shadow:
+      inset 0 0 22px rgba(255, 47, 89, 0.18),
+      0 0 24px rgba(255, 46, 92, 0.25);
+  }
+
+  .mina-hud-card--time strong {
+    font-size: clamp(26px, 3vw, 46px);
+  }
+
+  .mina-side-hud-panel--right .mina-hud-card--time {
+    min-height: 112px;
+  }
+
+  .mina-hud-card--readiness strong {
+    color: #75f5ff;
+  }
+
+  .mina-hud-action {
+    width: fit-content;
+    min-height: 34px;
+    padding: 8px 14px;
+    border: 1px solid rgba(104, 224, 255, 0.72);
+    border-radius: 6px;
+    background:
+      linear-gradient(180deg, rgba(11, 97, 183, 0.92), rgba(4, 45, 101, 0.96));
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0;
+    cursor: pointer;
+    box-shadow: inset 0 0 14px rgba(100, 220, 255, 0.18), 0 0 16px rgba(0, 149, 255, 0.22);
+  }
+
+  .mina-hud-action:hover,
+  .mina-hud-action:focus-visible {
+    border-color: rgba(187, 250, 255, 0.98);
+    outline: 2px solid rgba(96, 226, 255, 0.55);
+    outline-offset: 2px;
+    filter: brightness(1.12);
+  }
+
+  .mina-hud-notification-panel {
+    position: absolute;
+    top: 26.5%;
+    right: 18.2%;
+    z-index: 8;
+    width: min(360px, 26%);
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(96, 220, 255, 0.66);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 12% 0, rgba(58, 206, 255, 0.22), transparent 34%),
+      linear-gradient(180deg, rgba(3, 22, 48, 0.98), rgba(1, 8, 23, 0.98));
+    box-shadow:
+      inset 0 0 32px rgba(0, 149, 255, 0.14),
+      0 0 36px rgba(0, 156, 255, 0.35);
+    pointer-events: auto;
+  }
+
+  .mina-hud-notification-panel > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #66edff;
+    font-size: 11px;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .mina-hud-notification-panel > div:first-child button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(97, 221, 255, 0.58);
+    border-radius: 6px;
+    background: rgba(3, 40, 79, 0.82);
+    color: #e9fdff;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .mina-hud-notice {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 1px solid rgba(88, 205, 255, 0.32);
+    border-radius: 7px;
+    background: rgba(4, 28, 58, 0.74);
+    color: #d9f8ff;
+  }
+
+  .mina-hud-notice strong {
+    color: #ffffff;
+    font-size: 13px;
+  }
+
+  .mina-hud-notice span {
+    color: #b4e7ff;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .mina-hud-notice--safe {
+    border-color: rgba(0, 255, 176, 0.38);
+  }
+
+  .mina-hud-notice--review {
+    border-color: rgba(255, 211, 75, 0.48);
+  }
+
+  .mina-hud-notice--danger {
+    border-color: rgba(255, 79, 112, 0.58);
+  }
+
+  .mina-hud-action--wide {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  #screen-menu.active > .mina-side-hud {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: max(10px, calc(var(--safe-bottom) + 10px));
+    z-index: 8;
+    display: grid;
+    pointer-events: none;
+  }
+
+  #screen-menu.active .mina-side-hud-panel--left,
+  #screen-menu.active .mina-side-hud-panel--right {
+    display: none;
+  }
+
+  #screen-menu.active .mina-hud-notification-panel {
+    width: 100%;
+    max-height: 52dvh;
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(91, 213, 255, 0.7);
+    border-radius: 8px;
+    background: rgba(2, 14, 32, 0.96);
+    box-shadow: 0 0 28px rgba(0, 143, 255, 0.28);
+    overflow-y: auto;
+    pointer-events: auto;
+  }
+}
+
 /* Phase 4.5 visual refinement: interactive Mina system scheme, rebuilt from DOM/SVG layers. */
 #screen-scheme .command-shell--scheme {
   width: min(94vw, 1680px);
