@@ -1,0 +1,220 @@
+{
+  "started_at": "2026-05-29T17:05:57.178Z",
+  "localUrl": "http://127.0.0.1:8805/?force=v2-product-audit-scheme",
+  "chromeProfile": "D:\\TerminatorStorage\\temp_outputs\\chrome-v2-product-audit-1780074357176",
+  "stages": {
+    "app_ready": {
+      "ready": true,
+      "screen": "start",
+      "title": "TERMINATOR MINA UI",
+      "version": 2
+    },
+    "scheme": {
+      "rows": [
+        {
+          "zone": "head",
+          "exists": true,
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+          "active": "head",
+          "panelTitle": ""
+        },
+        {
+          "zone": "eyes",
+          "exists": true,
+          "aria": "Открыть настройку Глаза. Статус: не настроено.",
+          "active": "eyes",
+          "panelTitle": ""
+        },
+        {
+          "zone": "voice",
+          "exists": true,
+          "aria": "Открыть настройку Голос. Статус: готово.",
+          "active": "voice",
+          "panelTitle": ""
+        },
+        {
+          "zone": "memory",
+          "exists": true,
+          "aria": "Открыть настройку Память. Статус: готово.",
+          "active": "memory",
+          "panelTitle": ""
+        },
+        {
+          "zone": "body",
+          "exists": true,
+          "aria": "Открыть настройку Тело. Статус: частично.",
+          "active": "body",
+          "panelTitle": ""
+        },
+        {
+          "zone": "hands",
+          "exists": true,
+          "aria": "Открыть настройку Руки. Статус: не настроено.",
+          "active": "hands",
+          "panelTitle": ""
+        },
+        {
+          "zone": "legs",
+          "exists": true,
+          "aria": "Открыть настройку Ноги. Статус: частично.",
+          "active": "legs",
+          "panelTitle": ""
+        },
+        {
+          "zone": "diagnost",
+          "exists": true,
+          "aria": "Открыть настройку Диагност. Статус: частично.",
+          "active": "diagnost",
+          "panelTitle": ""
+        }
+      ],
+      "focusZone": "head",
+      "pngBackground": false,
+      "svgZoneCount": 8,
+      "cardZoneCount": 8,
+      "normalTechnicalText": false,
+      "desktopOverflow": false,
+      "docScrollWidth": 1440,
+      "innerWidth": 1440,
+      "visibleTextSample": "△\nTERMINATOR\nМИНА\n•\nОбзор\n◇\nСхема Мины\n▤\nРабочее\n▣\nПамять\n•\nЗадачи\n◈\nДиагност\n•\nИнциденты\n•\nНастройки\nM\nОператор\nГлавный пользователь\n33%\nГОТОВНОСТЬ\nНАСТРОЙКА СИСТЕМЫ\nСхема Мины\n\nНастройте ключевые подсистемы Мины.\n\nПравда 66%\nСистема активна\n⌁\n▣\nПервый запуск\nОбычный\nЭкспертный\nОБЫЧНЫЙ РЕЖИМ\n◎\nГолова / Мозги\nНЕ НАСТРОЕНО · 25%\n◉\nГлаза\nНЕ НАСТРОЕНО · 38%\n≋\nГолос\nГОТОВО · 100%\n✦\nРуки\nНЕ НАСТРОЕНО · 48%\n▣\nПамять\nГОТОВО · 88%\n◆\nТело\nЧАСТИЧНО · 64%\n⌁\nНоги\nЧАСТИЧНО · 70%\n◇\nДиагност\nЧАСТИЧНО · 68%\nДИАГНОСТ\nДиагност\n\nЗащитник контролирует риски, стоимость и опасные действия. Платные сервисы не разрешены.\n\nчастично\nГОТОВНОСТЬ\n68%\nИСТОЧНИК\nсостояние системы\nБезопасный режим: выключен\nСтоп: нет\nИнциденты: 0\nПлатное: заблокировано\nГОТОВНОСТЬ\nGUARDIAN\nактивен\nБЕЗОПАСНЫЙ РЕЖИМ\nвыключен\nИНЦИДЕНТЫ\n0 открытых\nПЛАТНЫЕ СЕРВИСЫ\nзаблокированы\nBILLING STATUS\nне проверен\nБыстрая проверка\nОстановить действия\n◈\nПроверить систему\nПроверка целостности и статуса\n☷\nПроверить Тело\nПроверить контур задач, мост, локальный агент и хранилище задач.\n▷\nЗапустить Мину\nАктивировать рабочий контур"
+    },
+    "golden_path": {
+      "task_id": "TASK-2026-0001",
+      "project_id": "development_executors",
+      "status": "executor_report_received",
+      "artifacts": [
+        {
+          "id": "ART-MPR6BYBP-XGHNEC",
+          "type": "MEMORY_SUMMARY",
+          "status": "draft",
+          "title": "Memory preview"
+        },
+        {
+          "id": "ART-MPR6BYBO-81BHDU",
+          "type": "VERIFIER_VERDICT",
+          "status": "accepted_with_risks",
+          "title": "Вердикт проверки: принять с рисками"
+        },
+        {
+          "id": "ART-MPR6BYBH-SA7IQG",
+          "type": "EXECUTOR_REPORT",
+          "status": "draft",
+          "title": "Отчёт исполнителя"
+        },
+        {
+          "id": "ART-MPR6BYBD-829WF8",
+          "type": "CONTEXT_PACK",
+          "status": "ready_for_copy",
+          "title": "Пакет для Codex"
+        },
+        {
+          "id": "ART-MPR6BWM3-BJFNO8",
+          "type": "SPEC",
+          "status": "draft",
+          "title": "Исходная задача"
+        }
+      ],
+      "files": [
+        {
+          "id": "FILE-MPR6BX5V-O29L56",
+          "name": "hello_world.py",
+          "role": "evidence",
+          "is_evidence": true,
+          "raw_file_saved": false,
+          "hash_status": "calculated_session"
+        }
+      ],
+      "verifier": {
+        "result": "PASS_WITH_RISKS",
+        "reasons": [
+          "Есть риски или пункты для ручной проверки."
+        ],
+        "evidenceGate": {
+          "ok": true,
+          "honestAbsence": false,
+          "label": "evidence есть",
+          "reason": "Есть evidence-файл, проверочный artifact или описанный путь/архив."
+        },
+        "qualityGate": {
+          "ok": false,
+          "label": "quality gate не закрыт",
+          "reason": "Для clean PASS нужны содержательный отчёт, явные проверки, первый шаг проверки, ключевой checklist и отсутствие blocking findings."
+        },
+        "gateFindings": [],
+        "privacy": {
+          "status": "clean",
+          "blocked": false,
+          "findings": [],
+          "checked_at": "2026-05-29T17:06:30.655Z"
+        }
+      },
+      "memory": {
+        "status": "saved_local",
+        "linked_artifacts": 3,
+        "index_count": 15
+      },
+      "search": {
+        "hello": [
+          {
+            "title": "Память: Напиши Python hello world: вывести hello world через pr...",
+            "type": "memory",
+            "relevance": "strong",
+            "score": 63,
+            "task_id": "TASK-2026-0001"
+          },
+          {
+            "title": "Задача: Напиши Python hello world: вывести hello world через pr...",
+            "type": "task",
+            "relevance": "strong",
+            "score": 60,
+            "task_id": "TASK-2026-0001"
+          },
+          {
+            "title": "Файл: hello_world.py",
+            "type": "evidence",
+            "relevance": "strong",
+            "score": 45,
+            "task_id": "TASK-2026-0001"
+          }
+        ],
+        "impossibleCount": 0,
+        "impossibleWarning": "Ничего релевантного не найдено.",
+        "weak": [
+          {
+            "title": "Отчёт исполнителя: Отчёт исполнителя",
+            "type": "artifact",
+            "relevance": "strong",
+            "score": 24
+          }
+        ],
+        "weakWarning": ""
+      }
+    },
+    "mobile_390": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "screen": "scheme"
+    },
+    "mobile_430": {
+      "width": 430,
+      "scrollWidth": 430,
+      "overflow": false,
+      "screen": "scheme"
+    }
+  },
+  "screenshots": {
+    "desktop_start": "evidence\\v2_product_truth_audit\\screenshots\\desktop-start.png",
+    "desktop_menu": "evidence\\v2_product_truth_audit\\screenshots\\desktop-menu.png",
+    "desktop_work": "evidence\\v2_product_truth_audit\\screenshots\\desktop-work.png",
+    "desktop_system": "evidence\\v2_product_truth_audit\\screenshots\\desktop-system.png",
+    "desktop_scheme": "evidence\\v2_product_truth_audit\\screenshots\\desktop-scheme.png",
+    "scheme_final": "evidence\\v2_product_truth_audit\\screenshots\\desktop-scheme-final.png",
+    "golden_work": "evidence\\v2_product_truth_audit\\screenshots\\desktop-golden-work.png",
+    "mobile_390_scheme": "evidence\\v2_product_truth_audit\\screenshots\\mobile-390-scheme.png",
+    "mobile_430_scheme": "evidence\\v2_product_truth_audit\\screenshots\\mobile-430-scheme.png"
+  },
+  "errors": [],
+  "finished_at": "2026-05-29T17:06:37.232Z",
+  "verdict": "PASS"
+}

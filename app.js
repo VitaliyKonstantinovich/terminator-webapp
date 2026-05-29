@@ -226,6 +226,8 @@ const HEAD_PROFILE_TYPES = {
   custom: 'Пользовательский'
 };
 
+const HEAD_ACCOUNT_READY_TTL_MS = 24 * 60 * 60 * 1000;
+
 const WORK_PROJECTS = [
   {
     id: 'terminator',
@@ -10862,9 +10864,8 @@ const App = {
 
   headStatusSnapshot() {
     const strategist = this.mainStrategistBrain();
-    const readyBrains = (this.headBrains || []).filter((brain) => brain.status === 'ready' && !brain.archived);
-    const enabledBrains = (this.headBrains || []).filter((brain) => brain.enabled && !brain.archived);
     const activeProfile = this.activeHeadProfile();
+    const readiness = this.headCouncilReadiness(activeProfile);
     if (!strategist) {
       return {
         status: 'не настроена',
@@ -10872,16 +10873,37 @@ const App = {
         tone: 'review'
       };
     }
-    if (!readyBrains.length) {
+    if (!readiness.active.length) {
+      return {
+        status: 'совет пуст',
+        note: `${strategist.display_name}: выбран, но Совет мозгов ещё не собран`,
+        tone: 'review'
+      };
+    }
+    if (!this.isHeadBrainAccountCurrent(strategist)) {
+      return {
+        status: 'ждёт вход Стратега',
+        note: `${strategist.display_name}: нужен ручной вход и тест в официальном чате`,
+        tone: 'review'
+      };
+    }
+    if (!readiness.verified.length) {
       return {
         status: 'ждёт тест',
-        note: `${strategist.display_name}: выбран, но мозги ещё не проверены`,
+        note: `0/${readiness.active.length} аккаунтов Совета подтверждено вручную`,
+        tone: 'review'
+      };
+    }
+    if (readiness.verified.length < readiness.active.length) {
+      return {
+        status: 'частично проверена',
+        note: `${readiness.verified.length}/${readiness.active.length} аккаунтов подтверждено; непроверенные ответы будут помечены`,
         tone: 'review'
       };
     }
     return {
       status: 'готова',
-      note: `${strategist.display_name}; профиль: ${activeProfile?.name || 'не выбран'}; мозгов: ${enabledBrains.length}`,
+      note: `${strategist.display_name}; профиль: ${activeProfile?.name || 'не выбран'}; аккаунты подтверждены: ${readiness.verified.length}/${readiness.active.length}`,
       tone: 'pass'
     };
   },
@@ -10976,6 +10998,9 @@ const App = {
       test_passed: Boolean(brain.test_passed),
       last_test_at: brain.last_test_at || '',
       last_test_response: brain.last_test_response ? '[REDACTED]' : '',
+      account_status: brain.account_status || (brain.test_passed && brain.status === 'ready' ? 'legacy_ready_needs_recheck' : 'not_confirmed'),
+      last_manual_login_confirmed_at: brain.last_manual_login_confirmed_at || '',
+      account_verification_expires_at: brain.account_verification_expires_at || '',
       preset: Boolean(brain.preset),
       archived: Boolean(brain.archived || brain.status === 'archived'),
       notes: brain.notes || '',
@@ -11151,6 +11176,36 @@ const App = {
     return strategistId ? this.headBrainById(strategistId) : null;
   },
 
+  headBrainAccountExpiresAt(brain) {
+    const expires = Date.parse(brain?.account_verification_expires_at || '');
+    return Number.isFinite(expires) ? expires : 0;
+  },
+
+  isHeadBrainAccountCurrent(brain) {
+    if (!brain || brain.archived || !brain.enabled) return false;
+    if (brain.status !== 'ready' || !brain.test_passed) return false;
+    if (brain.account_status !== 'manual_test_confirmed') return false;
+    return this.headBrainAccountExpiresAt(brain) > Date.now();
+  },
+
+  headBrainReadinessLabel(brain) {
+    if (!brain || brain.archived) return 'удалён';
+    if (!brain.enabled) return 'выключен';
+    if (this.isHeadBrainAccountCurrent(brain)) return 'аккаунт подтверждён';
+    if (brain.account_status === 'manual_test_waiting' || brain.status === 'test_waiting') return 'ждёт ответ теста';
+    if (brain.account_status === 'manual_login_needed' || brain.status === 'site_opened') return 'нужен ручной вход';
+    if (brain.test_passed || brain.account_status === 'legacy_ready_needs_recheck') return 'тест устарел';
+    if (brain.status === 'attention') return 'тест не пройден';
+    return this.headBrainStatusName(brain.status);
+  },
+
+  headCouncilReadiness(profile = this.activeHeadProfile()) {
+    const active = this.activeHeadBrains(profile);
+    const verified = active.filter((brain) => this.isHeadBrainAccountCurrent(brain));
+    const unverified = active.filter((brain) => !this.isHeadBrainAccountCurrent(brain));
+    return { active, verified, unverified };
+  },
+
   activeHeadBrains(profile = this.activeHeadProfile()) {
     const ids = new Set(profile?.council_members || []);
     return (this.headBrains || [])
@@ -11173,6 +11228,7 @@ const App = {
     const strategist = this.mainStrategistBrain();
     const activeBrains = this.activeHeadBrains(profile);
     const activeAgents = this.activeHeadSearchAgents(profile);
+    const readiness = this.headCouncilReadiness(profile);
     const selectedBrain = this.headBrainById(this.activeHeadBrainId) || activeBrains[0] || this.headBrains.find((brain) => !brain.archived);
     host.innerHTML = `
       <section class="head-status head-status--${this.escapeHtml(status.tone)}">
@@ -11189,7 +11245,7 @@ const App = {
         <div>
           <span>Активный профиль</span>
           <strong>${this.escapeHtml(profile?.name || 'не выбран')}</strong>
-          <p>${this.escapeHtml(`${activeBrains.length} мозгов, ${activeAgents.length} исследователей`)}</p>
+          <p>${this.escapeHtml(`${readiness.verified.length}/${activeBrains.length} аккаунтов подтверждено, ${activeAgents.length} исследователей`)}</p>
         </div>
       </section>
 
@@ -11202,7 +11258,7 @@ const App = {
           <li class="${strategist ? 'done' : ''}">Выбрать главного Стратега.</li>
           <li class="${activeBrains.length ? 'done' : ''}">Собрать Совет мозгов.</li>
           <li class="${activeAgents.length ? 'done' : ''}">Добавить исследователей.</li>
-          <li class="${this.headBrains.some((brain) => brain.status === 'ready') ? 'done' : ''}">Проверить готовность тестовым prompt.</li>
+          <li class="${activeBrains.length && readiness.verified.length === activeBrains.length ? 'done' : ''}">Проверить ручной вход и тест всех активных мозгов.</li>
         </ol>
       </section>
 
@@ -11282,7 +11338,7 @@ const App = {
       <article class="head-brain-card ${isActive ? 'active' : ''} ${isStrategist ? 'strategist' : ''}">
         <button type="button" class="head-card-select" data-head-action="select_brain" data-brain-id="${this.escapeHtml(brain.brain_id)}">
           <strong>${this.escapeHtml(brain.display_name)}</strong>
-          <span>${this.escapeHtml(brain.selected_model_name)} · ${this.escapeHtml(this.headBrainStatusName(brain.status))}</span>
+          <span>${this.escapeHtml(brain.selected_model_name)} · ${this.escapeHtml(this.headBrainReadinessLabel(brain))}</span>
         </button>
         <label class="work-field">
           <span>Роль</span>
@@ -11321,7 +11377,7 @@ const App = {
           <button type="button" data-head-action="open_site" data-brain-id="${this.escapeHtml(brain.brain_id)}">Открыть сайт</button>
           <button type="button" data-head-action="verify_test" data-brain-id="${this.escapeHtml(brain.brain_id)}">Проверить ответ</button>
         </div>
-        <p class="runtime-note">Готовность ставится только после ручного теста. Пароли, cookies, API keys и платёжные данные Терминатор не хранит.</p>
+        <p class="runtime-note">Аккаунт считается рабочим только после ручного входа владельца и теста в официальном чате. Пароли, cookies, ключи и платёжные данные Терминатор не хранит.</p>
       </section>
     `;
   },
@@ -11361,7 +11417,7 @@ const App = {
       site_opened: 'сайт открыт',
       logged_in_by_user: 'пользователь вошёл',
       test_waiting: 'ждёт тест',
-      ready: 'готов к задачам',
+      ready: 'ручной тест пройден',
       attention: 'требует внимания',
       archived: 'удалён'
     };
@@ -11384,7 +11440,7 @@ const App = {
     }
     if (action === 'toggle_brain' && brain) {
       brain.enabled = !brain.enabled;
-      brain.status = brain.enabled ? (brain.test_passed ? 'ready' : 'selected') : 'not_selected';
+      brain.status = brain.enabled ? (this.isHeadBrainAccountCurrent(brain) ? 'ready' : 'selected') : 'not_selected';
       brain.connection_status = brain.status;
       brain.updated_at = new Date().toISOString();
       this.addHeadEvent('brain_toggle', `${brain.display_name}: ${brain.enabled ? 'включён' : 'выключен'}.`, brain.brain_id);
@@ -11416,12 +11472,16 @@ const App = {
       if (brain.official_url) window.open(brain.official_url, '_blank', 'noopener,noreferrer');
       brain.status = 'site_opened';
       brain.connection_status = 'site_opened';
+      brain.account_status = 'manual_login_needed';
+      brain.account_verification_expires_at = '';
       brain.updated_at = new Date().toISOString();
       this.addHeadEvent('brain_site_opened', `${brain.display_name}: официальный сайт открыт владельцем.`, brain.brain_id);
     } else if (action === 'copy_test' && brain) {
       this.copyWorkspaceText(this.headTestPrompt(brain));
       brain.status = 'test_waiting';
       brain.connection_status = 'test_waiting';
+      brain.account_status = 'manual_test_waiting';
+      brain.account_verification_expires_at = '';
       brain.updated_at = new Date().toISOString();
       this.addHeadEvent('brain_test_copied', `${brain.display_name}: тестовый prompt скопирован.`, brain.brain_id);
     } else if (action === 'verify_test' && brain) {
@@ -11452,7 +11512,7 @@ const App = {
       item.is_main_strategist = item.brain_id === brainId;
       if (item.brain_id === brainId) {
         item.enabled = true;
-        item.status = item.test_passed ? 'ready' : 'selected';
+        item.status = this.isHeadBrainAccountCurrent(item) ? 'ready' : 'selected';
         item.connection_status = item.status;
       }
     });
@@ -11461,7 +11521,7 @@ const App = {
       activeProfile.main_strategist_id = brainId;
       if (!activeProfile.council_members.includes(brainId)) activeProfile.council_members.unshift(brainId);
       activeProfile.updated_at = new Date().toISOString();
-      activeProfile.status = brain.test_passed ? 'ready' : 'needs_test';
+      activeProfile.status = this.isHeadBrainAccountCurrent(brain) ? 'ready' : 'needs_test';
     }
     this.activeHeadBrainId = brainId;
     this.addHeadEvent('strategist_selected', `${brain.display_name} выбран главным Стратегом вручную владельцем.`, brainId, 'review');
@@ -11493,19 +11553,23 @@ const App = {
       return;
     }
     const passed = response.includes(brain.ready_phrase);
-    brain.last_test_at = new Date().toISOString();
+    const now = new Date();
+    brain.last_test_at = now.toISOString();
     brain.test_passed = passed;
     brain.status = passed ? 'ready' : 'attention';
     brain.connection_status = brain.status;
+    brain.account_status = passed ? 'manual_test_confirmed' : 'not_confirmed';
+    brain.last_manual_login_confirmed_at = passed ? brain.last_test_at : '';
+    brain.account_verification_expires_at = passed ? new Date(now.getTime() + HEAD_ACCOUNT_READY_TTL_MS).toISOString() : '';
     brain.enabled = passed || brain.enabled;
     brain.updated_at = brain.last_test_at;
     this.addHeadEvent(
       passed ? 'brain_test_passed' : 'brain_test_failed',
-      `${brain.display_name}: ${passed ? 'готов к задачам' : 'тест не пройден'}.`,
+      `${brain.display_name}: ${passed ? 'ручной вход и тест подтверждены на сегодня' : 'тест не пройден'}.`,
       brain.brain_id,
       passed ? 'safe' : 'review'
     );
-    this.toast(passed ? 'Мозг готов к задачам' : 'Тест не пройден');
+    this.toast(passed ? 'Аккаунт мозга подтверждён на сегодня' : 'Тест не пройден');
   },
 
   addCustomHeadBrain() {
@@ -14678,14 +14742,14 @@ const App = {
           ['Главный Стратег', this.mainStrategistBrain() ? 'готово' : 'нужно выбрать'],
           ['Совет мозгов', this.activeHeadBrains().length ? `${this.activeHeadBrains().length} активных` : 'пусто'],
           ['Исследователи', this.activeHeadSearchAgents().length ? `${this.activeHeadSearchAgents().length} активных` : 'не добавлены'],
-          ['Тесты подключения', (this.headBrains || []).some((brain) => brain.status === 'ready') ? 'есть готовый мозг' : 'ждут ручного теста']
+          ['Ручная проверка', this.headCouncilReadiness().verified.length ? `${this.headCouncilReadiness().verified.length} подтверждено` : 'ждёт теста']
         ]
       },
       eyes: {
         status: eyesStatus,
         readiness: eyesSnapshot.readiness,
         summary: eyesSnapshot.summary,
-        note: 'Глаза фиксируют visual evidence: скриншоты, визуальные проверки и состояние интерфейса.',
+        note: 'Глаза фиксируют скриншоты, визуальные проверки и состояние интерфейса.',
         snapshot_source: eyesSnapshot.snapshot_source,
         is_mock: false,
         checks: eyesSnapshot.checks
@@ -14715,9 +14779,9 @@ const App = {
         is_mock: false,
         checks: [
           ...handsSnapshot.checks,
-          ['Repair workspace', `${TERMINATOR_STORAGE_ROOT}\\repair_workspaces`],
-          ['Repair incidents', repairIncidents.length ? `${repairIncidents.length} активных` : 'нет активных'],
-          ['Auto-fix LOW', guardian.state.autonomy_level >= 3 ? 'разрешён политикой' : 'ручной контроль']
+          ['Зона ремонта', 'изолирована от активного проекта'],
+          ['Ремонтные инциденты', repairIncidents.length ? `${repairIncidents.length} активных` : 'нет активных'],
+          ['Автоисправление', guardian.state.autonomy_level >= 3 ? 'только низкий риск' : 'ручной контроль']
         ]
       },
       memory: {
@@ -14729,11 +14793,11 @@ const App = {
         is_mock: false,
         checks: [
           ['Хранилище', `${TERMINATOR_STORAGE_ROOT}\\memory`],
-          ['Memory Preview', memoryCandidates ? `${memoryCandidates} кандидатов` : 'нет кандидатов'],
+          ['Предпросмотр памяти', memoryCandidates ? `${memoryCandidates} кандидатов` : 'нет кандидатов'],
           ['Записи памяти', savedMemory ? `${savedMemory} сохранено` : 'не сохранено'],
           ['Индекс поиска', memorySearch.count ? `${memorySearch.count} записей` : 'ожидает сборки'],
-          ['Research/Brain refs', `${memorySearch.stats?.research || 0} research · ${memorySearch.stats?.brain_answers || 0} brain answers`],
-          ['Файлы', 'только refs, не raw huge data']
+          ['Связи с исследованием', `${memorySearch.stats?.research || 0} исследований · ${memorySearch.stats?.brain_answers || 0} ответов Совета`],
+          ['Файлы', 'только ссылки, без тяжёлых данных']
         ]
       },
       body: {
@@ -14753,20 +14817,20 @@ const App = {
       legs: {
         status: legsStatus,
         readiness: Math.max(deviceMesh.readiness, Math.min(96, continuity.readiness + 4)),
-        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · checkpoints ${continuity.checkpoint_count} · teleport ${continuity.teleport_count}`,
+        summary: `${deviceMesh.devices.length} устройств · ${deviceMesh.trusted} доверенных · точек продолжения ${continuity.checkpoint_count} · переносов ${continuity.teleport_count}`,
         note: `Ноги маршрутизируют задачи и контекст. ${continuity.next}`,
         snapshot_source: 'Реестр владельца / Handoff Planner / Continuity / Task Teleport / PWA',
         is_mock: false,
         checks: [
           ['Основной агент', ownedRegistry.primary_agent_id],
-          ['Heartbeat', ownedRegistry.online_count ? 'online' : 'не получен'],
+          ['Связь', ownedRegistry.online_count ? 'получена' : 'не получена'],
           ['Телефон', devicePresence.phone.owner_confirmed ? 'ручной вход отмечен' : (devicePhone ? (DEVICE_STATUSES[devicePhone.status] || devicePhone.status) : 'не добавлен')],
-          ['PWA', `${devicePresence.pwa.install_label}; работа без сети: ${devicePresence.pwa.service_worker}`],
+          ['Приложение', `${devicePresence.pwa.install_label}; работа без сети: ${devicePresence.pwa.service_worker}`],
           ['Маршруты', `${deviceMesh.routes.length} описано`],
-          ['Handoff', `${handoffPlanner.task_records.length} по активной задаче · ${handoffPlanner.readiness}%`],
-          ['Continuity', `${continuity.checkpoint_count} checkpoint · ${continuity.readiness}%`],
-          ['Task Teleport', `${continuity.teleport_count} пакетов · active task ${continuity.task_teleport_count}`],
-          ['Offline recovery', continuity.browser_online ? 'браузер online' : 'offline snapshot активен'],
+          ['Передача', `${handoffPlanner.task_records.length} по активной задаче · ${handoffPlanner.readiness}%`],
+          ['Продолжение', `${continuity.checkpoint_count} точек · ${continuity.readiness}%`],
+          ['Перенос задачи', `${continuity.teleport_count} пакетов · по задаче ${continuity.task_teleport_count}`],
+          ['Без сети', continuity.browser_online ? 'браузер на связи' : 'локальное состояние активно'],
           ['Передача задачи', devicePresence.handoff.status === 'route_ready' || handoffPlanner.active ? 'маршрут подготовлен' : 'локальный слой статуса'],
           ['Подтверждение', `${deviceMesh.riskyCapabilities} возможностей требуют решения владельца`]
         ]
@@ -14816,7 +14880,7 @@ const App = {
     if (subsystems.diagnost.readiness < 65) return { zone: 'diagnost', label: 'Запустить Диагност', action: 'run_diagnostics', note: 'Проверить защитник, инциденты и платные риски.' };
     if (subsystems.head.readiness < 65) return { zone: 'head', label: 'Настроить Голову', action: 'select_head', note: 'Выбрать Стратега и проверить мозги.' };
     if (subsystems.memory.readiness < 70) return { zone: 'memory', label: 'Проверить Память', action: 'select_memory', note: 'Подготовить поиск по памяти и индекс.' };
-    if (subsystems.hands.readiness < 70) return { zone: 'hands', label: 'Настроить Руки', action: 'select_hands', note: 'Создать безопасный план действия: worker, риск, rollback, Verifier и Approval.' };
+    if (subsystems.hands.readiness < 70) return { zone: 'hands', label: 'Настроить Руки', action: 'select_hands', note: 'Создать безопасный план действия: помощник, риск, откат, проверка и подтверждение.' };
     if (subsystems.legs.readiness < 70) return { zone: 'legs', label: 'Настроить Ноги', action: 'select_legs', note: 'Проверить связь устройств и передачу задач.' };
     if (subsystems.voice.readiness < 70) return { zone: 'voice', label: 'Настроить Голос', action: 'select_voice', note: 'Проверить режим “нажать и говорить” и предпросмотр намерения.' };
     if (subsystems.eyes.readiness < 70) return { zone: 'eyes', label: 'Проверить Глаза', action: 'select_eyes', note: 'Проверить визуальный контроль и сбор доказательств.' };
@@ -15103,6 +15167,7 @@ const App = {
   },
 
   renderMinaSchemePanelBody(zoneId, subsystem, health) {
+    const expert = this.minaSchemeMode === 'expert' || this.minaSchemeExpertOpen;
     if (zoneId === 'head') {
       const strategist = this.mainStrategistBrain();
       const brains = (this.headBrains || []).filter((brain) => !brain.archived);
@@ -15132,13 +15197,13 @@ const App = {
       const memorySearch = this.memorySearchSnapshot();
       return `
         <section class="scheme-config-block">
-          <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\memory</div>
-          <p>Память хранит смысл, решения и ссылки. Индекс ищет по задачам, артефактам, evidence, Research Pack и ответам Совета без raw-файлов и без секретов.</p>
+          <div class="scheme-path">${expert ? `${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\memory` : 'Локальное хранилище памяти'}</div>
+          <p>Память хранит смысл, решения и ссылки. Поиск помогает быстро найти задачи, артефакты, доказательства и ответы Совета без лишнего шума и секретов.</p>
           <div class="scheme-chip-list">
             <span>${memoryTasks.length} кандидатов памяти</span>
             <span>Индекс: ${this.escapeHtml(this.memorySearchStatusName(memorySearch.status))}</span>
             <span>${this.escapeHtml(String(memorySearch.count))} записей</span>
-            <span>AI API не включены</span>
+            <span>Платные подключения выключены</span>
           </div>
         </section>
       `;
@@ -15164,12 +15229,12 @@ const App = {
       const latest = hands.latest;
       return `
         <section class="scheme-config-block">
-          <div class="scheme-path">${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\repair_workspaces\\&lt;incident_id&gt;</div>
+          <div class="scheme-path">${expert ? `${this.escapeHtml(TERMINATOR_STORAGE_ROOT)}\\repair_workspaces\\&lt;incident_id&gt;` : 'Изолированная зона ремонта'}</div>
           <p>${this.escapeHtml(hands.note)} Руки выполняют только заранее разрешённые безопасные проверки. Активный проект не меняется без Защитника, проверки и подтверждения владельца.</p>
           <div class="scheme-chip-list">
             <span>Планы: ${this.escapeHtml(String(hands.count))}</span>
             <span>Подтверждения: ${this.escapeHtml(String(hands.approval_count))}</span>
-            <span>Отчёты модулей: ${this.escapeHtml(String(hands.worker_reports))}</span>
+            <span>Отчёты помощников: ${this.escapeHtml(String(hands.worker_reports))}</span>
             <span>Безопасные проверки: ${this.escapeHtml(String(runtime.completed_count))}</span>
             <span>Опасная автоматика: заблокирована</span>
           </div>
@@ -15190,8 +15255,8 @@ const App = {
             ${devices.slice(0, 5).map((device) => `<span>${this.escapeHtml(String(device.name || '').replace(/Local Agent/g, 'Локальный агент'))} · ${this.escapeHtml(DEVICE_STATUSES[device.status] || device.status)}</span>`).join('')}
           </div>
           <div class="scheme-chip-list">
-            <span>Основной агент: ${this.escapeHtml(ownedRegistry.primary_agent_id)}</span>
-            <span>Сигнал: ${this.escapeHtml(ownedRegistry.online_count ? 'online' : 'не получен')}</span>
+            <span>Основное устройство: ${this.escapeHtml(ownedRegistry.primary_agent_id ? 'ПК владельца' : 'не выбрано')}</span>
+            <span>Связь: ${this.escapeHtml(ownedRegistry.online_count ? 'получена' : 'не получена')}</span>
             <span>${this.escapeHtml(String(mesh.routes.length))} маршрутов</span>
             <span>Передачи: ${this.escapeHtml(String(handoff.task_records.length))} по задаче</span>
             <span>Точки продолжения: ${this.escapeHtml(String(continuity.checkpoint_count))}</span>
@@ -15234,17 +15299,17 @@ const App = {
       `;
     }
 
-    return `
-      <section class="scheme-config-block">
-        <div class="scheme-chip-list">
-          <span>Контур задач: ${this.taskRuntimeReady ? 'локальная база' : 'резервный режим'}</span>
-          <span>Хранилище задач: ${this.escapeHtml(this.taskStoreStatusSnapshot().status)}</span>
-          <span>Мост: ${this.escapeHtml(this.directModeStatusSnapshot().status)}</span>
-          <span>Локальный агент: ${this.escapeHtml(this.localAgentStatusSnapshot().status)}</span>
-          <span>Основной агент: ${this.escapeHtml(this.getPrimaryOwnedAgentId())}</span>
-        </div>
-        <p>Тело держит маршрут задачи, политики, статусы и следующий лучший шаг.</p>
-      </section>
+      return `
+        <section class="scheme-config-block">
+          <div class="scheme-chip-list">
+            <span>Контур задач: ${this.taskRuntimeReady ? 'локальная база' : 'резервный режим'}</span>
+            <span>Хранилище задач: ${this.escapeHtml(this.taskStoreStatusSnapshot().status)}</span>
+            <span>Связь с облаком: ${this.escapeHtml(this.directModeStatusSnapshot().status)}</span>
+            <span>Локальный агент: ${this.escapeHtml(this.localAgentStatusSnapshot().status)}</span>
+            <span>Основное устройство: ${this.escapeHtml(this.getPrimaryOwnedAgentId() ? 'ПК владельца' : 'не выбрано')}</span>
+          </div>
+          <p>Тело держит маршрут задачи, политики, статусы и следующий лучший шаг.</p>
+        </section>
     `;
   },
 
@@ -15265,23 +15330,23 @@ const App = {
       hands: [
         ['open_system_hands', 'Открыть Руки'],
         ['open_work_hands', 'План действия в задаче'],
-        ['run_worker_check', 'Проверить workers']
+        ['run_worker_check', 'Проверить помощников']
       ],
       legs: [
         ['open_devices', 'Открыть устройства'],
         ['open_work_handoff', 'Передача задачи'],
-        ['create_continuity_checkpoint', 'Создать checkpoint'],
-        ['prepare_task_teleport', 'Task Teleport'],
+        ['create_continuity_checkpoint', 'Сохранить точку продолжения'],
+        ['prepare_task_teleport', 'Подготовить перенос задачи'],
         ['select_body', 'Проверить Тело']
       ],
       voice: [
-        ['open_voice', 'Открыть голосовые hooks'],
+        ['open_voice', 'Открыть голос'],
         ['open_work_voice', 'Проверить в Рабочем']
       ],
       eyes: [
         ['open_system_eyes', 'Открыть панель Глаз'],
-        ['create_visual_check', 'Создать visual evidence'],
-        ['open_verifier', 'Открыть Verifier']
+        ['create_visual_check', 'Зафиксировать доказательство'],
+        ['open_verifier', 'Открыть Проверку']
       ],
       body: [
         ['run_diagnostics', 'Проверить систему'],
@@ -18806,21 +18871,24 @@ const App = {
     };
     research.contradiction_map = contradictionMap;
     research.research_pack = pack;
-    research.status = 'pack_ready';
+    research.status = sourceCards.length ? 'pack_ready' : 'needs_sources';
     research.updated_at = now;
+    const packText = sourceCards.length
+      ? 'Пакет исследования собран для Совета мозгов.'
+      : 'Черновик исследования создан без источников. Для решения нужны Source Cards.';
     research.rounds = [
       ...research.rounds.filter((round) => round.type !== 'research_pack_created'),
-      { round_id: this.generateWorkspaceId('RROUND'), type: 'research_pack_created', text: 'Пакет исследования собран для Совета мозгов.', created_at: now }
+      { round_id: this.generateWorkspaceId('RROUND'), type: 'research_pack_created', text: packText, created_at: now }
     ];
     const artifact = this.createArtifact(task, 'RESEARCH_PACK', 'Пакет исследования', `${sourceCards.length} источников, ${evidenceCards.length} доказательств.`, this.formatResearchPack(task, pack), 'researchops');
     artifact.status = pack.status === 'ready' ? 'ready' : 'needs_sources';
     pack.artifact_id = artifact.artifact_id;
-    this.addWorkspaceMessage(task, 'research_event', 'Исследование', 'Пакет исследования собран и готов для Совета мозгов.', {
+    this.addWorkspaceMessage(task, 'research_event', 'Исследование', sourceCards.length ? 'Пакет исследования собран и готов для Совета мозгов.' : 'Черновик исследования создан, но источников нет. Решение нельзя считать подтверждённым.', {
       linked_artifact_id: artifact.artifact_id,
       linked_artifacts: [artifact.artifact_id]
     });
     this.addWorkAudit(task, 'Research Pack created.');
-    this.toast('Пакет исследования собран');
+    this.toast(sourceCards.length ? 'Пакет исследования собран' : 'Нужны источники для исследования');
   },
 
   copyResearchPack(task) {
@@ -19147,19 +19215,25 @@ const App = {
       .filter((brain) => !brain.archived && brain.enabled && (!profileBrainIds.size || profileBrainIds.has(brain.brain_id)))
       .sort((a, b) => a.order - b.order || a.display_name.localeCompare(b.display_name, 'ru'));
     if (brains.length) {
-      return brains.map((brain) => ({
-        id: `head_${brain.brain_id}`,
-        brain_id: brain.brain_id,
-        brain: brain.display_name,
-        short: this.brainShortLabel(brain.display_name),
-        role: brain.role,
-        mission: brain.default_role || brain.notes || 'Дать самостоятельную позицию в Совете.',
-        focus: brain.notes || brain.default_role || brain.role,
-        artifact_title: `Ответ ${brain.display_name} / ${brain.role}`,
-        official_url: brain.official_url,
-        selected_model_name: brain.selected_model_name,
-        is_main_strategist: Boolean(brain.is_main_strategist || profile?.main_strategist_id === brain.brain_id)
-      }));
+      return brains.map((brain) => {
+        const accountVerified = this.isHeadBrainAccountCurrent(brain);
+        return {
+          id: `head_${brain.brain_id}`,
+          brain_id: brain.brain_id,
+          brain: brain.display_name,
+          short: this.brainShortLabel(brain.display_name),
+          role: brain.role,
+          mission: brain.default_role || brain.notes || 'Дать самостоятельную позицию в Совете.',
+          focus: brain.notes || brain.default_role || brain.role,
+          artifact_title: `Ответ ${brain.display_name} / ${brain.role}`,
+          official_url: brain.official_url,
+          selected_model_name: brain.selected_model_name,
+          account_verified: accountVerified,
+          account_status: brain.account_status || 'not_confirmed',
+          account_note: this.headBrainReadinessLabel(brain),
+          is_main_strategist: Boolean(brain.is_main_strategist || profile?.main_strategist_id === brain.brain_id)
+        };
+      });
     }
     return BRAIN_ROLES;
   },
@@ -19204,13 +19278,24 @@ const App = {
           <span>${this.escapeHtml(role.role)}</span>
           <p>${this.escapeHtml(role.mission)}</p>
           <small>${this.escapeHtml(role.focus)}</small>
+          ${role.account_note ? `<small>Аккаунт: ${this.escapeHtml(role.account_note)}</small>` : ''}
         </div>
         <div class="brainops-role-actions">
           <button type="button" data-workspace-action="copy_brain_prompt" data-brain-role="${this.escapeHtml(role.id)}" ${pack ? '' : 'disabled'}>Скопировать пакет</button>
-          <span>${pack ? 'пакет готов' : 'нет пакета'} · ${answer ? 'ответ сохранён' : 'нет ответа'}</span>
+          <span>${pack ? this.escapeHtml(this.brainPromptPackageStatusName(pack.status)) : 'нет пакета'} · ${answer ? 'ответ сохранён' : 'нет ответа'}</span>
         </div>
       </article>
     `;
+  },
+
+  brainPromptPackageStatusName(status) {
+    const names = {
+      ready_manual: 'пакет подготовлен',
+      ready: 'пакет подготовлен',
+      needs_account_check: 'нужен вход в аккаунт',
+      draft_unverified_account: 'черновик, аккаунт не проверен'
+    };
+    return names[status] || status || 'нет пакета';
   },
 
   renderBrainAnswerCard(answer) {
@@ -19222,6 +19307,7 @@ const App = {
           <span>${this.escapeHtml(role.role || answer.role || 'роль не задана')} · ${this.escapeHtml(this.brainIntegrityName(answer.integrity?.status))}</span>
           <p>${this.escapeHtml(answer.summary || 'краткое резюме не выделено')}</p>
           <small>Уверенность: ${this.escapeHtml(answer.confidence || 'не указана')} · Проверить: ${this.escapeHtml(answer.what_to_check_first || 'не указано')}</small>
+          ${answer.provenance_note ? `<small>${this.escapeHtml(answer.provenance_note)}</small>` : ''}
         </div>
         <small>${this.escapeHtml(this.formatTaskTime(answer.created_at))}</small>
       </article>
@@ -19262,6 +19348,7 @@ const App = {
     const council = this.ensureBrainCouncilState(task);
     const createdAt = new Date().toISOString();
     const roles = this.councilRolesForTask(task);
+    const hasUnverifiedAccounts = roles.some((role) => role.account_verified === false);
     council.prompt_packages = roles.map((role) => {
       const existing = council.prompt_packages.find((item) => item.role_id === role.id);
       return {
@@ -19273,27 +19360,32 @@ const App = {
         content: this.buildBrainPromptText(task, role),
         created_at: existing?.created_at || createdAt,
         updated_at: createdAt,
-        status: 'ready'
+        status: role.account_verified === false ? 'needs_account_check' : 'ready_manual',
+        account_verified: role.account_verified !== false,
+        account_status: role.account_status || 'not_tracked',
+        account_note: role.account_note || 'ручная отправка владельцем'
       };
     });
-    council.status = 'prompts_ready';
+    council.status = hasUnverifiedAccounts ? 'prompts_need_account_check' : 'prompts_ready';
     council.updated_at = createdAt;
     const artifact = this.createArtifact(
       task,
       'BRAIN_PROMPT_PACKAGE',
       'Пакеты для Совета мозгов',
-      `Prompt packages для профиля ${this.headProfileById(council.profile_id)?.name || 'Совет'}. Отправка вручную.`,
+      hasUnverifiedAccounts
+        ? `Пакеты подготовлены для профиля ${this.headProfileById(council.profile_id)?.name || 'Совет'}, но часть аккаунтов требует ручного входа.`
+        : `Пакеты подготовлены для профиля ${this.headProfileById(council.profile_id)?.name || 'Совет'}. Отправка вручную.`,
       council.prompt_packages.map((pack) => `# ${pack.brain} — ${pack.role}\n\n${pack.content}`).join('\n\n---\n\n'),
       'brainops'
     );
-    artifact.status = 'ready';
-    this.addWorkspaceMessage(task, 'context_pack_created', 'Совет мозгов', 'Пакеты для Совета мозгов сформированы. Отправка только вручную.', {
+    artifact.status = hasUnverifiedAccounts ? 'needs_account_check' : 'ready';
+    this.addWorkspaceMessage(task, 'context_pack_created', 'Совет мозгов', hasUnverifiedAccounts ? 'Пакеты Совета подготовлены, но часть аккаунтов не подтверждена ручным тестом.' : 'Пакеты для Совета мозгов сформированы. Отправка только вручную.', {
       linked_artifact_id: artifact.artifact_id,
       linked_artifacts: [artifact.artifact_id]
     });
     this.addWorkAudit(task, 'BrainOps prompt packages created.');
     this.switchWorkspaceTab('council');
-    this.toast('Пакеты Совета готовы');
+    this.toast(hasUnverifiedAccounts ? 'Пакеты подготовлены; проверьте аккаунты' : 'Пакеты Совета подготовлены');
   },
 
   buildBrainPromptText(task, role) {
@@ -19317,6 +19409,7 @@ const App = {
       `Профиль Совета: ${profile?.name || 'Основной'}.`,
       `Главный Стратег владельца: ${strategist ? `${strategist.display_name} / ${strategist.selected_model_name}` : 'не выбран'}.`,
       `Твой желаемый model label: ${role.selected_model_name || role.brain}.`,
+      `Состояние аккаунта в Терминаторе: ${role.account_note || 'ручная отправка владельцем'}.`,
       `Фокус роли: ${role.focus}.`,
       `Миссия роли: ${role.mission}`,
       `Активные исследователи: ${searchAgents.length ? searchAgents.map((agent) => `${agent.name} (${agent.role})`).join('; ') : 'не заданы'}.`,
@@ -19377,6 +19470,10 @@ const App = {
     }
     this.copyWorkspaceText(pack.content);
     this.addWorkspaceMessage(task, 'system_event', 'Совет мозгов', `Скопирован пакет: ${pack.brain} / ${pack.role}.`);
+    if (pack.account_verified === false) {
+      this.addWorkspaceMessage(task, 'brain_council', 'Голова', `${pack.brain}: пакет скопирован как черновик, аккаунт нужно подтвердить вручную перед доверием к ответу.`);
+      this.toast('Пакет скопирован, аккаунт не подтверждён');
+    }
   },
 
   saveBrainAnswer(task) {
@@ -19396,6 +19493,14 @@ const App = {
     const promptPackage = (council.prompt_packages || []).find((item) => item.role_id === role.id);
     const research = this.ensureResearchOpsState(task);
     const now = new Date().toISOString();
+    const accountVerified = role.account_verified !== false && promptPackage?.account_verified !== false;
+    const provenanceNote = accountVerified
+      ? 'Ответ вставлен владельцем после ручного подтверждения аккаунта.'
+      : 'Ответ вставлен владельцем, но аккаунт внешнего чата не подтверждён в текущей сессии.';
+    if (!accountVerified) {
+      integrity.findings = [...(integrity.findings || []), 'аккаунт внешнего чата не подтверждён в текущей сессии'];
+      if (integrity.status === 'pass') integrity.status = 'review';
+    }
     const answer = {
       answer_id: this.generateWorkspaceId('BRAINANS'),
       role_id: role.id,
@@ -19417,9 +19522,12 @@ const App = {
       source_refs: research.research_pack?.source_card_ids || [],
       research_pack_id: research.research_pack?.research_pack_id || '',
       integrity,
+      account_verified: accountVerified,
+      account_status: promptPackage?.account_status || role.account_status || 'not_tracked',
+      provenance_note: provenanceNote,
       created_at: now,
       status: integrity.status === 'blocked' ? 'needs_review' : 'saved',
-      source_type: 'manual_web_chat',
+      source_type: accountVerified ? 'manual_web_chat_verified_account' : 'manual_web_chat_unverified_account',
       api_used: false,
       inserted_by: 'owner'
     };
@@ -19696,7 +19804,10 @@ const App = {
     if (council.status === 'decision_passport_ready') return 'паспорт решения готов';
     if (council.status === 'comparison_ready') return `сравнение готово, ответов: ${answers}`;
     if (answers) return `ответы собираются: ${answers}`;
-    if (council.prompt_packages?.length) return research.research_pack ? 'пакеты готовы с исследованием' : 'пакеты готовы, исследование не собрано';
+    if (council.status === 'prompts_need_account_check' || council.prompt_packages?.some((pack) => pack.account_verified === false)) {
+      return 'пакеты подготовлены, аккаунты нужно подтвердить';
+    }
+    if (council.prompt_packages?.length) return research.research_pack?.status === 'ready' ? 'пакеты подготовлены с источниками' : 'пакеты подготовлены, источники не подтверждены';
     return 'совет ещё не запускался';
   },
 
@@ -20258,6 +20369,7 @@ const App = {
       PRIVACY_GUARD_RULES.forEach((rule) => {
         rule.pattern.lastIndex = 0;
         if (!rule.pattern.test(line)) return;
+        if (this.isSafePrivacyNegationLine(line, rule)) return;
         findings.push({
           rule_id: rule.id,
           label: rule.label,
@@ -20275,6 +20387,18 @@ const App = {
       findings,
       checked_at: new Date().toISOString()
     };
+  },
+
+  isSafePrivacyNegationLine(line, rule) {
+    if (!['env_file', 'api_key', 'token', 'secret', 'password', 'webhook', 'cookie_session'].includes(rule?.id)) return false;
+    const source = String(line || '');
+    if (/(?:sk-[A-Za-z0-9_-]{10,}|gh[pousr]_[A-Za-z0-9_]{10,}|AIza[A-Za-z0-9_-]{10,}|Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}|BEGIN\s+(?:RSA\s+|OPENSSH\s+|EC\s+)?PRIVATE\s+KEY)/i.test(source)) {
+      return false;
+    }
+    if (/(?:api[_ -]?key|token|secret|password|passwd|pwd|cookie|session|webhook|\.env)\s*[:=]\s*\S{4,}/i.test(source)) {
+      return false;
+    }
+    return /(?:\b(?:no|not|without|disabled|none)\b.{0,80}(?:api[_ -]?key|token|secret|password|cookie|session|webhook|\.env)|(?:api[_ -]?key|token|secret|password|cookie|session|webhook|\.env).{0,80}\b(?:not|unused|disabled|absent|none)\b|(?:не\s+(?:использ|примен|подключ|добав|менял|менялись|хран|вывод)|без)\s.{0,80}(?:api|ключ|токен|секрет|парол|cookie|session|\.env)|(?:api|ключ|токен|секрет|парол|cookie|session|\.env).{0,80}(?:не\s+(?:использ|примен|подключ|добав|менял|менялись|хран|вывод)|нет))/i.test(source);
   },
 
   privacyScanSummary(scan) {

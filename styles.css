@@ -6448,7 +6448,7 @@ button:not(:disabled) {
   width: min(94vw, 1680px);
   height: min(88vh, 940px);
   padding: 0;
-  overflow: hidden;
+  overflow: auto;
   border-color: rgba(83, 200, 255, 0.34);
   background:
     radial-gradient(circle at 47% 44%, rgba(12, 108, 224, 0.16), transparent 42%),
@@ -6763,8 +6763,8 @@ button:not(:disabled) {
 .scheme-workbench {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(760px, 1fr) minmax(390px, 450px);
-  gap: 18px;
+  grid-template-columns: minmax(560px, 1fr) minmax(330px, 420px);
+  gap: 16px;
 }
 
 .scheme-map,
@@ -7291,9 +7291,41 @@ button:not(:disabled) {
   }
 
   .scheme-console {
-    grid-template-columns: 156px minmax(0, 1fr);
+    grid-template-columns: 148px minmax(0, 1fr);
   }
 
+  .scheme-workbench {
+    grid-template-columns: minmax(590px, 1fr) minmax(320px, 390px);
+    gap: 14px;
+  }
+
+  .scheme-map {
+    min-height: 540px;
+  }
+
+  .scheme-panel {
+    max-height: none;
+    padding: 16px;
+  }
+
+  .scheme-zone-card {
+    width: 210px;
+    min-height: 70px;
+    grid-template-columns: 42px 1fr;
+    padding: 10px 12px;
+  }
+
+  .scheme-zone-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .scheme-silhouette {
+    inset: 22px 30% 20px;
+  }
+}
+
+@media (max-width: 1120px) {
   .scheme-workbench {
     grid-template-columns: 1fr;
   }
@@ -7347,7 +7379,7 @@ button:not(:disabled) {
 
   .scheme-top-actions {
     width: 100%;
-    grid-template-columns: minmax(0, 1fr) 42px 42px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px 42px;
     gap: 6px;
   }
 

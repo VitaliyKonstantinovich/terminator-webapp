@@ -1,0 +1,339 @@
+127.0.0.1 - - [29/May/2026 11:52:23] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /?force=v2-product-audit-scheme HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 63110)
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /manifest.webmanifest HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 55799)
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /manifest.webmanifest HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /assets/mina-ui/desktop/01_start_screen_desktop_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /assets/mina-ui/desktop/02_main_menu_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /assets/mina-ui/desktop/03_personal_models_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:25] "GET /assets/mina-ui/desktop/06_session_complete_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /assets/pwa/icon-192.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /assets/pwa/icon-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /assets/pwa/icon-maskable-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /assets/pwa/apple-touch-icon.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /assets/mina-ui/mobile/01_start_screen_mobile_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:26] "GET /assets/mina-ui/mobile/02_main_menu_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:29] "GET /assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:29] "GET /assets/mina-ui/mobile/03_personal_models_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:29] "GET /assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:29] "GET /assets/mina-ui/mobile/06_session_complete_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:52:47] code 404, message File not found
+127.0.0.1 - - [29/May/2026 11:52:47] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/May/2026 11:54:10] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /?force=v2-product-audit-scheme HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 51065)
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 51846)
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /manifest.webmanifest HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 53754)
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:12] "GET /manifest.webmanifest HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/mina-ui/desktop/01_start_screen_desktop_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/mina-ui/desktop/02_main_menu_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/mina-ui/desktop/06_session_complete_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/mina-ui/desktop/03_personal_models_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/pwa/icon-192.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/pwa/icon-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:13] "GET /assets/pwa/icon-maskable-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:14] "GET /assets/pwa/apple-touch-icon.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:14] "GET /assets/mina-ui/mobile/01_start_screen_mobile_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:14] "GET /assets/mina-ui/mobile/02_main_menu_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:16] "GET /assets/mina-ui/mobile/03_personal_models_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:16] "GET /assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:16] "GET /assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:16] "GET /assets/mina-ui/mobile/06_session_complete_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:54:34] code 404, message File not found
+127.0.0.1 - - [29/May/2026 11:54:34] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/May/2026 11:57:21] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /?force=v2-product-audit-scheme HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /manifest.webmanifest HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /assets/mina-ui/desktop/01_start_screen_desktop_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /assets/mina-ui/desktop/02_main_menu_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /assets/mina-ui/desktop/03_personal_models_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:23] "GET /assets/mina-ui/desktop/06_session_complete_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /assets/pwa/icon-192.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /assets/pwa/icon-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /assets/pwa/icon-maskable-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /assets/pwa/apple-touch-icon.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /assets/mina-ui/mobile/01_start_screen_mobile_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:24] "GET /assets/mina-ui/mobile/02_main_menu_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:27] "GET /assets/mina-ui/mobile/03_personal_models_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:27] "GET /assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:27] "GET /assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:27] "GET /assets/mina-ui/mobile/06_session_complete_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 11:57:45] code 404, message File not found
+127.0.0.1 - - [29/May/2026 11:57:45] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/May/2026 12:01:18] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /?force=v2-product-audit-scheme HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 62237)
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionResetError: [WinError 10054] Удаленный хост принудительно разорвал существующее подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /manifest.webmanifest HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60758)
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /manifest.webmanifest HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /assets/mina-ui/desktop/01_start_screen_desktop_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /assets/mina-ui/desktop/02_main_menu_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /assets/mina-ui/desktop/03_personal_models_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:20] "GET /assets/mina-ui/desktop/06_session_complete_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /assets/pwa/icon-192.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /assets/pwa/icon-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /assets/pwa/icon-maskable-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /assets/pwa/apple-touch-icon.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /assets/mina-ui/mobile/01_start_screen_mobile_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:21] "GET /assets/mina-ui/mobile/02_main_menu_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:23] "GET /assets/mina-ui/mobile/03_personal_models_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:23] "GET /assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:23] "GET /assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:24] "GET /assets/mina-ui/mobile/06_session_complete_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:01:41] code 404, message File not found
+127.0.0.1 - - [29/May/2026 12:01:41] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/May/2026 12:05:57] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /?force=v2-product-audit-scheme HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /?force=v2-product-audit-scheme HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60476)
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /styles.css?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+Traceback (most recent call last):
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 679, in do_GET
+    self.copyfile(f, self.wfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 878, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\shutil.py", line 204, in copyfileobj
+    fdst_write(buf)
+  File "C:\Users\glebi\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+----------------------------------------
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /app.js?v=20260529-qamax-fix-block-1-v1 HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /manifest.webmanifest HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /assets/mina-ui/desktop/01_start_screen_desktop_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /assets/mina-ui/desktop/02_main_menu_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /assets/mina-ui/desktop/03_personal_models_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /assets/mina-ui/desktop/04_brain_control_template_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /assets/mina-ui/desktop/05_remote_access_ready_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:05:59] "GET /assets/mina-ui/desktop/06_session_complete_desktop_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:00] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:00] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:00] "GET /assets/pwa/icon-192.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:00] "GET /assets/pwa/icon-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:00] "GET /assets/pwa/icon-maskable-512.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:01] "GET /assets/pwa/apple-touch-icon.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:01] "GET /assets/mina-ui/mobile/01_start_screen_mobile_red.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:01] "GET /assets/mina-ui/mobile/02_main_menu_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:03] "GET /assets/mina-ui/mobile/03_personal_models_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:03] "GET /assets/mina-ui/mobile/04_brain_control_template_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:03] "GET /assets/mina-ui/mobile/05_remote_access_ready_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:03] "GET /assets/mina-ui/mobile/06_session_complete_mobile_blue.png HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2026 12:06:22] code 404, message File not found
+127.0.0.1 - - [29/May/2026 12:06:22] "GET /favicon.ico HTTP/1.1" 404 -
