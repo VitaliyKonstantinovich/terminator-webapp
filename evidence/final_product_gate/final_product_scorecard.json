@@ -1,0 +1,114 @@
+[
+  {
+    "area": "First impression",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_start_main_menu_with_side_hud.png",
+    "remaining_risk": "Premium main shell with active side HUD; remaining bespoke character art is P2/P3.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Mina UI",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_default.png",
+    "remaining_risk": "Live visual parity improved; no obvious admin/prototype primary path.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Active side HUD",
+    "score": 10,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_notifications_opened.png",
+    "remaining_risk": "Active DOM panels and notification panel.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Scheme Mina",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_default.png",
+    "remaining_risk": "SVG/DOM zones; final bespoke art remains non-blocking later polish.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Workspace / Functional chain",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_work.png",
+    "remaining_risk": "Synthetic final gate task proves connected artifacts/evidence/verifier/memory in safe profile.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Brain Council / ResearchOps",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_brain_council_decision_passport.png",
+    "remaining_risk": "Decision Passport and BrainAnswer artifacts present.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Memory Search",
+    "score": 10,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_memory_search.png",
+    "remaining_risk": "Strong/weak/empty/fake secret behavior checked.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Diagnost / Recovery",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_diagnost.png",
+    "remaining_risk": "Loop2 controlled fault evidence retained; current UI readable.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Controlled Hands / Rollback",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_work.png",
+    "remaining_risk": "Loop2 sandbox rollback proof reused; active project not mutated.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Guardian / Safety",
+    "score": 10,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_emergency_stop.png",
+    "remaining_risk": "Emergency Stop typed reset verified.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Performance",
+    "score": 7,
+    "verdict": "PARTIAL",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\performance\\final_gate_performance.json",
+    "remaining_risk": "Measured core screen/action timings.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Mobile / Emulator / PWA Web",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\mobile\\final_gate_mobile_390_main.png",
+    "remaining_risk": "390/430 viewport smoke; real phone postponed.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Documentation / Evidence",
+    "score": 9,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\smoke\\final_product_gate_smoke.json",
+    "remaining_risk": "Final evidence package generated.",
+    "blocks_rc": false
+  },
+  {
+    "area": "Owner-assisted readiness",
+    "score": 8,
+    "verdict": "PASS",
+    "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\smoke\\final_product_gate_smoke.json",
+    "remaining_risk": "Owner-assisted checks isolated and non-blocking for current RC.",
+    "blocks_rc": false
+  }
+]

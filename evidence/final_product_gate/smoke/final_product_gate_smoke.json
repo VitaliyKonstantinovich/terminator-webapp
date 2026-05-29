@@ -1,0 +1,957 @@
+{
+  "checked_at": "2026-05-29T23:45:03.778Z",
+  "live_url": "http://127.0.0.1:8815/",
+  "marker": "20260529-final-product-gate-v1",
+  "cache_marker": "terminator-mina-pwa-20260529-final-product-gate-v1",
+  "html_marker": true,
+  "sw_marker": true,
+  "manifest_ok": true,
+  "chrome_cold_start_to_ready_ms": 11523,
+  "ui": {
+    "checked_at": "2026-05-29T23:44:25.114Z",
+    "app_ready": true,
+    "no_mojibake": true,
+    "no_technical_junk_normal": true,
+    "technical_junk_matches": [],
+    "navigation": {
+      "start": true,
+      "menu": true,
+      "work": true,
+      "mission": true,
+      "system": true,
+      "scheme": true,
+      "head_brain": true,
+      "legs": true,
+      "voice": true
+    },
+    "side_hud": {
+      "active_dom": true,
+      "left_cards": 3,
+      "right_cards": 4,
+      "has_live_date": true,
+      "has_status": true,
+      "notifications_opened": true,
+      "stale_static_data": false,
+      "text": "СИСТЕМА активна Защитник контролирует риски, стоимость и опасные действия. ЗАДАЧИ 1/1 Прогресс: 0% · ждут отчёт: 0 ПАМЯТЬ 26 Записей в индексе. Поиск фильтрует слабые совпадения. 29.05.2026 18:44 Главное меню СВЯЗЬ на связи Bridge: ждёт вход владельца · Агент: ожидает вход УВЕДОМЛЕНИЯ 1 Просмотреть ГОТОВНОСТЬ 33% Final product gate"
+    },
+    "scheme": {
+      "zone_count": 8,
+      "zones": [
+        {
+          "zone": "head",
+          "card": true,
+          "svg": true,
+          "panel": "Голова / Мозги",
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено."
+        },
+        {
+          "zone": "eyes",
+          "card": true,
+          "svg": true,
+          "panel": "Глаза",
+          "aria": "Открыть настройку Глаза. Статус: не настроено."
+        },
+        {
+          "zone": "voice",
+          "card": true,
+          "svg": true,
+          "panel": "Голос",
+          "aria": "Открыть настройку Голос. Статус: готово."
+        },
+        {
+          "zone": "memory",
+          "card": true,
+          "svg": true,
+          "panel": "Память",
+          "aria": "Открыть настройку Память. Статус: готово."
+        },
+        {
+          "zone": "body",
+          "card": true,
+          "svg": true,
+          "panel": "Тело",
+          "aria": "Открыть настройку Тело. Статус: частично."
+        },
+        {
+          "zone": "hands",
+          "card": true,
+          "svg": true,
+          "panel": "Руки",
+          "aria": "Открыть настройку Руки. Статус: не настроено."
+        },
+        {
+          "zone": "legs",
+          "card": true,
+          "svg": true,
+          "panel": "Ноги",
+          "aria": "Открыть настройку Ноги. Статус: частично."
+        },
+        {
+          "zone": "diagnost",
+          "card": true,
+          "svg": true,
+          "panel": "Диагност",
+          "aria": "Открыть настройку Диагност. Статус: частично."
+        }
+      ],
+      "voice_points_to_mouth": true,
+      "eyes_points_to_eyes": true,
+      "png_background": false,
+      "silhouette_ok_for_current_loop": true
+    },
+    "functionality": {
+      "task_id": "TASK-FINAL-GATE-20260529",
+      "artifact_count": 12,
+      "has_context_pack": true,
+      "has_executor_report": true,
+      "has_evidence": true,
+      "has_verifier": true,
+      "has_memory": true,
+      "has_decision_passport": true,
+      "workspace_artifacts_text_ok": true,
+      "council_text_ok": true,
+      "verifier_text_ok": true
+    },
+    "memory_search": {
+      "strong_count": 22,
+      "strong_top": "Паспорт решения: Decision Passport: Productized RC",
+      "impossible_count": 0,
+      "impossible_warning": "Ничего релевантного не найдено.",
+      "weak_quality": "weak",
+      "weak_warning": "Найдены только слабые совпадения, проверьте вручную.",
+      "fake_secret_count": 0
+    },
+    "guardian": {
+      "emergencyActive": true,
+      "stillActiveAfterSafeOff": true,
+      "stillActiveAfterWrongPhrase": true,
+      "resetCleared": true
+    },
+    "previous_evidence": {
+      "loop2_controlled_apply": true,
+      "loop2_faults": true,
+      "loop2_performance": true,
+      "loop3_max_scenario": true,
+      "loop5_live": true
+    },
+    "performance": [
+      {
+        "name": "main_menu_open",
+        "duration_ms": 323,
+        "budget_ms": 1000,
+        "status": "PASS"
+      },
+      {
+        "name": "scheme_open",
+        "duration_ms": 476,
+        "budget_ms": 2000,
+        "status": "PASS"
+      },
+      {
+        "name": "workspace_open",
+        "duration_ms": 1269,
+        "budget_ms": 1000,
+        "status": "PARTIAL"
+      },
+      {
+        "name": "memory_search",
+        "duration_ms": 714,
+        "budget_ms": 3000,
+        "status": "PASS"
+      },
+      {
+        "name": "quick_diagnost",
+        "duration_ms": 1078,
+        "budget_ms": 5000,
+        "status": "PASS"
+      }
+    ],
+    "owner_assisted_postponed": [
+      "real phone APK/PWA until production V2 final",
+      "billing dashboards",
+      "production signing",
+      "production rollback on active project",
+      "legacy browser profile cleanup"
+    ]
+  },
+  "previous_evidence": {
+    "loop2Sandbox": {
+      "created_at": "2026-05-29T12:41:02.1185919-05:00",
+      "sandbox_root": "D:\\TerminatorStorage\\temp_outputs\\product_loop2",
+      "evidence_backup_root": "D:\\TerminatorStorage\\evidence_backups\\product_loop2",
+      "python": {
+        "path": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\hello_world.py",
+        "version": "Python 3.12.10",
+        "stdout": "Hello, world!",
+        "exit_code": 0,
+        "duration_ms": 76,
+        "sha256": "81AEA769E255576FE8CC95E8A4D401ACCA04C8C3A8697224BE92FB0669E51577",
+        "status": "PASS"
+      },
+      "controlled_apply": {
+        "target": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\dummy_apply_target.txt",
+        "rollback": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\rollback\\dummy_apply_target.before.txt",
+        "before_hash": "A7ECC0CD9B4DB1656BFF76DDBC2ACA770A8E50512E5446E5CC4FCA8BCBB77CD2",
+        "after_hash": "B08F7B70EF232A0E9FADA39408E13AD4F2AFD2B4972B0611488CEB877D2C1320",
+        "rollback_hash": "A7ECC0CD9B4DB1656BFF76DDBC2ACA770A8E50512E5446E5CC4FCA8BCBB77CD2",
+        "diff": "--- dummy_apply_target.txt\n+++ dummy_apply_target.txt\n-ORIGINAL: product loop2 controlled apply target\n+UPDATED: product loop2 controlled apply target\n+status=applied_in_sandbox_only",
+        "guardian": {
+          "ok": true,
+          "risk": "low",
+          "reasons": [
+            "target under D:\\TerminatorStorage\\temp_outputs\\product_loop2",
+            "dummy file only",
+            "rollback point exists",
+            "active project untouched"
+          ]
+        },
+        "verifier_before": {
+          "status": "PASS",
+          "checks": [
+            "rollback_exists",
+            "target_in_sandbox",
+            "no_project_files",
+            "no_secrets",
+            "no_ai_api"
+          ]
+        },
+        "post_check": {
+          "status": "PASS",
+          "changed": true,
+          "content": "UPDATED: product loop2 controlled apply target\nstatus=applied_in_sandbox_only\r\n"
+        },
+        "rollback_restored": true,
+        "duration_ms": 10,
+        "negative_checks": [
+          {
+            "id": "apply_without_rollback",
+            "expected": "blocked",
+            "actual": "blocked",
+            "pass": true,
+            "reason": "rollback_path required before apply"
+          },
+          {
+            "id": "verifier_fail",
+            "expected": "blocked",
+            "actual": "blocked",
+            "pass": true,
+            "reason": "verifier status FAIL blocks apply"
+          },
+          {
+            "id": "guardian_high_risk",
+            "expected": "approval_required",
+            "actual": "approval_required",
+            "pass": true,
+            "reason": "high risk cannot auto-apply"
+          },
+          {
+            "id": "active_project_target",
+            "expected": "blocked_without_explicit_approval",
+            "actual": "blocked_without_explicit_approval",
+            "pass": true,
+            "reason": "target outside sandbox is not allowed in Loop 2"
+          }
+        ],
+        "status": "PASS"
+      },
+      "fault_injection": [
+        {
+          "id": "stale_task_timer",
+          "detected": true,
+          "severity": "warning",
+          "explanation": "Таймер задачи устарел и требует проверки владельца.",
+          "safe_next_action": "Открыть Диагност и обновить статус задачи."
+        },
+        {
+          "id": "missing_dummy_evidence_ref",
+          "detected": true,
+          "severity": "warning",
+          "explanation": "У dummy-задачи ссылка evidence отсутствует.",
+          "safe_next_action": "Создать evidence или снять ссылку с результата."
+        },
+        {
+          "id": "corrupted_dummy_memory_index",
+          "detected": true,
+          "severity": "warning",
+          "explanation": "Dummy index повреждён; нужен безопасный reindex.",
+          "safe_next_action": "Пересобрать индекс памяти без удаления данных."
+        },
+        {
+          "id": "repair_workspace_unavailable",
+          "detected": true,
+          "severity": "error",
+          "explanation": "Repair workspace недоступен.",
+          "safe_next_action": "Проверить D:\\TerminatorStorage и создать workspace после подтверждения."
+        },
+        {
+          "id": "fake_secret_in_dummy_file",
+          "detected": true,
+          "severity": "error",
+          "explanation": "Найден только фейковый marker секрета в test fixture.",
+          "safe_next_action": "Privacy Guard должен редактировать/блокировать отправку."
+        },
+        {
+          "id": "codex_report_verifier_fail",
+          "detected": true,
+          "severity": "warning",
+          "explanation": "Отчёт Codex не проходит Verifier.",
+          "safe_next_action": "Вернуть на доработку, apply заблокирован."
+        }
+      ],
+      "fake_secret_fixture": "D:\\TerminatorStorage\\temp_outputs\\product_loop2\\fault_injection\\dummy_fake_secret.txt",
+      "restrictions": {
+        "active_project_mutated": false,
+        "ai_api_used": false,
+        "billing_touched": false,
+        "secrets_exposed": false
+      }
+    },
+    "loop2Performance": {
+      "perf": [
+        {
+          "name": "create_simple_task",
+          "duration_ms": 205,
+          "budget_ms": 20000,
+          "status": "PASS"
+        },
+        {
+          "name": "attach_evidence_file",
+          "duration_ms": 216,
+          "budget_ms": 5000,
+          "status": "PASS"
+        },
+        {
+          "name": "generate_artifacts",
+          "duration_ms": 5,
+          "budget_ms": 10000,
+          "status": "PASS"
+        },
+        {
+          "name": "verifier_path",
+          "duration_ms": 3,
+          "budget_ms": 5000,
+          "status": "PASS"
+        },
+        {
+          "name": "controlled_hands_metadata_and_apply_gate",
+          "duration_ms": 1868,
+          "budget_ms": 5000,
+          "status": "PASS"
+        },
+        {
+          "name": "diagnost_fault_injection",
+          "duration_ms": 123,
+          "budget_ms": 5000,
+          "status": "PASS"
+        },
+        {
+          "name": "quick_diagnost",
+          "duration_ms": 2315,
+          "budget_ms": 5000,
+          "status": "PASS"
+        },
+        {
+          "name": "memory_preview_and_search",
+          "duration_ms": 65,
+          "budget_ms": 3000,
+          "status": "PASS"
+        },
+        {
+          "name": "qualified_acceptance_answer",
+          "duration_ms": 309,
+          "budget_ms": 5000,
+          "status": "PASS"
+        },
+        {
+          "name": "screen_switches",
+          "duration_ms": 197,
+          "budget_ms": 1000,
+          "status": "PASS"
+        }
+      ],
+      "screenPerf": [
+        {
+          "screen": "work",
+          "duration_ms": 0
+        },
+        {
+          "screen": "system",
+          "duration_ms": 195
+        },
+        {
+          "screen": "scheme",
+          "duration_ms": 2
+        },
+        {
+          "screen": "menu",
+          "duration_ms": 0
+        }
+      ],
+      "budgets": {
+        "screen_switch_ms": 1000,
+        "scheme_open_ms": 2000,
+        "memory_search_ms": 3000,
+        "quick_diagnost_ms": 5000,
+        "simple_task_ms": 20000
+      }
+    },
+    "loop3Scenario": {
+      "status": "PASS",
+      "smoke": {
+        "marker": "20260529-product-loop3-max-scenario-v1",
+        "headSetup": [
+          {
+            "id": "brain_chatgpt",
+            "name": "ChatGPT",
+            "role": "Стратег",
+            "verified": true
+          },
+          {
+            "id": "brain_deepseek",
+            "name": "DeepSeek",
+            "role": "Критик",
+            "verified": true
+          },
+          {
+            "id": "brain_gemini",
+            "name": "Gemini",
+            "role": "Аналитик",
+            "verified": true
+          }
+        ],
+        "seedMemory": {
+          "task_id": "TASK-2026-0001",
+          "memory_results": 5,
+          "quality": "strong"
+        },
+        "task_id": "TASK-2026-0002",
+        "final_status": "accepted_with_risks",
+        "research": {
+          "brief": true,
+          "source_cards": 2,
+          "evidence_cards": 2,
+          "research_pack_status": "ready",
+          "prompt_packages": 3,
+          "package_statuses": [
+            "ready_manual",
+            "ready_manual",
+            "ready_manual"
+          ]
+        },
+        "brainCouncil": {
+          "roles": [
+            {
+              "id": "head_brain_chatgpt",
+              "account_verified": true,
+              "note": "аккаунт подтверждён"
+            },
+            {
+              "id": "head_brain_gemini",
+              "account_verified": true,
+              "note": "аккаунт подтверждён"
+            },
+            {
+              "id": "head_brain_deepseek",
+              "account_verified": true,
+              "note": "аккаунт подтверждён"
+            }
+          ],
+          "answers": 3,
+          "comparison_status": "ready",
+          "missing_answers": [],
+          "answer_contradictions": [
+            "Разные verdict: ChatGPT, Gemini, DeepSeek склоняются принять; Gemini видят блокер."
+          ],
+          "decision_status": "draft",
+          "council_status": "decision_passport_ready"
+        },
+        "verifier": {
+          "verdict": "PASS_WITH_RISKS",
+          "reasons": [
+            "Есть риски или пункты для ручной проверки."
+          ],
+          "evidenceGate": {
+            "ok": true,
+            "honestAbsence": false,
+            "label": "evidence есть",
+            "reason": "Есть evidence-файл, проверочный artifact или описанный путь/архив."
+          },
+          "qualityGate": {
+            "ok": false,
+            "label": "quality gate не закрыт",
+            "reason": "Для clean PASS нужны содержательный отчёт, явные проверки, первый шаг проверки, ключевой checklist и отсутствие blocking findings."
+          }
+        },
+        "hands": {
+          "plan_id": "HAND-MPR9E14U-LD7TSA",
+          "run_status": "completed",
+          "package_status": "approved_for_manual_apply",
+          "manual_status": "manual_applied",
+          "gate_ok": true,
+          "rollback_restored": true
+        },
+        "diagnostics": {
+          "incidents": [
+            {
+              "id": "INCIDENT-MPR9E66R-U8H7GJ",
+              "severity": "warning",
+              "safe_action": "Открыть Диагност и обновить статус задачи.",
+              "has_pack": true
+            },
+            {
+              "id": "INCIDENT-MPR9E6IZ-KMS9TV",
+              "severity": "warning",
+              "safe_action": "Создать evidence или снять ссылку.",
+              "has_pack": true
+            },
+            {
+              "id": "INCIDENT-MPR9E6VN-XOAOMI",
+              "severity": "warning",
+              "safe_action": "Вернуть на доработку, apply blocked.",
+              "has_pack": true
+            },
+            {
+              "id": "INCIDENT-MPR9E6XD-LDGP91",
+              "severity": "error",
+              "safe_action": "Privacy Guard blocks sending.",
+              "has_pack": true
+            },
+            {
+              "id": "INCIDENT-MPR9E6XH-BC54MQ",
+              "severity": "error",
+              "safe_action": "Проверить D storage and create after approval.",
+              "has_pack": true
+            }
+          ],
+          "diagnostic_status": "danger",
+          "checks": 21
+        },
+        "memory": {
+          "results": 24,
+          "quality": "strong",
+          "duration_ms": 18,
+          "first": "Память: Проведи мини-аудит тестового сайта/модуля: найди риски,...",
+          "impossible_count": 0,
+          "impossible_warning": "Ничего релевантного не найдено."
+        },
+        "acceptance": {
+          "gate_before": {
+            "ready": true,
+            "label": "можно принять с рисками",
+            "reason": "Ключевые gates закрыты."
+          },
+          "final_status": "accepted_with_risks",
+          "decision_id": "ART-MPR9E8O1-KKSHSR",
+          "decision_content": "Решение: accepted_with_risks\nСтатус: можно принять с рисками\nЗадача: TASK-2026-0002 — Проведи мини-аудит тестового сайта/модуля: найди риски,...\nVerifier: принять с рисками\nПамять: saved_local\n## Что сделано\nРезультат: выполнен мини-аудит sandbox test module и подготовлен Python/Playwright-style artifact.\nПроверки PASS: title, data-testid=start-button, aria-label, no token-like patterns, no AI API endpoints.\nРиск: нет отдельного offline-state сообщения; предложен следующий UX test.\nEvidence: D:\\TerminatorStorage\\temp_outputs\\product_loop3\\audit_stdout.json; D:\\TerminatorStorage\\temp_outputs\\product_loop3\\playwright_style_audit.py; D:\\TerminatorStorage\\temp_outputs\\product_loop3\\test_site.html\nЧто проверить первым: открыть audit_stdout.json и убедиться, что checks имеют PASS.\n## Evidence\n- MEMORY_SUMMARY: Memory preview (ART-MPR9E8FG-5U34CX)\n- VERIFIER_VERDICT: Вердикт проверки: принять с рисками (ART-MPR9E14T-O03H5M)\n- RESULT_ARCHIVE: Loop 3 max scenario evidence (ART-MPR9E14P-4CO8PJ)\n- CHECK_LOG: Python/Playwright-style audit artifact (ART-MPR9E14P-NLBSSE)\n- file evidence: playwright_style_audit.py (FILE-MPR9E0RE-S18UBJ) D:\\TerminatorStorage\\tasks\\TASK-2026-0002\\evidence\\FILE-MPR9E0RE-S18UBJ_playwright_style_audit.py\n- file evidence: audit_stdout.json (FILE-MPR9E0TQ-XRBHBV) D:\\TerminatorStorage\\tasks\\TASK-2026-0002\\evidence\\FILE-MPR9E0TQ-XRBHBV_audit_stdout.json\n- verifier evidence: Evidence: D:\\TerminatorStorage\\temp_outputs\\product_loop3\\audit_stdout.json; Decision Passport: ART-MPR9E14O-OJQMTH; Research Pack ready; Source Cards 2; BrainAnswers 3; audit checks PASS.\n## Проверки\n- Verifier checklist: 16/16\n- Evidence gate: evidence есть\n- Quality gate: quality gate не закрыт\n## Риски и что не проверено\n- Не проверено: real phone, billing dashboards, production rollback\n- Ручная проверка: owner-assisted checks pending\n- Риск поломки: production E2E not executed\n## Что проверить первым\n- Открыть audit_stdout.json и проверить checks PASS plus risk offline-state.\n## Следующий шаг\n- Разобрать критерии и составить проверочный план"
+        },
+        "regression": {
+          "routeChecks": [
+            {
+              "route": "start",
+              "duration_ms": 0,
+              "visible": true
+            },
+            {
+              "route": "menu",
+              "duration_ms": 0,
+              "visible": true
+            },
+            {
+              "route": "work",
+              "duration_ms": 0,
+              "visible": true
+            },
+            {
+              "route": "control",
+              "duration_ms": 0,
+              "visible": true
+            },
+            {
+              "route": "system",
+              "duration_ms": 1037,
+              "visible": true
+            },
+            {
+              "route": "scheme",
+              "duration_ms": 3,
+              "visible": true
+            }
+          ],
+          "schemeUsable": true,
+          "diagnostReadable": true
+        },
+        "safety": {
+          "fake_secret_blocked": true,
+          "dangerous_delete_detected": true,
+          "ai_api_detected": false,
+          "emergency_stop_safe_mode_off_blocked": true,
+          "emergency_stop_reset_cleared": true
+        },
+        "honesty": {
+          "no_strategist_blocked": true,
+          "no_sources_needs_sources": true,
+          "missing_answer_marked": true,
+          "missing_first_check_needs_fix": true,
+          "contradiction_detected": true
+        },
+        "artifact_summary": {
+          "count": 23,
+          "types": [
+            "DECISION_RECORD",
+            "MEMORY_SUMMARY",
+            "CONTROLLED_APPLY_PACKAGE",
+            "WORKER_RUNTIME_REPORT",
+            "HANDS_ACTION_PLAN",
+            "VERIFIER_VERDICT",
+            "RESULT_ARCHIVE",
+            "CHECK_LOG",
+            "DECISION_PASSPORT",
+            "BRAIN_COMPARISON",
+            "BRAIN_ANSWER",
+            "BRAIN_ANSWER",
+            "BRAIN_ANSWER",
+            "BRAIN_PROMPT_PACKAGE",
+            "RESEARCH_PACK",
+            "EVIDENCE_CARD",
+            "SOURCE_CARD",
+            "EVIDENCE_CARD",
+            "SOURCE_CARD",
+            "RESEARCH_BRIEF",
+            "EXECUTOR_REPORT",
+            "CONTEXT_PACK",
+            "SPEC"
+          ]
+        },
+        "evidence_files": [
+          {
+            "name": "playwright_style_audit.py",
+            "role": "evidence",
+            "is_evidence": true,
+            "storage_path": "D:\\TerminatorStorage\\temp_outputs\\product_loop3\\playwright_style_audit.py",
+            "sha256": "4EFD9FF6583EB686786064359E1A0D533021E0D649741EB4F5B5B23BF2E71732"
+          },
+          {
+            "name": "audit_stdout.json",
+            "role": "evidence",
+            "is_evidence": true,
+            "storage_path": "D:\\TerminatorStorage\\temp_outputs\\product_loop3\\audit_stdout.json",
+            "sha256": "88449D933E1D5EC4C89A4582D7CC5BBDAD352944D2F7D70A48399D61A73D9688"
+          }
+        ],
+        "perf": [
+          {
+            "name": "simple_task_route",
+            "duration_ms": 1170,
+            "budget_ms": 20000,
+            "status": "PASS"
+          },
+          {
+            "name": "maximum_scenario_route",
+            "duration_ms": 1032,
+            "budget_ms": 30000,
+            "status": "PASS"
+          },
+          {
+            "name": "brain_prompt_packages",
+            "duration_ms": 12,
+            "budget_ms": 5000,
+            "status": "PASS"
+          },
+          {
+            "name": "decision_passport",
+            "duration_ms": 6,
+            "budget_ms": 5000,
+            "status": "PASS"
+          },
+          {
+            "name": "verifier_after_artifact",
+            "duration_ms": 5,
+            "budget_ms": 5000,
+            "status": "PASS"
+          },
+          {
+            "name": "maximum_scenario_route",
+            "duration_ms": 6548,
+            "budget_ms": 30000,
+            "status": "PASS"
+          },
+          {
+            "name": "quick_diagnost",
+            "duration_ms": 2905,
+            "budget_ms": 5000,
+            "status": "PASS"
+          },
+          {
+            "name": "memory_search",
+            "duration_ms": 309,
+            "budget_ms": 3000,
+            "status": "PASS"
+          },
+          {
+            "name": "maximum_scenario_route",
+            "duration_ms": 1040,
+            "budget_ms": 30000,
+            "status": "PASS"
+          },
+          {
+            "name": "screen_switches",
+            "duration_ms": 1819,
+            "budget_ms": 6000,
+            "status": "PASS"
+          },
+          {
+            "name": "safety_negative_checks",
+            "duration_ms": 4533,
+            "budget_ms": 10000,
+            "status": "PASS"
+          },
+          {
+            "name": "decision_passport",
+            "duration_ms": 866,
+            "budget_ms": 5000,
+            "status": "PASS"
+          }
+        ],
+        "security": {
+          "disallowed_ai_api": false,
+          "secrets_exposed": false,
+          "billing_touched": false
+        }
+      },
+      "mobile": {
+        "mobile390": {
+          "menu": {
+            "width": 390,
+            "scrollWidth": 390,
+            "overflow": false,
+            "title": "Привет, Терминатор на связи!"
+          },
+          "work": {
+            "width": 390,
+            "scrollWidth": 390,
+            "overflow": false,
+            "title": "Рабочее"
+          },
+          "system": {
+            "width": 390,
+            "scrollWidth": 390,
+            "overflow": false,
+            "title": "Система"
+          },
+          "scheme": {
+            "width": 390,
+            "scrollWidth": 390,
+            "overflow": false,
+            "title": "Схема Мины"
+          }
+        },
+        "mobile430": {
+          "work": {
+            "width": 430,
+            "scrollWidth": 430,
+            "overflow": false,
+            "title": "Рабочее"
+          },
+          "scheme": {
+            "width": 430,
+            "scrollWidth": 430,
+            "overflow": false,
+            "title": "Схема Мины"
+          },
+          "system": {
+            "width": 430,
+            "scrollWidth": 430,
+            "overflow": false,
+            "title": "Система"
+          }
+        }
+      },
+      "screenshots": {
+        "desktop": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop3\\screenshots\\loop3_desktop_after_max_scenario.png",
+        "mobile390": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\product_completion_loop3\\mobile\\loop3_mobile_390.png"
+      }
+    },
+    "loop5Live": {
+      "status": "PASS",
+      "checked_at": "2026-05-29T22:22:19.709Z"
+    }
+  },
+  "mobile": {
+    "mobile390Main": {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true
+    },
+    "mobile390Scheme": {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true,
+      "schemeVisible": true
+    },
+    "mobile390Workspace": {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true,
+      "workVisible": true
+    },
+    "mobile390System": {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true,
+      "systemVisible": true
+    },
+    "mobile430": {
+      "width": 430,
+      "scrollWidth": 430,
+      "no_horizontal_overflow": true
+    }
+  },
+  "scorecard": [
+    {
+      "area": "First impression",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_start_main_menu_with_side_hud.png",
+      "remaining_risk": "Premium main shell with active side HUD; remaining bespoke character art is P2/P3.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Mina UI",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_default.png",
+      "remaining_risk": "Live visual parity improved; no obvious admin/prototype primary path.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Active side HUD",
+      "score": 10,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_notifications_opened.png",
+      "remaining_risk": "Active DOM panels and notification panel.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Scheme Mina",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_default.png",
+      "remaining_risk": "SVG/DOM zones; final bespoke art remains non-blocking later polish.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Workspace / Functional chain",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_work.png",
+      "remaining_risk": "Synthetic final gate task proves connected artifacts/evidence/verifier/memory in safe profile.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Brain Council / ResearchOps",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_brain_council_decision_passport.png",
+      "remaining_risk": "Decision Passport and BrainAnswer artifacts present.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Memory Search",
+      "score": 10,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_memory_search.png",
+      "remaining_risk": "Strong/weak/empty/fake secret behavior checked.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Diagnost / Recovery",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_diagnost.png",
+      "remaining_risk": "Loop2 controlled fault evidence retained; current UI readable.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Controlled Hands / Rollback",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_work.png",
+      "remaining_risk": "Loop2 sandbox rollback proof reused; active project not mutated.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Guardian / Safety",
+      "score": 10,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_emergency_stop.png",
+      "remaining_risk": "Emergency Stop typed reset verified.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Performance",
+      "score": 7,
+      "verdict": "PARTIAL",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\performance\\final_gate_performance.json",
+      "remaining_risk": "Measured core screen/action timings.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Mobile / Emulator / PWA Web",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\mobile\\final_gate_mobile_390_main.png",
+      "remaining_risk": "390/430 viewport smoke; real phone postponed.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Documentation / Evidence",
+      "score": 9,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\smoke\\final_product_gate_smoke.json",
+      "remaining_risk": "Final evidence package generated.",
+      "blocks_rc": false
+    },
+    {
+      "area": "Owner-assisted readiness",
+      "score": 8,
+      "verdict": "PASS",
+      "evidence": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\smoke\\final_product_gate_smoke.json",
+      "remaining_risk": "Owner-assisted checks isolated and non-blocking for current RC.",
+      "blocks_rc": false
+    }
+  ],
+  "p0_blockers": [],
+  "p1_blockers": [],
+  "p2_p3_polish": [
+    "Bespoke Mina character art can be improved after RC; current SVG/DOM is acceptable for this gate.",
+    "Real phone APK/PWA final acceptance remains postponed until production V2 final.",
+    "Billing dashboards, production signing, production rollback, and legacy cleanup remain owner-assisted/postponed."
+  ],
+  "screenshots": {
+    "start_main": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_start_main_menu_with_side_hud.png",
+    "notifications": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_notifications_opened.png",
+    "work": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_work.png",
+    "system": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_system.png",
+    "scheme_default": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_default.png",
+    "scheme_head": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_head.png",
+    "scheme_voice": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_voice.png",
+    "scheme_hands": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_hands.png",
+    "scheme_diagnost": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_scheme_diagnost.png",
+    "memory_search": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_memory_search.png",
+    "diagnost": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_diagnost.png",
+    "emergency_stop": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_emergency_stop.png",
+    "brain_council": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\screenshots\\final_gate_brain_council_decision_passport.png",
+    "mobile_390_main": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\mobile\\final_gate_mobile_390_main.png",
+    "mobile_390_notifications": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\mobile\\final_gate_mobile_390_notifications.png",
+    "mobile_390_scheme": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\mobile\\final_gate_mobile_390_scheme.png",
+    "mobile_390_system": "C:\\Users\\glebi\\Desktop\\терминатор - DeepSeek_files\\council\\webapp\\evidence\\final_product_gate\\mobile\\final_gate_mobile_390_system.png"
+  },
+  "owner_assisted_postponed": [
+    "real phone APK/PWA until production V2 final",
+    "billing dashboards",
+    "production signing",
+    "production rollback on active project",
+    "legacy browser profile cleanup"
+  ],
+  "status": "PASS"
+}
