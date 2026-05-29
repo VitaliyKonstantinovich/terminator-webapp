@@ -389,10 +389,12 @@ const TASK_RUNTIME_STORES = {
 };
 
 const MEMORY_SEARCH_SCHEMA_VERSION = 1;
-const MEMORY_SEARCH_INDEX_VERSION = 'context-index-keyword-v1';
+const MEMORY_SEARCH_INDEX_VERSION = 'context-index-keyword-v2-relevance';
 const MEMORY_SEARCH_MAX_RECORDS = 1200;
 const MEMORY_SEARCH_MAX_PREVIEW_CHARS = 900;
 const MEMORY_SEARCH_RESULT_LIMIT = 24;
+const MEMORY_SEARCH_WEAK_SCORE = 2;
+const MEMORY_SEARCH_STRONG_SCORE = 8;
 const MEMORY_SEARCH_TYPE_LABELS = {
   project: 'Проект',
   task: 'Задача',
@@ -2879,6 +2881,11 @@ const App = {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') this.closeOrFallback();
       if (event.key === 'Backspace' && !this.isTypingTarget(event.target)) this.handleBack();
+      const schemeZone = event.target.closest?.('[data-scheme-zone]');
+      if (schemeZone && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        this.selectMinaSchemeZone(schemeZone.dataset.schemeZone);
+      }
     });
   },
 
@@ -3796,6 +3803,25 @@ const App = {
     return this.guardianState;
   },
 
+  async recordGuardianEvent(type, data = {}) {
+    const event = {
+      event_id: this.generateWorkspaceId('GEVENT'),
+      event_type: type,
+      type,
+      source: data.source || 'guardian',
+      status: data.status || 'recorded',
+      severity: data.severity || 'info',
+      message: data.message || '',
+      details: data.details || {},
+      created_at: data.created_at || new Date().toISOString()
+    };
+    const stored = this.readJsonStorage('mina_guardian_events_v1', []);
+    const next = Array.isArray(stored) ? [event, ...stored].slice(0, 120) : [event];
+    this.writeJsonStorage('mina_guardian_events_v1', next);
+    if (this.taskRuntimeDb) await this.putRuntimeRecord(TASK_RUNTIME_STORES.GUARDIAN_EVENTS, event);
+    return event;
+  },
+
   normalizeIncident(incident = {}) {
     const now = new Date().toISOString();
     const severity = incident.severity || 'warning';
@@ -4703,6 +4729,8 @@ const App = {
         brain_answers: 0
       },
       warnings: [],
+      result_quality: 'not_run',
+      last_query_warning: '',
       last_indexed_at: '',
       last_query_at: ''
     };
@@ -4721,7 +4749,9 @@ const App = {
       warnings: Array.isArray(source.warnings) ? source.warnings.slice(0, 40) : [],
       stats: { ...fallback.stats, ...(source.stats || {}) },
       query: String(source.query || ''),
-      context_pack: String(source.context_pack || '')
+      context_pack: String(source.context_pack || ''),
+      result_quality: source.result_quality || fallback.result_quality,
+      last_query_warning: String(source.last_query_warning || '')
     };
   },
 
@@ -6799,18 +6829,28 @@ const App = {
     const normalizedQuery = String(query ?? state.query ?? '').trim();
     const tokens = this.memorySearchTokenize(normalizedQuery);
     const results = (state.records || [])
+      .filter((record) => !this.memorySearchRecordHasSecret(record))
       .map((record) => ({
         ...record,
         score: this.scoreMemorySearchRecord(record, normalizedQuery, tokens)
       }))
-      .filter((record) => tokens.length ? record.score > 0 : true)
+      .map((record) => ({
+        ...record,
+        relevance: this.memorySearchRelevanceLevel(record.score, tokens.length),
+        weak_match: tokens.length > 0 && record.score >= MEMORY_SEARCH_WEAK_SCORE && record.score < MEMORY_SEARCH_STRONG_SCORE
+      }))
+      .filter((record) => tokens.length ? record.score >= MEMORY_SEARCH_WEAK_SCORE : true)
       .sort((a, b) => b.score - a.score || new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
       .slice(0, MEMORY_SEARCH_RESULT_LIMIT);
+    const resultQuality = this.memorySearchResultQuality(results, tokens.length);
+    const lastQueryWarning = this.memorySearchResultWarning(normalizedQuery, results, resultQuality);
     this.memorySearchState = this.normalizeMemorySearchState({
       ...state,
       query: normalizedQuery,
       results,
       context_pack: this.buildMemorySearchContextPack(results, normalizedQuery),
+      result_quality: resultQuality,
+      last_query_warning: lastQueryWarning,
       last_query_at: new Date().toISOString()
     });
     if (options.persist !== false) this.saveMemorySearchState();
@@ -6831,14 +6871,47 @@ const App = {
       if (summary.includes(token)) score += 4;
       if (text.includes(token)) score += 2;
     });
-    if (['memory', 'decision', 'evidence'].includes(record.type)) score += 3;
+    if (score > 0 && ['memory', 'decision', 'evidence'].includes(record.type)) score += 3;
     if (record.privacy_status === 'redacted') score -= 2;
-    return score;
+    return Math.max(0, score);
+  },
+
+  memorySearchRecordHasSecret(record) {
+    const haystack = [
+      record.title,
+      record.summary,
+      record.search_text,
+      record.source_ref,
+      ...(Array.isArray(record.keywords) ? record.keywords : [])
+    ].join('\n');
+    return /(?:sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{20,}|Bearer\s+[A-Za-z0-9._-]{20,}|BEGIN\s+(?:RSA|OPENSSH|PRIVATE)|FAKE_SECRET_DO_NOT_USE\s*=)/i.test(haystack);
+  },
+
+  memorySearchRelevanceLevel(score, tokenCount = 0) {
+    if (!tokenCount) return 'recent';
+    if (score >= MEMORY_SEARCH_STRONG_SCORE) return 'strong';
+    if (score >= MEMORY_SEARCH_WEAK_SCORE) return 'weak';
+    return 'none';
+  },
+
+  memorySearchResultQuality(results, tokenCount = 0) {
+    if (!tokenCount) return results.length ? 'recent' : 'not_run';
+    if (!results.length) return 'empty';
+    return results.some((record) => record.relevance === 'strong') ? 'strong' : 'weak';
+  },
+
+  memorySearchResultWarning(query, results, quality) {
+    if (!String(query || '').trim()) return '';
+    if (quality === 'empty') return 'Ничего релевантного не найдено.';
+    if (quality === 'weak') return 'Найдены только слабые совпадения, проверьте вручную.';
+    if ((results || []).some((record) => record.relevance === 'weak')) return 'Часть совпадений слабая, проверьте их перед использованием.';
+    return '';
   },
 
   buildMemorySearchContextPack(results, query = '') {
     const selected = (results || []).slice(0, 10);
-    if (!selected.length) return 'Context Pack не собран: результатов нет.';
+    if (!selected.length) return 'Context Pack не собран: релевантных результатов нет.';
+    const weakOnly = query && selected.every((record) => record.relevance === 'weak');
     return [
       '# Context Pack из памяти Терминатора',
       '',
@@ -6846,10 +6919,12 @@ const App = {
       `created_at: ${new Date().toISOString()}`,
       'storage_policy: только summary и refs; raw files, secrets, cookies и tokens не включены',
       'ai_api_used: false',
+      weakOnly ? 'warning: найдены только слабые совпадения, проверьте вручную' : '',
       '',
       '## Найденные записи',
       ...selected.map((record, index) => [
         `${index + 1}. ${record.label}: ${record.title}`,
+        `   relevance: ${record.relevance || 'unknown'}; score: ${Math.round(record.score || 0)}`,
         `   summary: ${record.summary}`,
         `   project: ${record.project_name || record.project_id || 'не задан'}`,
         `   task_id: ${record.task_id || 'нет'}`,
@@ -6877,6 +6952,26 @@ const App = {
       empty: 'пусто'
     };
     return names[status] || status || 'не собран';
+  },
+
+  memorySearchQualityName(quality) {
+    const names = {
+      strong: 'сильные совпадения',
+      weak: 'слабые совпадения',
+      empty: 'нет релевантных',
+      recent: 'последние записи',
+      not_run: 'не запускался'
+    };
+    return names[quality] || 'требует проверки';
+  },
+
+  memorySearchRelevanceName(relevance) {
+    const names = {
+      strong: 'сильное совпадение',
+      weak: 'слабое совпадение',
+      recent: 'последняя запись'
+    };
+    return names[relevance] || 'совпадение требует проверки';
   },
 
   phase6Check(name, status, note, severity = 'safe') {
@@ -9191,6 +9286,21 @@ const App = {
         <button type="button" data-guardian-action="refresh_guardian">Обновить Guardian</button>
       </div>
 
+      ${state.emergency_stop_active ? `
+        <section class="guardian-emergency-reset" aria-label="Сброс Emergency Stop">
+          <strong>Emergency Stop активен</strong>
+          <p>Safe Mode нельзя снять так, чтобы Стоп действия исчез молча. Для сброса введите точную фразу: <code>RESET EMERGENCY STOP</code>.</p>
+          <label class="work-field">
+            <span>Typed confirmation</span>
+            <input id="guardian-emergency-reset-phrase" type="text" autocomplete="off" placeholder="RESET EMERGENCY STOP">
+          </label>
+          <div class="guardian-actions">
+            <button type="button" class="guardian-danger" data-guardian-action="reset_emergency_stop">Сбросить Emergency Stop</button>
+            <button type="button" data-guardian-action="cancel_emergency_stop_reset">Отмена</button>
+          </div>
+        </section>
+      ` : ''}
+
       <section class="guardian-layout">
         <div class="guardian-queue">
           <div class="approval-center-head">
@@ -9627,8 +9737,61 @@ const App = {
     }
 
     if (action === 'safe_mode_off') {
-      await this.saveGuardianState({ safe_mode: false, emergency_stop_active: false, status: 'active', last_event: 'Safe Mode disabled by owner' });
+      if (this.guardianState?.emergency_stop_active) {
+        await this.recordGuardianEvent('emergency_stop.reset_requested', {
+          status: 'blocked',
+          severity: 'warning',
+          message: 'Safe Mode off requested while Emergency Stop is active; typed confirmation is required.'
+        });
+        this.toast('Сначала подтвердите сброс Emergency Stop точной фразой');
+        this.renderGuardianPanel();
+        return;
+      }
+      await this.saveGuardianState({ safe_mode: false, status: 'active', last_event: 'Safe Mode disabled by owner' });
       this.toast('Safe Mode снят');
+      return;
+    }
+
+    if (action === 'cancel_emergency_stop_reset') {
+      await this.recordGuardianEvent('emergency_stop.reset_cancelled', {
+        status: 'cancelled',
+        severity: 'info',
+        message: 'Emergency Stop reset was cancelled by owner.'
+      });
+      this.toast('Сброс Emergency Stop отменён');
+      return;
+    }
+
+    if (action === 'reset_emergency_stop') {
+      const phrase = String(document.getElementById('guardian-emergency-reset-phrase')?.value || '').trim();
+      await this.recordGuardianEvent('emergency_stop.reset_requested', {
+        status: 'requested',
+        severity: 'warning',
+        message: 'Emergency Stop reset typed confirmation requested.'
+      });
+      if (phrase !== 'RESET EMERGENCY STOP') {
+        await this.recordGuardianEvent('emergency_stop.reset_cancelled', {
+          status: 'blocked_wrong_phrase',
+          severity: 'warning',
+          message: 'Emergency Stop reset blocked: typed confirmation did not match.'
+        });
+        this.toast('Фраза не совпала. Стоп действия остаётся активным.');
+        this.renderGuardianPanel();
+        return;
+      }
+      await this.saveGuardianState({
+        safe_mode: false,
+        emergency_stop_active: false,
+        status: 'active',
+        last_event: 'Emergency Stop reset confirmed by owner'
+      }, { silent: true });
+      await this.recordGuardianEvent('emergency_stop.reset_confirmed', {
+        status: 'confirmed',
+        severity: 'warning',
+        message: 'Emergency Stop reset confirmed by exact typed phrase.'
+      });
+      this.renderSystemStatus();
+      this.toast('Emergency Stop сброшен после typed confirmation');
       return;
     }
 
@@ -9639,6 +9802,11 @@ const App = {
         status: 'emergency_stop',
         last_event: 'Emergency Stop activated'
       }, { silent: true });
+      await this.recordGuardianEvent('emergency_stop.activated', {
+        status: 'active',
+        severity: 'critical',
+        message: 'Emergency Stop activated; risky actions are blocked.'
+      });
       for (const approval of this.pendingApprovalRecords()) {
         approval.blocked_by_guardian = true;
         approval.execution_allowed = false;
@@ -9820,6 +9988,14 @@ const App = {
     const results = state.results || [];
     const query = state.query || '';
     const stats = state.stats || {};
+    const resultLabel = query
+      ? results.length
+        ? `${results.length} найдено · ${this.memorySearchQualityName(state.result_quality)}`
+        : 'ничего релевантного не найдено'
+      : 'поиск ещё не запускался';
+    const resultNotice = state.last_query_warning
+      ? `<p class="memory-search-notice memory-search-notice--${this.escapeHtml(state.result_quality === 'empty' ? 'empty' : 'weak')}">${this.escapeHtml(state.last_query_warning)}</p>`
+      : '';
     host.innerHTML = `
       <section class="memory-search-hero memory-search-hero--${this.escapeHtml(snapshot.tone)}">
         <div>
@@ -9855,20 +10031,21 @@ const App = {
           <div class="runtime-panel-head">
             <div>
               <strong>Результаты</strong>
-              <span>${this.escapeHtml(results.length ? `${results.length} найдено` : 'поиск ещё не запускался')}</span>
+              <span>${this.escapeHtml(resultLabel)}</span>
             </div>
           </div>
+          ${resultNotice}
           ${results.length ? results.map((record) => `
-            <article class="memory-result memory-result--${this.escapeHtml(record.type)}">
+            <article class="memory-result memory-result--${this.escapeHtml(record.type)} memory-result--${this.escapeHtml(record.relevance || 'recent')}">
               <div>
-                <span>${this.escapeHtml(record.label)} · score ${this.escapeHtml(String(Math.round(record.score || 0)))}</span>
+                <span>${this.escapeHtml(record.label)} · ${this.escapeHtml(this.memorySearchRelevanceName(record.relevance))} · score ${this.escapeHtml(String(Math.round(record.score || 0)))}</span>
                 <strong>${this.escapeHtml(record.title)}</strong>
                 <p>${this.escapeHtml(record.summary)}</p>
                 <small>${this.escapeHtml(record.project_name || 'проект не задан')} ${record.task_id ? `· ${this.escapeHtml(record.task_id)}` : ''} · privacy: ${this.escapeHtml(record.privacy_status)}</small>
               </div>
               ${record.task_id ? `<button type="button" data-memory-search-action="open_result" data-task-id="${this.escapeHtml(record.task_id)}">Открыть задачу</button>` : ''}
             </article>
-          `).join('') : '<p class="mission-empty">Введите запрос или пересоберите индекс. Поиск работает по задачам, артефактам, evidence, решениям и памяти.</p>'}
+          `).join('') : `<p class="mission-empty">${this.escapeHtml(query ? 'Ничего релевантного не найдено. Попробуйте другой запрос или пересоберите индекс.' : 'Введите запрос или пересоберите индекс. Поиск работает по задачам, артефактам, evidence, решениям и памяти.')}</p>`}
         </section>
 
         <section class="memory-context-pack" aria-label="Context Pack из памяти">
@@ -14773,13 +14950,7 @@ const App = {
       return `<circle class="scheme-anchor-dot ${status} ${active}" cx="${meta.anchor.x}" cy="${meta.anchor.y}" r="${active ? 1.85 : 1.25}" />`;
     }).join('');
     return `
-      <div class="scheme-silhouette" aria-hidden="true">
-        <img
-          class="scheme-hologram-img"
-          src="assets/mina-ui/system-scheme/mina_hologram_silhouette.png"
-          alt=""
-          loading="eager"
-          decoding="async">
+      <div class="scheme-silhouette">
         <svg viewBox="0 0 320 760" role="img" aria-label="Стилизованный силуэт Мины">
           <defs>
             <linearGradient id="minaBodyGlow" x1="0" x2="1" y1="0" y2="1">
@@ -14825,12 +14996,43 @@ const App = {
           <circle class="scheme-core-node scheme-core-node--small" cx="122" cy="402" r="6" />
           <circle class="scheme-core-node scheme-core-node--small" cx="198" cy="402" r="6" />
           <circle class="scheme-core-node scheme-core-node--warn" cx="137" cy="658" r="7" />
+          ${this.renderMinaSchemeSvgZones(subsystems)}
         </svg>
         <svg class="scheme-anchor-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           ${anchorDots}
         </svg>
       </div>
     `;
+  },
+
+  renderMinaSchemeSvgZones(subsystems) {
+    const shapes = {
+      head: '<ellipse class="scheme-svg-zone-hit" cx="160" cy="96" rx="51" ry="78" />',
+      eyes: '<rect class="scheme-svg-zone-hit" x="135" y="76" width="50" height="34" rx="17" />',
+      voice: '<circle class="scheme-svg-zone-hit" cx="160" cy="126" r="24" />',
+      memory: '<circle class="scheme-svg-zone-hit scheme-svg-zone-hit--system" cx="218" cy="230" r="42" />',
+      body: '<path class="scheme-svg-zone-hit" d="M112 204 C126 181 194 181 208 204 C230 251 224 318 206 362 C192 398 204 450 219 512 L101 512 C116 450 128 398 114 362 C96 318 90 251 112 204 Z" />',
+      hands: '<path class="scheme-svg-zone-hit" d="M72 250 C50 326 48 489 43 619 M248 250 C270 326 272 489 277 619" />',
+      legs: '<path class="scheme-svg-zone-hit" d="M132 470 C120 560 121 660 119 742 M188 470 C200 560 199 660 201 742" />',
+      diagnost: '<path class="scheme-svg-zone-hit scheme-svg-zone-hit--system" d="M222 445 L268 468 L257 536 C248 570 234 594 222 604 C210 594 196 570 187 536 L176 468 Z" />'
+    };
+    return MINA_SCHEME_SUBSYSTEMS.map((meta) => {
+      const subsystem = subsystems[meta.id] || {};
+      const status = this.minaSchemeStatusClass(subsystem.status || 'waiting');
+      const active = meta.id === this.activeMinaSchemeZone ? 'active' : '';
+      const aria = `Открыть настройку ${meta.display}. Статус: ${this.minaSchemeStatusText(subsystem.status || 'waiting')}.`;
+      return `
+        <g
+          class="scheme-svg-zone ${status} ${active}"
+          data-scheme-zone="${this.escapeHtml(meta.id)}"
+          role="button"
+          tabindex="0"
+          aria-label="${this.escapeHtml(aria)}">
+          <title>${this.escapeHtml(aria)}</title>
+          ${shapes[meta.id] || ''}
+        </g>
+      `;
+    }).join('');
   },
 
   renderMinaSchemeZoneCard(meta, subsystem) {
