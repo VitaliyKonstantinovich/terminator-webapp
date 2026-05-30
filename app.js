@@ -388,7 +388,13 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.memory.search.completed',
   'v2.memory.search.empty',
   'v2.memory.search.weak_match',
-  'v2.memory.privacy.blocked'
+  'v2.memory.privacy.blocked',
+  'v2.diagnostic_pack.created',
+  'v2.recovery.playbook_selected',
+  'v2.recovery.blocked',
+  'v2.recovery.owner_assisted_required',
+  'v2.recovery.ready',
+  'v2.recovery.escalated'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -5613,6 +5619,474 @@ const App = {
     };
   },
 
+  sanitizeV2RecoveryText(value = '', limit = 420) {
+    return String(value ?? '')
+      .replace(/(?:FAKE_SECRET_DO_NOT_USE|sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,}|Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}|BEGIN\s+(?:RSA\s+|OPENSSH\s+|EC\s+)?PRIVATE\s+KEY|(?:api[_ -]?key|token|secret|password|passwd|pwd|cookie|session|jwt)\s*[:=]\s*\S{4,})/gi, '[redacted]')
+      .replace(/\.env[^\s,;)]*/gi, '[env-file]')
+      .replace(/[A-Z]:\\Users\\[^\\\s]+\\[^\r\n,;)]*/gi, '[private-path]')
+      .slice(0, limit);
+  },
+
+  createV2IncidentFromDiagnostic(input = {}) {
+    const component = this.sanitizeV2RecoveryText(input.component || input.affected_area || 'system', 80) || 'system';
+    const symptom = this.sanitizeV2RecoveryText(input.symptom || input.summary || input.title || 'Симптом требует проверки.', 260);
+    const severitySource = String(input.severity || input.risk_level || 'medium').toLowerCase();
+    const severity = severitySource === 'critical' ? 'critical'
+      : ['high', 'error'].includes(severitySource) ? 'high'
+        : ['low', 'safe'].includes(severitySource) ? 'low'
+          : 'medium';
+    const riskLevel = severity === 'critical' ? 'critical' : severity === 'high' ? 'high' : severity === 'low' ? 'low' : 'medium';
+    const evidenceRefs = Array.isArray(input.evidence_refs) ? input.evidence_refs.map(String).slice(0, 12) : [];
+    const artifactRefs = Array.isArray(input.artifact_refs) ? input.artifact_refs.map(String).slice(0, 12) : [];
+    const riskHints = Array.isArray(input.risk_hints) ? input.risk_hints.map((item) => this.sanitizeV2RecoveryText(item, 120)).slice(0, 12) : [];
+    const base = this.createV2Contract('incident', {
+      id: input.id || `v2_incident_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      incident_id: input.incident_id || `incident_v2_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      status: 'detected',
+      component,
+      affected_area: component,
+      symptom,
+      title: input.title || `Recovery: ${component}`,
+      severity,
+      risk_level: riskLevel,
+      source: input.source || 'diagnostic_preview',
+      source_ref: input.source_ref || '',
+      user_message: symptom || 'Диагност нашёл проблему. Нужно выбрать безопасный сценарий восстановления.',
+      expert_details: {
+        source: input.source || 'diagnostic_preview',
+        risk_hints: riskHints,
+        verifier_status: input.verifier_status || 'unknown',
+        guardian_verdict: input.guardian_verdict || 'unknown'
+      },
+      evidence_refs: evidenceRefs,
+      artifact_refs: artifactRefs,
+      owner_assisted_required: Boolean(input.owner_assisted_required),
+      next_action: 'подобрать безопасный сценарий восстановления',
+      refs: {
+        task_id: input.task_id || '',
+        evidence_refs: evidenceRefs,
+        artifact_refs: artifactRefs
+      }
+    });
+    const playbook = this.selectV2RecoveryPlaybook(base);
+    return {
+      ...base,
+      playbook_id: playbook.playbook_id,
+      owner_assisted_required: Boolean(base.owner_assisted_required || playbook.owner_assisted_required),
+      next_action: playbook.safe_next_action
+    };
+  },
+
+  transitionV2IncidentState(incident = {}, nextState = '', context = {}) {
+    const allowedStates = new Set([
+      'detected', 'classified', 'explained', 'awaiting_user_action', 'diagnostic_pack_created',
+      'repair_workspace_required', 'repair_workspace_created', 'verifier_check', 'guardian_check',
+      'approval_required', 'ready_to_apply', 'rollback_available', 'recovered', 'closed',
+      'blocked', 'escalated', 'owner_assisted_required'
+    ]);
+    const from = allowedStates.has(incident.status) ? incident.status : 'detected';
+    const to = allowedStates.has(nextState) ? nextState : 'blocked';
+    const transitions = {
+      detected: ['classified', 'blocked', 'escalated', 'owner_assisted_required'],
+      classified: ['explained', 'blocked', 'escalated', 'owner_assisted_required'],
+      explained: ['awaiting_user_action', 'blocked', 'escalated', 'owner_assisted_required'],
+      awaiting_user_action: ['diagnostic_pack_created', 'blocked', 'escalated', 'owner_assisted_required'],
+      diagnostic_pack_created: ['repair_workspace_required', 'verifier_check', 'blocked', 'escalated', 'owner_assisted_required'],
+      repair_workspace_required: ['repair_workspace_created', 'blocked', 'escalated', 'owner_assisted_required'],
+      repair_workspace_created: ['verifier_check', 'blocked', 'escalated', 'owner_assisted_required'],
+      verifier_check: ['guardian_check', 'blocked', 'escalated', 'owner_assisted_required'],
+      guardian_check: ['approval_required', 'ready_to_apply', 'blocked', 'escalated', 'owner_assisted_required'],
+      approval_required: ['ready_to_apply', 'blocked', 'escalated', 'owner_assisted_required'],
+      ready_to_apply: ['rollback_available', 'blocked', 'escalated', 'owner_assisted_required'],
+      rollback_available: ['recovered', 'blocked', 'escalated', 'owner_assisted_required'],
+      recovered: ['closed'],
+      blocked: ['closed', 'escalated', 'owner_assisted_required'],
+      escalated: ['closed', 'owner_assisted_required'],
+      owner_assisted_required: ['closed', 'escalated'],
+      closed: []
+    };
+    let allowed = transitions[from]?.includes(to) || false;
+    let reason = allowed ? 'Переход разрешён state machine.' : `Переход ${from} -> ${to} запрещён.`;
+    const verifierStatus = String(context.verifierStatus || incident.repair?.verifier_status || '').toUpperCase();
+    const guardianVerdict = context.guardianVerdict || context.guardian_verdict || incident.guardian_verdict || '';
+
+    if (allowed && to === 'diagnostic_pack_created' && !(context.diagnosticPackCreated || context.diagnostic_pack_preview || incident.diagnostic_pack || incident.diagnostic_pack_preview)) {
+      allowed = false;
+      reason = 'Diagnostic Pack preview обязателен перед переходом.';
+    }
+    if (allowed && to === 'repair_workspace_created' && !(context.workspaceExists || context.safePreview === true || incident.repair_workspace)) {
+      allowed = false;
+      reason = 'Repair workspace должен существовать или быть safe preview.';
+    }
+    if (allowed && from === 'verifier_check' && to === 'guardian_check' && !['PASS', 'PASS_WITH_RISKS'].includes(verifierStatus)) {
+      allowed = false;
+      reason = 'Verifier должен быть PASS или PASS_WITH_RISKS.';
+    }
+    if (allowed && from === 'guardian_check' && to === 'ready_to_apply' && !['allow', 'allow_with_warning'].includes(guardianVerdict)) {
+      allowed = false;
+      reason = 'Guardian не разрешил переход к ready_to_apply.';
+    }
+    if (allowed && from === 'approval_required' && to === 'ready_to_apply' && context.ownerDecision !== 'approved') {
+      allowed = false;
+      reason = 'Нужно явное owner approval.';
+    }
+    if (allowed && to === 'rollback_available' && !(context.rollbackAvailable || incident.rollback_point)) {
+      allowed = false;
+      reason = 'Rollback point обязателен перед recovery/apply.';
+    }
+    if (allowed && to === 'recovered' && !['PASS', 'PASS_WITH_RISKS'].includes(String(context.postCheck || '').toUpperCase())) {
+      allowed = false;
+      reason = 'Post-check должен быть PASS перед recovered.';
+    }
+
+    const eventType = allowed ? 'v2.incident.state_changed' : 'v2.recovery.blocked';
+    const event = this.recordV2RecoveryEvent(eventType, {
+      incident_id: incident.incident_id || incident.id,
+      from,
+      to,
+      allowed,
+      reason,
+      component: incident.component || incident.affected_area,
+      severity: incident.severity,
+      refs: incident.refs || {}
+    }, { persist: context.persistEvents === true });
+    return {
+      ...incident,
+      status: allowed ? to : from,
+      updated_at: new Date().toISOString(),
+      transition_status: allowed ? 'PASS' : 'BLOCKED',
+      transition_reason: reason,
+      next_action: allowed ? this.v2RecoveryStateNextAction(to) : 'остановить сценарий и показать причину',
+      last_recovery_event_id: event.event_id || event.id,
+      event
+    };
+  },
+
+  v2RecoveryStateNextAction(state) {
+    const labels = {
+      detected: 'классифицировать проблему',
+      classified: 'объяснить проблему простым языком',
+      explained: 'выбрать безопасное действие',
+      awaiting_user_action: 'создать Diagnostic Pack preview',
+      diagnostic_pack_created: 'выбрать repair workspace или owner-assisted путь',
+      repair_workspace_required: 'создать безопасную ремонтную зону',
+      repair_workspace_created: 'передать результат Verifier',
+      verifier_check: 'дождаться Verifier verdict',
+      guardian_check: 'оценить риск Guardian',
+      approval_required: 'получить подтверждение владельца',
+      ready_to_apply: 'проверить rollback point',
+      rollback_available: 'выполнить post-check в sandbox',
+      recovered: 'закрыть incident после проверки',
+      blocked: 'не выполнять действие, показать причину',
+      escalated: 'передать владельцу как ручной сценарий',
+      owner_assisted_required: 'владелец проверяет вручную',
+      closed: 'incident закрыт'
+    };
+    return labels[state] || 'проверить состояние восстановления';
+  },
+
+  selectV2RecoveryPlaybook(incident = {}) {
+    const text = [
+      incident.component,
+      incident.affected_area,
+      incident.symptom,
+      incident.title,
+      incident.summary,
+      incident.user_message,
+      ...(Array.isArray(incident.expert_details?.risk_hints) ? incident.expert_details.risk_hints : [])
+    ].filter(Boolean).join(' ').toLowerCase();
+    const playbooks = {
+      memory_search_degraded: {
+        playbook_id: 'memory_search_degraded',
+        title: 'Память работает неуверенно',
+        safe_next_action: 'проверить статус индекса памяти и предложить пересборку без удаления данных',
+        what_happened: 'Поиск памяти работает неуверенно или индекс устарел.',
+        forbidden_actions: ['удалять память', 'сканировать весь диск', 'показывать секреты'],
+        owner_assisted_required: false
+      },
+      missing_evidence_ref: {
+        playbook_id: 'missing_evidence_ref',
+        title: 'Не хватает evidence',
+        safe_next_action: 'проверить ссылку evidence или повторить проверку результата',
+        what_happened: 'У результата не хватает доказательства проверки.',
+        forbidden_actions: ['ставить PASS без evidence', 'подменять evidence'],
+        owner_assisted_required: false
+      },
+      verifier_fail: {
+        playbook_id: 'verifier_fail',
+        title: 'Verifier не принял результат',
+        safe_next_action: 'вернуть результат на исправление, применение заблокировано',
+        what_happened: 'Проверка не приняла результат.',
+        forbidden_actions: ['применять fix', 'закрывать incident как recovered'],
+        owner_assisted_required: false
+      },
+      repair_workspace_unavailable: {
+        playbook_id: 'repair_workspace_unavailable',
+        title: 'Ремонтная зона недоступна',
+        safe_next_action: 'остановить apply и запросить создание repair workspace',
+        what_happened: 'Без ремонтной зоны Codex Repair не должен работать с active project.',
+        forbidden_actions: ['писать в active project', 'делать repair без rollback'],
+        owner_assisted_required: false
+      },
+      privacy_warning: {
+        playbook_id: 'privacy_warning',
+        title: 'Предупреждение приватности',
+        safe_next_action: 'очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard',
+        what_happened: 'В данных есть признаки секрета или приватной информации.',
+        forbidden_actions: ['показывать .env', 'отправлять токены', 'читать cookies'],
+        owner_assisted_required: true
+      },
+      cost_guard_unknown: {
+        playbook_id: 'cost_guard_unknown',
+        title: 'Финансовый статус неизвестен',
+        safe_next_action: 'попросить владельца вручную проверить billing, ничего не включать',
+        what_happened: 'Cost Guard не может подтвердить отсутствие платного риска.',
+        forbidden_actions: ['включать платные сервисы', 'менять payment settings'],
+        owner_assisted_required: true
+      },
+      emergency_stop_active: {
+        playbook_id: 'emergency_stop_active',
+        title: 'Стоп действия активен',
+        safe_next_action: 'оставить risky actions заблокированными; сброс только точной фразой',
+        what_happened: 'Emergency Stop блокирует рискованные действия.',
+        forbidden_actions: ['сбрасывать одной кнопкой', 'запускать risky actions'],
+        owner_assisted_required: true
+      },
+      local_agent_unavailable_placeholder: {
+        playbook_id: 'local_agent_unavailable_placeholder',
+        title: 'Local Agent недоступен',
+        safe_next_action: 'показать read-only incident и owner-assisted проверку, runtime не менять',
+        what_happened: 'Local Agent требует проверки владельцем или отдельным approved repair.',
+        forbidden_actions: ['останавливать/перезапускать agent без approval', 'менять autostart'],
+        owner_assisted_required: true
+      },
+      direct_bridge_unavailable_placeholder: {
+        playbook_id: 'direct_bridge_unavailable_placeholder',
+        title: 'Direct Bridge недоступен',
+        safe_next_action: 'показать warning и не менять Cloudflare settings',
+        what_happened: 'Bridge health требует отдельной проверки, настройки облака не трогаются.',
+        forbidden_actions: ['менять Cloudflare', 'трогать DNS/proxy/network'],
+        owner_assisted_required: true
+      }
+    };
+    let selected = 'missing_evidence_ref';
+    if (/memory|памят|index|индекс|search|поиск/.test(text)) selected = 'memory_search_degraded';
+    if (/evidence|доказатель|missing|ref|ссылка/.test(text)) selected = 'missing_evidence_ref';
+    if (/verifier|fail|не принял|проверка/.test(text)) selected = 'verifier_fail';
+    if (/repair workspace|ремонтн|workspace unavailable|недоступ/.test(text)) selected = 'repair_workspace_unavailable';
+    if (/privacy|secret|token|cookie|session|\.env|jwt|password|приват/.test(text)) selected = 'privacy_warning';
+    if (/cost|billing|payment|paid|финанс|плат/.test(text)) selected = 'cost_guard_unknown';
+    if (/emergency stop|стоп действия|safe mode/.test(text)) selected = 'emergency_stop_active';
+    if (/local agent|локальн.*агент/.test(text)) selected = 'local_agent_unavailable_placeholder';
+    if (/direct bridge|bridge|cloudflare|мост/.test(text)) selected = 'direct_bridge_unavailable_placeholder';
+    const playbook = playbooks[selected];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      ...playbook,
+      component: incident.component || incident.affected_area || 'system',
+      severity: incident.severity || 'medium',
+      owner_assisted_required: Boolean(playbook.owner_assisted_required || incident.owner_assisted_required),
+      ordinary_message: playbook.safe_next_action
+    };
+  },
+
+  buildV2DiagnosticPackPreview(incident = {}, playbook = this.selectV2RecoveryPlaybook(incident)) {
+    const privacyWarning = playbook.playbook_id === 'privacy_warning'
+      || V2_SECRET_FIELD_PATTERN.test([incident.symptom, incident.summary, incident.title, incident.user_message].filter(Boolean).join(' '));
+    const pack = {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      pack_id: `v2_diagpack_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      status: 'preview',
+      incident_id: incident.incident_id || incident.id || '',
+      symptom: this.sanitizeV2RecoveryText(incident.symptom || incident.summary || incident.title || 'Симптом требует проверки.', 300),
+      component: this.sanitizeV2RecoveryText(incident.component || incident.affected_area || 'system', 80),
+      severity: incident.severity || 'medium',
+      what_happened: this.sanitizeV2RecoveryText(playbook.what_happened || incident.user_message || '', 300),
+      safe_next_action: this.sanitizeV2RecoveryText(playbook.safe_next_action || incident.next_action || '', 260),
+      forbidden_actions: [...new Set([...(playbook.forbidden_actions || []), 'deploy', 'push main', 'delete', '.env', 'tokens', 'cookies', 'billing', 'network settings'])],
+      evidence_refs: Array.isArray(incident.evidence_refs) ? incident.evidence_refs.map((item) => this.sanitizeV2RecoveryText(item, 120)).slice(0, 12) : [],
+      artifact_refs: Array.isArray(incident.artifact_refs) ? incident.artifact_refs.map((item) => this.sanitizeV2RecoveryText(item, 120)).slice(0, 12) : [],
+      owner_assisted_flags: playbook.owner_assisted_required || incident.owner_assisted_required ? ['owner_check_required'] : [],
+      privacy_warning: privacyWarning,
+      privacy_status: privacyWarning ? 'redacted_owner_review_required' : 'clean',
+      active_project_mutation_allowed: false,
+      repair_workspace_required: true,
+      generated_at: new Date().toISOString()
+    };
+    return this.sanitizeV2EventPayload(pack);
+  },
+
+  recordV2RecoveryEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.recovery.started';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    const riskLevel = payload.riskLevel || payload.risk_level || payload.severity || 'medium';
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_recovery_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'recovery_wizard',
+        resource: payload.resource || 'task_state',
+        risk_level: riskLevel,
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'recovery_wizard',
+      resource: payload.resource || 'task_state',
+      risk_level: riskLevel,
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  buildV2RecoverySampleInputs() {
+    return [
+      { id: 'missing_evidence_ref', component: 'evidence', symptom: 'У результата отсутствует evidence ref.', severity: 'medium', evidence_refs: [], expected_state: 'diagnostic_pack_created' },
+      { id: 'memory_search_degraded', component: 'memory_search', symptom: 'Memory Search index stale / degraded.', severity: 'medium', risk_hints: ['memory index stale'], expected_state: 'diagnostic_pack_created' },
+      { id: 'verifier_fail', component: 'verifier', symptom: 'Verifier FAIL after Codex report.', severity: 'high', verifier_status: 'FAIL', expected_state: 'blocked' },
+      { id: 'privacy_warning', component: 'privacy_guard', symptom: 'Diagnostic input contains fake secret-like marker and .env marker.', severity: 'high', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
+      { id: 'cost_guard_unknown', component: 'cost_guard', symptom: 'Billing status unknown for cloud provider.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
+      { id: 'emergency_stop_active', component: 'guardian', symptom: 'Emergency Stop active; reset requires typed phrase.', severity: 'high', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
+      { id: 'repair_workspace_unavailable', component: 'codex_repair', symptom: 'Repair workspace unavailable; apply must not continue.', severity: 'high', expected_state: 'escalated' },
+      { id: 'local_agent_unavailable_placeholder', component: 'local_agent', symptom: 'Local Agent unavailable placeholder only; no runtime change.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
+      { id: 'direct_bridge_unavailable_placeholder', component: 'direct_bridge', symptom: 'Direct Bridge unavailable placeholder; no Cloudflare change.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' }
+    ];
+  },
+
+  getV2RecoveryRuntimeSnapshot() {
+    const incidents = Array.isArray(this.guardianIncidents) ? this.guardianIncidents : [];
+    const activeStates = new Set(['detected', 'classified', 'explained', 'awaiting_user_action', 'diagnostic_pack_created', 'repair_workspace_required', 'repair_workspace_created', 'verifier_check', 'guardian_check', 'approval_required', 'ready_to_apply', 'rollback_available', 'blocked', 'escalated', 'owner_assisted_required']);
+    const latestIncident = incidents[0] || null;
+    const latestRecoveryEvent = (this.v2FoundationEvents || []).find((event) => String(event.event_type || '').startsWith('v2.recovery') || String(event.event_type || '').startsWith('v2.incident') || event.event_type === 'v2.diagnostic_pack.created');
+    const activeIncidents = incidents.filter((incident) => activeStates.has(incident.status));
+    const ownerAssistedCount = incidents.filter((incident) => incident.owner_assisted_required || incident.status === 'owner_assisted_required').length;
+    const blockedCount = incidents.filter((incident) => ['blocked', 'escalated'].includes(incident.status)).length;
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      incidents_count: incidents.length,
+      active_incidents_count: activeIncidents.length,
+      last_incident_status: latestIncident?.status || 'none',
+      recovery_health: blockedCount ? 'review' : activeIncidents.length ? 'active' : 'ready',
+      owner_assisted_count: ownerAssistedCount,
+      blocked_count: blockedCount,
+      ready_to_recover_count: incidents.filter((incident) => ['ready_to_apply', 'rollback_available'].includes(incident.status)).length,
+      last_event_id: latestRecoveryEvent?.event_id || latestRecoveryEvent?.id || '',
+      timestamp: new Date().toISOString(),
+      owner_assisted_required: ['real_phone_apk', 'billing_dashboards', 'production_rollback']
+    };
+  },
+
+  getV2RecoveryPreview(options = {}) {
+    const samples = this.buildV2RecoverySampleInputs().map((sample) => {
+      let incident = this.createV2IncidentFromDiagnostic({ ...sample, source: 'v2_recovery_preview' });
+      const playbook = this.selectV2RecoveryPlaybook(incident);
+      const diagnosticPack = this.buildV2DiagnosticPackPreview(incident, playbook);
+      const detectedEvent = this.recordV2RecoveryEvent('v2.incident.detected', {
+        sample_id: sample.id,
+        incident_id: incident.incident_id,
+        component: incident.affected_component,
+        severity: incident.severity,
+        message: incident.what_happened,
+        refs: { sample_id: sample.id, incident_id: incident.incident_id }
+      }, { persist: options.persistEvents === true });
+      const playbookEvent = this.recordV2RecoveryEvent('v2.recovery.playbook_selected', {
+        sample_id: sample.id,
+        incident_id: incident.incident_id,
+        playbook_id: playbook.playbook_id,
+        message: playbook.safe_next_action,
+        refs: { sample_id: sample.id, incident_id: incident.incident_id }
+      }, { persist: options.persistEvents === true });
+      const diagnosticEvent = this.recordV2RecoveryEvent('v2.diagnostic_pack.created', {
+        sample_id: sample.id,
+        incident_id: incident.incident_id,
+        pack_id: diagnosticPack.pack_id,
+        privacy_warning: diagnosticPack.privacy_warning,
+        message: 'Diagnostic Pack preview created.',
+        refs: { sample_id: sample.id, incident_id: incident.incident_id, pack_id: diagnosticPack.pack_id }
+      }, { persist: options.persistEvents === true });
+      const transitions = [];
+      const applyTransition = (state, context = {}) => {
+        incident = this.transitionV2IncidentState(incident, state, {
+          ...context,
+          persistEvents: options.persistEvents === true
+        });
+        transitions.push({
+          to: state,
+          status: incident.transition_status,
+          reason: incident.transition_reason,
+          event_type: incident.event?.event_type || '',
+          event: incident.event || null
+        });
+      };
+      applyTransition('classified');
+      applyTransition('explained');
+      applyTransition('awaiting_user_action');
+      applyTransition('diagnostic_pack_created', { diagnostic_pack_preview: diagnosticPack });
+      if (sample.expected_state === 'blocked') {
+        applyTransition('repair_workspace_required');
+        applyTransition('repair_workspace_created', { safePreview: true });
+        applyTransition('verifier_check');
+        applyTransition('blocked', { verifierStatus: sample.verifier_status || 'FAIL' });
+      } else if (sample.expected_state === 'escalated') {
+        applyTransition('repair_workspace_required');
+        applyTransition('escalated');
+      } else if (playbook.owner_assisted_required || sample.expected_state === 'owner_assisted_required') {
+        applyTransition('owner_assisted_required');
+      }
+      const invalidTransition = this.transitionV2IncidentState(this.createV2IncidentFromDiagnostic(sample), 'recovered', { persistEvents: options.persistEvents === true });
+      const recoveryEventType = incident.status === 'owner_assisted_required' ? 'v2.recovery.owner_assisted_required'
+        : incident.status === 'blocked' ? 'v2.recovery.blocked'
+          : incident.status === 'escalated' ? 'v2.recovery.escalated'
+            : 'v2.recovery.ready';
+      const recoveryEvent = this.recordV2RecoveryEvent(recoveryEventType, {
+        sample_id: sample.id,
+        incident_id: incident.incident_id,
+        playbook_id: playbook.playbook_id,
+        final_state: incident.status,
+        message: incident.next_action,
+        refs: { sample_id: sample.id, incident_id: incident.incident_id }
+      }, { persist: options.persistEvents === true });
+      return {
+        sample_id: sample.id,
+        expected_state: sample.expected_state,
+        final_state: incident.status,
+        status: incident.status === sample.expected_state || (sample.expected_state === 'diagnostic_pack_created' && incident.status === 'diagnostic_pack_created') ? 'PASS' : 'REVIEW',
+        incident,
+        playbook,
+        diagnostic_pack: diagnosticPack,
+        transitions,
+        invalid_transition_blocked: invalidTransition.transition_status === 'BLOCKED',
+        events: [
+          detectedEvent,
+          playbookEvent,
+          diagnosticEvent,
+          ...transitions.map((transition) => transition.event).filter(Boolean),
+          recoveryEvent
+        ].filter(Boolean)
+      };
+    });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2RecoveryStatePreviewEnabled: Boolean(options.previewEnabled) }),
+      ordinary_summary: 'Recovery Runtime превращает симптом в incident, playbook, Diagnostic Pack preview и безопасный следующий шаг.',
+      samples,
+      snapshot: this.getV2RecoveryRuntimeSnapshot(),
+      summary: {
+        total: samples.length,
+        pass: samples.filter((sample) => sample.status === 'PASS').length,
+        blocked: samples.filter((sample) => ['blocked', 'escalated'].includes(sample.final_state)).length,
+        owner_assisted_required: samples.filter((sample) => sample.final_state === 'owner_assisted_required').length,
+        invalid_transition_blocked: samples.every((sample) => sample.invalid_transition_blocked)
+      }
+    };
+  },
+
   getV2SystemSnapshot() {
     const truth = this.currentSourceOfTruthSnapshot?.({ refresh: false, persist: false }) || {};
     return {
@@ -5674,14 +6148,19 @@ const App = {
 
   getV2RecoverySnapshot() {
     const guardian = this.guardianSnapshot?.() || {};
-    const incidents = Array.isArray(this.guardianIncidents) ? this.guardianIncidents : [];
+    const runtime = this.getV2RecoveryRuntimeSnapshot?.() || {};
     return {
       schema_version: V2_FOUNDATION_SCHEMA_VERSION,
       generated_at: new Date().toISOString(),
-      status: guardian.status || 'review',
-      open_incidents: incidents.filter((incident) => !['closed', 'resolved'].includes(incident.status)).length,
+      status: runtime.recovery_health || guardian.status || 'review',
+      open_incidents: Number(runtime.active_incidents_count || 0),
+      incidents_count: Number(runtime.incidents_count || 0),
+      owner_assisted_count: Number(runtime.owner_assisted_count || 0),
+      blocked_count: Number(runtime.blocked_count || 0),
+      last_incident_status: runtime.last_incident_status || 'none',
+      last_event_id: runtime.last_event_id || '',
       unknown_is_pass: false,
-      state_model: ['detected', 'classified', 'explained', 'awaiting_user_action', 'diagnostic_pack_created', 'repair_workspace_created', 'verifier_check', 'guardian_check', 'approval_required', 'ready_to_apply', 'applied', 'rollback_available', 'recovered', 'closed', 'blocked', 'owner_assisted_required'],
+      state_model: ['detected', 'classified', 'explained', 'awaiting_user_action', 'diagnostic_pack_created', 'repair_workspace_required', 'repair_workspace_created', 'verifier_check', 'guardian_check', 'approval_required', 'ready_to_apply', 'rollback_available', 'recovered', 'closed', 'blocked', 'escalated', 'owner_assisted_required'],
       owner_assisted_postponed: ['real_phone_apk', 'billing_dashboards', 'production_signing', 'production_rollback']
     };
   },
@@ -11843,6 +12322,7 @@ const App = {
         ${incident.repair_workspace ? `<code>${this.escapeHtml(incident.repair_workspace.root)}</code>` : ''}
         ${incident.diff_review ? this.renderDiffReview(incident.diff_review) : '<p class="mission-empty">Diff review появится после работы Codex в repair workspace.</p>'}
       </section>
+      ${this.renderV2RecoveryStatePreview(incident)}
       <div class="approval-actions">
         <button type="button" data-guardian-action="build_diagnostic_pack" data-incident-id="${this.escapeHtml(incident.incident_id)}">Собрать Diagnostic Pack</button>
         <button type="button" data-guardian-action="prepare_codex_repair" data-incident-id="${this.escapeHtml(incident.incident_id)}">Починить через Codex</button>
@@ -11850,6 +12330,51 @@ const App = {
         <button type="button" data-guardian-action="close_incident" data-incident-id="${this.escapeHtml(incident.incident_id)}">Закрыть</button>
         <button type="button" disabled title="Применение появится только после Verifier и rollback point">Применить</button>
       </div>
+    `;
+  },
+
+  renderV2RecoveryStatePreview(incident = {}) {
+    const v2Incident = this.createV2IncidentFromDiagnostic({
+      incident_id: incident.incident_id,
+      title: incident.title,
+      component: incident.affected_area || incident.component,
+      symptom: incident.summary || incident.title,
+      severity: incident.severity || incident.risk_level,
+      source: incident.source || 'guardian',
+      evidence_refs: incident.evidence_refs || incident.refs?.evidence_refs || [],
+      artifact_refs: incident.artifact_refs || incident.refs?.artifact_refs || [],
+      owner_assisted_required: incident.owner_assisted_required || incident.approval_required,
+      risk_hints: [incident.risk_level, incident.safe_action].filter(Boolean)
+    });
+    const playbook = this.selectV2RecoveryPlaybook(v2Incident);
+    const pack = this.buildV2DiagnosticPackPreview(v2Incident, playbook);
+    const snapshot = this.getV2RecoveryRuntimeSnapshot();
+    const invalid = this.transitionV2IncidentState(v2Incident, 'recovered', { persistEvents: false });
+    return `
+      <section class="guardian-repair v2-recovery-preview">
+        <strong>V2 Recovery Runtime</strong>
+        <p>${this.escapeHtml(playbook.what_happened)} ${this.escapeHtml(playbook.safe_next_action)}</p>
+        <div class="approval-grid">
+          <div><dt>Сценарий</dt><dd>${this.escapeHtml(playbook.title)}</dd></div>
+          <div><dt>Статус</dt><dd>${this.escapeHtml(v2Incident.status)}</dd></div>
+          <div><dt>Риск</dt><dd>${this.escapeHtml(v2Incident.risk_level)}</dd></div>
+          <div><dt>Владелец</dt><dd>${playbook.owner_assisted_required ? 'требуется' : 'не требуется'}</dd></div>
+        </div>
+        <p><strong>Безопасно:</strong> ${this.escapeHtml(pack.safe_next_action || 'показать следующий шаг без выполнения действий.')}</p>
+        <p><strong>Пакет диагностики:</strong> подготовлен как preview без изменения проекта.</p>
+        <p><strong>Требует владельца:</strong> ${playbook.owner_assisted_required ? 'да, действие не выполняется автоматически.' : 'нет, это preview без изменения runtime.'}</p>
+        <details>
+          <summary>Экспертный режим</summary>
+          <dl class="approval-grid">
+            <div><dt>incident_id</dt><dd>${this.escapeHtml(v2Incident.incident_id || v2Incident.id)}</dd></div>
+            <div><dt>playbook_id</dt><dd>${this.escapeHtml(playbook.playbook_id)}</dd></div>
+            <div><dt>pack_id</dt><dd>${this.escapeHtml(pack.pack_id)}</dd></div>
+            <div><dt>invalid transition</dt><dd>${this.escapeHtml(invalid.transition_status)} · ${this.escapeHtml(invalid.transition_reason)}</dd></div>
+            <div><dt>snapshot</dt><dd>${this.escapeHtml(snapshot.recovery_health)} · incidents=${this.escapeHtml(String(snapshot.incidents_count || 0))}</dd></div>
+            <div><dt>privacy</dt><dd>${pack.privacy_warning ? 'warning' : 'clean'}</dd></div>
+          </dl>
+        </details>
+      </section>
     `;
   },
 
