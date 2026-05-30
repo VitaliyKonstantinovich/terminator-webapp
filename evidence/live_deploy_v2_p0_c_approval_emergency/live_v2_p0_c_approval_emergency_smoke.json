@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-05-30T13:03:53.334Z",
+  "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p0-c-approval-emergency-live-smoke&ts=1780146207388",
+  "http_status": 200,
+  "duration_ms": 24920,
+  "app_js_markers": {
+    "getV2ApprovalEmergencyPreview": true,
+    "renderV2ApprovalCenterPreview": true,
+    "resetPhrase": true,
+    "v2ResetConfirmedEvent": true
+  },
+  "sampleStatus": {
+    "emergency_no_phrase": "typed_confirmation_required",
+    "emergency_wrong_phrase": "blocked",
+    "emergency_correct_phrase": "allow_with_warning",
+    "approval_deploy": "typed_confirmation_required",
+    "approval_push_main": "typed_confirmation_required",
+    "approval_delete_restore_point": "typed_confirmation_required",
+    "approval_read_secrets": "red_zone_stop",
+    "approval_billing": "owner_assisted_required"
+  },
+  "hasExpectedStatuses": true,
+  "hasEmergencyVerdicts": true,
+  "desktop": {
+    "title": "TERMINATOR MINA UI",
+    "activeScreen": "screen-system",
+    "hasApprovalPreview": true,
+    "hasEmergencyPreview": true,
+    "hasResetPhrase": true,
+    "bodyWidth": 1366,
+    "viewportWidth": 1366,
+    "noHorizontalOverflow": true,
+    "textHasMojibake": false
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noHorizontalOverflow": true
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noHorizontalOverflow": true
+  },
+  "console_warnings": [
+    "console:Failed to load resource: net::ERR_CONNECTION_TIMED_OUT",
+    "console:Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "fatalErrors": [],
+  "pass": true
+}
