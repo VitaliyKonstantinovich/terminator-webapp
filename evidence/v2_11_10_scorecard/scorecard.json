@@ -1,0 +1,352 @@
+{
+  "created_at": "2026-05-30T00:02:11.7995267Z",
+  "project": "Terminator",
+  "mode": "V2 11/10 Product Finalization Track",
+  "v1_foundation": "PASS",
+  "final_gate_commit": "ef17b0da70652b060fc1d7466cbc3dcf0b7397f1",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "live_marker": "20260529-final-product-gate-v1",
+  "p0_gaps": [
+    "First Run / onboarding",
+    "Memory Search large dataset proof",
+    "Diagnost / Recovery production path",
+    "Codex Repair / Controlled Hands production-safe drill",
+    "Documentation / Help / Demo"
+  ],
+  "p1_gaps": [
+    "QA Autotest Factory",
+    "ResearchOps polish",
+    "Performance budgets",
+    "Product Shell / Windows companion",
+    "Mobile/PWA production checks",
+    "Cost/Privacy fixtures"
+  ],
+  "recommended_first_v2_block": {
+    "name": "V2 P0 First Run + Recovery Command Center",
+    "why": "Highest product leverage: makes the accepted V1 understandable in 10 seconds, ties Mina Scheme, HUD, Diagnost, Recovery, Cost/Privacy status and Demo Mode into one safe guided entry.",
+    "scope": [
+      "guided first-run route",
+      "demo mode with safe fixtures",
+      "readiness checklist minimum/comfort/full",
+      "recovery next-action surface",
+      "visual alignment with mockups without new raster character generation",
+      "owner-assisted checklist panel"
+    ],
+    "files_likely_affected": [
+      "webapp/index.html",
+      "webapp/app.js",
+      "webapp/styles.css",
+      "docs/V2_FIRST_RUN_RECOVERY_COMMAND_CENTER_2026-05-29.md",
+      "evidence/v2_first_run_recovery_command_center/*"
+    ],
+    "risks": [
+      "UX regression if too much information is shown",
+      "state-source mismatch if HUD/Scheme/Diagnost disagree",
+      "visual polish must stay aligned with mockups"
+    ],
+    "acceptance_criteria": [
+      "first screen explains status/next action in 10 seconds",
+      "minimum/comfort/full readiness clear",
+      "Safe Mode/Recovery/Codex Repair route visible but not scary",
+      "ordinary/expert split preserved",
+      "mobile 390/430 no overflow",
+      "no technical terms in normal mode",
+      "no secrets/AI API/billing changes"
+    ],
+    "can_start_autonomously": true,
+    "requires_owner_approval": false
+  },
+  "owner_assisted_postponed": [
+    "real phone APK/PWA until production V2 final",
+    "billing dashboards",
+    "production signing",
+    "production rollback on active project",
+    "legacy cleanup"
+  ],
+  "blocks": [
+    {
+      "block": "First Run / onboarding",
+      "score": 8.0,
+      "target": "11/10 guided first launch: user understands system, setup route, safe launch, demo path, no mentor needed.",
+      "evidence": [
+        "final gate main HUD",
+        "final gate System",
+        "Mina Scheme"
+      ],
+      "gap": "No full production first-run wizard tied to installer/tray and owner-assisted readiness; setup route exists but not a complete product onboarding track.",
+      "severity": "P0",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Build V2 First Run Command Center: guided setup, demo mode, readiness route, recovery-first copy."
+    },
+    {
+      "block": "Mina Scheme",
+      "score": 9.0,
+      "target": "11/10 visual system map aligned with mockups, real status sources, premium silhouette, mobile bottom sheet.",
+      "evidence": [
+        "final_gate_scheme_default.png",
+        "8 SVG/DOM zones",
+        "voice->mouth",
+        "eyes->eyes"
+      ],
+      "gap": "Current Scheme passes, but bespoke Mina art and deeper real-state bindings remain V2 polish.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "V2 visual polish pack after P0 onboarding/recovery."
+    },
+    {
+      "block": "Active side HUD / Mina UI",
+      "score": 9.5,
+      "target": "11/10 always-useful live status rail with next action, notifications, system date/time, owner-readable state.",
+      "evidence": [
+        "final_gate_start_main_menu_with_side_hud.png",
+        "notifications opened PASS"
+      ],
+      "gap": "Needs deeper source-of-truth binding and quick actions per module.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Bind HUD cards to V2 source-of-truth snapshot during onboarding block."
+    },
+    {
+      "block": "Workspace / task chain",
+      "score": 9.0,
+      "target": "11/10 end-to-end task lifecycle with artifacts/evidence/verifier/memory/next action, durable persistence, live Local Agent path.",
+      "evidence": [
+        "synthetic final-gate task",
+        "artifact_count=12",
+        "verifier/memory/decision PASS"
+      ],
+      "gap": "Strong UI/runtime chain; needs production persistence/load tests and real Local Agent bridge acceptance.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Add to QA Autotest Factory after P0 onboarding."
+    },
+    {
+      "block": "Brain Council / ResearchOps",
+      "score": 8.5,
+      "target": "11/10 council profiles, source quality gates, prompt packages, contradiction map, decision passport as enforced workflow.",
+      "evidence": [
+        "final_gate_brain_council_decision_passport.png",
+        "Loop3 max scenario PASS"
+      ],
+      "gap": "Workflow exists; needs stricter enforcement, more source-card states, and real provider readiness UX polish.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "ResearchOps polish block after P0."
+    },
+    {
+      "block": "Decision Passport",
+      "score": 9.0,
+      "target": "11/10 every important decision has reasons, alternatives, risks, evidence refs, first thing to check.",
+      "evidence": [
+        "Decision Passport artifact PASS"
+      ],
+      "gap": "Good for tested scenarios; must become mandatory gate for acceptance workflows.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Enforce in QA Autotest Factory and Verifier rules."
+    },
+    {
+      "block": "Verifier",
+      "score": 8.5,
+      "target": "11/10 non-decorative verifier with automated checks, evidence quality, PASS_WITH_RISKS, fix request, no false PASS.",
+      "evidence": [
+        "Verifier text PASS",
+        "Loop3 quality gates"
+      ],
+      "gap": "Verifier exists and catches bad reports; needs automated test runner integration and repeatable acceptance specs.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "QA Autotest Factory foundation."
+    },
+    {
+      "block": "Memory Search",
+      "score": 9.0,
+      "target": "11/10 fast relevant search over tasks/artifacts/evidence/decisions/files with scalable index and no confident garbage.",
+      "evidence": [
+        "strong/impossible/weak/fake-secret PASS",
+        "memory_search 850ms"
+      ],
+      "gap": "Relevance fixed; large dataset/scalable FTS and real storage indexing remain to prove.",
+      "severity": "P0",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Design Memory Index V2 after P0 onboarding/recovery path."
+    },
+    {
+      "block": "Diagnost / Recovery",
+      "score": 8.5,
+      "target": "11/10 system explains problem, severity, safe next action, recovery wizard, repair via Codex, rollback evidence.",
+      "evidence": [
+        "final_gate_diagnost.png",
+        "Loop2 fault injection PASS"
+      ],
+      "gap": "Recovery works in sandbox/evidence; production-grade guided recovery still needs tighter UI path and incident-to-repair flow.",
+      "severity": "P0",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Include recovery entry in V2 First Run/Recovery command center."
+    },
+    {
+      "block": "Codex Repair / Controlled Hands",
+      "score": 8.0,
+      "target": "11/10 repair workspace, diagnostic pack, diff review, verifier, guardian risk, rollback, controlled apply.",
+      "evidence": [
+        "Loop2 controlled apply sandbox PASS",
+        "rollback restored PASS"
+      ],
+      "gap": "Sandbox proof strong; production active-project apply remains intentionally gated and owner-assisted.",
+      "severity": "P0",
+      "autonomous": true,
+      "owner_assisted": true,
+      "recommended_next_action": "Build safe UI drill and QA tests; keep production apply owner-assisted."
+    },
+    {
+      "block": "Guardian / Safety",
+      "score": 9.5,
+      "target": "11/10 Guardian/Approval/Cost/Privacy/Emergency Stop block risky actions without fear or ambiguity.",
+      "evidence": [
+        "Emergency Stop typed reset PASS",
+        "no AI API/secrets/billing touched"
+      ],
+      "gap": "Strong; needs formal policy matrix surfaced consistently across product shell/tray.",
+      "severity": "P0",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Carry into First Run and Windows Companion UX."
+    },
+    {
+      "block": "Cost Guard / Billing UX",
+      "score": 7.0,
+      "target": "11/10 owner always knows financial risk; unknown billing is warning, paid services require approval.",
+      "evidence": [
+        "Cost Guard UI/status in previous gates",
+        "billing not touched"
+      ],
+      "gap": "UI logic exists; actual dashboards require owner-assisted verification at final.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": true,
+      "recommended_next_action": "Add owner-assisted checklist and visible unknown-state flow."
+    },
+    {
+      "block": "Privacy Guard",
+      "score": 8.5,
+      "target": "11/10 secrets never leave context packs/evidence/memory; clear block message and safe redaction path.",
+      "evidence": [
+        "fake secret not returned",
+        "no secrets scan PASS"
+      ],
+      "gap": "Good in tested paths; needs broader fixture suite across all outbound packages.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "QA Autotest Factory negative security fixtures."
+    },
+    {
+      "block": "Performance",
+      "score": 7.0,
+      "target": "11/10 sub-second common navigation, no jank, measured budgets and regression guard.",
+      "evidence": [
+        "workspace_open 1574ms PARTIAL",
+        "other timings PASS"
+      ],
+      "gap": "Workspace slightly over target; no broad refactor made during final gate.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Add performance budgets to QA Autotest Factory; optimize after measured hotspots."
+    },
+    {
+      "block": "Mobile / PWA / BlueStacks",
+      "score": 8.5,
+      "target": "11/10 mobile layout usable, installable PWA/APK, no overflow, owner can control remotely.",
+      "evidence": [
+        "mobile 390/430 PASS",
+        "BlueStacks RC accepted earlier"
+      ],
+      "gap": "Viewport/BlueStacks usable; real phone postponed until production V2 final.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": true,
+      "recommended_next_action": "Keep emulator/PWA-web checks until final owner-assisted phone pass."
+    },
+    {
+      "block": "APK / Android wrapper",
+      "score": 6.5,
+      "target": "11/10 production wrapper with signing, install flow, deep links/PWA behavior, real phone acceptance.",
+      "evidence": [
+        "debug signing hardened earlier",
+        "APK owner install postponed"
+      ],
+      "gap": "Debug/emulator readiness only; production signing and real phone are red-zone/owner-assisted.",
+      "severity": "P1",
+      "autonomous": false,
+      "owner_assisted": true,
+      "recommended_next_action": "Do not request raw phone install now; prepare production signing checklist later."
+    },
+    {
+      "block": "Product Shell / Windows companion",
+      "score": 7.0,
+      "target": "11/10 installer, tray, autostart without visible windows, safe restart, logs, Local Agent status.",
+      "evidence": [
+        "autostart/no-popup fixed earlier",
+        "Windows companion guarded"
+      ],
+      "gap": "Good foundations; installer/tray shell not product-final yet.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "V2 Product Shell block after P0 first-run/recovery."
+    },
+    {
+      "block": "QA Autotest Factory",
+      "score": 5.5,
+      "target": "11/10 automated Playwright/API/backend checks linked to evidence, Verifier, and Codex Repair.",
+      "evidence": [
+        "manual/automated smoke scripts exist",
+        "final gate CDP smoke"
+      ],
+      "gap": "Strong one-off smoke, but not a reusable test factory yet.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "First P1 block if P0 onboarding/recovery accepted."
+    },
+    {
+      "block": "Documentation / Help / Demo",
+      "score": 7.5,
+      "target": "11/10 quick start, demo mode, owner-readable docs, short help inside product.",
+      "evidence": [
+        "final docs/evidence",
+        "next action copy"
+      ],
+      "gap": "Docs exist; in-product help/demo mode not final.",
+      "severity": "P0",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Combine with First Run Command Center."
+    },
+    {
+      "block": "Evidence / Observability",
+      "score": 8.0,
+      "target": "11/10 evidence index, health metrics, incidents, performance traces, source-of-truth dashboard.",
+      "evidence": [
+        "pages health PASS",
+        "final archive",
+        "smoke/performance JSON"
+      ],
+      "gap": "Evidence strong; live observability dashboard and metrics registry need consolidation.",
+      "severity": "P1",
+      "autonomous": true,
+      "owner_assisted": false,
+      "recommended_next_action": "Add to QA/Observability after first V2 block."
+    }
+  ]
+}

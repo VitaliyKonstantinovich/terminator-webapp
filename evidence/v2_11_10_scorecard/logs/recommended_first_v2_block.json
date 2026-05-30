@@ -1,0 +1,35 @@
+{
+  "name": "V2 P0 First Run + Recovery Command Center",
+  "why": "Highest product leverage: makes the accepted V1 understandable in 10 seconds, ties Mina Scheme, HUD, Diagnost, Recovery, Cost/Privacy status and Demo Mode into one safe guided entry.",
+  "scope": [
+    "guided first-run route",
+    "demo mode with safe fixtures",
+    "readiness checklist minimum/comfort/full",
+    "recovery next-action surface",
+    "visual alignment with mockups without new raster character generation",
+    "owner-assisted checklist panel"
+  ],
+  "files_likely_affected": [
+    "webapp/index.html",
+    "webapp/app.js",
+    "webapp/styles.css",
+    "docs/V2_FIRST_RUN_RECOVERY_COMMAND_CENTER_2026-05-29.md",
+    "evidence/v2_first_run_recovery_command_center/*"
+  ],
+  "risks": [
+    "UX regression if too much information is shown",
+    "state-source mismatch if HUD/Scheme/Diagnost disagree",
+    "visual polish must stay aligned with mockups"
+  ],
+  "acceptance_criteria": [
+    "first screen explains status/next action in 10 seconds",
+    "minimum/comfort/full readiness clear",
+    "Safe Mode/Recovery/Codex Repair route visible but not scary",
+    "ordinary/expert split preserved",
+    "mobile 390/430 no overflow",
+    "no technical terms in normal mode",
+    "no secrets/AI API/billing changes"
+  ],
+  "can_start_autonomously": true,
+  "requires_owner_approval": false
+}
