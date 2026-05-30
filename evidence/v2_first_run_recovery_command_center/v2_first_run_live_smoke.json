@@ -1,0 +1,37 @@
+{
+  "desktop": {
+    "activeScreen": "screen-system",
+    "hasEnglishPlaceholder": false,
+    "hasNextAction": true,
+    "hasTechnicalJunk": false,
+    "marker": true,
+    "overflow": false,
+    "ownerItems": 4,
+    "panelVisible": true,
+    "readinessLevels": 3,
+    "recoveryCards": 3,
+    "swMarkerInScripts": true,
+    "title": "TERMINATOR MINA UI",
+    "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-first-run-recovery-live",
+    "viewport": 1366,
+    "width": 1366,
+    "hasUpperNextAction": true
+  },
+  "continueCount": 1,
+  "afterContinue": {
+    "activeScreen": "screen-scheme",
+    "schemeOpen": true
+  },
+  "mobile390": {
+    "overflow": false,
+    "panelVisible": true,
+    "viewport": 390,
+    "width": 390
+  },
+  "mobile430": {
+    "overflow": false,
+    "panelVisible": true,
+    "viewport": 430,
+    "width": 430
+  }
+}
