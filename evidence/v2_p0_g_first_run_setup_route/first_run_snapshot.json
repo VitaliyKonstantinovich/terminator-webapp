@@ -1,0 +1,389 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-05-30T17:32:54.593Z",
+  "minimum_ready": true,
+  "comfort_ready": false,
+  "maximum_ready": false,
+  "readiness_percent": 49,
+  "readiness_level": "minimum_ready",
+  "blockers": [],
+  "warnings": [
+    {
+      "id": "memory_degraded",
+      "label": "Поиск памяти работает не полностью",
+      "reason": "Можно продолжить с предупреждением или обновить индекс.",
+      "route": "memory"
+    },
+    {
+      "id": "brain_unverified",
+      "label": "Голова требует проверки",
+      "reason": "Стратег/Совет мозгов не считаются полностью подтверждёнными.",
+      "route": "head"
+    }
+  ],
+  "owner_assisted_items": [
+    {
+      "id": "billing_dashboards",
+      "label": "Billing dashboards",
+      "reason": "Проверяется владельцем, не считается runtime FAIL.",
+      "status": "owner_assisted"
+    },
+    {
+      "id": "production_signing",
+      "label": "Production signing",
+      "reason": "Проверяется владельцем, не считается runtime FAIL.",
+      "status": "owner_assisted"
+    },
+    {
+      "id": "production_rollback",
+      "label": "Production rollback",
+      "reason": "Проверяется владельцем, не считается runtime FAIL.",
+      "status": "owner_assisted"
+    }
+  ],
+  "postponed_items": [
+    {
+      "id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "reason": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "status": "postponed"
+    }
+  ],
+  "next_best_action": {
+    "route_id": "open_memory_search",
+    "label": "Проверить память",
+    "description": "Поиск памяти работает не полностью. Можно продолжить с предупреждением или обновить индекс.",
+    "screen": "memory",
+    "priority": 3,
+    "status": "warning",
+    "primary": true
+  },
+  "next_route": "open_memory_search",
+  "ordinary_message": "Базовая система готова. Можно создать первую задачу, но часть контуров требует внимания.",
+  "source_snapshots": {
+    "system": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T17:32:54.593Z",
+      "flags": {
+        "v2FoundationEnabled": false,
+        "v2EventLogEnabled": false,
+        "v2CapabilityMatrixEnabled": false,
+        "v2SourceSnapshotsEnabled": false,
+        "v2SafetyPolicyPreviewEnabled": false,
+        "v2ControlledApplyPreviewEnabled": false,
+        "v2MemoryContractPreviewEnabled": false,
+        "v2RecoveryStatePreviewEnabled": false,
+        "v2FirstRunReadinessPreviewEnabled": false,
+        "v2SetupRoutePreviewEnabled": false
+      },
+      "v1_status": "productized_rc",
+      "status": "review",
+      "source_state": "known",
+      "owner_assisted_required": [],
+      "summary": "1/15 источников готовы; 14 требуют проверки; 0 блокеров"
+    },
+    "safety": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T17:32:54.593Z",
+      "status": "active",
+      "label": "активен",
+      "emergency_stop_active": false,
+      "unknown_is_pass": false,
+      "capability_sample": {
+        "schema_version": 1,
+        "actor": "codex_repair",
+        "resource": "active_project_files",
+        "action": "write",
+        "verdict": "approval_required",
+        "risk_level": "high",
+        "reason": "Mutable/high-risk resource requires approval.",
+        "requires_approval": true,
+        "typed_confirmation_required": false,
+        "rollback_required": true,
+        "evidence_required": true
+      },
+      "policy_preview": "dangerous actions require Guardian/Approval/rollback gates"
+    },
+    "memory": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T17:32:54.593Z",
+      "status": "not_indexed",
+      "readiness": 35,
+      "index_status": "not_indexed",
+      "records": 0,
+      "last_search_status": "not_run",
+      "strong_results_count": 0,
+      "weak_results_count": 0,
+      "privacy_warnings_count": 0,
+      "unknown_is_pass": false
+    },
+    "recovery": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T17:32:54.593Z",
+      "status": "ready",
+      "open_incidents": 0,
+      "incidents_count": 0,
+      "owner_assisted_count": 0,
+      "blocked_count": 0,
+      "last_incident_status": "none",
+      "last_event_id": "",
+      "unknown_is_pass": false,
+      "state_model": [
+        "detected",
+        "classified",
+        "explained",
+        "awaiting_user_action",
+        "diagnostic_pack_created",
+        "repair_workspace_required",
+        "repair_workspace_created",
+        "verifier_check",
+        "guardian_check",
+        "approval_required",
+        "ready_to_apply",
+        "rollback_available",
+        "recovered",
+        "closed",
+        "blocked",
+        "escalated",
+        "owner_assisted_required"
+      ],
+      "owner_assisted_postponed": [
+        "real_phone_apk",
+        "billing_dashboards",
+        "production_signing",
+        "production_rollback"
+      ]
+    },
+    "capability": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T17:32:54.593Z",
+      "matrix": {
+        "schema_version": 1,
+        "actors": [
+          "owner",
+          "webapp",
+          "local_agent",
+          "codex_repair",
+          "guardian",
+          "verifier",
+          "memory_search",
+          "brain_council",
+          "research_agent",
+          "file_worker",
+          "code_worker",
+          "browser_worker",
+          "system_worker",
+          "device_mesh",
+          "voice",
+          "recovery_wizard",
+          "external_adapter_candidate"
+        ],
+        "resources": [
+          "task_state",
+          "artifacts",
+          "evidence",
+          "memory_records",
+          "memory_index",
+          "source_files",
+          "active_project_files",
+          "repair_workspace",
+          "restore_points",
+          "d_terminator_storage",
+          "secrets_env",
+          "browser_profiles",
+          "github_repo",
+          "github_settings",
+          "cloudflare_settings",
+          "billing_payment",
+          "network_settings",
+          "ai_api",
+          "emergency_stop",
+          "apk_signing"
+        ],
+        "actions": [
+          "read",
+          "write",
+          "execute",
+          "delete",
+          "deploy",
+          "push",
+          "configure",
+          "approve"
+        ],
+        "verdicts": [
+          "allow",
+          "allow_with_warning",
+          "approval_required",
+          "typed_confirmation_required",
+          "blocked",
+          "owner_assisted_required",
+          "red_zone_stop"
+        ],
+        "defaults": {
+          "red_zone_resources": [
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]"
+          ],
+          "high_risk_resources": [
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]"
+          ],
+          "dangerous_actions": [
+            "[truncated]",
+            "[truncated]",
+            "[truncated]",
+            "[truncated]"
+          ],
+          "broad_access_allowed": false
+        }
+      },
+      "sample_verdicts": [
+        {
+          "schema_version": 1,
+          "actor": "webapp",
+          "resource": "task_state",
+          "action": "read",
+          "verdict": "allow",
+          "risk_level": "low",
+          "reason": "Read-only or low-risk foundation action.",
+          "requires_approval": false,
+          "typed_confirmation_required": false,
+          "rollback_required": false,
+          "evidence_required": false
+        },
+        {
+          "schema_version": 1,
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "action": "write",
+          "verdict": "approval_required",
+          "risk_level": "high",
+          "reason": "Mutable/high-risk resource requires approval.",
+          "requires_approval": true,
+          "typed_confirmation_required": false,
+          "rollback_required": true,
+          "evidence_required": true
+        },
+        {
+          "schema_version": 1,
+          "actor": "system_worker",
+          "resource": "network_settings",
+          "action": "configure",
+          "verdict": "red_zone_stop",
+          "risk_level": "critical",
+          "reason": "Red-zone resource is blocked by default.",
+          "requires_approval": false,
+          "typed_confirmation_required": false,
+          "rollback_required": true,
+          "evidence_required": true
+        },
+        {
+          "schema_version": 1,
+          "actor": "owner",
+          "resource": "artifacts",
+          "action": "approve",
+          "verdict": "allow",
+          "risk_level": "low",
+          "reason": "Read-only or low-risk foundation action.",
+          "requires_approval": false,
+          "typed_confirmation_required": false,
+          "rollback_required": false,
+          "evidence_required": false
+        }
+      ]
+    },
+    "controlled_apply": {
+      "status": "ready",
+      "available": true
+    },
+    "brain": {
+      "status": "unknown",
+      "readiness": 0
+    },
+    "mobile": {
+      "status": "postponed",
+      "checked": false,
+      "web_ready": true
+    },
+    "performance": {
+      "status": "unknown"
+    },
+    "storage_known": true
+  },
+  "evaluation": {
+    "schema_version": 1,
+    "evaluated_at": "2026-05-30T17:32:54.593Z",
+    "minimum_ready": true,
+    "comfort_ready": false,
+    "maximum_ready": false,
+    "readiness_percent": 49,
+    "readiness_level": "minimum_ready",
+    "blockers": [],
+    "warnings": [
+      {
+        "id": "memory_degraded",
+        "label": "Поиск памяти работает не полностью",
+        "reason": "Можно продолжить с предупреждением или обновить индекс.",
+        "route": "memory"
+      },
+      {
+        "id": "brain_unverified",
+        "label": "Голова требует проверки",
+        "reason": "Стратег/Совет мозгов не считаются полностью подтверждёнными.",
+        "route": "head"
+      }
+    ],
+    "owner_assisted_items": [
+      {
+        "id": "billing_dashboards",
+        "label": "Billing dashboards",
+        "reason": "Проверяется владельцем, не считается runtime FAIL.",
+        "status": "owner_assisted"
+      },
+      {
+        "id": "production_signing",
+        "label": "Production signing",
+        "reason": "Проверяется владельцем, не считается runtime FAIL.",
+        "status": "owner_assisted"
+      },
+      {
+        "id": "production_rollback",
+        "label": "Production rollback",
+        "reason": "Проверяется владельцем, не считается runtime FAIL.",
+        "status": "owner_assisted"
+      }
+    ],
+    "postponed_items": [
+      {
+        "id": "real_phone_apk",
+        "label": "APK на реальном телефоне",
+        "reason": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+        "status": "postponed"
+      }
+    ],
+    "facts": {
+      "systemKnown": true,
+      "storageKnown": true,
+      "safetyKnown": true,
+      "recoveryKnown": true,
+      "memoryKnown": true,
+      "emergencyKnown": true,
+      "emergencyActive": false,
+      "memoryHealthy": false,
+      "controlledApplyAvailable": true,
+      "brainVerified": false,
+      "researchReady": false,
+      "mobileChecked": true,
+      "performanceOk": false
+    }
+  }
+}

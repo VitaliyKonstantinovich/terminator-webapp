@@ -1,0 +1,488 @@
+[
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+    "payload": {
+      "sample_id": "all_green_owner_independent",
+      "readiness_level": "comfort_ready",
+      "readiness_percent": 84,
+      "blockers_count": 0,
+      "warnings_count": 0,
+      "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+      "refs": {
+        "sample_id": "all_green_owner_independent"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.owner_assisted_pending",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+    "payload": {
+      "sample_id": "all_green_owner_independent",
+      "next_route": "show_owner_checklist",
+      "next_action": "Показать финальный чеклист владельца",
+      "message": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+      "refs": {
+        "sample_id": "all_green_owner_independent"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "all_green_owner_independent",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "all_green_owner_independent",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+    "payload": {
+      "sample_id": "safety_blocker",
+      "readiness_level": "blocked",
+      "readiness_percent": 42,
+      "blockers_count": 1,
+      "warnings_count": 0,
+      "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+      "refs": {
+        "sample_id": "safety_blocker"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.blocked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+    "payload": {
+      "sample_id": "safety_blocker",
+      "next_route": "open_safety_guardian",
+      "next_action": "Открыть Guardian / Emergency",
+      "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+      "refs": {
+        "sample_id": "safety_blocker"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "safety_blocker",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "safety_blocker",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Recovery требует внимания перед продолжением.",
+    "payload": {
+      "sample_id": "recovery_degraded",
+      "readiness_level": "blocked",
+      "readiness_percent": 42,
+      "blockers_count": 1,
+      "warnings_count": 0,
+      "message": "Recovery требует внимания перед продолжением.",
+      "refs": {
+        "sample_id": "recovery_degraded"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.blocked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Recovery требует внимания перед продолжением.",
+    "payload": {
+      "sample_id": "recovery_degraded",
+      "next_route": "open_recovery",
+      "next_action": "Открыть Центр восстановления",
+      "message": "Recovery требует внимания перед продолжением.",
+      "refs": {
+        "sample_id": "recovery_degraded"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "recovery_degraded",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "recovery_degraded",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Базовая система готова. Можно создать первую задачу, но часть контуров требует внимания.",
+    "payload": {
+      "sample_id": "memory_degraded",
+      "readiness_level": "minimum_ready",
+      "readiness_percent": 48,
+      "blockers_count": 0,
+      "warnings_count": 1,
+      "message": "Базовая система готова. Можно создать первую задачу, но часть контуров требует внимания.",
+      "refs": {
+        "sample_id": "memory_degraded"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.next_action_selected",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Поиск памяти работает не полностью. Можно продолжить с предупреждением или обновить индекс.",
+    "payload": {
+      "sample_id": "memory_degraded",
+      "next_route": "open_memory_search",
+      "next_action": "Проверить память",
+      "message": "Поиск памяти работает не полностью. Можно продолжить с предупреждением или обновить индекс.",
+      "refs": {
+        "sample_id": "memory_degraded"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "memory_degraded",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "memory_degraded",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+    "payload": {
+      "sample_id": "brain_council_unverified",
+      "readiness_level": "comfort_ready",
+      "readiness_percent": 84,
+      "blockers_count": 0,
+      "warnings_count": 1,
+      "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+      "refs": {
+        "sample_id": "brain_council_unverified"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.next_action_selected",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Стратег и Совет мозгов должны быть подтверждены владельцем.",
+    "payload": {
+      "sample_id": "brain_council_unverified",
+      "next_route": "open_head_readiness",
+      "next_action": "Проверить мозги",
+      "message": "Стратег и Совет мозгов должны быть подтверждены владельцем.",
+      "refs": {
+        "sample_id": "brain_council_unverified"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "brain_council_unverified",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "brain_council_unverified",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+    "payload": {
+      "sample_id": "owner_assisted_only",
+      "readiness_level": "comfort_ready",
+      "readiness_percent": 84,
+      "blockers_count": 0,
+      "warnings_count": 0,
+      "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+      "refs": {
+        "sample_id": "owner_assisted_only"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.owner_assisted_pending",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+    "payload": {
+      "sample_id": "owner_assisted_only",
+      "next_route": "show_owner_checklist",
+      "next_action": "Показать финальный чеклист владельца",
+      "message": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+      "refs": {
+        "sample_id": "owner_assisted_only"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "owner_assisted_only",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "owner_assisted_only",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+    "payload": {
+      "sample_id": "real_phone_apk_postponed",
+      "readiness_level": "comfort_ready",
+      "readiness_percent": 84,
+      "blockers_count": 0,
+      "warnings_count": 0,
+      "message": "Комфортный контур готов. Остались проверки владельца и финальная полировка.",
+      "refs": {
+        "sample_id": "real_phone_apk_postponed"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.owner_assisted_pending",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+    "payload": {
+      "sample_id": "real_phone_apk_postponed",
+      "next_route": "show_owner_checklist",
+      "next_action": "Показать финальный чеклист владельца",
+      "message": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+      "refs": {
+        "sample_id": "real_phone_apk_postponed"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "real_phone_apk_postponed",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "real_phone_apk_postponed",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "readiness_level": "blocked",
+      "readiness_percent": 42,
+      "blockers_count": 1,
+      "warnings_count": 0,
+      "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+      "refs": {
+        "sample_id": "emergency_stop_active"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.blocked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "next_route": "open_safety_guardian",
+      "next_action": "Открыть Guardian / Emergency",
+      "message": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+      "refs": {
+        "sample_id": "emergency_stop_active"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "emergency_stop_active",
+        "item_id": "real_phone_apk"
+      }
+    }
+  },
+  {
+    "event_type": "v2.first_run.readiness_checked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Проверить WebApp, хранилище, Safety, Recovery, Emergency Stop и Memory Search.",
+    "payload": {
+      "sample_id": "v2_foundation_disabled",
+      "readiness_level": "blocked",
+      "readiness_percent": 20,
+      "blockers_count": 2,
+      "warnings_count": 1,
+      "message": "Проверить WebApp, хранилище, Safety, Recovery, Emergency Stop и Memory Search.",
+      "refs": {
+        "sample_id": "v2_foundation_disabled"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.blocked",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Проверить WebApp, хранилище, Safety, Recovery, Emergency Stop и Memory Search.",
+    "payload": {
+      "sample_id": "v2_foundation_disabled",
+      "next_route": "open_setup_minimum",
+      "next_action": "Завершить минимум запуска",
+      "message": "Проверить WebApp, хранилище, Safety, Recovery, Emergency Stop и Memory Search.",
+      "refs": {
+        "sample_id": "v2_foundation_disabled"
+      }
+    }
+  },
+  {
+    "event_type": "v2.setup_route.postponed_item",
+    "status": "preview",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "risk_level": "low",
+    "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+    "payload": {
+      "sample_id": "v2_foundation_disabled",
+      "item_id": "real_phone_apk",
+      "label": "APK на реальном телефоне",
+      "message": "Перенесено до production V2 final, не блокирует текущую owner-independent готовность.",
+      "refs": {
+        "sample_id": "v2_foundation_disabled",
+        "item_id": "real_phone_apk"
+      }
+    }
+  }
+]

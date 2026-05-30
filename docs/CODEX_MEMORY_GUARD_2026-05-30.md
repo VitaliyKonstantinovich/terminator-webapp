@@ -84,6 +84,9 @@ UI chrome/footer lines to strip before showing the task:
 - `Запустить голосовой режим`
 - `ChatGPT может допускать ошибки...`
 - `Поиск по вкладкам`
-- browser/tab controls such as `Закрыть` and `Новая вкладка`
+- `ТерМИНАтор`
+- `Закрыть`
+- `Новая вкладка`
+- browser/tab controls and other browser UI labels
 
 This is a mandatory process rule: full extracted Codex task first, no UI tail, then implementation.

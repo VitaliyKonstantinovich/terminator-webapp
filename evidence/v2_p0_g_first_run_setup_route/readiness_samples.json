@@ -1,0 +1,188 @@
+[
+  {
+    "sample_id": "all_green_owner_independent",
+    "expected_route": "show_owner_checklist",
+    "actual_route": "show_owner_checklist",
+    "status": "PASS",
+    "readiness_level": "comfort_ready",
+    "readiness_percent": 84,
+    "blockers": [],
+    "warnings": [],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "safety_blocker",
+    "expected_route": "open_safety_guardian",
+    "actual_route": "open_safety_guardian",
+    "status": "PASS",
+    "readiness_level": "blocked",
+    "readiness_percent": 42,
+    "blockers": [
+      "emergency_stop_active"
+    ],
+    "warnings": [],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "recovery_degraded",
+    "expected_route": "open_recovery",
+    "actual_route": "open_recovery",
+    "status": "PASS",
+    "readiness_level": "blocked",
+    "readiness_percent": 42,
+    "blockers": [
+      "recovery_blocked"
+    ],
+    "warnings": [],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "memory_degraded",
+    "expected_route": "open_memory_search",
+    "actual_route": "open_memory_search",
+    "status": "PASS",
+    "readiness_level": "minimum_ready",
+    "readiness_percent": 48,
+    "blockers": [],
+    "warnings": [
+      "memory_degraded"
+    ],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "brain_council_unverified",
+    "expected_route": "open_head_readiness",
+    "actual_route": "open_head_readiness",
+    "status": "PASS",
+    "readiness_level": "comfort_ready",
+    "readiness_percent": 84,
+    "blockers": [],
+    "warnings": [
+      "brain_unverified"
+    ],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "owner_assisted_only",
+    "expected_route": "show_owner_checklist",
+    "actual_route": "show_owner_checklist",
+    "status": "PASS",
+    "readiness_level": "comfort_ready",
+    "readiness_percent": 84,
+    "blockers": [],
+    "warnings": [],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "real_phone_apk_postponed",
+    "expected_route": "show_owner_checklist",
+    "actual_route": "show_owner_checklist",
+    "status": "PASS",
+    "readiness_level": "comfort_ready",
+    "readiness_percent": 84,
+    "blockers": [],
+    "warnings": [],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "emergency_stop_active",
+    "expected_route": "open_safety_guardian",
+    "actual_route": "open_safety_guardian",
+    "status": "PASS",
+    "readiness_level": "blocked",
+    "readiness_percent": 42,
+    "blockers": [
+      "emergency_stop_active"
+    ],
+    "warnings": [],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  },
+  {
+    "sample_id": "v2_foundation_disabled",
+    "expected_route": "open_setup_minimum",
+    "actual_route": "open_setup_minimum",
+    "status": "PASS",
+    "readiness_level": "blocked",
+    "readiness_percent": 20,
+    "blockers": [
+      "system_unknown",
+      "safety_unknown"
+    ],
+    "warnings": [
+      "memory_unknown"
+    ],
+    "owner_assisted": [
+      "billing_dashboards",
+      "production_signing",
+      "production_rollback"
+    ],
+    "postponed": [
+      "real_phone_apk"
+    ],
+    "one_primary_next_action": true
+  }
+]

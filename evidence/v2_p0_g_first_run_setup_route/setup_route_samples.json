@@ -1,0 +1,128 @@
+[
+  {
+    "sample_id": "all_green_owner_independent",
+    "route": {
+      "route_id": "show_owner_checklist",
+      "label": "Показать финальный чеклист владельца",
+      "description": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+      "screen": "system",
+      "priority": 7,
+      "status": "owner_assisted",
+      "primary": true
+    },
+    "expected_route": "show_owner_checklist",
+    "pass": true
+  },
+  {
+    "sample_id": "safety_blocker",
+    "route": {
+      "route_id": "open_safety_guardian",
+      "label": "Открыть Guardian / Emergency",
+      "description": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+      "screen": "system",
+      "priority": 1,
+      "status": "blocked",
+      "primary": true
+    },
+    "expected_route": "open_safety_guardian",
+    "pass": true
+  },
+  {
+    "sample_id": "recovery_degraded",
+    "route": {
+      "route_id": "open_recovery",
+      "label": "Открыть Центр восстановления",
+      "description": "Recovery требует внимания перед продолжением.",
+      "screen": "system",
+      "priority": 2,
+      "status": "blocked",
+      "primary": true
+    },
+    "expected_route": "open_recovery",
+    "pass": true
+  },
+  {
+    "sample_id": "memory_degraded",
+    "route": {
+      "route_id": "open_memory_search",
+      "label": "Проверить память",
+      "description": "Поиск памяти работает не полностью. Можно продолжить с предупреждением или обновить индекс.",
+      "screen": "memory",
+      "priority": 3,
+      "status": "warning",
+      "primary": true
+    },
+    "expected_route": "open_memory_search",
+    "pass": true
+  },
+  {
+    "sample_id": "brain_council_unverified",
+    "route": {
+      "route_id": "open_head_readiness",
+      "label": "Проверить мозги",
+      "description": "Стратег и Совет мозгов должны быть подтверждены владельцем.",
+      "screen": "head",
+      "priority": 5,
+      "status": "warning",
+      "primary": true
+    },
+    "expected_route": "open_head_readiness",
+    "pass": true
+  },
+  {
+    "sample_id": "owner_assisted_only",
+    "route": {
+      "route_id": "show_owner_checklist",
+      "label": "Показать финальный чеклист владельца",
+      "description": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+      "screen": "system",
+      "priority": 7,
+      "status": "owner_assisted",
+      "primary": true
+    },
+    "expected_route": "show_owner_checklist",
+    "pass": true
+  },
+  {
+    "sample_id": "real_phone_apk_postponed",
+    "route": {
+      "route_id": "show_owner_checklist",
+      "label": "Показать финальный чеклист владельца",
+      "description": "Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.",
+      "screen": "system",
+      "priority": 7,
+      "status": "owner_assisted",
+      "primary": true
+    },
+    "expected_route": "show_owner_checklist",
+    "pass": true
+  },
+  {
+    "sample_id": "emergency_stop_active",
+    "route": {
+      "route_id": "open_safety_guardian",
+      "label": "Открыть Guardian / Emergency",
+      "description": "Сначала снять safety-блокер. Рискованные действия остаются заблокированы.",
+      "screen": "system",
+      "priority": 1,
+      "status": "blocked",
+      "primary": true
+    },
+    "expected_route": "open_safety_guardian",
+    "pass": true
+  },
+  {
+    "sample_id": "v2_foundation_disabled",
+    "route": {
+      "route_id": "open_setup_minimum",
+      "label": "Завершить минимум запуска",
+      "description": "Проверить WebApp, хранилище, Safety, Recovery, Emergency Stop и Memory Search.",
+      "screen": "system",
+      "priority": 4,
+      "status": "blocked",
+      "primary": true
+    },
+    "expected_route": "open_setup_minimum",
+    "pass": true
+  }
+]
