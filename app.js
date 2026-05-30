@@ -341,7 +341,8 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2SetupRoutePreviewEnabled: false,
   v2OwnerCommandCenterPreviewEnabled: false,
   v2P0IntegrationPreviewEnabled: false,
-  v2P0AcceptanceSuiteEnabled: false
+  v2P0AcceptanceSuiteEnabled: false,
+  v2QAAutotestFactoryPreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -352,7 +353,13 @@ const V2_CONTRACT_TYPES = Object.freeze([
   'approval',
   'capability',
   'event',
-  'snapshot'
+  'snapshot',
+  'qa_test_request',
+  'qa_test_plan',
+  'qa_test_case',
+  'qa_test_artifact',
+  'qa_evidence_checklist',
+  'qa_verifier_result'
 ]);
 const V2_CONTRACT_NAMES = Object.freeze({
   task: 'V2TaskContract',
@@ -363,7 +370,13 @@ const V2_CONTRACT_NAMES = Object.freeze({
   approval: 'V2ApprovalContract',
   capability: 'V2CapabilityContract',
   event: 'V2EventContract',
-  snapshot: 'V2SnapshotContract'
+  snapshot: 'V2SnapshotContract',
+  qa_test_request: 'V2QATestRequestContract',
+  qa_test_plan: 'V2QATestPlanContract',
+  qa_test_case: 'V2QATestCaseContract',
+  qa_test_artifact: 'V2QATestArtifactContract',
+  qa_evidence_checklist: 'V2QAEvidenceChecklistContract',
+  qa_verifier_result: 'V2QAVerifierResultContract'
 });
 const V2_EVENT_TYPES = Object.freeze([
   'v2.task.created',
@@ -423,7 +436,14 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.p0.acceptance.failed',
   'v2.p0.acceptance.blocker_found',
   'v2.p0.acceptance.owner_assisted_pending',
-  'v2.p0.acceptance.postponed_item'
+  'v2.p0.acceptance.postponed_item',
+  'v2.qa.test_request.created',
+  'v2.qa.test_plan.generated',
+  'v2.qa.test_case.created',
+  'v2.qa.test_artifact.created',
+  'v2.qa.evidence_checklist.created',
+  'v2.qa.verifier.verdict',
+  'v2.qa.memory_summary.created'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -6613,6 +6633,491 @@ const App = {
     };
   },
 
+  recordV2QAAutotestEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.qa.test_request.created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_qa_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'qa_autotest_factory',
+        resource: payload.resource || 'artifacts',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'qa_autotest_factory',
+      resource: payload.resource || 'artifacts',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  createV2QATestRequest(input = {}) {
+    const now = new Date().toISOString();
+    const targetUrl = String(input.target_url_optional || '').trim();
+    const externalTarget = /^https?:\/\//i.test(targetUrl) && !/^(https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)|about:blank)/i.test(targetUrl);
+    return this.createV2Contract('qa_test_request', {
+      id: input.id || `v2_qa_request_${Date.now()}`,
+      status: externalTarget ? 'owner_assisted_required' : 'draft',
+      project_id: input.project_id || 'terminator',
+      task_id: input.task_id || 'task_qa_demo_autotest',
+      title: input.title || 'QA Autotest Factory demo request',
+      target_type: input.target_type || 'web_ui_demo',
+      target_name: input.target_name || 'safe demo form',
+      target_url_optional: targetUrl || 'about:blank',
+      scope: input.scope || 'Создать безопасный план проверки UI + backend/API placeholders без запуска внешнего сайта.',
+      user_goal: input.user_goal || 'Проверить главную кнопку, валидацию формы и базовый backend/API placeholder.',
+      constraints: [
+        'no external site execution',
+        'no real credentials',
+        'no production form submit',
+        'no destructive API calls',
+        'no AI API',
+        'no billing/payment',
+        ...(Array.isArray(input.constraints) ? input.constraints : [])
+      ],
+      risk_level: input.risk_level || (externalTarget ? 'medium' : 'low'),
+      owner_assisted_required: Boolean(input.owner_assisted_required || externalTarget),
+      not_checked: externalTarget
+        ? ['external target execution requires owner approval', 'backend/API contract not provided']
+        : ['real backend/API execution not checked', 'real browser trace/video not captured'],
+      evidence_refs: [],
+      refs: {
+        project_id: input.project_id || 'terminator',
+        task_id: input.task_id || 'task_qa_demo_autotest',
+        target: input.target_name || 'safe demo form'
+      },
+      created_at: input.created_at || now,
+      updated_at: now
+    });
+  },
+
+  createV2QATestCase(source = {}) {
+    return this.createV2Contract('qa_test_case', {
+      id: source.id,
+      status: source.not_checked?.length ? 'partial' : 'ready',
+      task_id: source.task_id || 'task_qa_demo_autotest',
+      project_id: source.project_id || 'terminator',
+      title: source.title || 'QA test case',
+      test_type: source.test_type || source.type || 'smoke',
+      type: 'qa_test_case',
+      preconditions: source.preconditions || [],
+      steps: source.steps || [],
+      expected_result: source.expected_result || '',
+      evidence_expected: source.evidence_expected || [],
+      automation_candidate: source.automation_candidate || 'partial',
+      risk_level: source.risk_level || source.risk || 'low',
+      owner_assisted_required: Boolean(source.owner_assisted_required),
+      not_checked: source.not_checked || [],
+      evidence_refs: source.evidence_refs || [],
+      refs: source.refs || { task_id: source.task_id || 'task_qa_demo_autotest' }
+    });
+  },
+
+  generateV2QATestPlan(testRequest = this.createV2QATestRequest()) {
+    const baseRefs = { project_id: testRequest.project_id, task_id: testRequest.task_id, request_id: testRequest.id };
+    const cases = [
+      this.createV2QATestCase({
+        id: 'qa_tc_smoke_001',
+        title: 'Страница открывается и главный CTA виден',
+        test_type: 'smoke',
+        preconditions: ['safe demo HTML is loaded through page.setContent'],
+        steps: ['Открыть safe demo page', 'Найти главный CTA', 'Проверить доступность текста кнопки'],
+        expected_result: 'Главная кнопка видима, доступна и не перекрыта.',
+        evidence_expected: ['screenshot optional', 'DOM assertion'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_smoke_002',
+        title: 'Форма доступна без горизонтального overflow',
+        test_type: 'smoke',
+        preconditions: ['viewport 390px or desktop demo viewport'],
+        steps: ['Открыть форму', 'Проверить поля name/email', 'Проверить ширину документа'],
+        expected_result: 'Поля видимы, страница не имеет horizontal overflow.',
+        evidence_expected: ['viewport width assertion', 'DOM assertion'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_positive_001',
+        title: 'Валидная форма показывает preview отправки',
+        test_type: 'positive',
+        preconditions: ['safe demo form loaded'],
+        steps: ['Ввести имя', 'Ввести корректный email', 'Нажать demo submit'],
+        expected_result: 'Появляется локальный success preview без реальной отправки.',
+        evidence_expected: ['DOM text assertion', 'console error check'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_positive_002',
+        title: 'Главная кнопка ведёт к ожидаемому состоянию',
+        test_type: 'positive',
+        preconditions: ['CTA visible'],
+        steps: ['Нажать главный CTA', 'Проверить state label', 'Проверить, что действие не внешнее'],
+        expected_result: 'State меняется на локальный demo-ready, внешняя сеть не используется.',
+        evidence_expected: ['state assertion', 'network stays idle placeholder'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_negative_001',
+        title: 'Пустая форма не проходит validation',
+        test_type: 'negative',
+        preconditions: ['safe demo form loaded'],
+        steps: ['Оставить поля пустыми', 'Нажать demo submit'],
+        expected_result: 'Показано понятное сообщение validation, success не появляется.',
+        evidence_expected: ['validation text assertion'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_negative_002',
+        title: 'Некорректный email блокируется',
+        test_type: 'negative',
+        preconditions: ['safe demo form loaded'],
+        steps: ['Ввести имя', 'Ввести email без домена', 'Нажать demo submit'],
+        expected_result: 'Показано сообщение о некорректном email, отправка не выполняется.',
+        evidence_expected: ['validation text assertion'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_edge_001',
+        title: 'Mobile narrow viewport keeps the form usable',
+        test_type: 'edge',
+        preconditions: ['safe demo form loaded', 'viewport width is 390px'],
+        steps: ['Открыть форму в narrow viewport', 'Проверить CTA и поля', 'Проверить document width <= viewport width'],
+        expected_result: 'Форма остаётся читаемой, CTA доступен, горизонтального overflow нет.',
+        evidence_expected: ['viewport assertion', 'DOM width assertion'],
+        automation_candidate: 'yes',
+        refs: baseRefs
+      }),
+      this.createV2QATestCase({
+        id: 'qa_tc_api_001',
+        title: 'Backend/API health placeholder',
+        test_type: 'API',
+        preconditions: ['API contract is provided by owner or backend team'],
+        steps: ['Не выполнять реальный network call без approval', 'Проверить contract placeholder', 'Отметить required endpoint and expected status'],
+        expected_result: 'API check remains PARTIAL until contract and approved endpoint exist.',
+        evidence_expected: ['API contract reference', 'owner approval if external'],
+        automation_candidate: 'partial',
+        owner_assisted_required: true,
+        risk_level: 'medium',
+        not_checked: ['backend/API endpoint not provided', 'external network execution not approved'],
+        refs: baseRefs
+      })
+    ];
+    return this.createV2Contract('qa_test_plan', {
+      id: `v2_qa_plan_${testRequest.task_id}`,
+      status: 'ready_with_placeholders',
+      project_id: testRequest.project_id,
+      task_id: testRequest.task_id,
+      title: `План проверки: ${testRequest.target_name}`,
+      qa_goal: testRequest.user_goal,
+      target: {
+        type: testRequest.target_type,
+        name: testRequest.target_name,
+        url: testRequest.target_url_optional
+      },
+      smoke_checks: cases.filter((testCase) => testCase.test_type === 'smoke').map((testCase) => testCase.id),
+      positive_checks: cases.filter((testCase) => testCase.test_type === 'positive').map((testCase) => testCase.id),
+      negative_checks: cases.filter((testCase) => testCase.test_type === 'negative').map((testCase) => testCase.id),
+      edge_cases: cases.filter((testCase) => testCase.test_type === 'edge').map((testCase) => testCase.id),
+      api_backend_placeholders: cases.filter((testCase) => ['API', 'backend'].includes(testCase.test_type)).map((testCase) => testCase.id),
+      data_setup: ['Use local safe demo HTML only', 'No production credentials', 'No external website execution'],
+      cleanup_expectation: ['No persistent remote data created', 'No files deleted', 'No cookies read'],
+      evidence_requirements: ['DOM assertion', 'optional screenshot', 'console errors', 'network/API placeholder', 'Verifier notes'],
+      risks: ['Backend/API unknown is PARTIAL, not PASS', 'External URL requires owner approval'],
+      not_checked: ['real backend/API endpoint', 'trace/video', 'real production form submission'],
+      test_cases: cases,
+      owner_assisted_required: cases.some((testCase) => testCase.owner_assisted_required),
+      evidence_refs: [],
+      refs: baseRefs
+    });
+  },
+
+  generateV2QATestCases(testPlan = this.generateV2QATestPlan()) {
+    return Array.isArray(testPlan.test_cases) ? testPlan.test_cases : [];
+  },
+
+  generateV2PlaywrightStyleSkeleton(testPlan = this.generateV2QATestPlan()) {
+    const skeleton = `import { test, expect } from '@playwright/test';
+
+test.describe('Terminator QA Factory safe demo', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('about:blank');
+    await page.setContent(\`
+      <main>
+        <button data-testid="primary-cta">Запустить проверку</button>
+        <form data-testid="demo-form">
+          <label>Имя <input name="name" aria-label="Имя" /></label>
+          <label>Email <input name="email" aria-label="Email" /></label>
+          <button type="submit">Проверить</button>
+          <p data-testid="form-status"></p>
+        </form>
+      </main>
+      <script>
+        document.querySelector('[data-testid="primary-cta"]').addEventListener('click', () => {
+          document.body.dataset.state = 'demo-ready';
+        });
+        document.querySelector('[data-testid="demo-form"]').addEventListener('submit', (event) => {
+          event.preventDefault();
+          const name = event.target.elements.name.value.trim();
+          const email = event.target.elements.email.value.trim();
+          const status = document.querySelector('[data-testid="form-status"]');
+          if (!name || !email.includes('@')) status.textContent = 'Проверьте имя и email';
+          else status.textContent = 'Локальный preview готов';
+        });
+      </script>
+    \`);
+  });
+
+  test('smoke: CTA visible', async ({ page }) => {
+    await expect(page.getByTestId('primary-cta')).toBeVisible();
+  });
+
+  test('positive: valid form shows local preview', async ({ page }) => {
+    await page.getByLabel('Имя').fill('Mina');
+    await page.getByLabel('Email').fill('mina@example.test');
+    await page.getByRole('button', { name: 'Проверить' }).click();
+    await expect(page.getByTestId('form-status')).toHaveText('Локальный preview готов');
+  });
+
+  test('negative: invalid email is blocked', async ({ page }) => {
+    await page.getByLabel('Имя').fill('Mina');
+    await page.getByLabel('Email').fill('bad-email');
+    await page.getByRole('button', { name: 'Проверить' }).click();
+    await expect(page.getByTestId('form-status')).toHaveText('Проверьте имя и email');
+  });
+
+  test('edge: mobile viewport has no horizontal overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByTestId('primary-cta')).toBeVisible();
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(width).toBeLessThanOrEqual(390);
+  });
+
+  test('api placeholder: backend contract required', async () => {
+    test.info().annotations.push({
+      type: 'owner-assisted',
+      description: 'Backend/API endpoint is PARTIAL until approved contract exists.'
+    });
+  });
+});
+`;
+    return this.createV2Contract('qa_test_artifact', {
+      id: `v2_qa_artifact_${testPlan.task_id}`,
+      status: 'artifact_ready',
+      project_id: testPlan.project_id,
+      task_id: testPlan.task_id,
+      title: 'Playwright-style skeleton artifact',
+      artifact_type: 'playwright_style_skeleton',
+      language: 'typescript',
+      skeleton,
+      runs_tests: false,
+      external_site_execution: false,
+      owner_assisted_required: Boolean(testPlan.owner_assisted_required),
+      not_checked: ['Playwright dependency not installed by this block', 'Skeleton was not executed against external websites'],
+      evidence_refs: [],
+      refs: { task_id: testPlan.task_id, plan_id: testPlan.id }
+    });
+  },
+
+  createV2QAEvidenceChecklist(testPlan = this.generateV2QATestPlan()) {
+    const checklist = [
+      { id: 'qa_evd_dom', label: 'DOM assertions', status: 'required', evidence_type: 'assertion' },
+      { id: 'qa_evd_screenshot', label: 'Screenshot', status: 'optional', evidence_type: 'screenshot' },
+      { id: 'qa_evd_console', label: 'Console errors', status: 'required', evidence_type: 'console_log' },
+      { id: 'qa_evd_network', label: 'Network/API status', status: 'placeholder', evidence_type: 'network_log', owner_assisted_required: true },
+      { id: 'qa_evd_backend', label: 'Backend assertion', status: 'placeholder', evidence_type: 'backend_assertion', owner_assisted_required: true },
+      { id: 'qa_evd_cleanup', label: 'Cleanup proof', status: 'required', evidence_type: 'cleanup_note' },
+      { id: 'qa_evd_verifier', label: 'Verifier notes', status: 'required', evidence_type: 'verifier_report' }
+    ];
+    return this.createV2Contract('qa_evidence_checklist', {
+      id: `v2_qa_evidence_${testPlan.task_id}`,
+      status: 'ready_with_placeholders',
+      project_id: testPlan.project_id,
+      task_id: testPlan.task_id,
+      title: 'QA evidence checklist',
+      checklist,
+      required_count: checklist.filter((item) => item.status === 'required').length,
+      placeholder_count: checklist.filter((item) => item.status === 'placeholder').length,
+      owner_assisted_required: checklist.some((item) => item.owner_assisted_required),
+      not_checked: ['trace/video optional', 'backend/API evidence pending contract'],
+      evidence_refs: [],
+      refs: { task_id: testPlan.task_id, plan_id: testPlan.id }
+    });
+  },
+
+  verifyV2QATestArtifact(artifact = {}, options = {}) {
+    const plan = options.plan || artifact.plan || {};
+    const checklist = options.evidenceChecklist || artifact.evidence_checklist || {};
+    const testCases = Array.isArray(plan.test_cases) ? plan.test_cases : [];
+    const missingExpected = testCases.filter((testCase) => !String(testCase.expected_result || '').trim());
+    const smokeCount = testCases.filter((testCase) => testCase.test_type === 'smoke').length;
+    const positiveCount = testCases.filter((testCase) => testCase.test_type === 'positive').length;
+    const negativeCount = testCases.filter((testCase) => testCase.test_type === 'negative').length;
+    const edgeCount = testCases.filter((testCase) => testCase.test_type === 'edge').length;
+    const backendPlaceholders = testCases.filter((testCase) => ['API', 'backend'].includes(testCase.test_type) && testCase.not_checked?.length);
+    const checks = [
+      { id: 'goal', label: 'Цель проверки есть', status: plan.qa_goal ? 'PASS' : 'FAIL' },
+      { id: 'expected_results', label: 'Expected result есть у каждого case', status: missingExpected.length ? 'FAIL' : 'PASS' },
+      { id: 'smoke', label: 'Есть минимум 2 smoke checks', status: smokeCount >= 2 ? 'PASS' : 'FAIL' },
+      { id: 'positive', label: 'Есть минимум 2 positive checks', status: positiveCount >= 2 ? 'PASS' : 'FAIL' },
+      { id: 'negative', label: 'Есть минимум 2 negative checks', status: negativeCount >= 2 ? 'PASS' : 'FAIL' },
+      { id: 'edge', label: 'Есть edge case для mobile/overflow', status: edgeCount >= 1 ? 'PASS' : 'FAIL' },
+      { id: 'evidence', label: 'Evidence checklist создан', status: Array.isArray(checklist.checklist) && checklist.checklist.length >= 5 ? 'PASS' : 'FAIL' },
+      { id: 'backend_api', label: 'Backend/API unknown marked partial', status: backendPlaceholders.length ? 'PARTIAL' : 'PASS' }
+    ];
+    const hasFail = checks.some((check) => check.status === 'FAIL');
+    const hasPartial = checks.some((check) => check.status === 'PARTIAL');
+    return this.createV2Contract('qa_verifier_result', {
+      id: `v2_qa_verifier_${plan.task_id || artifact.task_id || 'demo'}`,
+      status: hasFail ? 'FAIL' : hasPartial ? 'PARTIAL' : 'PASS',
+      verdict: hasFail ? 'NEEDS_FIX' : hasPartial ? 'PASS_WITH_RISKS' : 'PASS',
+      project_id: plan.project_id || artifact.project_id || 'terminator',
+      task_id: plan.task_id || artifact.task_id || 'task_qa_demo_autotest',
+      title: 'QA Verifier result',
+      checks,
+      missing_expected_count: missingExpected.length,
+      backend_api_partial: backendPlaceholders.length > 0,
+      owner_assisted_required: backendPlaceholders.length > 0,
+      not_checked: backendPlaceholders.length ? ['real backend/API endpoint', 'external network execution'] : [],
+      evidence_refs: [],
+      refs: { task_id: plan.task_id || artifact.task_id || 'task_qa_demo_autotest', artifact_id: artifact.id || '' }
+    });
+  },
+
+  buildV2QAMemorySummary(preview = {}) {
+    const plan = preview.plan || {};
+    const memoryRecord = this.createV2Contract('memory_record', {
+      id: `v2_qa_memory_${plan.task_id || 'task_qa_demo_autotest'}`,
+      status: 'candidate',
+      record_type: 'qa_autotest_factory',
+      title: 'Autotest Playwright форма negative QA Factory',
+      summary: 'QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.',
+      project_id: plan.project_id || 'terminator',
+      task_id: plan.task_id || 'task_qa_demo_autotest',
+      source: { source_type: 'qa_factory_preview', source_id: preview.artifact?.id || '' },
+      evidence_refs: [],
+      refs: { task_id: plan.task_id || 'task_qa_demo_autotest', artifact_id: preview.artifact?.id || '', plan_id: plan.id || '' }
+    });
+    const memorySearchRecord = {
+      record_id: memoryRecord.id,
+      type: 'memory',
+      title: memoryRecord.title,
+      summary: memoryRecord.summary,
+      task_id: memoryRecord.task_id,
+      project_id: memoryRecord.project_id,
+      refs: memoryRecord.refs,
+      updated_at: memoryRecord.updated_at
+    };
+    const samples = {
+      autotest: this.evaluateV2MemorySearchQuery('autotest', { records: [memorySearchRecord], persistEvents: false }),
+      playwright: this.evaluateV2MemorySearchQuery('Playwright', { records: [memorySearchRecord], persistEvents: false }),
+      form: this.evaluateV2MemorySearchQuery('форма', { records: [memorySearchRecord], persistEvents: false }),
+      negative: this.evaluateV2MemorySearchQuery('negative', { records: [memorySearchRecord], persistEvents: false })
+    };
+    return {
+      memory_record: memoryRecord,
+      samples,
+      all_queries_found: Object.values(samples).every((result) => ['exact', 'strong', 'weak'].includes(result.matchType))
+    };
+  },
+
+  buildV2QAAutotestFactoryPreview(options = {}) {
+    const request = this.createV2QATestRequest(options.request || {});
+    const plan = this.generateV2QATestPlan(request);
+    const artifact = this.generateV2PlaywrightStyleSkeleton(plan);
+    const evidenceChecklist = this.createV2QAEvidenceChecklist(plan);
+    const verifier = this.verifyV2QATestArtifact(artifact, { plan, evidenceChecklist });
+    const brokenPlan = {
+      ...plan,
+      test_cases: plan.test_cases.map((testCase, index) => index === 0 ? { ...testCase, expected_result: '' } : testCase)
+    };
+    const negativeVerifier = this.verifyV2QATestArtifact({ ...artifact, id: 'v2_qa_artifact_missing_expected' }, { plan: brokenPlan, evidenceChecklist });
+    const memory = this.buildV2QAMemorySummary({ request, plan, artifact, evidenceChecklist, verifier });
+    const events = [
+      this.recordV2QAAutotestEvent('v2.qa.test_request.created', { refs: { request_id: request.id, task_id: request.task_id }, message: 'QA test request created.' }, { persist: options.persistEvents === true }),
+      this.recordV2QAAutotestEvent('v2.qa.test_plan.generated', { refs: { plan_id: plan.id, task_id: plan.task_id }, message: 'QA test plan generated.' }, { persist: options.persistEvents === true }),
+      this.recordV2QAAutotestEvent('v2.qa.test_case.created', { refs: { plan_id: plan.id, task_id: plan.task_id }, count: plan.test_cases.length, message: 'QA test cases created.' }, { persist: options.persistEvents === true }),
+      this.recordV2QAAutotestEvent('v2.qa.test_artifact.created', { refs: { artifact_id: artifact.id, task_id: artifact.task_id }, message: 'Playwright-style skeleton artifact created.' }, { persist: options.persistEvents === true }),
+      this.recordV2QAAutotestEvent('v2.qa.evidence_checklist.created', { refs: { checklist_id: evidenceChecklist.id, task_id: evidenceChecklist.task_id }, message: 'QA evidence checklist created.' }, { persist: options.persistEvents === true }),
+      this.recordV2QAAutotestEvent('v2.qa.verifier.verdict', { refs: { verifier_id: verifier.id, task_id: verifier.task_id }, verdict: verifier.verdict, message: 'QA verifier verdict created.' }, { persist: options.persistEvents === true }),
+      this.recordV2QAAutotestEvent('v2.qa.memory_summary.created', { refs: { memory_record_id: memory.memory_record.id, task_id: memory.memory_record.task_id }, message: 'QA memory summary created.' }, { persist: options.persistEvents === true })
+    ];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2QAAutotestFactoryPreviewEnabled: Boolean(options.previewEnabled) }),
+      request,
+      plan,
+      test_cases: plan.test_cases,
+      artifact,
+      evidence_checklist: evidenceChecklist,
+      verifier,
+      negative_verifier_sample: negativeVerifier,
+      memory,
+      events,
+      summary: {
+        status: verifier.status === 'FAIL' ? 'FAIL' : 'PASS_WITH_RISKS',
+        test_case_count: plan.test_cases.length,
+        smoke_count: plan.smoke_checks.length,
+        positive_count: plan.positive_checks.length,
+        negative_count: plan.negative_checks.length,
+        edge_count: plan.edge_cases.length,
+        api_backend_placeholder_count: plan.api_backend_placeholders.length,
+        backend_api_partial: verifier.backend_api_partial,
+        no_external_site_execution: artifact.external_site_execution === false,
+        no_dependency_install: true,
+        no_ai_api: true,
+        no_billing: true
+      }
+    };
+  },
+
+  runV2QAAutotestFactorySmoke(options = {}) {
+    const preview = options.preview || this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false });
+    const checks = [
+      ['request_created', Boolean(preview.request?.id)],
+      ['plan_generated', Boolean(preview.plan?.id)],
+      ['eight_plus_cases', (preview.test_cases || []).length >= 8],
+      ['smoke_cases', preview.summary.smoke_count >= 2],
+      ['positive_cases', preview.summary.positive_count >= 2],
+      ['negative_cases', preview.summary.negative_count >= 2],
+      ['edge_cases', preview.summary.edge_count >= 1],
+      ['api_backend_placeholder', preview.summary.api_backend_placeholder_count >= 1],
+      ['skeleton_artifact', Boolean(preview.artifact?.skeleton) && preview.artifact.external_site_execution === false],
+      ['evidence_checklist', (preview.evidence_checklist?.checklist || []).length >= 5],
+      ['verifier_partial_backend', preview.verifier?.backend_api_partial === true && preview.verifier?.status === 'PARTIAL'],
+      ['verifier_catches_missing_expected', preview.negative_verifier_sample?.status === 'FAIL'],
+      ['memory_search_autotest', ['exact', 'strong', 'weak'].includes(preview.memory?.samples?.autotest?.matchType)],
+      ['memory_search_playwright', ['exact', 'strong', 'weak'].includes(preview.memory?.samples?.playwright?.matchType)],
+      ['memory_search_form', ['exact', 'strong', 'weak'].includes(preview.memory?.samples?.form?.matchType)],
+      ['memory_search_negative', ['exact', 'strong', 'weak'].includes(preview.memory?.samples?.negative?.matchType)],
+      ['events_sanitized', (preview.events || []).length >= 7],
+      ['no_external_execution', preview.summary.no_external_site_execution === true],
+      ['no_ai_api', preview.summary.no_ai_api === true],
+      ['no_billing', preview.summary.no_billing === true]
+    ].map(([id, pass]) => ({ id, status: pass ? 'PASS' : 'FAIL' }));
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: checks.every((check) => check.status === 'PASS') ? 'PASS' : 'FAIL',
+      checks,
+      preview
+    };
+  },
+
   recordV2P0AcceptanceEvent(eventType, payload = {}, options = {}) {
     const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.p0.acceptance.started';
     const safePayload = this.sanitizeV2EventPayload(payload);
@@ -6861,6 +7366,77 @@ const App = {
       snapshot: this.sanitizeV2EventPayload(snapshot),
       events: events.filter(Boolean)
     };
+  },
+
+  renderV2QAAutotestFactoryPanel(preview = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false })) {
+    const smoke = this.runV2QAAutotestFactorySmoke({ preview });
+    const tone = smoke.status === 'PASS' ? 'ready' : 'review';
+    const verifierLabel = preview.verifier.status === 'PARTIAL' ? 'PASS_WITH_RISKS' : preview.verifier.verdict;
+    return `
+      <section class="v2-qa-factory v2-qa-factory--${this.escapeHtml(tone)}" aria-label="Фабрика автотестов">
+        <header class="v2-qa-factory-hero">
+          <div>
+            <span>P1 / QA Autotest Factory</span>
+            <h3>Фабрика автотестов</h3>
+            <p>Создаёт test request, план, атомарные test cases, Playwright-style skeleton, evidence checklist, Verifier gate и Memory summary. Реальные внешние сайты не запускаются.</p>
+          </div>
+          <div>
+            <span>Test cases</span>
+            <strong>${this.escapeHtml(String(preview.summary.test_case_count))}</strong>
+            <p>${this.escapeHtml(`${preview.summary.smoke_count} smoke, ${preview.summary.positive_count} positive, ${preview.summary.negative_count} negative`)}</p>
+          </div>
+          <div>
+            <span>Verifier</span>
+            <strong>${this.escapeHtml(verifierLabel)}</strong>
+            <p>${preview.verifier.backend_api_partial ? 'Backend/API неизвестен: честный PARTIAL, не fake PASS.' : 'Verifier PASS.'}</p>
+          </div>
+        </header>
+        <div class="v2-qa-factory-actions">
+          <button type="button" data-integration-action="open_work">Создать план проверки</button>
+          <button type="button" data-integration-action="open_system">Что будет проверено</button>
+          <button type="button" data-integration-action="open_memory">Найти в памяти</button>
+        </div>
+        <div class="v2-qa-factory-grid">
+          ${preview.test_cases.map((testCase) => `
+            <article>
+              <span>${this.escapeHtml(testCase.test_type)}</span>
+              <strong>${this.escapeHtml(testCase.title)}</strong>
+              <p>${this.escapeHtml(testCase.expected_result)}</p>
+            </article>
+          `).join('')}
+        </div>
+        <div class="v2-qa-factory-grid v2-qa-factory-grid--compact">
+          <article>
+            <span>Что не проверено</span>
+            <strong>Backend/API</strong>
+            <p>Требуется contract или owner approval. До этого статус остаётся PARTIAL.</p>
+          </article>
+          <article>
+            <span>Evidence</span>
+            <strong>${this.escapeHtml(String(preview.evidence_checklist.required_count))} обязательных</strong>
+            <p>DOM assertions, console errors, cleanup proof и Verifier notes.</p>
+          </article>
+          <article>
+            <span>Memory Search</span>
+            <strong>${preview.memory.all_queries_found ? 'готово' : 'проверить'}</strong>
+            <p>Запись находится по autotest, Playwright и форма.</p>
+          </article>
+        </div>
+        <details class="v2-qa-factory-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            request_id: preview.request.id,
+            plan_id: preview.plan.id,
+            artifact_id: preview.artifact.id,
+            verifier: preview.verifier.verdict,
+            smoke: smoke.status,
+            feature_flag: preview.feature_flags.v2QAAutotestFactoryPreviewEnabled,
+            backend_api_partial: preview.verifier.backend_api_partial,
+            skeleton_preview: preview.artifact.skeleton.slice(0, 900)
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
   },
 
   renderV2P0AcceptancePanel(suite = this.runV2P0AcceptanceSuite({ persistEvents: false })) {
@@ -13457,6 +14033,7 @@ const App = {
     const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
     const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
+      ${this.renderV2QAAutotestFactoryPanel()}
       ${this.renderV2P0AcceptancePanel(p0Acceptance)}
       ${this.renderV2P0IntegrationGatePanel(p0Preview)}
       <section class="source-truth-panel source-truth-panel--${this.escapeHtml(truthTone)}" aria-label="Единый источник истины">
