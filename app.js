@@ -374,7 +374,8 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.recovery.completed',
   'v2.emergency_stop.enabled',
   'v2.emergency_stop.reset_requested',
-  'v2.emergency_stop.reset_confirmed'
+  'v2.emergency_stop.reset_confirmed',
+  'v2.emergency_stop.reset_cancelled'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -414,6 +415,7 @@ const V2_CAPABILITY_RESOURCES = Object.freeze([
   'billing_payment',
   'network_settings',
   'ai_api',
+  'emergency_stop',
   'apk_signing',
   'os_system_settings'
 ]);
@@ -4943,7 +4945,7 @@ const App = {
       });
     }
 
-    if (action === 'reset_emergency_stop' || target === 'emergency_stop') {
+    if (action === 'reset_emergency_stop' || resource === 'emergency_stop' || target === 'emergency_stop' || (action === 'configure' && target === 'reset')) {
       const phrase = V2_TYPED_CONFIRMATION_PHRASES.emergency_stop_reset;
       if (!typedConfirmation) {
         setDecision({
@@ -5113,6 +5115,98 @@ const App = {
         blocked: samples.filter((item) => item.verdict.verdict === 'blocked').length,
         owner_assisted_required: samples.filter((item) => item.verdict.verdict === 'owner_assisted_required').length,
         red_zone_stop: samples.filter((item) => item.verdict.verdict === 'red_zone_stop').length
+      }
+    };
+  },
+
+  buildV2ApprovalEmergencySamples(options = {}) {
+    const emergencyRequests = [
+      { id: 'emergency_no_phrase', actor: 'owner', action: 'configure', resource: 'emergency_stop', target: 'reset' },
+      { id: 'emergency_wrong_phrase', actor: 'owner', action: 'configure', resource: 'emergency_stop', target: 'reset', typedConfirmation: 'RESET' },
+      { id: 'emergency_correct_phrase', actor: 'owner', action: 'configure', resource: 'emergency_stop', target: 'reset', typedConfirmation: V2_TYPED_CONFIRMATION_PHRASES.emergency_stop_reset }
+    ];
+    const approvalRequests = [
+      { id: 'approval_deploy', actor: 'webapp', action: 'deploy', resource: 'github_repo', target: 'live_pages' },
+      { id: 'approval_push_main', actor: 'webapp', action: 'push', resource: 'github_repo', target: 'main' },
+      { id: 'approval_delete_restore_point', actor: 'system_worker', action: 'delete', resource: 'restore_points', target: 'restore_point' },
+      { id: 'approval_read_secrets', actor: 'webapp', action: 'read', resource: 'secrets_env', target: '.env' },
+      { id: 'approval_billing', actor: 'webapp', action: 'configure', resource: 'billing_payment', target: 'billing' }
+    ];
+    return [...emergencyRequests, ...approvalRequests].map((request) => {
+      const verdict = this.evaluateV2ActionRequest(request);
+      const approval = this.createV2ApprovalRequest(request, verdict);
+      const guardianEvent = this.recordV2GuardianVerdict(verdict, { persist: options.persistEvents === true, refs: { sample_id: request.id } });
+      let flowEvent = null;
+      if (request.resource === 'emergency_stop') {
+        const eventType = verdict.verdict === 'allow_with_warning'
+          ? 'v2.emergency_stop.reset_confirmed'
+          : verdict.verdict === 'blocked'
+            ? 'v2.emergency_stop.reset_cancelled'
+            : 'v2.emergency_stop.reset_requested';
+        flowEvent = options.persistEvents === true
+          ? this.recordV2Event(eventType, {
+              actor: request.actor,
+              resource: request.resource,
+              risk_level: verdict.riskLevel,
+              refs: { sample_id: request.id },
+              message: verdict.userMessage,
+              payload: { sample_id: request.id, verdict: verdict.verdict, typed_phrase_provided: Boolean(request.typedConfirmation) }
+            })
+          : this.createV2Contract('event', {
+              id: `v2_${eventType.replaceAll('.', '_')}_${request.id}`,
+              status: 'preview',
+              event_type: eventType,
+              actor: request.actor,
+              resource: request.resource,
+              risk_level: verdict.riskLevel,
+              refs: { sample_id: request.id },
+              message: verdict.userMessage,
+              payload: this.sanitizeV2EventPayload({ sample_id: request.id, verdict: verdict.verdict, typed_phrase_provided: Boolean(request.typedConfirmation) })
+            });
+      } else if (verdict.requiredApproval || verdict.requiredTypedPhrase) {
+        flowEvent = options.persistEvents === true
+          ? this.recordV2Event('v2.approval.requested', {
+              actor: request.actor,
+              resource: request.resource,
+              risk_level: verdict.riskLevel,
+              refs: { sample_id: request.id, approval_id: approval.approval_id },
+              message: verdict.userMessage,
+              payload: { sample_id: request.id, verdict: verdict.verdict, required_typed_phrase: verdict.requiredTypedPhrase ? '[required]' : '' }
+            })
+          : this.createV2Contract('event', {
+              id: `v2_approval_requested_${request.id}`,
+              status: 'preview',
+              event_type: 'v2.approval.requested',
+              actor: request.actor,
+              resource: request.resource,
+              risk_level: verdict.riskLevel,
+              refs: { sample_id: request.id, approval_id: approval.approval_id },
+              message: verdict.userMessage,
+              payload: this.sanitizeV2EventPayload({ sample_id: request.id, verdict: verdict.verdict, required_typed_phrase: verdict.requiredTypedPhrase ? '[required]' : '' })
+            });
+      }
+      return { sample_id: request.id, request, verdict, approval, events: [guardianEvent, flowEvent].filter(Boolean) };
+    });
+  },
+
+  getV2ApprovalEmergencyPreview(options = {}) {
+    const samples = this.buildV2ApprovalEmergencySamples(options);
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2SafetyPolicyPreviewEnabled: Boolean(options.previewEnabled) }),
+      status: 'preview',
+      ordinary_summary: 'Аварийная остановка и опасные действия проходят через Safety Core: verdict, approval, typed phrase и sanitized event.',
+      samples,
+      summary: {
+        total: samples.length,
+        emergency: samples.filter((item) => item.request.resource === 'emergency_stop').length,
+        approvals: samples.filter((item) => item.request.resource !== 'emergency_stop').length,
+        red_zone_stop: samples.filter((item) => item.verdict.verdict === 'red_zone_stop').length,
+        typed_confirmation_required: samples.filter((item) => item.verdict.verdict === 'typed_confirmation_required').length,
+        blocked: samples.filter((item) => item.verdict.verdict === 'blocked').length,
+        allow_with_warning: samples.filter((item) => item.verdict.verdict === 'allow_with_warning').length,
+        owner_assisted_required: samples.filter((item) => item.verdict.verdict === 'owner_assisted_required').length
       }
     };
   },
@@ -10837,6 +10931,7 @@ const App = {
             <button type="button" class="guardian-danger" data-guardian-action="reset_emergency_stop">Сбросить Стоп действия</button>
             <button type="button" data-guardian-action="cancel_emergency_stop_reset">Отмена</button>
           </div>
+          ${this.renderV2EmergencyStopPreview()}
         </section>
       ` : ''}
 
@@ -10891,6 +10986,28 @@ const App = {
           <div class="diagnost-subtitle">Worker Reports</div>
           <div class="guardian-cost-grid">${this.renderGuardianWorkerReportRows()}</div>
         </div>
+      </section>
+    `;
+  },
+
+  renderV2EmergencyStopPreview() {
+    const request = { actor: 'owner', action: 'configure', resource: 'emergency_stop', target: 'reset' };
+    const verdict = this.evaluateV2ActionRequest(request);
+    return `
+      <section class="approval-warning">
+        <strong>Safety Core</strong>
+        <p>${this.escapeHtml(verdict.userMessage || 'Аварийная остановка защищает систему.')}</p>
+        <details>
+          <summary>Экспертно: verdict</summary>
+          <dl class="approval-grid">
+            <div><dt>actor</dt><dd>${this.escapeHtml(verdict.actor)}</dd></div>
+            <div><dt>action</dt><dd>${this.escapeHtml(verdict.action)}</dd></div>
+            <div><dt>resource</dt><dd>${this.escapeHtml(verdict.resource)}</dd></div>
+            <div><dt>verdict</dt><dd>${this.escapeHtml(verdict.verdict)}</dd></div>
+            <div><dt>risk</dt><dd>${this.escapeHtml(verdict.riskLevel)}</dd></div>
+            <div><dt>typed phrase</dt><dd>${this.escapeHtml(verdict.requiredTypedPhrase || 'не требуется')}</dd></div>
+          </dl>
+        </details>
       </section>
     `;
   },
@@ -11277,12 +11394,28 @@ const App = {
 
     if (action === 'safe_mode_off') {
       if (this.guardianState?.emergency_stop_active) {
+        const verdict = this.evaluateV2ActionRequest({
+          actor: 'owner',
+          action: 'configure',
+          resource: 'emergency_stop',
+          target: 'reset'
+        });
+        const approval = this.createV2ApprovalRequest({ actor: 'owner', action: 'configure', resource: 'emergency_stop', target: 'reset' }, verdict);
+        this.recordV2GuardianVerdict(verdict, { refs: { approval_id: approval.approval_id, source: 'safe_mode_off' } });
+        this.recordV2Event('v2.emergency_stop.reset_requested', {
+          actor: 'owner',
+          resource: 'emergency_stop',
+          risk_level: verdict.riskLevel,
+          refs: { approval_id: approval.approval_id },
+          message: verdict.userMessage,
+          payload: { verdict: verdict.verdict, required_typed_phrase: verdict.requiredTypedPhrase ? '[required]' : '' }
+        });
         await this.recordGuardianEvent('emergency_stop.reset_requested', {
           status: 'blocked',
           severity: 'warning',
-          message: 'Safe Mode off requested while Emergency Stop is active; typed confirmation is required.'
+          message: verdict.userMessage
         });
-        this.toast('Сначала подтвердите сброс Emergency Stop точной фразой');
+        this.toast('Чтобы снять аварийную остановку, введите RESET EMERGENCY STOP');
         this.renderGuardianPanel();
         return;
       }
@@ -11292,6 +11425,13 @@ const App = {
     }
 
     if (action === 'cancel_emergency_stop_reset') {
+      this.recordV2Event('v2.emergency_stop.reset_cancelled', {
+        actor: 'owner',
+        resource: 'emergency_stop',
+        risk_level: 'medium',
+        message: 'Emergency Stop reset cancelled by owner.',
+        payload: { status: 'cancelled' }
+      });
       await this.recordGuardianEvent('emergency_stop.reset_cancelled', {
         status: 'cancelled',
         severity: 'info',
@@ -11303,18 +11443,46 @@ const App = {
 
     if (action === 'reset_emergency_stop') {
       const phrase = String(document.getElementById('guardian-emergency-reset-phrase')?.value || '').trim();
+      const actionRequest = {
+        actor: 'owner',
+        action: 'configure',
+        resource: 'emergency_stop',
+        target: 'reset',
+        typedConfirmation: phrase
+      };
+      const verdict = this.evaluateV2ActionRequest(actionRequest);
+      const approval = this.createV2ApprovalRequest(actionRequest, verdict);
+      this.recordV2GuardianVerdict(verdict, { refs: { approval_id: approval.approval_id, source: 'reset_emergency_stop' } });
+      this.recordV2Event('v2.emergency_stop.reset_requested', {
+        actor: 'owner',
+        resource: 'emergency_stop',
+        risk_level: verdict.riskLevel,
+        refs: { approval_id: approval.approval_id },
+        message: verdict.userMessage,
+        payload: { verdict: verdict.verdict, typed_phrase_provided: Boolean(phrase), required_typed_phrase: verdict.requiredTypedPhrase ? '[required]' : '' }
+      });
       await this.recordGuardianEvent('emergency_stop.reset_requested', {
         status: 'requested',
         severity: 'warning',
-        message: 'Emergency Stop reset typed confirmation requested.'
+        message: verdict.userMessage
       });
-      if (phrase !== 'RESET EMERGENCY STOP') {
+      if (verdict.verdict !== 'allow_with_warning') {
+        if (verdict.verdict === 'blocked') {
+          this.recordV2Event('v2.emergency_stop.reset_cancelled', {
+            actor: 'owner',
+            resource: 'emergency_stop',
+            risk_level: verdict.riskLevel,
+            refs: { approval_id: approval.approval_id },
+            message: verdict.userMessage,
+            payload: { verdict: verdict.verdict, typed_phrase_provided: Boolean(phrase) }
+          });
+        }
         await this.recordGuardianEvent('emergency_stop.reset_cancelled', {
-          status: 'blocked_wrong_phrase',
+          status: phrase ? 'blocked_wrong_phrase' : 'typed_confirmation_required',
           severity: 'warning',
-          message: 'Emergency Stop reset blocked: typed confirmation did not match.'
+          message: verdict.userMessage
         });
-        this.toast('Фраза не совпала. Стоп действия остаётся активным.');
+        this.toast(phrase ? 'Фраза не совпала. Аварийная остановка остаётся включённой.' : 'Введите точную фразу RESET EMERGENCY STOP.');
         this.renderGuardianPanel();
         return;
       }
@@ -11327,10 +11495,26 @@ const App = {
       await this.recordGuardianEvent('emergency_stop.reset_confirmed', {
         status: 'confirmed',
         severity: 'warning',
-        message: 'Emergency Stop reset confirmed by exact typed phrase.'
+        message: verdict.userMessage
+      });
+      this.recordV2Event('v2.emergency_stop.reset_confirmed', {
+        actor: 'owner',
+        resource: 'emergency_stop',
+        risk_level: verdict.riskLevel,
+        refs: { approval_id: approval.approval_id },
+        message: verdict.userMessage,
+        payload: { verdict: verdict.verdict, typed_phrase_confirmed: true }
+      });
+      this.recordV2Event('v2.approval.decided', {
+        actor: 'owner',
+        resource: 'emergency_stop',
+        risk_level: verdict.riskLevel,
+        refs: { approval_id: approval.approval_id },
+        message: 'Emergency Stop reset approved by exact typed phrase.',
+        payload: { approval_status: 'approved', verdict: verdict.verdict }
       });
       this.renderSystemStatus();
-      this.toast('Стоп действия сброшен после точного подтверждения');
+      this.toast('Аварийная остановка снята. Событие записано в журнал.');
       return;
     }
 
@@ -17686,6 +17870,7 @@ const App = {
     const active = records.find((approval) => approval.approval_id === this.activeApprovalId) || pending[0] || records[0] || null;
     if (active) this.activeApprovalId = active.approval_id;
     host.innerHTML = `
+      ${this.renderV2ApprovalCenterPreview()}
       <section class="approval-center-grid">
         <div class="approval-queue">
           <div class="approval-center-head">
@@ -17696,6 +17881,39 @@ const App = {
         </div>
         <div class="approval-detail">
           ${active ? this.renderApprovalDetail(active) : '<p class="mission-empty">Опасные действия будут попадать сюда перед выполнением.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderV2ApprovalCenterPreview() {
+    const preview = this.getV2ApprovalEmergencyPreview({ previewEnabled: true, persistEvents: false });
+    const samples = preview.samples.filter((item) => item.request.resource !== 'emergency_stop');
+    return `
+      <section class="approval-warning">
+        <strong>V2 Safety Preview</strong>
+        <p>Опасные действия не выполняются. Safety Core показывает, какое подтверждение нужно до любого шага.</p>
+        <div class="guardian-cost-grid">
+          ${samples.map((sample) => `
+            <article class="guardian-mini-card">
+              <strong>${this.escapeHtml(sample.request.action)} / ${this.escapeHtml(sample.request.resource)}</strong>
+              <span>${this.escapeHtml(sample.verdict.verdict)}</span>
+              <p>${this.escapeHtml(sample.verdict.userMessage)}</p>
+              <small>${sample.verdict.requiredTypedPhrase ? `Фраза: ${this.escapeHtml(sample.verdict.requiredTypedPhrase)}` : this.escapeHtml(sample.verdict.riskLevel)}</small>
+              <details>
+                <summary>Экспертно</summary>
+                <dl class="approval-grid">
+                  <div><dt>actor</dt><dd>${this.escapeHtml(sample.verdict.actor)}</dd></div>
+                  <div><dt>action</dt><dd>${this.escapeHtml(sample.verdict.action)}</dd></div>
+                  <div><dt>resource</dt><dd>${this.escapeHtml(sample.verdict.resource)}</dd></div>
+                  <div><dt>risk</dt><dd>${this.escapeHtml(sample.verdict.riskLevel)}</dd></div>
+                  <div><dt>approval</dt><dd>${sample.verdict.requiredApproval ? 'required' : 'not_required'}</dd></div>
+                  <div><dt>approval_id</dt><dd>${this.escapeHtml(sample.approval.approval_id)}</dd></div>
+                  <div><dt>event</dt><dd>${this.escapeHtml(sample.events[0]?.event_type || 'preview')}</dd></div>
+                </dl>
+              </details>
+            </article>
+          `).join('')}
         </div>
       </section>
     `;
