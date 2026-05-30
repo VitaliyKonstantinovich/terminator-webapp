@@ -130,6 +130,19 @@ Recommended next V2-P0 planning block:
 
 V2-P0-3: Memory Search 11/10 architecture and performance contract.
 
+## V2-P0-3 Status
+
+V2-P0-3 Memory Search 11/10 architecture and performance contract: planned / docs created.
+
+Planning artifacts:
+- `docs/TERMINATOR_V2_P0_3_MEMORY_SEARCH_11_10_ARCHITECTURE_PERFORMANCE_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_3_SCORECARD_2026-05-30.md`
+- `evidence/v2_p0_3_memory_search_11_10/V2_P0_3_RESULT.md`
+
+Recommended next V2-P0 planning block:
+
+V2-P0-4: Safety / Control 11/10 capability matrix and threat model.
+
 ## Exit Gate For V2-P0
 
 V2-P0 is ready only when:
