@@ -333,6 +333,7 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2CapabilityMatrixEnabled: false,
   v2SourceSnapshotsEnabled: false,
   v2SafetyPolicyPreviewEnabled: false,
+  v2ControlledApplyPreviewEnabled: false,
   v2MemoryContractPreviewEnabled: false,
   v2RecoveryStatePreviewEnabled: false
 });
@@ -375,7 +376,14 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.emergency_stop.enabled',
   'v2.emergency_stop.reset_requested',
   'v2.emergency_stop.reset_confirmed',
-  'v2.emergency_stop.reset_cancelled'
+  'v2.emergency_stop.reset_cancelled',
+  'v2.apply.requested',
+  'v2.apply.blocked',
+  'v2.apply.approval_required',
+  'v2.apply.allowed',
+  'v2.apply.completed',
+  'v2.rollback.required',
+  'v2.rollback.completed'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -5207,6 +5215,395 @@ const App = {
         blocked: samples.filter((item) => item.verdict.verdict === 'blocked').length,
         allow_with_warning: samples.filter((item) => item.verdict.verdict === 'allow_with_warning').length,
         owner_assisted_required: samples.filter((item) => item.verdict.verdict === 'owner_assisted_required').length
+      }
+    };
+  },
+
+  detectV2ControlledApplyRisk(applyRequest = {}) {
+    const diff = [
+      applyRequest.diffSummary,
+      applyRequest.targetPath,
+      applyRequest.targetResource,
+      applyRequest.resource
+    ].filter(Boolean).join(' ');
+    const secretLike = V2_SECRET_FIELD_PATTERN.test(diff) || /FAKE_SECRET|DO_NOT_USE|BEGIN PRIVATE|API[_-]?KEY/i.test(diff);
+    const billingLike = /billing|payment|paid|runner|subscription/i.test(diff);
+    const networkLike = /network|dns|vpn|proxy|firewall|cloudflare/i.test(diff);
+    const aiApiLike = /ai[_ -]?api|openai|gemini api|deepseek api|openrouter|embedding/i.test(diff);
+    return {
+      secretLike,
+      billingLike,
+      networkLike,
+      aiApiLike,
+      redZone: secretLike || networkLike || aiApiLike,
+      ownerAssisted: billingLike
+    };
+  },
+
+  evaluateV2ControlledApplyRequest(applyRequest = {}) {
+    const rawResource = applyRequest.targetResource || applyRequest.resource || 'repair_workspace';
+    const knownResource = V2_CAPABILITY_RESOURCES.includes(rawResource);
+    const targetResource = knownResource ? rawResource : 'task_state';
+    const targetPath = `${applyRequest.targetPath || applyRequest.target || ''}`.trim();
+    const actor = V2_CAPABILITY_ACTORS.includes(applyRequest.actor) ? applyRequest.actor : 'codex_repair';
+    const action = V2_CAPABILITY_ACTIONS.includes(applyRequest.action) ? applyRequest.action : 'write';
+    const rollbackAvailable = Boolean(applyRequest.rollbackAvailable || applyRequest.hasRollback);
+    const verifierStatus = `${applyRequest.verifierStatus || 'unknown'}`.toUpperCase();
+    const ownerDecision = applyRequest.ownerDecision || 'not_requested';
+    const guardianContext = applyRequest.guardianContext || {};
+    const isSandbox = Boolean(applyRequest.isSandbox || targetResource === 'repair_workspace');
+    const isActiveProjectTarget = Boolean(applyRequest.isActiveProjectTarget || targetResource === 'active_project_files');
+    const risk = this.detectV2ControlledApplyRisk(applyRequest);
+    const verifierOk = ['PASS', 'PASS_WITH_RISKS'].includes(verifierStatus);
+    const guardianVerdict = guardianContext.verdict || 'allow_with_warning';
+    const guardianRisk = guardianContext.riskLevel || guardianContext.risk_level || 'medium';
+    const base = this.evaluateV2ActionRequest({
+      actor,
+      action,
+      resource: targetResource,
+      target: targetPath,
+      hasRollback: rollbackAvailable,
+      verifierStatus,
+      ownerDecision,
+      context: applyRequest.context || {},
+      riskHints: applyRequest.riskHints || []
+    });
+
+    let allowed = false;
+    let verdict = base.verdict === 'allow' ? 'allow_with_warning' : base.verdict;
+    let riskLevel = base.riskLevel || base.risk_level || 'medium';
+    let reason = base.reason || 'Controlled Apply requires Guardian, Verifier and rollback gates.';
+    let requiredApproval = base.requiredApproval;
+    let requiredRollback = true;
+    let requiredVerifier = true;
+    let requiredTypedPhrase = base.requiredTypedPhrase || '';
+    let userMessage = 'Исправление готово к проверке: нужен откат, Verifier и Guardian.';
+
+    const setDecision = (next) => {
+      allowed = next.allowed ?? allowed;
+      verdict = next.verdict ?? verdict;
+      riskLevel = next.riskLevel ?? riskLevel;
+      reason = next.reason ?? reason;
+      requiredApproval = next.requiredApproval ?? requiredApproval;
+      requiredRollback = next.requiredRollback ?? requiredRollback;
+      requiredVerifier = next.requiredVerifier ?? requiredVerifier;
+      requiredTypedPhrase = next.requiredTypedPhrase ?? requiredTypedPhrase;
+      userMessage = next.userMessage ?? userMessage;
+    };
+
+    if (!knownResource || !targetPath || /\.\.[\\/]/.test(targetPath)) {
+      setDecision({
+        verdict: 'blocked',
+        riskLevel: 'high',
+        reason: 'Unknown or unsafe target path.',
+        requiredApproval: true,
+        userMessage: 'Цель исправления неизвестна или небезопасна. Применение заблокировано.'
+      });
+    } else if (risk.redZone) {
+      setDecision({
+        verdict: 'red_zone_stop',
+        riskLevel: 'critical',
+        reason: 'Diff contains red-zone content or forbidden system/API/network intent.',
+        requiredApproval: true,
+        userMessage: 'В diff найден red-zone риск. Исправление заблокировано.'
+      });
+    } else if (risk.ownerAssisted) {
+      setDecision({
+        verdict: 'owner_assisted_required',
+        riskLevel: 'critical',
+        reason: 'Billing/payment intent requires owner-assisted review.',
+        requiredApproval: true,
+        userMessage: 'Финансовое действие требует ручной проверки владельца.'
+      });
+    } else if (!rollbackAvailable) {
+      setDecision({
+        verdict: 'blocked',
+        riskLevel: 'high',
+        reason: 'Rollback point is required before mutable apply.',
+        requiredApproval: true,
+        userMessage: 'Нет точки отката. Применение исправления заблокировано.'
+      });
+    } else if (!verifierOk) {
+      setDecision({
+        verdict: 'blocked',
+        riskLevel: 'high',
+        reason: 'Verifier must be PASS or PASS_WITH_RISKS before apply.',
+        requiredApproval: true,
+        userMessage: 'Verifier не подтвердил исправление. Применение заблокировано.'
+      });
+    } else if (['red_zone_stop', 'blocked'].includes(guardianVerdict)) {
+      setDecision({
+        verdict: guardianVerdict,
+        riskLevel: guardianRisk === 'critical' ? 'critical' : 'high',
+        reason: 'Guardian blocked controlled apply.',
+        requiredApproval: true,
+        userMessage: 'Guardian заблокировал применение исправления.'
+      });
+    } else if (guardianVerdict === 'approval_required' || guardianRisk === 'high' || guardianRisk === 'critical') {
+      setDecision({
+        verdict: 'approval_required',
+        riskLevel: guardianRisk === 'critical' ? 'critical' : 'high',
+        reason: 'Guardian requires approval before controlled apply.',
+        requiredApproval: true,
+        userMessage: 'Guardian требует подтверждение перед применением исправления.'
+      });
+    } else if (isActiveProjectTarget && ownerDecision !== 'approved') {
+      setDecision({
+        verdict: 'approval_required',
+        riskLevel: 'high',
+        reason: 'Active project apply requires explicit owner approval.',
+        requiredApproval: true,
+        userMessage: 'Active project нельзя менять без отдельного подтверждения владельца.'
+      });
+    } else if (!isSandbox && !isActiveProjectTarget) {
+      setDecision({
+        verdict: 'blocked',
+        riskLevel: 'high',
+        reason: 'Controlled Apply target must be sandbox/repair workspace or explicitly approved active project.',
+        requiredApproval: true,
+        userMessage: 'Исправление можно применять только в sandbox/repair workspace или после approval.'
+      });
+    } else if (isSandbox || ownerDecision === 'approved') {
+      setDecision({
+        allowed: true,
+        verdict: 'allow_with_warning',
+        riskLevel: isSandbox ? 'medium' : 'high',
+        reason: isSandbox ? 'Sandbox apply has rollback and Verifier PASS.' : 'Approved active project apply still requires event log.',
+        requiredApproval: !isSandbox,
+        userMessage: isSandbox
+          ? 'Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.'
+          : 'Можно продолжить только как approved active apply с rollback и event log.'
+      });
+    }
+
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      evaluated_at: new Date().toISOString(),
+      allowed,
+      verdict,
+      riskLevel,
+      risk_level: riskLevel,
+      reason,
+      requiredApproval,
+      requiredRollback,
+      requiredVerifier,
+      requiredTypedPhrase,
+      userMessage,
+      actor,
+      action,
+      targetResource,
+      targetPath,
+      rollbackAvailable,
+      verifierStatus,
+      guardianVerdict,
+      ownerDecision,
+      isSandbox,
+      isActiveProjectTarget,
+      expertDetails: {
+        baseVerdict: base.verdict,
+        baseRisk: base.riskLevel,
+        risk,
+        guardianContext,
+        diffSummary: `${applyRequest.diffSummary || ''}`.slice(0, 240)
+      }
+    };
+  },
+
+  createV2ControlledApplyApproval(applyRequest = {}, verdict = this.evaluateV2ControlledApplyRequest(applyRequest)) {
+    const approval = this.createV2ApprovalRequest({
+      actor: applyRequest.actor || 'codex_repair',
+      action: applyRequest.action || 'write',
+      resource: applyRequest.targetResource || applyRequest.resource || 'repair_workspace',
+      target: applyRequest.targetPath || applyRequest.target || 'controlled_apply',
+      hasRollback: Boolean(applyRequest.rollbackAvailable || applyRequest.hasRollback),
+      verifierStatus: applyRequest.verifierStatus || 'unknown',
+      ownerDecision: applyRequest.ownerDecision || 'not_requested',
+      refs: applyRequest.refs || {}
+    }, {
+      ...verdict,
+      requiredApproval: verdict.requiredApproval,
+      requiredRollback: verdict.requiredRollback,
+      requiredTypedPhrase: verdict.requiredTypedPhrase || ''
+    });
+    return {
+      ...approval,
+      apply_id: applyRequest.apply_id || `apply_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      controlled_apply_status: verdict.allowed ? 'ready_for_sandbox' : 'blocked',
+      verifier_status: verdict.verifierStatus,
+      rollback_status: verdict.rollbackAvailable ? 'available' : 'required'
+    };
+  },
+
+  recordV2ControlledApplyEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.apply.requested';
+    const eventPayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_controlled_apply_${safeType.replaceAll('.', '_')}_${Math.random().toString(36).slice(2, 8)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'codex_repair',
+        resource: payload.targetResource || payload.resource || 'repair_workspace',
+        risk_level: payload.riskLevel || payload.risk_level || 'medium',
+        refs: payload.refs || {},
+        message: payload.message || 'Controlled Apply preview event.',
+        payload: eventPayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'codex_repair',
+      resource: payload.targetResource || payload.resource || 'repair_workspace',
+      risk_level: payload.riskLevel || payload.risk_level || 'medium',
+      refs: payload.refs || {},
+      message: payload.message || 'Controlled Apply event.',
+      payload: eventPayload
+    });
+  },
+
+  buildV2ControlledApplySamples(options = {}) {
+    const basePath = 'D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt';
+    const samples = [
+      {
+        id: 'sandbox_apply_with_rollback_pass',
+        expected: 'allow_with_warning',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'safe copy update in repair workspace', rollbackAvailable: true, verifierStatus: 'PASS', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true }
+      },
+      {
+        id: 'sandbox_apply_without_rollback',
+        expected: 'blocked',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'safe copy update without rollback', rollbackAvailable: false, verifierStatus: 'PASS', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true }
+      },
+      {
+        id: 'verifier_fail',
+        expected: 'blocked',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'safe copy update but verifier failed', rollbackAvailable: true, verifierStatus: 'FAIL', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true }
+      },
+      {
+        id: 'guardian_high_risk',
+        expected: 'approval_required',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'high risk repair workspace update', rollbackAvailable: true, verifierStatus: 'PASS', guardianContext: { verdict: 'approval_required', riskLevel: 'high' }, isSandbox: true }
+      },
+      {
+        id: 'active_project_without_approval',
+        expected: 'approval_required',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'active_project_files', targetPath: 'app.js', diffSummary: 'active project mutation request', rollbackAvailable: true, verifierStatus: 'PASS', guardianContext: { verdict: 'approval_required', riskLevel: 'high' }, ownerDecision: 'not_requested', isActiveProjectTarget: true }
+      },
+      {
+        id: 'active_project_approval_no_rollback',
+        expected: 'blocked',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'active_project_files', targetPath: 'app.js', diffSummary: 'approved active project mutation without rollback', rollbackAvailable: false, verifierStatus: 'PASS', guardianContext: { verdict: 'approval_required', riskLevel: 'high' }, ownerDecision: 'approved', isActiveProjectTarget: true }
+      },
+      {
+        id: 'secret_like_diff',
+        expected: 'red_zone_stop',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'secret-like marker should not be applied', rollbackAvailable: true, verifierStatus: 'PASS', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true }
+      },
+      {
+        id: 'billing_network_ai_diff',
+        expected: 'red_zone_stop',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'enable AI API billing payment network proxy', rollbackAvailable: true, verifierStatus: 'PASS', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true }
+      },
+      {
+        id: 'unknown_target_path',
+        expected: 'blocked',
+        request: { actor: 'codex_repair', action: 'write', targetResource: 'repair_workspace', targetPath: '..\\unknown\\target.txt', diffSummary: 'unknown target path', rollbackAvailable: true, verifierStatus: 'PASS', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true }
+      },
+      {
+        id: 'rollback_requested',
+        expected: 'allow_with_warning',
+        request: { actor: 'recovery_wizard', action: 'write', targetResource: 'repair_workspace', targetPath: basePath, diffSummary: 'rollback requested preview with no destructive side effect', rollbackAvailable: true, verifierStatus: 'PASS_WITH_RISKS', guardianContext: { verdict: 'allow_with_warning', riskLevel: 'medium' }, isSandbox: true, refs: { rollback_id: 'rollback_preview' } }
+      }
+    ];
+    return samples.map((sample) => {
+      const verdict = this.evaluateV2ControlledApplyRequest(sample.request);
+      const approval = this.createV2ControlledApplyApproval(sample.request, verdict);
+      const events = [
+        this.recordV2ControlledApplyEvent('v2.apply.requested', {
+          sample_id: sample.id,
+          actor: sample.request.actor,
+          targetResource: verdict.targetResource,
+          targetPath: verdict.targetPath,
+          verdict: verdict.verdict,
+          riskLevel: verdict.riskLevel,
+          message: verdict.userMessage,
+          refs: { sample_id: sample.id, approval_id: approval.approval_id }
+        }, { persist: options.persistEvents === true }),
+        verdict.requiredRollback && !verdict.rollbackAvailable
+          ? this.recordV2ControlledApplyEvent('v2.rollback.required', {
+              sample_id: sample.id,
+              targetResource: verdict.targetResource,
+              riskLevel: verdict.riskLevel,
+              message: 'Rollback is required before apply.',
+              refs: { sample_id: sample.id, approval_id: approval.approval_id }
+            }, { persist: options.persistEvents === true })
+          : null,
+        verdict.verdict === 'approval_required'
+          ? this.recordV2ControlledApplyEvent('v2.apply.approval_required', {
+              sample_id: sample.id,
+              targetResource: verdict.targetResource,
+              riskLevel: verdict.riskLevel,
+              message: verdict.userMessage,
+              refs: { sample_id: sample.id, approval_id: approval.approval_id }
+            }, { persist: options.persistEvents === true })
+          : null,
+        ['blocked', 'red_zone_stop', 'owner_assisted_required'].includes(verdict.verdict)
+          ? this.recordV2ControlledApplyEvent('v2.apply.blocked', {
+              sample_id: sample.id,
+              targetResource: verdict.targetResource,
+              riskLevel: verdict.riskLevel,
+              message: verdict.userMessage,
+              refs: { sample_id: sample.id, approval_id: approval.approval_id }
+            }, { persist: options.persistEvents === true })
+          : null,
+        verdict.allowed
+          ? this.recordV2ControlledApplyEvent('v2.apply.allowed', {
+              sample_id: sample.id,
+              targetResource: verdict.targetResource,
+              riskLevel: verdict.riskLevel,
+              message: verdict.userMessage,
+              refs: { sample_id: sample.id, approval_id: approval.approval_id }
+            }, { persist: options.persistEvents === true })
+          : null,
+        verdict.rollbackAvailable
+          ? this.recordV2ControlledApplyEvent('v2.rollback.created', {
+              sample_id: sample.id,
+              targetResource: verdict.targetResource,
+              riskLevel: 'medium',
+              message: 'Rollback point exists before controlled apply.',
+              refs: { sample_id: sample.id, approval_id: approval.approval_id }
+            }, { persist: options.persistEvents === true })
+          : null
+      ].filter(Boolean);
+      return {
+        sample_id: sample.id,
+        expected: sample.expected,
+        actual: verdict.verdict,
+        status: verdict.verdict === sample.expected ? 'PASS' : 'FAIL',
+        request: sample.request,
+        verdict,
+        approval,
+        events
+      };
+    });
+  },
+
+  getV2ControlledApplyPreview(options = {}) {
+    const samples = this.buildV2ControlledApplySamples(options);
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2ControlledApplyPreviewEnabled: Boolean(options.previewEnabled) }),
+      status: 'preview',
+      ordinary_summary: 'Controlled Apply проверяет откат, Verifier, Guardian и approval до применения исправления.',
+      samples,
+      summary: {
+        total: samples.length,
+        pass: samples.filter((item) => item.status === 'PASS').length,
+        failed: samples.filter((item) => item.status !== 'PASS').length,
+        allowed: samples.filter((item) => item.verdict.allowed).length,
+        blocked: samples.filter((item) => ['blocked', 'red_zone_stop', 'owner_assisted_required'].includes(item.verdict.verdict)).length,
+        approval_required: samples.filter((item) => item.verdict.verdict === 'approval_required').length,
+        rollback_required: samples.filter((item) => item.verdict.requiredRollback && !item.verdict.rollbackAvailable).length
       }
     };
   },
@@ -17871,6 +18268,7 @@ const App = {
     if (active) this.activeApprovalId = active.approval_id;
     host.innerHTML = `
       ${this.renderV2ApprovalCenterPreview()}
+      ${this.renderV2ControlledApplyPreview()}
       <section class="approval-center-grid">
         <div class="approval-queue">
           <div class="approval-center-head">
@@ -17908,6 +18306,47 @@ const App = {
                   <div><dt>resource</dt><dd>${this.escapeHtml(sample.verdict.resource)}</dd></div>
                   <div><dt>risk</dt><dd>${this.escapeHtml(sample.verdict.riskLevel)}</dd></div>
                   <div><dt>approval</dt><dd>${sample.verdict.requiredApproval ? 'required' : 'not_required'}</dd></div>
+                  <div><dt>approval_id</dt><dd>${this.escapeHtml(sample.approval.approval_id)}</dd></div>
+                  <div><dt>event</dt><dd>${this.escapeHtml(sample.events[0]?.event_type || 'preview')}</dd></div>
+                </dl>
+              </details>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  },
+
+  renderV2ControlledApplyPreview() {
+    const preview = this.getV2ControlledApplyPreview({ previewEnabled: true, persistEvents: false });
+    const safeSample = preview.samples.find((sample) => sample.sample_id === 'sandbox_apply_with_rollback_pass') || preview.samples[0];
+    return `
+      <section class="approval-warning">
+        <strong>Controlled Apply</strong>
+        <p>Исправление можно применять только после отката, Verifier и Guardian. Active project не меняется в этом preview.</p>
+        <div class="approval-grid">
+          <div><dt>Исправление</dt><dd>${this.escapeHtml(safeSample?.verdict?.allowed ? 'готово к sandbox-проверке' : 'требует проверки')}</dd></div>
+          <div><dt>Откат</dt><dd>${this.escapeHtml(safeSample?.verdict?.rollbackAvailable ? 'найден' : 'требуется')}</dd></div>
+          <div><dt>Verifier</dt><dd>${this.escapeHtml(safeSample?.verdict?.verifierStatus || 'unknown')}</dd></div>
+          <div><dt>Guardian</dt><dd>${this.escapeHtml(safeSample?.verdict?.verdict || 'unknown')}</dd></div>
+        </div>
+        <p><strong>Следующий шаг:</strong> применить только в sandbox или запросить подтверждение владельца.</p>
+        <div class="guardian-cost-grid">
+          ${preview.samples.slice(0, 6).map((sample) => `
+            <article class="guardian-mini-card">
+              <strong>${this.escapeHtml(sample.sample_id.replaceAll('_', ' '))}</strong>
+              <span>${this.escapeHtml(sample.verdict.verdict)}</span>
+              <p>${this.escapeHtml(sample.verdict.userMessage)}</p>
+              <small>${sample.verdict.requiredRollback ? 'Откат обязателен' : this.escapeHtml(sample.verdict.riskLevel)}</small>
+              <details>
+                <summary>Экспертно</summary>
+                <dl class="approval-grid">
+                  <div><dt>action</dt><dd>${this.escapeHtml(sample.request.action)}</dd></div>
+                  <div><dt>resource</dt><dd>${this.escapeHtml(sample.verdict.targetResource)}</dd></div>
+                  <div><dt>target</dt><dd>${this.escapeHtml(sample.verdict.targetPath)}</dd></div>
+                  <div><dt>rollback</dt><dd>${sample.verdict.rollbackAvailable ? 'available' : 'missing'}</dd></div>
+                  <div><dt>verifier</dt><dd>${this.escapeHtml(sample.verdict.verifierStatus)}</dd></div>
+                  <div><dt>guardian</dt><dd>${this.escapeHtml(sample.verdict.guardianVerdict)}</dd></div>
                   <div><dt>approval_id</dt><dd>${this.escapeHtml(sample.approval.approval_id)}</dd></div>
                   <div><dt>event</dt><dd>${this.escapeHtml(sample.events[0]?.event_type || 'preview')}</dd></div>
                 </dl>
