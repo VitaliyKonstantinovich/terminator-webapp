@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T15:50:59-05:00",
+  "mode": "git-status-path-classification-only",
+  "policy": {
+    "content_read": false,
+    "deleted": false,
+    "cleanup_performed": false,
+    "old_untracked_committed": false
+  },
+  "summary_counts": {
+    "docs_candidates": 4,
+    "old_evidence_dirs": 4,
+    "old_logs": 43,
+    "old_screenshots": 20
+  },
+  "classification": [
+    {
+      "category": "docs_candidates",
+      "count": 4,
+      "examples": [
+        "docs/LIVE_DEPLOY_V1_COMMIT_PACKAGE_2026-05-29.md",
+        "docs/MEMORY_GUARD_RECOVERY_CHECKPOINT_2026-05-30.md",
+        "docs/PRODUCT_COMPLETION_LOOP6_LITE_STATE_MAP_2026-05-30.md",
+        "docs/PRODUCT_COMPLETION_LOOP7_FINAL_OWNER_INDEPENDENT_GATE_2026-05-30.md"
+      ],
+      "decision": "leave untracked; separate owner/reviewer decision"
+    },
+    {
+      "category": "old_evidence_dirs",
+      "count": 4,
+      "examples": [
+        "evidence/live_deploy_v1_commit_package/",
+        "evidence/product_completion_loop6_lite/",
+        "evidence/product_completion_loop7/",
+        "evidence/v2_p0_implementation_pack/"
+      ],
+      "decision": "leave untracked; not needed for V2-P0-L closeout commit"
+    },
+    {
+      "category": "old_logs",
+      "count": 43,
+      "examples": [
+        "evidence/product_completion_loop4/logs/",
+        "evidence/product_completion_loop5/logs/",
+        "evidence/v2_p0_a_foundation/logs/",
+        "evidence/v2_p0_b_safety_core/logs/"
+      ],
+      "decision": "leave untracked; no mass evidence scan"
+    },
+    {
+      "category": "old_screenshots",
+      "count": 20,
+      "examples": [
+        "evidence/mina_scheme_visual_refinement/screenshots/",
+        "evidence/v1_product_completion_audit/screenshots/",
+        "evidence/v2_11_10_scorecard/screenshots/"
+      ],
+      "decision": "leave untracked; screenshots are heavy and outside current closeout"
+    }
+  ],
+  "p0_closeout_impact": "NO_BLOCKER",
+  "notes": [
+    "Untracked files pre-existed this closeout block.",
+    "No cleanup/delete performed.",
+    "Only V2-P0-L docs/evidence should be staged for the closeout commit."
+  ]
+}

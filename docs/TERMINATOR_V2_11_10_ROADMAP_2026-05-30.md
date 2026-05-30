@@ -186,3 +186,50 @@ V2-P0 is ready only when:
 - memory search is fast and relevant;
 - safety gates are visible and reliable;
 - owner-assisted items are clearly separated from product defects.
+
+## V2 P0 Closeout Status
+
+Status: PASS for owner-independent P0 implementation loops A-K.
+
+Closeout artifacts:
+- `docs/TERMINATOR_V2_P0_FINAL_CLOSEOUT_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_FINAL_SCORECARD_2026-05-30.md`
+- `evidence/v2_p0_final_closeout/p0_final_status.json`
+- `evidence/v2_p0_final_closeout/p0_final_scorecard.json`
+- `evidence/v2_p0_final_closeout/light_live_gate.json`
+- `evidence/v2_p0_final_closeout/untracked_triage_light.json`
+
+Completed P0 blocks:
+- V2-P0-A Foundation contracts/source snapshots: PASS.
+- V2-P0-B Safety Core policy preview: PASS.
+- V2-P0-C Approval + Emergency Stop runtime wiring: PASS.
+- V2-P0-D Controlled Apply / Rollback safety wiring: PASS.
+- V2-P0-E Memory Search runtime wiring: PASS.
+- V2-P0-F Recovery state runtime wiring: PASS.
+- V2-P0-G First Run / Setup Route snapshot wiring: PASS.
+- V2-P0-H Owner Command Center / First Run panel: PASS.
+- V2-P0-I Recovery Command Center panel: PASS.
+- V2-P0-J Integrated Flow / Source of Truth Gate: PASS.
+- V2-P0-K Acceptance Suite / Red-Team Gate: PASS.
+
+P0 owner-independent status:
+- final status: PASS;
+- P0 blockers: 0;
+- latest live deploy check: PASS, GitHub Pages run `26693805806`;
+- V2-P0-K acceptance suite: 49 checks, 47 pass, 0 failed, 1 owner-assisted, 1 postponed.
+
+Owner-assisted / postponed:
+- real phone / APK acceptance is postponed until production V2 final;
+- billing dashboards are owner-assisted manual checks;
+- production rollback on the active project requires a separate owner-approved test.
+
+P1 readiness:
+- P0 implementation loops can pause after reviewer/owner acceptance;
+- P1 can start from the owner-independent P0 baseline;
+- recommended first P1: QA Autotest Factory.
+
+P1 gate rules:
+- Memory Guard must be GREEN before heavy checks;
+- do not run BlueStacks/APK without a dedicated mobile task;
+- do not use AI API, billing/payment, secrets, Cloudflare/GitHub settings, DNS/VPN/proxy/network or destructive cleanup;
+- keep owner-assisted and postponed checks separate from product defects.

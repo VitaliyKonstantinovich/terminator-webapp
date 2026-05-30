@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T15:50:59-05:00",
+  "memory_guard_status": "GREEN",
+  "git_head": "ef7877279044db9f2dbf7b27f4de69fbb8dac51b",
+  "origin_main": "ef7877279044db9f2dbf7b27f4de69fbb8dac51b",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "p0_status": "PASS",
+  "p0_blocks": [
+    {
+      "block_id": "V2-P0-A",
+      "name": "Foundation contracts and source snapshots",
+      "status": "PASS",
+      "commits": ["014edcb"],
+      "docs": ["docs/TERMINATOR_V2_P0_A_FOUNDATION_IMPLEMENTATION_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_a_foundation/"],
+      "checks": ["docs status PASS", "feature flags default safe"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["V2 foundation remains preview-gated and must stay protected by feature flags."]
+    },
+    {
+      "block_id": "V2-P0-B",
+      "name": "Safety Core policy preview",
+      "status": "PASS",
+      "commits": ["806bfb4"],
+      "docs": ["docs/TERMINATOR_V2_P0_B_SAFETY_CORE_WIRING_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_b_safety_core/"],
+      "checks": ["dangerous action rules documented", "approval model present"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["Real production destructive actions remain forbidden without explicit approval."]
+    },
+    {
+      "block_id": "V2-P0-C",
+      "name": "Approval and Emergency Stop runtime wiring",
+      "status": "PASS",
+      "commits": ["0e42e47"],
+      "docs": ["docs/TERMINATOR_V2_P0_C_APPROVAL_EMERGENCY_RUNTIME_WIRING_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_c_approval_emergency/"],
+      "checks": ["RESET EMERGENCY STOP typed confirmation", "wrong phrase blocked", "events recorded"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["Owner must still confirm before resetting a real emergency state."]
+    },
+    {
+      "block_id": "V2-P0-D",
+      "name": "Controlled Apply and rollback safety wiring",
+      "status": "PASS",
+      "commits": ["865bdc8"],
+      "docs": ["docs/TERMINATOR_V2_P0_D_CONTROLLED_APPLY_SAFETY_WIRING_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_d_controlled_apply/"],
+      "checks": ["sandbox apply path", "rollback required", "Verifier and Guardian gates"],
+      "owner_assisted": ["production rollback on active project"],
+      "postponed": [],
+      "risks": ["Production apply remains owner-approved only."]
+    },
+    {
+      "block_id": "V2-P0-E",
+      "name": "Memory Search runtime wiring",
+      "status": "PASS",
+      "commits": ["75f8236"],
+      "docs": ["docs/TERMINATOR_V2_P0_E_MEMORY_SEARCH_RUNTIME_WIRING_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_e_memory_search/"],
+      "checks": ["exact/strong/weak/none relevance", "impossible query empty state", "Privacy Guard block for secret-like values"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["Large real corpus performance still belongs to later P1/P2 load tests."]
+    },
+    {
+      "block_id": "V2-P0-F",
+      "name": "Recovery state runtime wiring",
+      "status": "PASS",
+      "commits": ["bc0229b"],
+      "docs": ["docs/TERMINATOR_V2_P0_F_RECOVERY_STATE_RUNTIME_WIRING_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_f_recovery_state/"],
+      "checks": ["incident contract", "state machine", "Diagnostic Pack preview", "no active project mutation"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["Recovery remains controlled and must not apply changes outside approved paths."]
+    },
+    {
+      "block_id": "V2-P0-G",
+      "name": "First Run and Setup Route snapshot wiring",
+      "status": "PASS",
+      "commits": ["cb25784"],
+      "docs": ["docs/TERMINATOR_V2_P0_G_FIRST_RUN_SETUP_ROUTE_WIRING_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_g_first_run_setup_route/"],
+      "checks": ["one primary next action", "owner-assisted separated", "postponed is not blocker"],
+      "owner_assisted": [],
+      "postponed": ["real phone/APK until production V2 final"],
+      "risks": ["Setup Route must keep using source snapshots, not hardcoded readiness."]
+    },
+    {
+      "block_id": "V2-P0-H",
+      "name": "Owner Command Center first-run panel",
+      "status": "PASS",
+      "commits": ["31b0a6e"],
+      "docs": ["docs/TERMINATOR_V2_P0_H_OWNER_COMMAND_CENTER_FIRST_RUN_PANEL_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_h_owner_command_center/"],
+      "checks": ["Start/Menu/Mission/System placement", "ordinary/expert split", "safe route actions"],
+      "owner_assisted": ["billing dashboards", "real phone"],
+      "postponed": ["real phone/APK until production V2 final"],
+      "risks": ["Owner-assisted items must remain visibly separate from blockers."]
+    },
+    {
+      "block_id": "V2-P0-I",
+      "name": "Recovery Command Center panel",
+      "status": "PASS",
+      "commits": ["eafaa75"],
+      "docs": ["docs/TERMINATOR_V2_P0_I_RECOVERY_COMMAND_CENTER_PANEL_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_i_recovery_command_center/"],
+      "checks": ["active incident card", "playbook", "Diagnostic Pack preview", "safe next action"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["Recovery panel must not replace Guardian or execute repair automatically."]
+    },
+    {
+      "block_id": "V2-P0-J",
+      "name": "Integrated Flow / Source of Truth Gate",
+      "status": "PASS",
+      "commits": ["22fa80f", "9a65696"],
+      "docs": ["docs/TERMINATOR_V2_P0_J_INTEGRATED_FLOW_SOURCE_OF_TRUTH_GATE_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_j_integrated_flow/", "evidence/live_deploy_v2_p0_j_integrated_flow/"],
+      "checks": ["source consistency", "contradiction detection", "live evidence"],
+      "owner_assisted": [],
+      "postponed": [],
+      "risks": ["Integrated status must remain a gate, not a fake green dashboard."]
+    },
+    {
+      "block_id": "V2-P0-K",
+      "name": "Acceptance Suite / Red-Team Gate",
+      "status": "PASS",
+      "commits": ["081c27c", "ef78772"],
+      "docs": ["docs/TERMINATOR_V2_P0_K_ACCEPTANCE_SUITE_RED_TEAM_GATE_2026-05-30.md"],
+      "evidence": ["evidence/v2_p0_k_acceptance_suite/smoke.json", "evidence/live_deploy_v2_p0_k_acceptance_suite/live_smoke.json"],
+      "checks": ["49 checks", "47 pass", "0 failed", "1 owner-assisted", "1 postponed", "red-team gate PASS", "live smoke PASS"],
+      "owner_assisted": ["real owner phone / production phone acceptance"],
+      "postponed": ["BlueStacks/APK/real phone until production V2 final"],
+      "risks": ["This is a lightweight P0 owner-independent gate, not full final QAMax."]
+    }
+  ],
+  "p0_blockers": [],
+  "p1_blockers": [
+    "Owner-assisted real phone/PWA/APK acceptance is postponed until production V2 final.",
+    "Production rollback on active project requires separate owner approval.",
+    "Billing dashboards are manual owner checks and were not opened."
+  ],
+  "can_pause_p0_loops": true,
+  "can_start_p1_after_review": true,
+  "recommended_first_p1": "QA Autotest Factory: turn the V2-P0-K acceptance suite into repeatable fixture-based product tests.",
+  "required_gates_for_p1": [
+    "Memory Guard GREEN before heavy checks.",
+    "No BlueStacks/APK until explicit mobile task.",
+    "No billing/payment/AI API/secrets/settings changes.",
+    "Keep owner-assisted and postponed checks separate from product blockers.",
+    "Do not mutate active project outside controlled apply with rollback and approval."
+  ]
+}

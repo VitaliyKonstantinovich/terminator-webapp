@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T15:50:59-05:00",
+  "mode": "light-live-gate-no-screenshots",
+  "live_base": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "memory_guard_status": "GREEN",
+  "fetch": {
+    "root_status": 200,
+    "app_js_status": 200,
+    "styles_css_status": 200
+  },
+  "required_markers": {
+    "v2P0AcceptanceSuiteEnabled": true,
+    "runV2P0AcceptanceSuite": true,
+    "renderV2P0AcceptancePanel": true,
+    "getV2P0IntegratedSnapshot": true,
+    "renderV2P0IntegrationGatePanel": true,
+    "buildV2RecoveryCommandCenterSnapshot": true,
+    "renderV2RecoveryCommandCenterPanel": true,
+    "v2OwnerCommandCenterPreviewEnabled": true,
+    "minaSystemScheme": true,
+    "renderMinaSystemScheme": true,
+    "MINA_SCHEME_STATE_KEY": true,
+    "data-scheme-zone": true,
+    ".scheme-silhouette": true
+  },
+  "marker_alias_notes": [
+    "Task text expected getV2RecoveryCommandCenterSnapshot; current implementation exposes buildV2RecoveryCommandCenterSnapshot.",
+    "Task text expected v2CommandCenterEnabled; current implementation exposes v2OwnerCommandCenterPreviewEnabled.",
+    "Task text expected renderMinaSchemeScreen / MINA_SUBSYSTEMS; current implementation exposes renderMinaSystemScheme, MINA_SCHEME_STATE_KEY, data-scheme-zone and scheme DOM/CSS markers."
+  ],
+  "vm_acceptance_suite": {
+    "status": "PASS",
+    "overall_status": "PASS",
+    "p0_ready": true,
+    "total_checks": 49,
+    "passed_checks": 47,
+    "failed_checks": 0,
+    "owner_assisted_checks": 1,
+    "postponed_checks": 1,
+    "blockers": []
+  },
+  "security": {
+    "ai_api_hits": [],
+    "no_ai_api_domains": true,
+    "mojibake_detected": false,
+    "secrets_checked_in_light_gate": "source marker scan only; full repository secret scan is outside this closeout block"
+  },
+  "all_pass": true,
+  "notes": [
+    "No screenshots, no BlueStacks, no APK, no billing, no AI API.",
+    "Live gate used fetched GitHub Pages root/app.js/styles.css and a lightweight Node VM acceptance suite.",
+    "Real phone/APK remains postponed until production V2 final."
+  ]
+}

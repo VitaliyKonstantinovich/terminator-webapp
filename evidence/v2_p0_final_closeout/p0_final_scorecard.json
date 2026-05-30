@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T15:50:59-05:00",
+  "overall_owner_independent_p0_status": "PASS",
+  "categories": [
+    {
+      "category": "Foundation",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_A_FOUNDATION_IMPLEMENTATION_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Keep feature flags default-safe."
+    },
+    {
+      "category": "Safety",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_B_SAFETY_CORE_WIRING_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Preserve Guardian-first action routing."
+    },
+    {
+      "category": "Approval/Emergency Stop",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_C_APPROVAL_EMERGENCY_RUNTIME_WIRING_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Typed reset stays mandatory."
+    },
+    {
+      "category": "Controlled Apply/Rollback",
+      "status": "PASS",
+      "score": 95,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_D_CONTROLLED_APPLY_SAFETY_WIRING_2026-05-30.md"],
+      "risk": "MEDIUM",
+      "next_gate": "Production active-project apply requires owner-approved separate test."
+    },
+    {
+      "category": "Memory Search",
+      "status": "PASS",
+      "score": 95,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_E_MEMORY_SEARCH_RUNTIME_WIRING_2026-05-30.md"],
+      "risk": "MEDIUM",
+      "next_gate": "Large corpus performance in P1/P2."
+    },
+    {
+      "category": "Recovery State",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_F_RECOVERY_STATE_RUNTIME_WIRING_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Keep Diagnostic Pack preview non-mutating."
+    },
+    {
+      "category": "First Run/Setup Route",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_G_FIRST_RUN_SETUP_ROUTE_WIRING_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Route must keep one primary next action."
+    },
+    {
+      "category": "Owner Command Center",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_H_OWNER_COMMAND_CENTER_FIRST_RUN_PANEL_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Keep ordinary and expert modes separated."
+    },
+    {
+      "category": "Recovery Command Center",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_I_RECOVERY_COMMAND_CENTER_PANEL_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Recovery panel remains explanatory, not auto-repair."
+    },
+    {
+      "category": "Integrated Gate",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_J_INTEGRATED_FLOW_SOURCE_OF_TRUTH_GATE_2026-05-30.md"],
+      "risk": "LOW",
+      "next_gate": "Use as source-of-truth gate for future P1 checks."
+    },
+    {
+      "category": "Acceptance Suite/Red-Team",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_K_ACCEPTANCE_SUITE_RED_TEAM_GATE_2026-05-30.md", "evidence/live_deploy_v2_p0_k_acceptance_suite/live_smoke.json"],
+      "risk": "LOW",
+      "next_gate": "Promote to QA Autotest Factory in P1."
+    },
+    {
+      "category": "Mina Scheme",
+      "status": "PASS",
+      "score": 95,
+      "evidence_refs": ["evidence/v2_p0_final_closeout/light_live_gate.json"],
+      "risk": "LOW",
+      "next_gate": "Do not redesign in P0-L; future premium asset polish belongs later."
+    },
+    {
+      "category": "Mobile Web",
+      "status": "PARTIAL",
+      "score": 80,
+      "evidence_refs": ["evidence/live_deploy_v2_p0_k_acceptance_suite/live_smoke.json"],
+      "risk": "MEDIUM",
+      "next_gate": "Real phone/mobile acceptance remains owner-assisted/postponed."
+    },
+    {
+      "category": "Live Deploy",
+      "status": "PASS",
+      "score": 100,
+      "evidence_refs": ["GitHub Pages run 26693805806", "evidence/live_deploy_v2_p0_k_acceptance_suite/live_smoke.json"],
+      "risk": "LOW",
+      "next_gate": "Continue normal workflow only; no settings changes."
+    },
+    {
+      "category": "Owner-Assisted",
+      "status": "OWNER_ASSISTED",
+      "score": 70,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_FINAL_CLOSEOUT_2026-05-30.md"],
+      "risk": "MEDIUM",
+      "next_gate": "Owner checks billing dashboards, real phone, production rollback when appropriate."
+    },
+    {
+      "category": "Postponed APK/Real Phone",
+      "status": "POSTPONED",
+      "score": 0,
+      "evidence_refs": ["docs/TERMINATOR_V2_P0_FINAL_CLOSEOUT_2026-05-30.md"],
+      "risk": "MEDIUM",
+      "next_gate": "APK/real phone acceptance after production V2 final only."
+    }
+  ]
+}
