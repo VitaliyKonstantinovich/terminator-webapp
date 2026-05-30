@@ -1,0 +1,266 @@
+{
+  "generated_at": "2026-05-30T12:43:48.550Z",
+  "desktop": {
+    "title": "TERMINATOR MINA UI",
+    "activeScreen": "screen-system",
+    "hasApprovalPreview": true,
+    "hasEmergencyPreview": true,
+    "initialEmergencyPreview": true,
+    "bodyWidth": 762,
+    "viewportWidth": 762,
+    "noHorizontalOverflow": true
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noHorizontalOverflow": true
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noHorizontalOverflow": true
+  },
+  "emergency_runtime": {
+    "initialUi": {
+      "hasEmergencyPreview": true,
+      "hasResetPhrase": true
+    },
+    "afterNoPhrase": {
+      "emergency_stop_active": true,
+      "safe_mode": true
+    },
+    "afterWrongPhrase": {
+      "emergency_stop_active": true,
+      "safe_mode": true
+    },
+    "afterCorrectPhrase": {
+      "emergency_stop_active": false,
+      "safe_mode": false
+    },
+    "events": [
+      {
+        "id": "evt_1780145024096_wz3lm6",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:44.096Z",
+        "updated_at": "2026-05-30T12:43:44.096Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023940"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.approval.decided",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Emergency Stop reset approved by exact typed phrase.",
+        "payload": {
+          "approval_status": "approved",
+          "verdict": "allow_with_warning"
+        }
+      },
+      {
+        "id": "evt_1780145024093_0x8syn",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:44.093Z",
+        "updated_at": "2026-05-30T12:43:44.093Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023940"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.emergency_stop.reset_confirmed",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Стоп действия можно сбросить, событие будет записано.",
+        "payload": {
+          "verdict": "allow_with_warning",
+          "typed_phrase_confirmed": true
+        }
+      },
+      {
+        "id": "evt_1780145023940_6s8i8s",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.941Z",
+        "updated_at": "2026-05-30T12:43:43.941Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023940"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.emergency_stop.reset_requested",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Стоп действия можно сбросить, событие будет записано.",
+        "payload": {
+          "verdict": "allow_with_warning",
+          "typed_phrase_provided": true,
+          "required_typed_phrase": "[required]"
+        }
+      },
+      {
+        "id": "evt_1780145023940_m26yat",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.940Z",
+        "updated_at": "2026-05-30T12:43:43.940Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023940",
+          "source": "reset_emergency_stop"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.guardian.verdict",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Стоп действия можно сбросить, событие будет записано.",
+        "payload": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium",
+          "reason": "Emergency Stop reset phrase confirmed; event required.",
+          "actor": "owner",
+          "action": "configure",
+          "resource": "emergency_stop",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Стоп действия можно сбросить, событие будет записано."
+        }
+      },
+      {
+        "id": "evt_1780145023917_xcg7qv",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.917Z",
+        "updated_at": "2026-05-30T12:43:43.917Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023774"
+        },
+        "risk_level": "high",
+        "event_type": "v2.emergency_stop.reset_cancelled",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Фраза неверная. Стоп действия остаётся активным.",
+        "payload": {
+          "verdict": "blocked",
+          "typed_phrase_provided": true
+        }
+      },
+      {
+        "id": "evt_1780145023776_yestmr",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.776Z",
+        "updated_at": "2026-05-30T12:43:43.776Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023774"
+        },
+        "risk_level": "high",
+        "event_type": "v2.emergency_stop.reset_requested",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Фраза неверная. Стоп действия остаётся активным.",
+        "payload": {
+          "verdict": "blocked",
+          "typed_phrase_provided": true,
+          "required_typed_phrase": "[required]"
+        }
+      },
+      {
+        "id": "evt_1780145023775_u5pvsa",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.775Z",
+        "updated_at": "2026-05-30T12:43:43.775Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023774",
+          "source": "reset_emergency_stop"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Фраза неверная. Стоп действия остаётся активным.",
+        "payload": {
+          "verdict": "blocked",
+          "riskLevel": "high",
+          "reason": "Emergency Stop reset phrase is incorrect.",
+          "actor": "owner",
+          "action": "configure",
+          "resource": "emergency_stop",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Фраза неверная. Стоп действия остаётся активным."
+        }
+      },
+      {
+        "id": "evt_1780145023370_tprp3l",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.371Z",
+        "updated_at": "2026-05-30T12:43:43.371Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023369"
+        },
+        "risk_level": "high",
+        "event_type": "v2.emergency_stop.reset_requested",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Сброс Стоп действия требует точную фразу подтверждения.",
+        "payload": {
+          "verdict": "typed_confirmation_required",
+          "typed_phrase_provided": false,
+          "required_typed_phrase": "[required]"
+        }
+      },
+      {
+        "id": "evt_1780145023370_o3kbpb",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:43.370Z",
+        "updated_at": "2026-05-30T12:43:43.370Z",
+        "status": "recorded",
+        "refs": {
+          "approval_id": "approval_1780145023369",
+          "source": "reset_emergency_stop"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "owner",
+        "resource": "emergency_stop",
+        "message": "Сброс Стоп действия требует точную фразу подтверждения.",
+        "payload": {
+          "verdict": "typed_confirmation_required",
+          "riskLevel": "high",
+          "reason": "Emergency Stop reset requires exact typed confirmation.",
+          "actor": "owner",
+          "action": "configure",
+          "resource": "emergency_stop",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Сброс Стоп действия требует точную фразу подтверждения."
+        }
+      }
+    ]
+  },
+  "failed": []
+}

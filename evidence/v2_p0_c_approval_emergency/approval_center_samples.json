@@ -1,0 +1,637 @@
+{
+  "generated_at": "2026-05-30T12:43:48.585Z",
+  "samples": [
+    {
+      "sample_id": "approval_deploy",
+      "request": {
+        "id": "approval_deploy",
+        "actor": "webapp",
+        "action": "deploy",
+        "resource": "github_repo",
+        "target": "live_pages"
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T12:43:45.065Z",
+        "actor": "webapp",
+        "action": "deploy",
+        "resource": "github_repo",
+        "target": "live_pages",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Deploy requires typed confirmation and owner approval.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "ALLOW DEPLOY",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Deploy требует точную фразу подтверждения и approval.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "deploy",
+          "normalized_action": "deploy",
+          "resource": "github_repo",
+          "target": "live_pages",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "github_repo",
+            "action": "deploy",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      },
+      "approval": {
+        "id": "approval_1780145025065_5kyn19",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:45.065Z",
+        "updated_at": "2026-05-30T12:43:45.065Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780145025065",
+        "action": "deploy",
+        "resource": "github_repo",
+        "reason": "Deploy requires typed confirmation and owner approval.",
+        "affected_resources": [
+          "github_repo",
+          "live_pages"
+        ],
+        "rollback_status": "not_required",
+        "verifier_status": "unknown",
+        "guardian_verdict": "typed_confirmation_required",
+        "required_typed_phrase": "ALLOW DEPLOY"
+      },
+      "events": [
+        {
+          "id": "evt_1780145025065_twd8i1",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.065Z",
+          "updated_at": "2026-05-30T12:43:45.065Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_deploy"
+          },
+          "risk_level": "high",
+          "event_type": "v2.guardian.verdict",
+          "actor": "webapp",
+          "resource": "github_repo",
+          "message": "Deploy требует точную фразу подтверждения и approval.",
+          "payload": {
+            "verdict": "typed_confirmation_required",
+            "riskLevel": "high",
+            "reason": "Deploy requires typed confirmation and owner approval.",
+            "actor": "webapp",
+            "action": "deploy",
+            "resource": "github_repo",
+            "requiredApproval": true,
+            "requiredTypedPhrase": "[required]",
+            "requiredRollback": false,
+            "evidenceRequired": true,
+            "userMessage": "Deploy требует точную фразу подтверждения и approval."
+          }
+        },
+        {
+          "id": "evt_1780145025066_tz05e9",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.066Z",
+          "updated_at": "2026-05-30T12:43:45.066Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_deploy",
+            "approval_id": "approval_1780145025065"
+          },
+          "risk_level": "high",
+          "event_type": "v2.approval.requested",
+          "actor": "webapp",
+          "resource": "github_repo",
+          "message": "Deploy требует точную фразу подтверждения и approval.",
+          "payload": {
+            "sample_id": "approval_deploy",
+            "verdict": "typed_confirmation_required",
+            "required_typed_phrase": "[required]"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "approval_push_main",
+      "request": {
+        "id": "approval_push_main",
+        "actor": "webapp",
+        "action": "push",
+        "resource": "github_repo",
+        "target": "main"
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T12:43:45.066Z",
+        "actor": "webapp",
+        "action": "push",
+        "resource": "github_repo",
+        "target": "main",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Push to repository requires typed confirmation and owner approval.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "ALLOW PUSH MAIN",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Push требует точную фразу подтверждения и approval.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "push",
+          "normalized_action": "push",
+          "resource": "github_repo",
+          "target": "main",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "github_repo",
+            "action": "push",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      },
+      "approval": {
+        "id": "approval_1780145025066_y2ln3h",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:45.066Z",
+        "updated_at": "2026-05-30T12:43:45.066Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780145025066",
+        "action": "push",
+        "resource": "github_repo",
+        "reason": "Push to repository requires typed confirmation and owner approval.",
+        "affected_resources": [
+          "github_repo",
+          "main"
+        ],
+        "rollback_status": "not_required",
+        "verifier_status": "unknown",
+        "guardian_verdict": "typed_confirmation_required",
+        "required_typed_phrase": "ALLOW PUSH MAIN"
+      },
+      "events": [
+        {
+          "id": "evt_1780145025066_gf9l50",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.066Z",
+          "updated_at": "2026-05-30T12:43:45.066Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_push_main"
+          },
+          "risk_level": "high",
+          "event_type": "v2.guardian.verdict",
+          "actor": "webapp",
+          "resource": "github_repo",
+          "message": "Push требует точную фразу подтверждения и approval.",
+          "payload": {
+            "verdict": "typed_confirmation_required",
+            "riskLevel": "high",
+            "reason": "Push to repository requires typed confirmation and owner approval.",
+            "actor": "webapp",
+            "action": "push",
+            "resource": "github_repo",
+            "requiredApproval": true,
+            "requiredTypedPhrase": "[required]",
+            "requiredRollback": false,
+            "evidenceRequired": true,
+            "userMessage": "Push требует точную фразу подтверждения и approval."
+          }
+        },
+        {
+          "id": "evt_1780145025066_kpcj3x",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.066Z",
+          "updated_at": "2026-05-30T12:43:45.066Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_push_main",
+            "approval_id": "approval_1780145025066"
+          },
+          "risk_level": "high",
+          "event_type": "v2.approval.requested",
+          "actor": "webapp",
+          "resource": "github_repo",
+          "message": "Push требует точную фразу подтверждения и approval.",
+          "payload": {
+            "sample_id": "approval_push_main",
+            "verdict": "typed_confirmation_required",
+            "required_typed_phrase": "[required]"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "approval_delete_restore_point",
+      "request": {
+        "id": "approval_delete_restore_point",
+        "actor": "system_worker",
+        "action": "delete",
+        "resource": "restore_points",
+        "target": "restore_point"
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T12:43:45.066Z",
+        "actor": "system_worker",
+        "action": "delete",
+        "resource": "restore_points",
+        "target": "restore_point",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Delete action requires typed confirmation, approval, and evidence.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "ALLOW DELETE",
+        "requiredRollback": true,
+        "evidenceRequired": true,
+        "userMessage": "Удаление требует точную фразу, approval и rollback/evidence.",
+        "expertDetails": {
+          "actor": "system_worker",
+          "action": "delete",
+          "normalized_action": "delete",
+          "resource": "restore_points",
+          "target": "restore_point",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "system_worker",
+            "resource": "restore_points",
+            "action": "delete",
+            "verdict": "typed_confirmation_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": true,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      },
+      "approval": {
+        "id": "approval_1780145025066_kr0fgs",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:45.066Z",
+        "updated_at": "2026-05-30T12:43:45.066Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780145025066",
+        "action": "delete",
+        "resource": "restore_points",
+        "reason": "Delete action requires typed confirmation, approval, and evidence.",
+        "affected_resources": [
+          "restore_points",
+          "restore_point"
+        ],
+        "rollback_status": "required",
+        "verifier_status": "unknown",
+        "guardian_verdict": "typed_confirmation_required",
+        "required_typed_phrase": "ALLOW DELETE"
+      },
+      "events": [
+        {
+          "id": "evt_1780145025066_vasoow",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.066Z",
+          "updated_at": "2026-05-30T12:43:45.066Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_delete_restore_point"
+          },
+          "risk_level": "high",
+          "event_type": "v2.guardian.verdict",
+          "actor": "system_worker",
+          "resource": "restore_points",
+          "message": "Удаление требует точную фразу, approval и rollback/evidence.",
+          "payload": {
+            "verdict": "typed_confirmation_required",
+            "riskLevel": "high",
+            "reason": "Delete action requires typed confirmation, approval, and evidence.",
+            "actor": "system_worker",
+            "action": "delete",
+            "resource": "restore_points",
+            "requiredApproval": true,
+            "requiredTypedPhrase": "[required]",
+            "requiredRollback": true,
+            "evidenceRequired": true,
+            "userMessage": "Удаление требует точную фразу, approval и rollback/evidence."
+          }
+        },
+        {
+          "id": "evt_1780145025066_jjd9zf",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.066Z",
+          "updated_at": "2026-05-30T12:43:45.066Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_delete_restore_point",
+            "approval_id": "approval_1780145025066"
+          },
+          "risk_level": "high",
+          "event_type": "v2.approval.requested",
+          "actor": "system_worker",
+          "resource": "restore_points",
+          "message": "Удаление требует точную фразу, approval и rollback/evidence.",
+          "payload": {
+            "sample_id": "approval_delete_restore_point",
+            "verdict": "typed_confirmation_required",
+            "required_typed_phrase": "[required]"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "approval_read_secrets",
+      "request": {
+        "id": "approval_read_secrets",
+        "actor": "webapp",
+        "action": "read",
+        "resource": "secrets_env",
+        "target": ".env"
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T12:43:45.067Z",
+        "actor": "webapp",
+        "action": "read",
+        "resource": "secrets_env",
+        "target": ".env",
+        "verdict": "red_zone_stop",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "Secrets/env access is red-zone blocked by default.",
+        "requiredApproval": false,
+        "requiredTypedPhrase": "",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Секреты и .env заблокированы. Это red-zone.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "read",
+          "normalized_action": "read",
+          "resource": "secrets_env",
+          "target": ".env",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "secrets_env",
+            "action": "read",
+            "verdict": "blocked",
+            "risk_level": "critical",
+            "reason": "Red-zone resource is blocked by default.",
+            "requires_approval": false,
+            "typed_confirmation_required": false,
+            "rollback_required": false,
+            "evidence_required": true
+          }
+        }
+      },
+      "approval": {
+        "id": "approval_1780145025067_f76f2o",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:45.067Z",
+        "updated_at": "2026-05-30T12:43:45.067Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "critical",
+        "approval_id": "approval_1780145025067",
+        "action": "read",
+        "resource": "secrets_env",
+        "reason": "Secrets/env access is red-zone blocked by default.",
+        "affected_resources": [
+          "secrets_env",
+          ".env"
+        ],
+        "rollback_status": "not_required",
+        "verifier_status": "unknown",
+        "guardian_verdict": "red_zone_stop",
+        "required_typed_phrase": ""
+      },
+      "events": [
+        {
+          "id": "evt_1780145025067_nsclk2",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.067Z",
+          "updated_at": "2026-05-30T12:43:45.067Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_read_secrets"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.guardian.verdict",
+          "actor": "webapp",
+          "resource": "secrets_env",
+          "message": "Секреты и .env заблокированы. Это red-zone.",
+          "payload": {
+            "verdict": "red_zone_stop",
+            "riskLevel": "critical",
+            "reason": "Secrets/env access is red-zone blocked by default.",
+            "actor": "webapp",
+            "action": "read",
+            "resource": "secrets_env",
+            "requiredApproval": false,
+            "requiredTypedPhrase": "",
+            "requiredRollback": false,
+            "evidenceRequired": true,
+            "userMessage": "Секреты и .env заблокированы. Это red-zone."
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "approval_billing",
+      "request": {
+        "id": "approval_billing",
+        "actor": "webapp",
+        "action": "configure",
+        "resource": "billing_payment",
+        "target": "billing"
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T12:43:45.067Z",
+        "actor": "webapp",
+        "action": "configure",
+        "resource": "billing_payment",
+        "target": "billing",
+        "verdict": "owner_assisted_required",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "Billing/payment actions require owner-assisted manual review.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Платёжные действия выполняет только владелец после ручной проверки.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "configure",
+          "normalized_action": "configure",
+          "resource": "billing_payment",
+          "target": "billing",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "billing_payment",
+            "action": "configure",
+            "verdict": "red_zone_stop",
+            "risk_level": "critical",
+            "reason": "Red-zone resource is blocked by default.",
+            "requires_approval": false,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      },
+      "approval": {
+        "id": "approval_1780145025067_vhrl4v",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:43:45.067Z",
+        "updated_at": "2026-05-30T12:43:45.067Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "critical",
+        "approval_id": "approval_1780145025067",
+        "action": "configure",
+        "resource": "billing_payment",
+        "reason": "Billing/payment actions require owner-assisted manual review.",
+        "affected_resources": [
+          "billing_payment",
+          "billing"
+        ],
+        "rollback_status": "not_required",
+        "verifier_status": "unknown",
+        "guardian_verdict": "owner_assisted_required",
+        "required_typed_phrase": ""
+      },
+      "events": [
+        {
+          "id": "evt_1780145025067_tv8itw",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.067Z",
+          "updated_at": "2026-05-30T12:43:45.067Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_billing"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.guardian.verdict",
+          "actor": "webapp",
+          "resource": "billing_payment",
+          "message": "Платёжные действия выполняет только владелец после ручной проверки.",
+          "payload": {
+            "verdict": "owner_assisted_required",
+            "riskLevel": "critical",
+            "reason": "Billing/payment actions require owner-assisted manual review.",
+            "actor": "webapp",
+            "action": "configure",
+            "resource": "billing_payment",
+            "requiredApproval": true,
+            "requiredTypedPhrase": "",
+            "requiredRollback": false,
+            "evidenceRequired": true,
+            "userMessage": "Платёжные действия выполняет только владелец после ручной проверки."
+          }
+        },
+        {
+          "id": "evt_1780145025071_tk2c3l",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T12:43:45.071Z",
+          "updated_at": "2026-05-30T12:43:45.071Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "approval_billing",
+            "approval_id": "approval_1780145025067"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.approval.requested",
+          "actor": "webapp",
+          "resource": "billing_payment",
+          "message": "Платёжные действия выполняет только владелец после ручной проверки.",
+          "payload": {
+            "sample_id": "approval_billing",
+            "verdict": "owner_assisted_required",
+            "required_typed_phrase": ""
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "emergency": 3,
+    "approvals": 5,
+    "red_zone_stop": 1,
+    "typed_confirmation_required": 4,
+    "blocked": 1,
+    "allow_with_warning": 1,
+    "owner_assisted_required": 1
+  }
+}
