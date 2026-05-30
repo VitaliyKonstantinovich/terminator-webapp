@@ -1,0 +1,1762 @@
+{
+  "generated_at": "2026-05-30T13:35:38.971Z",
+  "samples": [
+    {
+      "sample_id": "sandbox_apply_with_rollback_pass",
+      "expected": "allow_with_warning",
+      "actual": "allow_with_warning",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "safe copy update in repair workspace",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.204Z",
+        "allowed": true,
+        "verdict": "allow_with_warning",
+        "riskLevel": "medium",
+        "risk_level": "medium",
+        "reason": "Sandbox apply has rollback and Verifier PASS.",
+        "requiredApproval": false,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "safe copy update in repair workspace"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136204_2wcfa1",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.204Z",
+        "updated_at": "2026-05-30T13:35:36.204Z",
+        "status": "not_required",
+        "refs": {},
+        "risk_level": "medium",
+        "approval_id": "approval_1780148136204",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Sandbox apply has rollback and Verifier PASS.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS",
+        "guardian_verdict": "allow_with_warning",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136204_dvy6p8",
+        "controlled_apply_status": "ready_for_sandbox"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136204_nqgnjd",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.204Z",
+          "updated_at": "2026-05-30T13:35:36.204Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "sandbox_apply_with_rollback_pass",
+            "approval_id": "approval_1780148136204"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+          "payload": {
+            "sample_id": "sandbox_apply_with_rollback_pass",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium",
+            "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+            "refs": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "approval_id": "approval_1780148136204"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136204_a8zike",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.204Z",
+          "updated_at": "2026-05-30T13:35:36.204Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "sandbox_apply_with_rollback_pass",
+            "approval_id": "approval_1780148136204"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.apply.allowed",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+          "payload": {
+            "sample_id": "sandbox_apply_with_rollback_pass",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+            "refs": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "approval_id": "approval_1780148136204"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136204_wmrb8f",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.204Z",
+          "updated_at": "2026-05-30T13:35:36.204Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "sandbox_apply_with_rollback_pass",
+            "approval_id": "approval_1780148136204"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "sandbox_apply_with_rollback_pass",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "approval_id": "approval_1780148136204"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "sandbox_apply_without_rollback",
+      "expected": "blocked",
+      "actual": "blocked",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "safe copy update without rollback",
+        "rollbackAvailable": false,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.205Z",
+        "allowed": false,
+        "verdict": "blocked",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Rollback point is required before mutable apply.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Нет точки отката. Применение исправления заблокировано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": false,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "safe copy update without rollback"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136205_enmazp",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.205Z",
+        "updated_at": "2026-05-30T13:35:36.205Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780148136205",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Rollback point is required before mutable apply.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "required",
+        "verifier_status": "PASS",
+        "guardian_verdict": "blocked",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136205_30s6k2",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136205_5y1h9m",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.205Z",
+          "updated_at": "2026-05-30T13:35:36.205Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "sandbox_apply_without_rollback",
+            "approval_id": "approval_1780148136205"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Нет точки отката. Применение исправления заблокировано.",
+          "payload": {
+            "sample_id": "sandbox_apply_without_rollback",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "blocked",
+            "riskLevel": "high",
+            "message": "Нет точки отката. Применение исправления заблокировано.",
+            "refs": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "approval_id": "approval_1780148136205"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136205_8aqsbg",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.205Z",
+          "updated_at": "2026-05-30T13:35:36.205Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "sandbox_apply_without_rollback",
+            "approval_id": "approval_1780148136205"
+          },
+          "risk_level": "high",
+          "event_type": "v2.rollback.required",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback is required before apply.",
+          "payload": {
+            "sample_id": "sandbox_apply_without_rollback",
+            "targetResource": "repair_workspace",
+            "riskLevel": "high",
+            "message": "Rollback is required before apply.",
+            "refs": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "approval_id": "approval_1780148136205"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136205_2p9nzb",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.205Z",
+          "updated_at": "2026-05-30T13:35:36.205Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "sandbox_apply_without_rollback",
+            "approval_id": "approval_1780148136205"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.blocked",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Нет точки отката. Применение исправления заблокировано.",
+          "payload": {
+            "sample_id": "sandbox_apply_without_rollback",
+            "targetResource": "repair_workspace",
+            "riskLevel": "high",
+            "message": "Нет точки отката. Применение исправления заблокировано.",
+            "refs": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "approval_id": "approval_1780148136205"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "verifier_fail",
+      "expected": "blocked",
+      "actual": "blocked",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "safe copy update but verifier failed",
+        "rollbackAvailable": true,
+        "verifierStatus": "FAIL",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.205Z",
+        "allowed": false,
+        "verdict": "blocked",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Verifier must be PASS or PASS_WITH_RISKS before apply.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Verifier не подтвердил исправление. Применение заблокировано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "FAIL",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "safe copy update but verifier failed"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136205_n5anhr",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.205Z",
+        "updated_at": "2026-05-30T13:35:36.205Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780148136205",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Verifier must be PASS or PASS_WITH_RISKS before apply.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "FAIL",
+        "guardian_verdict": "blocked",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136205_fipyvd",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136205_550kry",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.205Z",
+          "updated_at": "2026-05-30T13:35:36.205Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "verifier_fail",
+            "approval_id": "approval_1780148136205"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+          "payload": {
+            "sample_id": "verifier_fail",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "blocked",
+            "riskLevel": "high",
+            "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+            "refs": {
+              "sample_id": "verifier_fail",
+              "approval_id": "approval_1780148136205"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136212_skm94f",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.212Z",
+          "updated_at": "2026-05-30T13:35:36.212Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "verifier_fail",
+            "approval_id": "approval_1780148136205"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.blocked",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+          "payload": {
+            "sample_id": "verifier_fail",
+            "targetResource": "repair_workspace",
+            "riskLevel": "high",
+            "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+            "refs": {
+              "sample_id": "verifier_fail",
+              "approval_id": "approval_1780148136205"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136214_tr4c6o",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.214Z",
+          "updated_at": "2026-05-30T13:35:36.214Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "verifier_fail",
+            "approval_id": "approval_1780148136205"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "verifier_fail",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "verifier_fail",
+              "approval_id": "approval_1780148136205"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "guardian_high_risk",
+      "expected": "approval_required",
+      "actual": "approval_required",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "high risk repair workspace update",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "approval_required",
+          "riskLevel": "high"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.216Z",
+        "allowed": false,
+        "verdict": "approval_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Guardian requires approval before controlled apply.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Guardian требует подтверждение перед применением исправления.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "approval_required",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "approval_required",
+            "riskLevel": "high"
+          },
+          "diffSummary": "high risk repair workspace update"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136216_4p71fr",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.216Z",
+        "updated_at": "2026-05-30T13:35:36.216Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780148136216",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Guardian requires approval before controlled apply.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS",
+        "guardian_verdict": "approval_required",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136216_x2u5eq",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136216_dqks5m",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.216Z",
+          "updated_at": "2026-05-30T13:35:36.216Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "guardian_high_risk",
+            "approval_id": "approval_1780148136216"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Guardian требует подтверждение перед применением исправления.",
+          "payload": {
+            "sample_id": "guardian_high_risk",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "approval_required",
+            "riskLevel": "high",
+            "message": "Guardian требует подтверждение перед применением исправления.",
+            "refs": {
+              "sample_id": "guardian_high_risk",
+              "approval_id": "approval_1780148136216"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136217_a6bcw5",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.217Z",
+          "updated_at": "2026-05-30T13:35:36.217Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "guardian_high_risk",
+            "approval_id": "approval_1780148136216"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.approval_required",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Guardian требует подтверждение перед применением исправления.",
+          "payload": {
+            "sample_id": "guardian_high_risk",
+            "targetResource": "repair_workspace",
+            "riskLevel": "high",
+            "message": "Guardian требует подтверждение перед применением исправления.",
+            "refs": {
+              "sample_id": "guardian_high_risk",
+              "approval_id": "approval_1780148136216"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136217_8tf3ar",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.217Z",
+          "updated_at": "2026-05-30T13:35:36.217Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "guardian_high_risk",
+            "approval_id": "approval_1780148136216"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "guardian_high_risk",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "guardian_high_risk",
+              "approval_id": "approval_1780148136216"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "active_project_without_approval",
+      "expected": "approval_required",
+      "actual": "approval_required",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "active_project_files",
+        "targetPath": "app.js",
+        "diffSummary": "active project mutation request",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "approval_required",
+          "riskLevel": "high"
+        },
+        "ownerDecision": "not_requested",
+        "isActiveProjectTarget": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.218Z",
+        "allowed": false,
+        "verdict": "approval_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Guardian requires approval before controlled apply.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Guardian требует подтверждение перед применением исправления.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "active_project_files",
+        "targetPath": "app.js",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "approval_required",
+        "ownerDecision": "not_requested",
+        "isSandbox": false,
+        "isActiveProjectTarget": true,
+        "expertDetails": {
+          "baseVerdict": "approval_required",
+          "baseRisk": "high",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "approval_required",
+            "riskLevel": "high"
+          },
+          "diffSummary": "active project mutation request"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136218_qxls1g",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.218Z",
+        "updated_at": "2026-05-30T13:35:36.218Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780148136218",
+        "action": "write",
+        "resource": "active_project_files",
+        "reason": "Guardian requires approval before controlled apply.",
+        "affected_resources": [
+          "active_project_files",
+          "app.js"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS",
+        "guardian_verdict": "approval_required",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136218_09iy0t",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136218_2rkiry",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.218Z",
+          "updated_at": "2026-05-30T13:35:36.218Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "active_project_without_approval",
+            "approval_id": "approval_1780148136218"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "message": "Guardian требует подтверждение перед применением исправления.",
+          "payload": {
+            "sample_id": "active_project_without_approval",
+            "actor": "codex_repair",
+            "targetResource": "active_project_files",
+            "targetPath": "app.js",
+            "verdict": "approval_required",
+            "riskLevel": "high",
+            "message": "Guardian требует подтверждение перед применением исправления.",
+            "refs": {
+              "sample_id": "active_project_without_approval",
+              "approval_id": "approval_1780148136218"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136219_ldbv8m",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.219Z",
+          "updated_at": "2026-05-30T13:35:36.219Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "active_project_without_approval",
+            "approval_id": "approval_1780148136218"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.approval_required",
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "message": "Guardian требует подтверждение перед применением исправления.",
+          "payload": {
+            "sample_id": "active_project_without_approval",
+            "targetResource": "active_project_files",
+            "riskLevel": "high",
+            "message": "Guardian требует подтверждение перед применением исправления.",
+            "refs": {
+              "sample_id": "active_project_without_approval",
+              "approval_id": "approval_1780148136218"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136219_s4j6p0",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.219Z",
+          "updated_at": "2026-05-30T13:35:36.219Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "active_project_without_approval",
+            "approval_id": "approval_1780148136218"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "active_project_without_approval",
+            "targetResource": "active_project_files",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "active_project_without_approval",
+              "approval_id": "approval_1780148136218"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "active_project_approval_no_rollback",
+      "expected": "blocked",
+      "actual": "blocked",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "active_project_files",
+        "targetPath": "app.js",
+        "diffSummary": "approved active project mutation without rollback",
+        "rollbackAvailable": false,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "approval_required",
+          "riskLevel": "high"
+        },
+        "ownerDecision": "approved",
+        "isActiveProjectTarget": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.220Z",
+        "allowed": false,
+        "verdict": "blocked",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Rollback point is required before mutable apply.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Нет точки отката. Применение исправления заблокировано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "active_project_files",
+        "targetPath": "app.js",
+        "rollbackAvailable": false,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "approval_required",
+        "ownerDecision": "approved",
+        "isSandbox": false,
+        "isActiveProjectTarget": true,
+        "expertDetails": {
+          "baseVerdict": "approval_required",
+          "baseRisk": "high",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "approval_required",
+            "riskLevel": "high"
+          },
+          "diffSummary": "approved active project mutation without rollback"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136220_ax2z21",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.220Z",
+        "updated_at": "2026-05-30T13:35:36.220Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780148136220",
+        "action": "write",
+        "resource": "active_project_files",
+        "reason": "Rollback point is required before mutable apply.",
+        "affected_resources": [
+          "active_project_files",
+          "app.js"
+        ],
+        "rollback_status": "required",
+        "verifier_status": "PASS",
+        "guardian_verdict": "blocked",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136220_kfjofn",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136220_lzh2ka",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.220Z",
+          "updated_at": "2026-05-30T13:35:36.220Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "active_project_approval_no_rollback",
+            "approval_id": "approval_1780148136220"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "message": "Нет точки отката. Применение исправления заблокировано.",
+          "payload": {
+            "sample_id": "active_project_approval_no_rollback",
+            "actor": "codex_repair",
+            "targetResource": "active_project_files",
+            "targetPath": "app.js",
+            "verdict": "blocked",
+            "riskLevel": "high",
+            "message": "Нет точки отката. Применение исправления заблокировано.",
+            "refs": {
+              "sample_id": "active_project_approval_no_rollback",
+              "approval_id": "approval_1780148136220"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136221_zdrx2q",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.221Z",
+          "updated_at": "2026-05-30T13:35:36.221Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "active_project_approval_no_rollback",
+            "approval_id": "approval_1780148136220"
+          },
+          "risk_level": "high",
+          "event_type": "v2.rollback.required",
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "message": "Rollback is required before apply.",
+          "payload": {
+            "sample_id": "active_project_approval_no_rollback",
+            "targetResource": "active_project_files",
+            "riskLevel": "high",
+            "message": "Rollback is required before apply.",
+            "refs": {
+              "sample_id": "active_project_approval_no_rollback",
+              "approval_id": "approval_1780148136220"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136221_6mcfcv",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.221Z",
+          "updated_at": "2026-05-30T13:35:36.221Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "active_project_approval_no_rollback",
+            "approval_id": "approval_1780148136220"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.blocked",
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "message": "Нет точки отката. Применение исправления заблокировано.",
+          "payload": {
+            "sample_id": "active_project_approval_no_rollback",
+            "targetResource": "active_project_files",
+            "riskLevel": "high",
+            "message": "Нет точки отката. Применение исправления заблокировано.",
+            "refs": {
+              "sample_id": "active_project_approval_no_rollback",
+              "approval_id": "approval_1780148136220"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "secret_like_diff",
+      "expected": "red_zone_stop",
+      "actual": "red_zone_stop",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "secret-like marker should not be applied",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.231Z",
+        "allowed": false,
+        "verdict": "red_zone_stop",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "Diff contains red-zone content or forbidden system/API/network intent.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "В diff найден red-zone риск. Исправление заблокировано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": true,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": true,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "secret-like marker should not be applied"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136231_yncd10",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.231Z",
+        "updated_at": "2026-05-30T13:35:36.231Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "critical",
+        "approval_id": "approval_1780148136231",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Diff contains red-zone content or forbidden system/API/network intent.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS",
+        "guardian_verdict": "red_zone_stop",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136231_2zg9tb",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136231_9ex2j9",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.231Z",
+          "updated_at": "2026-05-30T13:35:36.231Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "secret_like_diff",
+            "approval_id": "approval_1780148136231"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "В diff найден red-zone риск. Исправление заблокировано.",
+          "payload": {
+            "sample_id": "secret_like_diff",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "red_zone_stop",
+            "riskLevel": "critical",
+            "message": "В diff найден red-zone риск. Исправление заблокировано.",
+            "refs": {
+              "sample_id": "secret_like_diff",
+              "approval_id": "approval_1780148136231"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136232_3h4xqj",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.232Z",
+          "updated_at": "2026-05-30T13:35:36.232Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "secret_like_diff",
+            "approval_id": "approval_1780148136231"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.apply.blocked",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "В diff найден red-zone риск. Исправление заблокировано.",
+          "payload": {
+            "sample_id": "secret_like_diff",
+            "targetResource": "repair_workspace",
+            "riskLevel": "critical",
+            "message": "В diff найден red-zone риск. Исправление заблокировано.",
+            "refs": {
+              "sample_id": "secret_like_diff",
+              "approval_id": "approval_1780148136231"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136233_16l2po",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.233Z",
+          "updated_at": "2026-05-30T13:35:36.233Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "secret_like_diff",
+            "approval_id": "approval_1780148136231"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "secret_like_diff",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "secret_like_diff",
+              "approval_id": "approval_1780148136231"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "billing_network_ai_diff",
+      "expected": "red_zone_stop",
+      "actual": "red_zone_stop",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "enable AI API billing payment network proxy",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.233Z",
+        "allowed": false,
+        "verdict": "red_zone_stop",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "Diff contains red-zone content or forbidden system/API/network intent.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "В diff найден red-zone риск. Исправление заблокировано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": true,
+            "billingLike": true,
+            "networkLike": true,
+            "aiApiLike": true,
+            "redZone": true,
+            "ownerAssisted": true
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "enable AI API billing payment network proxy"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136233_6xlu3w",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.233Z",
+        "updated_at": "2026-05-30T13:35:36.233Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "critical",
+        "approval_id": "approval_1780148136233",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Diff contains red-zone content or forbidden system/API/network intent.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS",
+        "guardian_verdict": "red_zone_stop",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136234_ekcji5",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136234_ff7jep",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.234Z",
+          "updated_at": "2026-05-30T13:35:36.234Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "billing_network_ai_diff",
+            "approval_id": "approval_1780148136233"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "В diff найден red-zone риск. Исправление заблокировано.",
+          "payload": {
+            "sample_id": "billing_network_ai_diff",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "red_zone_stop",
+            "riskLevel": "critical",
+            "message": "В diff найден red-zone риск. Исправление заблокировано.",
+            "refs": {
+              "sample_id": "billing_network_ai_diff",
+              "approval_id": "approval_1780148136233"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136234_qxgaer",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.234Z",
+          "updated_at": "2026-05-30T13:35:36.234Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "billing_network_ai_diff",
+            "approval_id": "approval_1780148136233"
+          },
+          "risk_level": "critical",
+          "event_type": "v2.apply.blocked",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "В diff найден red-zone риск. Исправление заблокировано.",
+          "payload": {
+            "sample_id": "billing_network_ai_diff",
+            "targetResource": "repair_workspace",
+            "riskLevel": "critical",
+            "message": "В diff найден red-zone риск. Исправление заблокировано.",
+            "refs": {
+              "sample_id": "billing_network_ai_diff",
+              "approval_id": "approval_1780148136233"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136235_s7p4oj",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.235Z",
+          "updated_at": "2026-05-30T13:35:36.235Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "billing_network_ai_diff",
+            "approval_id": "approval_1780148136233"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "billing_network_ai_diff",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "billing_network_ai_diff",
+              "approval_id": "approval_1780148136233"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "unknown_target_path",
+      "expected": "blocked",
+      "actual": "blocked",
+      "status": "PASS",
+      "request": {
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "..\\unknown\\target.txt",
+        "diffSummary": "unknown target path",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.235Z",
+        "allowed": false,
+        "verdict": "blocked",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Unknown or unsafe target path.",
+        "requiredApproval": true,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Цель исправления неизвестна или небезопасна. Применение заблокировано.",
+        "actor": "codex_repair",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "..\\unknown\\target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "unknown target path"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136235_lztzic",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.235Z",
+        "updated_at": "2026-05-30T13:35:36.235Z",
+        "status": "required",
+        "refs": {},
+        "risk_level": "high",
+        "approval_id": "approval_1780148136235",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Unknown or unsafe target path.",
+        "affected_resources": [
+          "repair_workspace",
+          "..\\unknown\\target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS",
+        "guardian_verdict": "blocked",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136235_v9nzeo",
+        "controlled_apply_status": "blocked"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136235_fyxczy",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.235Z",
+          "updated_at": "2026-05-30T13:35:36.235Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "unknown_target_path",
+            "approval_id": "approval_1780148136235"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.requested",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Цель исправления неизвестна или небезопасна. Применение заблокировано.",
+          "payload": {
+            "sample_id": "unknown_target_path",
+            "actor": "codex_repair",
+            "targetResource": "repair_workspace",
+            "targetPath": "..\\unknown\\target.txt",
+            "verdict": "blocked",
+            "riskLevel": "high",
+            "message": "Цель исправления неизвестна или небезопасна. Применение заблокировано.",
+            "refs": {
+              "sample_id": "unknown_target_path",
+              "approval_id": "approval_1780148136235"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136236_bk8ue0",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.236Z",
+          "updated_at": "2026-05-30T13:35:36.236Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "unknown_target_path",
+            "approval_id": "approval_1780148136235"
+          },
+          "risk_level": "high",
+          "event_type": "v2.apply.blocked",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Цель исправления неизвестна или небезопасна. Применение заблокировано.",
+          "payload": {
+            "sample_id": "unknown_target_path",
+            "targetResource": "repair_workspace",
+            "riskLevel": "high",
+            "message": "Цель исправления неизвестна или небезопасна. Применение заблокировано.",
+            "refs": {
+              "sample_id": "unknown_target_path",
+              "approval_id": "approval_1780148136235"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136237_xpa43m",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.237Z",
+          "updated_at": "2026-05-30T13:35:36.237Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "unknown_target_path",
+            "approval_id": "approval_1780148136235"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "unknown_target_path",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "unknown_target_path",
+              "approval_id": "approval_1780148136235"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "rollback_requested",
+      "expected": "allow_with_warning",
+      "actual": "allow_with_warning",
+      "status": "PASS",
+      "request": {
+        "actor": "recovery_wizard",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "diffSummary": "rollback requested preview with no destructive side effect",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS_WITH_RISKS",
+        "guardianContext": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium"
+        },
+        "isSandbox": true,
+        "refs": {
+          "rollback_id": "rollback_preview"
+        }
+      },
+      "verdict": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T13:35:36.238Z",
+        "allowed": true,
+        "verdict": "allow_with_warning",
+        "riskLevel": "medium",
+        "risk_level": "medium",
+        "reason": "Sandbox apply has rollback and Verifier PASS.",
+        "requiredApproval": false,
+        "requiredRollback": true,
+        "requiredVerifier": true,
+        "requiredTypedPhrase": "",
+        "userMessage": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+        "actor": "recovery_wizard",
+        "action": "write",
+        "targetResource": "repair_workspace",
+        "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+        "rollbackAvailable": true,
+        "verifierStatus": "PASS_WITH_RISKS",
+        "guardianVerdict": "allow_with_warning",
+        "ownerDecision": "not_requested",
+        "isSandbox": true,
+        "isActiveProjectTarget": false,
+        "expertDetails": {
+          "baseVerdict": "allow_with_warning",
+          "baseRisk": "medium",
+          "risk": {
+            "secretLike": false,
+            "billingLike": false,
+            "networkLike": false,
+            "aiApiLike": false,
+            "redZone": false,
+            "ownerAssisted": false
+          },
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "diffSummary": "rollback requested preview with no destructive side effect"
+        }
+      },
+      "approval": {
+        "id": "approval_1780148136238_r96wvs",
+        "type": "approval",
+        "contract_name": "V2ApprovalContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T13:35:36.238Z",
+        "updated_at": "2026-05-30T13:35:36.238Z",
+        "status": "not_required",
+        "refs": {
+          "rollback_id": "rollback_preview"
+        },
+        "risk_level": "medium",
+        "approval_id": "approval_1780148136238",
+        "action": "write",
+        "resource": "repair_workspace",
+        "reason": "Sandbox apply has rollback and Verifier PASS.",
+        "affected_resources": [
+          "repair_workspace",
+          "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+        ],
+        "rollback_status": "available",
+        "verifier_status": "PASS_WITH_RISKS",
+        "guardian_verdict": "allow_with_warning",
+        "required_typed_phrase": "",
+        "apply_id": "apply_1780148136238_5ro7tu",
+        "controlled_apply_status": "ready_for_sandbox"
+      },
+      "events": [
+        {
+          "id": "evt_1780148136238_v33kq0",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.238Z",
+          "updated_at": "2026-05-30T13:35:36.238Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "rollback_requested",
+            "approval_id": "approval_1780148136238"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.apply.requested",
+          "actor": "recovery_wizard",
+          "resource": "repair_workspace",
+          "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+          "payload": {
+            "sample_id": "rollback_requested",
+            "actor": "recovery_wizard",
+            "targetResource": "repair_workspace",
+            "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium",
+            "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+            "refs": {
+              "sample_id": "rollback_requested",
+              "approval_id": "approval_1780148136238"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136240_xhzhvi",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.241Z",
+          "updated_at": "2026-05-30T13:35:36.241Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "rollback_requested",
+            "approval_id": "approval_1780148136238"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.apply.allowed",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+          "payload": {
+            "sample_id": "rollback_requested",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+            "refs": {
+              "sample_id": "rollback_requested",
+              "approval_id": "approval_1780148136238"
+            }
+          }
+        },
+        {
+          "id": "evt_1780148136247_exy9gs",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T13:35:36.247Z",
+          "updated_at": "2026-05-30T13:35:36.247Z",
+          "status": "recorded",
+          "refs": {
+            "sample_id": "rollback_requested",
+            "approval_id": "approval_1780148136238"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.rollback.created",
+          "actor": "codex_repair",
+          "resource": "repair_workspace",
+          "message": "Rollback point exists before controlled apply.",
+          "payload": {
+            "sample_id": "rollback_requested",
+            "targetResource": "repair_workspace",
+            "riskLevel": "medium",
+            "message": "Rollback point exists before controlled apply.",
+            "refs": {
+              "sample_id": "rollback_requested",
+              "approval_id": "approval_1780148136238"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

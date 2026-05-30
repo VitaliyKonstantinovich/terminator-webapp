@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-05-30T13:35:38.971Z",
+  "sandboxDir": "D:\\TerminatorStorage\\temp_outputs\\v2_p0_d_controlled_apply",
+  "target": "D:\\TerminatorStorage\\temp_outputs\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+  "rollback": "D:\\TerminatorStorage\\temp_outputs\\v2_p0_d_controlled_apply\\dummy_apply_target.rollback.txt",
+  "active_project_mutated": false,
+  "initialHash": "753cb305c6fdc71a22a4d1904e9e12fdcb95a198d4d470b67f379e8fbc7b8978",
+  "appliedHash": "50ea55a1d3cb15282f27b3192e8d25b5f72ca447fb7300acce70594d30d601c2",
+  "restoredHash": "753cb305c6fdc71a22a4d1904e9e12fdcb95a198d4d470b67f379e8fbc7b8978",
+  "changed_during_sandbox_apply": true,
+  "restored_to_original": true,
+  "verdict": "PASS"
+}
