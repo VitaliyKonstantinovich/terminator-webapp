@@ -343,7 +343,8 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2P0IntegrationPreviewEnabled: false,
   v2P0AcceptanceSuiteEnabled: false,
   v2QAAutotestFactoryPreviewEnabled: false,
-  v2ComfortTrustGuidePreviewEnabled: false
+  v2ComfortTrustGuidePreviewEnabled: false,
+  v2SafeUndoCenterPreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -447,7 +448,9 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.qa.memory_summary.created',
   'v2.comfort.guide.opened',
   'v2.comfort.next_action.selected',
-  'v2.comfort.trust_snapshot.created'
+  'v2.comfort.trust_snapshot.created',
+  'v2.safe_undo.snapshot_created',
+  'v2.safe_undo.recovery_selected'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -7567,6 +7570,232 @@ test.describe('Terminator QA Factory safe demo', () => {
     `;
   },
 
+  recordV2SafeUndoEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.safe_undo.snapshot_created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_safe_undo_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'safe_undo_center',
+        resource: payload.resource || 'task_state',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'safe_undo_center',
+      resource: payload.resource || 'task_state',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  normalizeSafeUndoAction(source = {}) {
+    const createdAt = source.created_at || source.updated_at || source.time || new Date().toISOString();
+    const recoverable = source.recoverable === true;
+    const unavailable = source.recoverable === false && source.needs_restore === true;
+    return {
+      action_id: source.action_id || `safe_undo_${Date.parse(createdAt) || Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      created_at: createdAt,
+      title: source.title || 'Важное действие',
+      description: source.description || 'Состояние системы изменилось.',
+      status: source.status || (recoverable ? 'can_restore' : unavailable ? 'unavailable' : 'safe'),
+      safety_label: recoverable ? 'изменение можно отменить' : unavailable ? 'восстановление недоступно' : 'не требует восстановления',
+      recoverable,
+      restore_action: recoverable ? 'open_recovery' : source.restore_action || 'open_diagnostics',
+      details_action: source.details_action || source.restore_action || 'open_recovery',
+      source_type: source.source_type || 'system',
+      refs: source.refs || {},
+      expert: source.expert || {}
+    };
+  },
+
+  buildRecoverySnapshot(options = {}) {
+    const actions = [];
+    const add = (item) => actions.push(this.normalizeSafeUndoAction(item));
+    const tasks = Array.isArray(this.workTasks) ? this.workTasks : [];
+    tasks.slice(0, 12).forEach((task) => {
+      add({
+        action_id: `task_created_${task.task_id}`,
+        created_at: task.created_at || task.updated_at,
+        title: 'Создана задача',
+        description: task.title || task.user_request || task.task_id,
+        recoverable: false,
+        status: 'safe',
+        source_type: 'task',
+        details_action: 'open_work',
+        refs: { task_id: task.task_id, project_id: task.project_id }
+      });
+      (task.artifacts || []).filter((artifact) => artifact.type === 'RESTORE_POINT').slice(0, 4).forEach((artifact) => add({
+        action_id: artifact.artifact_id || `restore_${task.task_id}_${artifact.created_at || artifact.updated_at}`,
+        created_at: artifact.created_at || artifact.updated_at || task.updated_at,
+        title: 'Создана точка восстановления',
+        description: artifact.title || 'Можно открыть безопасный центр восстановления.',
+        recoverable: true,
+        source_type: 'artifact',
+        details_action: 'open_work',
+        refs: { task_id: task.task_id, artifact_id: artifact.artifact_id }
+      }));
+      if (task.memory_preview?.status && task.memory_preview.status !== 'draft') {
+        add({
+          action_id: `memory_saved_${task.task_id}`,
+          created_at: task.updated_at || task.created_at,
+          title: 'Обновлена память',
+          description: task.memory_preview.summary || task.title || 'Memory preview сохранён локально.',
+          recoverable: false,
+          status: 'safe',
+          source_type: 'memory',
+          details_action: 'open_memory',
+          refs: { task_id: task.task_id, project_id: task.project_id }
+        });
+      }
+    });
+    (this.schemaSafetyState?.restore_points || []).slice(0, 6).forEach((point) => add({
+      action_id: point.restore_point_id || point.checkpoint_id,
+      created_at: point.created_at,
+      title: 'Сохранено состояние схемы',
+      description: point.reason || point.schema_summary || 'Перед изменением сохранено безопасное состояние.',
+      recoverable: true,
+      source_type: 'schema_restore_point',
+      details_action: 'open_diagnostics',
+      refs: { restore_point_id: point.restore_point_id || point.checkpoint_id }
+    }));
+    (this.v2FoundationEvents || []).slice(0, 18).forEach((event) => {
+      const type = String(event.event_type || '');
+      if (type === 'v2.rollback.created' || type === 'v2.rollback.completed') {
+        add({
+          action_id: event.id || event.event_id,
+          created_at: event.created_at,
+          title: type === 'v2.rollback.completed' ? 'Состояние восстановлено' : 'Подготовлено восстановление',
+          description: event.message || 'Есть безопасная запись восстановления.',
+          recoverable: type === 'v2.rollback.created',
+          source_type: 'v2_event',
+          details_action: 'open_recovery',
+          refs: event.refs || {}
+        });
+      }
+      if (type === 'v2.memory.recorded') {
+        add({
+          action_id: event.id || event.event_id,
+          created_at: event.created_at,
+          title: 'Записано в память',
+          description: event.message || 'Память обновлена после подтверждения.',
+          recoverable: false,
+          status: 'safe',
+          source_type: 'v2_event',
+          details_action: 'open_memory',
+          refs: event.refs || {}
+        });
+      }
+    });
+    if (!actions.length) {
+      add({
+        action_id: 'safe_undo_empty_state',
+        created_at: new Date().toISOString(),
+        title: 'Пока нет действий для восстановления',
+        description: 'Когда появятся задачи, точки восстановления или безопасные изменения, Мина покажет их здесь.',
+        recoverable: false,
+        status: 'safe',
+        source_type: 'empty_state',
+        details_action: 'open_work'
+      });
+    }
+    const recentActions = actions
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, Number(options.limit || 8));
+    const recoverable = recentActions.filter((item) => item.recoverable);
+    const event = this.recordV2SafeUndoEvent('v2.safe_undo.snapshot_created', {
+      recoverable_count: recoverable.length,
+      recent_count: recentActions.length,
+      message: 'Safe Undo Center snapshot created.',
+      refs: { component: 'safe_undo_center' }
+    }, { persist: options.persistEvents === true });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2SafeUndoCenterPreviewEnabled: Boolean(options.previewEnabled) }),
+      status: recoverable.length ? 'ready' : 'review',
+      title: 'Безопасное восстановление',
+      summary: recoverable.length
+        ? 'Если что-то пошло не так, Мина поможет открыть безопасное восстановление последних изменений.'
+        : 'Серьёзных изменений для восстановления сейчас не видно. Новые действия появятся здесь автоматически.',
+      recentActions,
+      recoverableCount: recoverable.length,
+      lastRecoverableAt: recoverable[0]?.created_at || '',
+      events: [event].filter(Boolean),
+      safety: {
+        read_only: true,
+        no_direct_restore: true,
+        guardian_unchanged: true,
+        approval_flow_unchanged: true,
+        no_new_persistence_format: true
+      }
+    };
+  },
+
+  renderV2SafeUndoCenterPanel(snapshot = this.buildRecoverySnapshot({ previewEnabled: true, persistEvents: false })) {
+    const tone = snapshot.recoverableCount ? 'ready' : 'review';
+    return `
+      <section class="v2-safe-undo v2-safe-undo--${this.escapeHtml(tone)}" aria-label="Безопасное восстановление">
+        <header class="v2-safe-undo-hero">
+          <div>
+            <span>V2 / спокойное восстановление</span>
+            <h3>${this.escapeHtml(snapshot.title)}</h3>
+            <p>${this.escapeHtml(snapshot.summary)}</p>
+          </div>
+          <div>
+            <span>Можно вернуть</span>
+            <strong>${this.escapeHtml(String(snapshot.recoverableCount))}</strong>
+            <p>${snapshot.lastRecoverableAt ? `Последнее: ${this.escapeHtml(this.formatTaskTime(snapshot.lastRecoverableAt))}` : 'Пока нет безопасных изменений для возврата.'}</p>
+          </div>
+          <div>
+            <span>Правило безопасности</span>
+            <strong>Без прямого отката</strong>
+            <p>Кнопка "Восстановить" открывает безопасный центр. Изменения не применяются молча.</p>
+          </div>
+        </header>
+
+        <div class="v2-safe-undo-list">
+          ${snapshot.recentActions.map((action) => `
+            <article class="v2-safe-undo-card v2-safe-undo-card--${this.escapeHtml(action.status)}">
+              <time>${this.escapeHtml(this.formatTaskTime(action.created_at))}</time>
+              <strong>${this.escapeHtml(action.title)}</strong>
+              <p>${this.escapeHtml(action.description)}</p>
+              <small>Безопасность: ${this.escapeHtml(action.safety_label)}</small>
+              <div class="v2-safe-undo-actions">
+                <button type="button" data-integration-action="${this.escapeHtml(action.details_action)}">Подробнее</button>
+                ${action.recoverable
+                  ? `<button type="button" data-integration-action="open_recovery">Восстановить</button>`
+                  : `<button type="button" data-integration-action="${this.escapeHtml(action.details_action)}">${this.escapeHtml(action.status === 'unavailable' ? 'Восстановление недоступно' : 'Не требует восстановления')}</button>`}
+              </div>
+            </article>
+          `).join('')}
+        </div>
+
+        <details class="v2-safe-undo-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            recoverableCount: snapshot.recoverableCount,
+            lastRecoverableAt: snapshot.lastRecoverableAt,
+            safety: snapshot.safety,
+            recentActions: snapshot.recentActions.map((item) => ({
+              action_id: item.action_id,
+              source_type: item.source_type,
+              recoverable: item.recoverable,
+              refs: item.refs
+            }))
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
+  },
+
   renderV2QAAutotestFactoryPanel(preview = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false })) {
     const smoke = this.runV2QAAutotestFactorySmoke({ preview });
     const tone = smoke.status === 'PASS' ? 'ready' : 'review';
@@ -14233,6 +14462,7 @@ test.describe('Terminator QA Factory safe demo', () => {
     const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
       ${this.renderV2ComfortTrustGuidePanel()}
+      ${this.renderV2SafeUndoCenterPanel()}
       ${this.renderV2QAAutotestFactoryPanel()}
       ${this.renderV2P0AcceptancePanel(p0Acceptance)}
       ${this.renderV2P0IntegrationGatePanel(p0Preview)}
