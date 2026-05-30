@@ -1,0 +1,74 @@
+{
+  "generated_at": "2026-05-30T19:24:56.293Z",
+  "mode": "live-lightweight-v2-p0-j-integrated-flow-smoke",
+  "live_base": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "force": "v2-p0-j-live-smoke-1780169094902",
+  "fetched": {
+    "root": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p0-j-live-smoke-1780169094902",
+      "status": 200,
+      "ok": true,
+      "bytes": 54206
+    },
+    "app_js": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/app.js?live_smoke=1780169095509",
+      "status": 200,
+      "ok": true,
+      "bytes": 1245071
+    },
+    "css": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/styles.css?live_smoke=1780169095878",
+      "status": 200,
+      "ok": true,
+      "bytes": 204886
+    }
+  },
+  "preview_summary": {
+    "total": 10,
+    "pass": 10,
+    "consistency_failures_detected": 1,
+    "owner_assisted_not_blocker": true,
+    "postponed_phone_not_blocker": true,
+    "no_fake_ready": true
+  },
+  "contradiction_summary": {
+    "status": "fail",
+    "contradictions": [
+      "first_run_ready_with_safety_blocker",
+      "owner_command_ready_with_safety_blocker"
+    ]
+  },
+  "pass": {
+    "live_url_opens": true,
+    "app_js_opens": true,
+    "css_opens": true,
+    "has_get_snapshot": true,
+    "has_validate_consistency": true,
+    "has_route": true,
+    "has_preview": true,
+    "has_event_recorder": true,
+    "has_panel_renderer": true,
+    "has_event_type_checked": true,
+    "has_feature_flag": true,
+    "css_gate_grid": true,
+    "css_expert": true,
+    "vm_preview_summary_pass": true,
+    "vm_owner_assisted_not_blocker": true,
+    "vm_postponed_phone_not_blocker": true,
+    "vm_no_fake_ready": true,
+    "vm_panel_rendered": true,
+    "vm_expert_collapsed": true,
+    "contradiction_detected": true,
+    "route_sample_emergency_guardian": true,
+    "route_sample_memory": true,
+    "route_sample_recovery": true,
+    "no_ai_api_runtime_domains": true,
+    "no_forbidden_normal_terms_in_panel": true
+  },
+  "all_pass": true,
+  "notes": [
+    "No screenshots, no BlueStacks, no APK, no billing, no AI API.",
+    "Live check uses fetched GitHub Pages app.js/styles.css plus Node VM fake DOM.",
+    "Real phone/APK remains postponed until production V2 final."
+  ]
+}

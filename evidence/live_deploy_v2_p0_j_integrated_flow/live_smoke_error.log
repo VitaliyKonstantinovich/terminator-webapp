@@ -1,0 +1,11 @@
+TypeError: Cannot read properties of undefined (reading 'startsWith')
+    at Object.detectPwaDisplayMode (evalmachine.<anonymous>:18276:27)
+    at Object.pwaSnapshot (evalmachine.<anonymous>:18321:32)
+    at Object.buildLiveRuntimeFallbackChecks (evalmachine.<anonymous>:7266:22)
+    at Object.buildLiveRuntimeSnapshot (evalmachine.<anonymous>:7282:64)
+    at Object.buildV2OwnerCommandCenterSnapshot (evalmachine.<anonymous>:12383:56)
+    at evalmachine.<anonymous>:6527:33
+    at Array.map (<anonymous>)
+    at Object.buildV2P0IntegrationPreview (evalmachine.<anonymous>:6526:67)
+    at [stdin]:122:23
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
