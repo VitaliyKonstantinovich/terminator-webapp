@@ -324,6 +324,104 @@ const SOURCE_OF_TRUTH_SCHEMA_VERSION = 1;
 const SOURCE_OF_TRUTH_STORAGE_KEY = 'mina_source_of_truth_v1';
 const SOURCE_OF_TRUTH_MAX_HISTORY = 24;
 const V2_FIRST_RUN_RECOVERY_STATE_KEY = 'mina_v2_first_run_recovery_state_v1';
+const V2_FOUNDATION_SCHEMA_VERSION = 1;
+const V2_FOUNDATION_EVENT_LOG_KEY = 'mina_v2_foundation_events_v1';
+const V2_FOUNDATION_MAX_EVENTS = 80;
+const V2_FEATURE_FLAGS = Object.freeze({
+  v2FoundationEnabled: false,
+  v2EventLogEnabled: false,
+  v2CapabilityMatrixEnabled: false,
+  v2SourceSnapshotsEnabled: false,
+  v2SafetyPolicyPreviewEnabled: false,
+  v2MemoryContractPreviewEnabled: false,
+  v2RecoveryStatePreviewEnabled: false
+});
+const V2_CONTRACT_TYPES = Object.freeze([
+  'task',
+  'artifact',
+  'evidence',
+  'memory_record',
+  'incident',
+  'approval',
+  'capability',
+  'event',
+  'snapshot'
+]);
+const V2_CONTRACT_NAMES = Object.freeze({
+  task: 'V2TaskContract',
+  artifact: 'V2ArtifactContract',
+  evidence: 'V2EvidenceContract',
+  memory_record: 'V2MemoryRecordContract',
+  incident: 'V2IncidentContract',
+  approval: 'V2ApprovalContract',
+  capability: 'V2CapabilityContract',
+  event: 'V2EventContract',
+  snapshot: 'V2SnapshotContract'
+});
+const V2_EVENT_TYPES = Object.freeze([
+  'v2.task.created',
+  'v2.artifact.created',
+  'v2.evidence.created',
+  'v2.memory.recorded',
+  'v2.incident.detected',
+  'v2.incident.state_changed',
+  'v2.approval.requested',
+  'v2.approval.decided',
+  'v2.guardian.verdict',
+  'v2.verifier.verdict',
+  'v2.rollback.created',
+  'v2.recovery.started',
+  'v2.recovery.completed',
+  'v2.emergency_stop.enabled',
+  'v2.emergency_stop.reset_requested',
+  'v2.emergency_stop.reset_confirmed'
+]);
+const V2_CAPABILITY_ACTORS = Object.freeze([
+  'owner',
+  'webapp',
+  'local_agent',
+  'codex_repair',
+  'guardian',
+  'verifier',
+  'memory_search',
+  'brain_council',
+  'research_agent',
+  'file_worker',
+  'code_worker',
+  'browser_worker',
+  'system_worker',
+  'device_mesh',
+  'voice',
+  'recovery_wizard',
+  'external_adapter_candidate'
+]);
+const V2_CAPABILITY_RESOURCES = Object.freeze([
+  'task_state',
+  'artifacts',
+  'evidence',
+  'memory_records',
+  'memory_index',
+  'source_files',
+  'active_project_files',
+  'repair_workspace',
+  'restore_points',
+  'd_terminator_storage',
+  'secrets_env',
+  'browser_profiles',
+  'github_repo',
+  'github_settings',
+  'cloudflare_settings',
+  'billing_payment',
+  'network_settings',
+  'apk_signing',
+  'os_system_settings'
+]);
+const V2_CAPABILITY_ACTIONS = Object.freeze(['read', 'write', 'execute', 'delete', 'deploy', 'push', 'configure', 'approve']);
+const V2_CAPABILITY_VERDICTS = Object.freeze(['allow', 'allow_with_warning', 'approval_required', 'typed_confirmation_required', 'blocked', 'owner_assisted_required', 'red_zone_stop']);
+const V2_RED_ZONE_RESOURCES = Object.freeze(new Set(['secrets_env', 'billing_payment', 'network_settings', 'github_settings', 'cloudflare_settings', 'apk_signing', 'browser_profiles']));
+const V2_HIGH_RISK_RESOURCES = Object.freeze(new Set(['active_project_files', 'source_files', 'github_repo', 'os_system_settings', 'restore_points']));
+const V2_DANGEROUS_ACTIONS = Object.freeze(new Set(['delete', 'deploy', 'push', 'configure']));
+const V2_SECRET_FIELD_PATTERN = /(?:secret|token|cookie|session|password|private[_-]?key|bearer|jwt|api[_-]?key|signing|payment)/i;
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -2488,6 +2586,7 @@ const App = {
   activeApplyPackageId: '',
   sourceOfTruthState: null,
   v2FirstRunRecoveryState: null,
+  v2FoundationEvents: [],
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -2533,6 +2632,7 @@ const App = {
     this.loadControlledApplyPipelineState();
     this.loadSourceOfTruthState();
     this.loadV2FirstRunRecoveryState();
+    this.loadV2FoundationEvents();
     this.loadContinuityState();
     this.bindContinuityRuntime();
     this.loadMinaSchemeState();
@@ -4526,6 +4626,282 @@ const App = {
     try {
       window.localStorage?.setItem(key, JSON.stringify(value));
     } catch {}
+  },
+
+  loadV2FoundationEvents() {
+    const stored = this.readJsonStorage(V2_FOUNDATION_EVENT_LOG_KEY, []);
+    this.v2FoundationEvents = Array.isArray(stored) ? stored.slice(0, V2_FOUNDATION_MAX_EVENTS) : [];
+    return this.v2FoundationEvents;
+  },
+
+  saveV2FoundationEvents() {
+    this.writeJsonStorage(V2_FOUNDATION_EVENT_LOG_KEY, (this.v2FoundationEvents || []).slice(0, V2_FOUNDATION_MAX_EVENTS));
+    return this.v2FoundationEvents;
+  },
+
+  getV2FeatureFlags(overrides = {}) {
+    return {
+      ...V2_FEATURE_FLAGS,
+      ...(overrides && typeof overrides === 'object' ? overrides : {})
+    };
+  },
+
+  createV2Contract(type, source = {}) {
+    const now = new Date().toISOString();
+    const contractType = V2_CONTRACT_TYPES.includes(type) ? type : 'event';
+    return {
+      id: source.id || `v2_${contractType}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      type: contractType,
+      contract_name: V2_CONTRACT_NAMES[contractType],
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      created_at: source.created_at || now,
+      updated_at: now,
+      status: source.status || 'draft',
+      refs: source.refs && typeof source.refs === 'object' ? source.refs : {},
+      risk_level: source.risk_level || 'low',
+      ...source
+    };
+  },
+
+  sanitizeV2EventPayload(value, depth = 0) {
+    if (depth > 4) return '[truncated]';
+    if (Array.isArray(value)) return value.slice(0, 20).map((item) => this.sanitizeV2EventPayload(item, depth + 1));
+    if (!value || typeof value !== 'object') return value;
+
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => {
+      if (V2_SECRET_FIELD_PATTERN.test(key)) return [key, '[redacted]'];
+      if (typeof item === 'string' && /(?:sk-[A-Za-z0-9]{12,}|AIza[0-9A-Za-z_-]{12,}|bearer\s+[A-Za-z0-9._-]+)/i.test(item)) {
+        return [key, '[redacted]'];
+      }
+      return [key, this.sanitizeV2EventPayload(item, depth + 1)];
+    }));
+  },
+
+  recordV2Event(eventType, payload = {}) {
+    const type = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.unknown';
+    const event = this.createV2Contract('event', {
+      id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      status: 'recorded',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      event_type: type,
+      actor: payload.actor || 'webapp',
+      resource: payload.resource || 'task_state',
+      message: payload.message || type,
+      payload: this.sanitizeV2EventPayload(payload.payload || {})
+    });
+    this.v2FoundationEvents = [event, ...((this.v2FoundationEvents || []).slice(0, V2_FOUNDATION_MAX_EVENTS - 1))];
+    this.saveV2FoundationEvents();
+    return event;
+  },
+
+  getV2CapabilityMatrix() {
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      actors: [...V2_CAPABILITY_ACTORS],
+      resources: [...V2_CAPABILITY_RESOURCES],
+      actions: [...V2_CAPABILITY_ACTIONS],
+      verdicts: [...V2_CAPABILITY_VERDICTS],
+      defaults: {
+        red_zone_resources: [...V2_RED_ZONE_RESOURCES],
+        high_risk_resources: [...V2_HIGH_RISK_RESOURCES],
+        dangerous_actions: [...V2_DANGEROUS_ACTIONS],
+        broad_access_allowed: false
+      }
+    };
+  },
+
+  evaluateV2Capability(actor, resource, action, context = {}) {
+    const normalizedActor = V2_CAPABILITY_ACTORS.includes(actor) ? actor : 'external_adapter_candidate';
+    const normalizedResource = V2_CAPABILITY_RESOURCES.includes(resource) ? resource : 'task_state';
+    const normalizedAction = V2_CAPABILITY_ACTIONS.includes(action) ? action : 'read';
+    const redZone = V2_RED_ZONE_RESOURCES.has(normalizedResource);
+    const dangerous = V2_DANGEROUS_ACTIONS.has(normalizedAction);
+    const highRisk = V2_HIGH_RISK_RESOURCES.has(normalizedResource) || dangerous;
+    const mutable = ['write', 'execute', 'delete', 'deploy', 'push', 'configure'].includes(normalizedAction);
+
+    let verdict = 'allow';
+    let risk_level = 'low';
+    let reason = 'Read-only or low-risk foundation action.';
+
+    if (redZone) {
+      verdict = mutable || dangerous ? 'red_zone_stop' : 'blocked';
+      risk_level = 'critical';
+      reason = 'Red-zone resource is blocked by default.';
+    } else if (dangerous) {
+      verdict = ['delete'].includes(normalizedAction) ? 'typed_confirmation_required' : 'approval_required';
+      risk_level = 'high';
+      reason = 'Dangerous action requires owner approval and evidence.';
+    } else if (highRisk || (mutable && normalizedResource !== 'repair_workspace')) {
+      verdict = 'approval_required';
+      risk_level = 'high';
+      reason = 'Mutable/high-risk resource requires approval.';
+    } else if (normalizedActor === 'external_adapter_candidate' && mutable) {
+      verdict = 'blocked';
+      risk_level = 'high';
+      reason = 'External adapters are sandbox-only until audited.';
+    }
+
+    if (context.owner_assisted) {
+      verdict = 'owner_assisted_required';
+      risk_level = risk_level === 'critical' ? 'critical' : 'medium';
+      reason = 'Owner-assisted boundary requires manual owner action.';
+    }
+
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      actor: normalizedActor,
+      resource: normalizedResource,
+      action: normalizedAction,
+      verdict,
+      risk_level,
+      reason,
+      requires_approval: ['approval_required', 'typed_confirmation_required', 'owner_assisted_required'].includes(verdict),
+      typed_confirmation_required: verdict === 'typed_confirmation_required',
+      rollback_required: mutable && !['task_state', 'repair_workspace'].includes(normalizedResource),
+      evidence_required: risk_level !== 'low'
+    };
+  },
+
+  getV2SystemSnapshot() {
+    const truth = this.currentSourceOfTruthSnapshot?.({ refresh: false, persist: false }) || {};
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      flags: this.getV2FeatureFlags(),
+      v1_status: 'productized_rc',
+      status: truth.status || 'known',
+      source_state: truth.status ? 'known' : 'unknown',
+      owner_assisted_required: [],
+      summary: truth.summary || 'V2 foundation reads V1 source-of-truth without replacing it.'
+    };
+  },
+
+  getV2ReadinessSnapshot() {
+    const firstRun = this.buildV2FirstRunRecoverySnapshot?.() || {};
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: firstRun.status || 'partial',
+      readiness_score: Number(firstRun.score || 0),
+      unknown_is_pass: false,
+      next_action: firstRun.next || { name: 'Проверить систему', action: 'open_system' },
+      owner_assisted: firstRun.ownerAssisted || []
+    };
+  },
+
+  getV2SafetySnapshot() {
+    const guardian = this.guardianSnapshot?.() || {};
+    const sample = this.evaluateV2Capability('codex_repair', 'active_project_files', 'write');
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: guardian.status || 'review',
+      label: guardian.label || 'Защитник',
+      emergency_stop_active: Boolean(guardian.state?.emergency_stop_active),
+      unknown_is_pass: false,
+      capability_sample: sample,
+      policy_preview: 'dangerous actions require Guardian/Approval/rollback gates'
+    };
+  },
+
+  getV2MemorySnapshot() {
+    const memory = this.memorySearchSnapshot?.() || {};
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: memory.status || 'partial',
+      readiness: Number(memory.readiness || memory.score || 0),
+      index_status: memory.index_status || memory.status || 'unknown',
+      records: Number(memory.records || memory.record_count || 0),
+      unknown_is_pass: false
+    };
+  },
+
+  getV2RecoverySnapshot() {
+    const guardian = this.guardianSnapshot?.() || {};
+    const incidents = Array.isArray(this.guardianIncidents) ? this.guardianIncidents : [];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: guardian.status || 'review',
+      open_incidents: incidents.filter((incident) => !['closed', 'resolved'].includes(incident.status)).length,
+      unknown_is_pass: false,
+      state_model: ['detected', 'classified', 'explained', 'awaiting_user_action', 'diagnostic_pack_created', 'repair_workspace_created', 'verifier_check', 'guardian_check', 'approval_required', 'ready_to_apply', 'applied', 'rollback_available', 'recovered', 'closed', 'blocked', 'owner_assisted_required'],
+      owner_assisted_postponed: ['real_phone_apk', 'billing_dashboards', 'production_signing', 'production_rollback']
+    };
+  },
+
+  getV2CapabilitySnapshot() {
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      matrix: this.getV2CapabilityMatrix(),
+      sample_verdicts: [
+        this.evaluateV2Capability('webapp', 'task_state', 'read'),
+        this.evaluateV2Capability('codex_repair', 'active_project_files', 'write'),
+        this.evaluateV2Capability('system_worker', 'network_settings', 'configure'),
+        this.evaluateV2Capability('owner', 'artifacts', 'approve')
+      ]
+    };
+  },
+
+  buildV2FoundationPreview(options = {}) {
+    const task = this.createV2Contract('task', {
+      id: 'v2_task_foundation_sample',
+      status: 'preview',
+      refs: { project_id: 'terminator', task_id: 'v2-p0-a-foundation' }
+    });
+    const eventPayload = {
+      actor: 'webapp',
+      resource: 'task_state',
+      message: 'V2 foundation preview event',
+      refs: { task_id: task.id },
+      payload: { task_id: task.id, note: 'safe preview, no external action', fake_token: 'sk-FAKE_REDACTED_SAMPLE_123456' }
+    };
+    const event = options.persistEvent === false
+      ? this.createV2Contract('event', {
+          id: 'v2_event_foundation_sample',
+          status: 'preview',
+          event_type: 'v2.task.created',
+          actor: eventPayload.actor,
+          resource: eventPayload.resource,
+          message: eventPayload.message,
+          refs: eventPayload.refs,
+          payload: this.sanitizeV2EventPayload(eventPayload.payload)
+        })
+      : this.recordV2Event('v2.task.created', eventPayload);
+    const snapshot = this.createV2Contract('snapshot', {
+      id: 'v2_snapshot_foundation_sample',
+      status: 'preview',
+      refs: { task_id: task.id },
+      payload: { source: 'buildV2FoundationPreview', unknown_is_pass: false }
+    });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags(),
+      contracts: {
+        task,
+        artifact: this.createV2Contract('artifact', { id: 'v2_artifact_foundation_sample', status: 'preview', refs: { task_id: task.id } }),
+        evidence: this.createV2Contract('evidence', { id: 'v2_evidence_foundation_sample', status: 'preview', refs: { task_id: task.id } }),
+        memory_record: this.createV2Contract('memory_record', { id: 'v2_memory_foundation_sample', status: 'candidate', refs: { task_id: task.id }, risk_level: 'low' }),
+        incident: this.createV2Contract('incident', { id: 'v2_incident_foundation_sample', status: 'detected', refs: { task_id: task.id }, risk_level: 'medium' }),
+        approval: this.createV2Contract('approval', { id: 'v2_approval_foundation_sample', status: 'required', refs: { task_id: task.id }, risk_level: 'high' }),
+        capability: this.createV2Contract('capability', { id: 'v2_capability_foundation_sample', status: 'preview', refs: { task_id: task.id }, payload: this.evaluateV2Capability('codex_repair', 'active_project_files', 'write') }),
+        event,
+        snapshot
+      },
+      event,
+      capability: this.getV2CapabilitySnapshot(),
+      snapshots: {
+        system: this.getV2SystemSnapshot(),
+        readiness: this.getV2ReadinessSnapshot(),
+        safety: this.getV2SafetySnapshot(),
+        memory: this.getV2MemorySnapshot(),
+        recovery: this.getV2RecoverySnapshot()
+      }
+    };
   },
 
   loadProductionState() {
