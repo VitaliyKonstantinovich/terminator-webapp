@@ -15826,16 +15826,28 @@ const App = {
         <svg viewBox="0 0 320 760" role="img" aria-label="Стилизованный силуэт Мины">
           <defs>
             <linearGradient id="minaBodyGlow" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="#bff7ff" stop-opacity="0.96" />
-              <stop offset="0.38" stop-color="#1d86ff" stop-opacity="0.82" />
-              <stop offset="0.74" stop-color="#0c2e92" stop-opacity="0.72" />
-              <stop offset="1" stop-color="#75f8ff" stop-opacity="0.94" />
+              <stop offset="0" stop-color="#e7fbff" stop-opacity="1" />
+              <stop offset="0.2" stop-color="#42d8ff" stop-opacity="0.96" />
+              <stop offset="0.5" stop-color="#117aff" stop-opacity="0.86" />
+              <stop offset="0.78" stop-color="#071d78" stop-opacity="0.76" />
+              <stop offset="1" stop-color="#9af7ff" stop-opacity="0.98" />
+            </linearGradient>
+            <linearGradient id="minaContourGlow" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#dffaff" stop-opacity="0.96" />
+              <stop offset="0.42" stop-color="#42d9ff" stop-opacity="0.84" />
+              <stop offset="1" stop-color="#157aff" stop-opacity="0.78" />
             </linearGradient>
             <radialGradient id="minaCoreGlow" cx="50%" cy="43%" r="62%">
               <stop offset="0" stop-color="#25d8ff" stop-opacity="0.72" />
               <stop offset="0.48" stop-color="#073b8e" stop-opacity="0.28" />
               <stop offset="1" stop-color="#020b1f" stop-opacity="0" />
             </linearGradient>
+            <radialGradient id="minaBodyFill" cx="50%" cy="34%" r="72%">
+              <stop offset="0" stop-color="#1bdcff" stop-opacity="0.28" />
+              <stop offset="0.36" stop-color="#0e5cc6" stop-opacity="0.28" />
+              <stop offset="0.72" stop-color="#031947" stop-opacity="0.84" />
+              <stop offset="1" stop-color="#010714" stop-opacity="0.96" />
+            </radialGradient>
             <filter id="minaGlow" x="-40%" y="-40%" width="180%" height="180%">
               <feGaussianBlur stdDeviation="4.4" result="blur" />
               <feMerge>
@@ -15843,36 +15855,66 @@ const App = {
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+            <filter id="minaOuterGlow" x="-55%" y="-55%" width="210%" height="210%">
+              <feGaussianBlur stdDeviation="8" result="soft" />
+              <feGaussianBlur stdDeviation="2.2" in="SourceGraphic" result="sharp" />
+              <feMerge>
+                <feMergeNode in="soft" />
+                <feMergeNode in="sharp" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
           <ellipse class="scheme-aura" cx="160" cy="404" rx="138" ry="318" />
           <ellipse class="scheme-aura-ring" cx="160" cy="406" rx="116" ry="264" />
           <ellipse class="scheme-aura-ring scheme-aura-ring--inner" cx="160" cy="402" rx="88" ry="198" />
-          <path class="scheme-hair" d="M108 103 C102 46 130 19 160 18 C194 23 221 56 211 129 C205 185 207 235 225 286 C194 266 184 216 186 165 C177 180 144 180 134 165 C136 218 125 264 95 286 C112 234 116 181 108 103 Z" />
-          <path class="scheme-hair-highlight scheme-hair-highlight--left" d="M126 68 C116 112 120 186 104 246 C126 226 134 174 134 126" />
-          <path class="scheme-hair-highlight scheme-hair-highlight--right" d="M194 68 C204 112 200 186 216 246 C194 226 186 174 186 126" />
-          <path class="scheme-head" d="M125 100 C126 64 144 44 161 44 C181 45 195 67 195 101 C195 138 179 160 160 160 C141 160 125 138 125 100 Z" />
-          <path class="scheme-neck" d="M145 156 L176 156 L184 199 C172 209 148 209 136 199 Z" />
-          <path class="scheme-body" d="M112 204 C126 181 194 181 208 204 C230 251 224 318 206 362 C192 398 204 450 219 512 C236 587 224 676 199 728 C186 664 176 588 169 512 C165 469 155 469 151 512 C144 588 133 664 121 728 C96 676 84 587 101 512 C116 450 128 398 114 362 C96 318 90 251 112 204 Z" />
-          <path class="scheme-core" d="M128 224 C140 211 180 211 192 224 C204 277 197 330 181 373 C174 392 176 428 189 465 L131 465 C144 428 146 392 139 373 C123 330 116 277 128 224 Z" />
-          <path class="scheme-body-highlight" d="M142 218 C132 270 136 322 150 372 C156 392 154 430 145 463 M178 218 C188 270 184 322 170 372 C164 392 166 430 175 463" />
-          <path class="scheme-shoulder-glow" d="M111 210 C132 190 188 190 209 210" />
-          <path class="scheme-arm scheme-arm-left" d="M116 214 C78 262 66 358 75 474 C79 530 59 575 43 619" />
-          <path class="scheme-arm scheme-arm-right" d="M204 214 C242 262 254 358 245 474 C241 530 261 575 277 619" />
+          <image class="scheme-hologram-asset" href="assets/mina-hologram-silhouette.png" x="18" y="0" width="284" height="760" preserveAspectRatio="xMidYMid meet" />
+          <g class="scheme-energy-field" aria-hidden="true">
+            <path d="M70 118 C30 262 42 520 110 705" />
+            <path d="M250 118 C290 262 278 520 210 705" />
+            <path d="M94 72 C142 36 188 36 226 76" />
+            <circle cx="88" cy="206" r="2" />
+            <circle cx="230" cy="246" r="2.5" />
+            <circle cx="82" cy="486" r="2" />
+            <circle cx="236" cy="548" r="2" />
+          </g>
+          <path class="scheme-hair scheme-hair-back" d="M97 121 C92 54 123 19 159 14 C202 18 230 61 222 141 C216 201 220 247 241 308 C211 294 194 244 193 175 C183 197 137 198 127 176 C128 242 110 291 79 311 C103 247 105 189 97 121 Z" />
+          <path class="scheme-hair" d="M110 112 C106 58 130 28 160 24 C194 27 215 62 209 125 C204 181 210 225 224 270 C196 254 188 209 189 159 C181 181 139 181 131 159 C132 209 124 254 96 270 C111 225 116 178 110 112 Z" />
+          <path class="scheme-hair-highlight scheme-hair-highlight--left" d="M126 58 C112 111 118 190 99 257 C126 232 133 176 132 119" />
+          <path class="scheme-hair-highlight scheme-hair-highlight--right" d="M194 58 C208 111 202 190 221 257 C194 232 187 176 188 119" />
+          <path class="scheme-head" d="M126 100 C127 64 144 43 161 42 C181 43 195 66 194 101 C194 137 178 159 160 159 C142 159 126 137 126 100 Z" />
+          <path class="scheme-face-line" d="M142 90 C151 84 169 84 178 90 M145 135 C153 143 167 143 175 135" />
+          <path class="scheme-neck" d="M144 155 L176 155 L185 199 C173 211 147 211 135 199 Z" />
+          <path class="scheme-body scheme-body-shadow" d="M108 207 C121 184 198 184 212 207 C229 248 225 307 209 356 C197 390 207 447 222 510 C242 592 230 679 201 731 C189 666 178 588 171 512 C166 468 154 468 149 512 C142 588 131 666 119 731 C90 679 78 592 98 510 C113 447 123 390 111 356 C95 307 91 248 108 207 Z" />
+          <path class="scheme-body" d="M111 205 C127 184 193 184 209 205 C231 257 224 324 205 365 C190 398 202 450 219 512 C239 592 226 680 198 730 C187 662 176 589 169 511 C165 470 155 470 151 511 C144 589 133 662 122 730 C94 680 81 592 101 512 C118 450 130 398 115 365 C96 324 89 257 111 205 Z" />
+          <path class="scheme-core" d="M128 224 C140 210 180 210 192 224 C205 276 197 330 181 374 C173 395 176 429 190 467 L130 467 C144 429 147 395 139 374 C123 330 115 276 128 224 Z" />
+          <path class="scheme-body-contour" d="M128 213 C140 232 149 252 160 256 C171 252 180 232 192 213 M133 298 C145 312 175 312 187 298 M130 365 C148 381 172 381 190 365 M132 451 C149 464 171 464 188 451" />
+          <path class="scheme-body-highlight" d="M141 213 C130 270 136 323 150 374 C156 394 154 431 145 465 M179 213 C190 270 184 323 170 374 C164 394 166 431 175 465" />
+          <path class="scheme-shoulder-glow" d="M111 210 C132 190 188 190 209 210 M117 232 C139 248 181 248 203 232" />
+          <path class="scheme-arm scheme-arm-left" d="M116 214 C85 258 73 336 75 431 C77 498 64 563 43 621" />
+          <path class="scheme-arm scheme-arm-right" d="M204 214 C235 258 247 336 245 431 C243 498 256 563 277 621" />
+          <path class="scheme-arm-inner" d="M101 250 C82 313 86 418 94 507 M219 250 C238 313 234 418 226 507" />
           <path class="scheme-leg scheme-leg-left" d="M143 463 C128 548 126 636 132 735" />
           <path class="scheme-leg scheme-leg-right" d="M177 463 C192 548 194 636 188 735" />
-          <path class="scheme-leg-highlight" d="M151 478 C146 552 145 638 147 722 M169 478 C174 552 175 638 173 722" />
+          <path class="scheme-leg-highlight" d="M150 478 C145 552 144 640 147 722 M170 478 C175 552 176 640 173 722 M137 510 C152 525 168 525 183 510" />
+          <path class="scheme-joint-line" d="M123 617 C139 607 151 607 159 617 M161 617 C169 607 181 607 197 617" />
           <path class="scheme-hand-dot" d="M35 611 C52 608 58 624 44 635 C31 633 28 621 35 611 Z" />
           <path class="scheme-hand-dot" d="M285 611 C268 608 262 624 276 635 C289 633 292 621 285 611 Z" />
-          <path class="scheme-foot" d="M119 727 C136 724 147 731 149 744 C132 750 114 748 105 742 C107 735 112 731 119 727 Z" />
-          <path class="scheme-foot" d="M201 727 C184 724 173 731 171 744 C188 750 206 748 215 742 C213 735 208 731 201 727 Z" />
+          <path class="scheme-foot" d="M119 727 C136 724 148 731 150 744 C132 751 114 749 105 742 C107 735 112 731 119 727 Z" />
+          <path class="scheme-foot" d="M201 727 C184 724 172 731 170 744 C188 751 206 749 215 742 C213 735 208 731 201 727 Z" />
           <path class="scheme-line-detail" d="M160 164 L160 724 M119 250 C142 268 178 268 201 250 M112 337 C139 352 181 352 208 337 M129 450 C148 464 172 464 191 450 M135 574 C149 587 171 587 185 574" />
           <path class="scheme-diagnostic-shield" d="M222 445 L268 468 L257 536 C248 570 234 594 222 604 C210 594 196 570 187 536 L176 468 Z" />
           <circle class="scheme-face-dot scheme-face-dot--left" cx="149" cy="98" r="5" />
           <circle class="scheme-face-dot scheme-face-dot--right" cx="172" cy="98" r="5" />
           <circle class="scheme-face-dot scheme-face-dot--voice" cx="160" cy="126" r="5" />
+          <circle class="scheme-face-dot scheme-face-dot--brow" cx="160" cy="82" r="3" />
+          <circle class="scheme-face-dot scheme-face-dot--temple" cx="134" cy="116" r="3.5" />
+          <circle class="scheme-face-dot scheme-face-dot--temple" cx="187" cy="116" r="3.5" />
           <circle class="scheme-core-node" cx="160" cy="292" r="8" />
+          <circle class="scheme-core-node scheme-core-node--cyan" cx="160" cy="228" r="6" />
           <circle class="scheme-core-node scheme-core-node--small" cx="122" cy="402" r="6" />
           <circle class="scheme-core-node scheme-core-node--small" cx="198" cy="402" r="6" />
+          <circle class="scheme-core-node scheme-core-node--small" cx="160" cy="448" r="5" />
           <circle class="scheme-core-node scheme-core-node--warn" cx="137" cy="658" r="7" />
           ${this.renderMinaSchemeSvgZones(subsystems)}
         </svg>

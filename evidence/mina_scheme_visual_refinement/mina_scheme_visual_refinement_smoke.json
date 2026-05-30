@@ -1,0 +1,65 @@
+{
+  "desktop": {
+    "ariaZones": 8,
+    "asset": true,
+    "expected": 1366,
+    "mapBox": {
+      "height": 505.4375,
+      "width": 611.2125244140625,
+      "x": 254.59375,
+      "y": 227.5625
+    },
+    "overflow": false,
+    "scrollWidth": 1366,
+    "silhouetteBox": {
+      "height": 477.8374938964844,
+      "width": 256.0375061035156,
+      "x": 432.1812438964844,
+      "y": 242.3625030517578
+    },
+    "viewport": 1366,
+    "zones": 8
+  },
+  "narrow599": {
+    "ariaZones": 8,
+    "asset": true,
+    "expected": 599,
+    "mapBox": {
+      "height": 1213.5999755859375,
+      "width": 544,
+      "x": 27.600000381469727,
+      "y": 405.20001220703125
+    },
+    "overflow": false,
+    "scrollWidth": 599,
+    "silhouetteBox": {
+      "height": 560,
+      "width": 514.4000244140625,
+      "x": 42.400001525878906,
+      "y": 420
+    },
+    "viewport": 599,
+    "zones": 8
+  },
+  "mobile390": {
+    "ariaZones": 8,
+    "asset": true,
+    "expected": 390,
+    "mapBox": {
+      "height": 1213.5999755859375,
+      "width": 335.20001220703125,
+      "x": 27.600000381469727,
+      "y": 405.20001220703125
+    },
+    "overflow": false,
+    "scrollWidth": 390,
+    "silhouetteBox": {
+      "height": 560,
+      "width": 305.6000061035156,
+      "x": 42.400001525878906,
+      "y": 420
+    },
+    "viewport": 390,
+    "zones": 8
+  }
+}

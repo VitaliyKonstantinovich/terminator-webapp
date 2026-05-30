@@ -1,0 +1,50 @@
+[
+  {
+    "zoneId": "head",
+    "status": "PASS",
+    "activeCard": "head",
+    "activeSvg": "head"
+  },
+  {
+    "zoneId": "eyes",
+    "status": "PASS",
+    "activeCard": "eyes",
+    "activeSvg": "eyes"
+  },
+  {
+    "zoneId": "voice",
+    "status": "PASS",
+    "activeCard": "voice",
+    "activeSvg": "voice"
+  },
+  {
+    "zoneId": "memory",
+    "status": "PASS",
+    "activeCard": "memory",
+    "activeSvg": "memory"
+  },
+  {
+    "zoneId": "body",
+    "status": "PASS",
+    "activeCard": "body",
+    "activeSvg": "body"
+  },
+  {
+    "zoneId": "hands",
+    "status": "PASS",
+    "activeCard": "hands",
+    "activeSvg": "hands"
+  },
+  {
+    "zoneId": "legs",
+    "status": "PASS",
+    "activeCard": "legs",
+    "activeSvg": "legs"
+  },
+  {
+    "zoneId": "diagnost",
+    "status": "PASS",
+    "activeCard": "diagnost",
+    "activeSvg": "diagnost"
+  }
+]

@@ -7478,7 +7478,7 @@ button:not(:disabled) {
 .scheme-silhouette {
   position: absolute;
   z-index: 3;
-  inset: 20px 31% 18px;
+  inset: 14px 29% 12px;
   display: block;
   pointer-events: auto;
 }
@@ -7488,7 +7488,7 @@ button:not(:disabled) {
   left: 50%;
   top: 0;
   width: auto;
-  max-width: min(100%, 340px);
+  max-width: min(100%, 390px);
   height: 100%;
   max-height: none;
   overflow: visible;
@@ -7513,14 +7513,34 @@ button:not(:disabled) {
   stroke-dasharray: 4 10;
 }
 
+.scheme-hologram-asset {
+  opacity: 1;
+  filter:
+    brightness(1.22)
+    saturate(1.2)
+    drop-shadow(0 0 10px rgba(36, 178, 255, 0.72))
+    drop-shadow(0 0 22px rgba(80, 224, 255, 0.34));
+  mix-blend-mode: normal;
+  pointer-events: none;
+}
+
 .scheme-head,
 .scheme-neck,
 .scheme-body,
 .scheme-core {
-  fill: rgba(3, 32, 76, 0.72);
+  fill: url("#minaBodyFill");
   stroke: url("#minaBodyGlow");
-  stroke-width: 2.2;
-  filter: url("#minaGlow");
+  stroke-width: 1.35;
+  opacity: 0.2;
+  filter: url("#minaOuterGlow");
+}
+
+.scheme-body-shadow {
+  fill: rgba(1, 8, 25, 0.96);
+  stroke: rgba(34, 174, 255, 0.18);
+  stroke-width: 8;
+  opacity: 0.18;
+  filter: drop-shadow(0 0 24px rgba(20, 143, 255, 0.54));
 }
 
 .scheme-neck {
@@ -7529,16 +7549,29 @@ button:not(:disabled) {
 }
 
 .scheme-hair {
-  fill: rgba(1, 12, 28, 0.88);
-  stroke: rgba(126, 231, 255, 0.82);
+  fill: rgba(1, 13, 34, 0.92);
+  stroke: url("#minaContourGlow");
+  stroke-width: 1.2;
+  opacity: 0.18;
+  filter: url("#minaOuterGlow");
+}
+
+.scheme-hair-back {
+  fill: rgba(1, 7, 22, 0.97);
+  stroke: rgba(73, 210, 255, 0.44);
   stroke-width: 2;
-  filter: url("#minaGlow");
+  opacity: 0.16;
 }
 
 .scheme-hair-highlight,
 .scheme-body-highlight,
 .scheme-shoulder-glow,
-.scheme-leg-highlight {
+.scheme-leg-highlight,
+.scheme-body-contour,
+.scheme-face-line,
+.scheme-arm-inner,
+.scheme-joint-line,
+.scheme-energy-field path {
   fill: none;
   stroke: rgba(159, 244, 255, 0.58);
   stroke-width: 2;
@@ -7556,6 +7589,36 @@ button:not(:disabled) {
 .scheme-leg-highlight {
   stroke: rgba(116, 232, 255, 0.36);
   stroke-width: 1.15;
+}
+
+.scheme-body-contour {
+  stroke: rgba(134, 238, 255, 0.26);
+  stroke-width: 1.05;
+  filter: none;
+}
+
+.scheme-face-line {
+  stroke: rgba(158, 248, 255, 0.52);
+  stroke-width: 1.1;
+}
+
+.scheme-arm-inner,
+.scheme-joint-line {
+  stroke: rgba(116, 232, 255, 0.28);
+  stroke-width: 1.15;
+  filter: none;
+}
+
+.scheme-energy-field path {
+  stroke: rgba(84, 225, 255, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 6 12;
+  filter: drop-shadow(0 0 8px rgba(90, 210, 255, 0.5));
+}
+
+.scheme-energy-field circle {
+  fill: rgba(119, 244, 255, 0.7);
+  filter: drop-shadow(0 0 8px rgba(119, 244, 255, 0.72));
 }
 
 .scheme-shoulder-glow {
@@ -7624,6 +7687,11 @@ button:not(:disabled) {
 
 .scheme-core-node--small {
   fill: #2df6b9;
+}
+
+.scheme-core-node--cyan {
+  fill: #74f2ff;
+  filter: drop-shadow(0 0 12px rgba(116, 242, 255, 0.95));
 }
 
 .scheme-core-node--warn {
@@ -8012,7 +8080,7 @@ button:not(:disabled) {
   }
 
   .scheme-map {
-    min-height: 610px;
+    min-height: 680px;
   }
 
   .scheme-panel {
@@ -8060,7 +8128,7 @@ button:not(:disabled) {
 
   .scheme-top-actions {
     width: 100%;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px 42px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -8080,12 +8148,14 @@ button:not(:disabled) {
   }
 
   .scheme-top-actions button {
-    width: 42px;
+    width: auto;
+    min-width: 0;
+    min-height: 46px;
     font-size: 18px;
   }
 
   .scheme-map {
-    min-height: 820px;
+    min-height: 1040px;
     display: grid;
     gap: 10px;
     padding: 14px;
@@ -8100,7 +8170,8 @@ button:not(:disabled) {
   .scheme-silhouette {
     position: relative;
     inset: auto;
-    height: 340px;
+    height: min(68vh, 560px);
+    min-height: 500px;
     order: 1;
   }
 
