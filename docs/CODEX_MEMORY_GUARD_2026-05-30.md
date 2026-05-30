@@ -57,3 +57,33 @@ Before heavy product loops:
 4. If RED, stop heavy work and produce recovery checkpoint.
 
 BlueStacks should be open only during APK/mobile checks.
+
+## ChatGPT Supervision Extraction Rule
+
+When working with the external ChatGPT reviewer:
+
+1. Wait until the full answer is complete and stable.
+2. Save the full raw answer to `D:\TerminatorStorage\temp_outputs\chatgpt_supervision\`.
+3. Extract only the task addressed to Codex.
+4. Show the complete extracted task to the owner before execution.
+5. Do not show ChatGPT UI chrome/footer lines to the owner.
+
+UI chrome/footer lines to strip before showing the task:
+
+- `Действия с ответом`
+- `Копировать ответ`
+- `Хороший ответ`
+- `Плохой ответ`
+- `Поделиться`
+- `Больше действий`
+- `Добавляйте файлы и многое другое`
+- `Чат с ChatGPT`
+- `Спросите ChatGPT`
+- `Глубокое`
+- `Начало диктовки`
+- `Запустить голосовой режим`
+- `ChatGPT может допускать ошибки...`
+- `Поиск по вкладкам`
+- browser/tab controls such as `Закрыть` and `Новая вкладка`
+
+This is a mandatory process rule: full extracted Codex task first, no UI tail, then implementation.

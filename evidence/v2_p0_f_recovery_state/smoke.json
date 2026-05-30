@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-05-30T15:19:57.837Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "incident_contracts",
+      "status": "PASS"
+    },
+    {
+      "id": "playbook_selector",
+      "status": "PASS"
+    },
+    {
+      "id": "diagnostic_pack_preview",
+      "status": "PASS"
+    },
+    {
+      "id": "state_machine_valid_samples",
+      "status": "PASS"
+    },
+    {
+      "id": "state_machine_events_present",
+      "status": "PASS"
+    },
+    {
+      "id": "invalid_transition_blocked",
+      "status": "PASS"
+    },
+    {
+      "id": "events_sanitized",
+      "status": "PASS"
+    },
+    {
+      "id": "owner_assisted_separated",
+      "status": "PASS"
+    },
+    {
+      "id": "emergency_stop_phrase_required",
+      "status": "PASS"
+    },
+    {
+      "id": "controlled_apply_no_rollback_still_blocked",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search_impossible_empty",
+      "status": "PASS"
+    },
+    {
+      "id": "ui_preview_present",
+      "status": "PASS"
+    }
+  ],
+  "counts": {
+    "total": 9,
+    "pass": 9,
+    "blocked": 2,
+    "owner_assisted_required": 5,
+    "invalid_transition_blocked": true
+  },
+  "snapshot": {
+    "schema_version": 1,
+    "generated_at": "2026-05-30T15:19:57.792Z",
+    "incidents_count": 2,
+    "active_incidents_count": 2,
+    "last_incident_status": "detected",
+    "recovery_health": "active",
+    "owner_assisted_count": 0,
+    "blocked_count": 0,
+    "ready_to_recover_count": 0,
+    "last_event_id": "",
+    "timestamp": "2026-05-30T15:19:57.792Z",
+    "owner_assisted_required": [
+      "real_phone_apk",
+      "billing_dashboards",
+      "production_rollback"
+    ]
+  },
+  "no_secret_values": true,
+  "env_label_allowed_as_forbidden_action": true,
+  "memory_impossible_match_type": "none",
+  "emergency_required_phrase": "RESET EMERGENCY STOP",
+  "no_ai_api": true,
+  "no_billing_changes": true,
+  "no_cloudflare_github_settings_changes": true,
+  "no_local_agent_direct_bridge_changes": true,
+  "blueStacks_started": false
+}

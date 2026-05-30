@@ -1,0 +1,643 @@
+[
+  {
+    "id": "missing_evidence_ref",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.773Z",
+    "updated_at": "2026-05-30T15:19:57.781Z",
+    "status": "diagnostic_pack_created",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "incident_id": "incident_v2_1780154397773_iwfsh",
+    "component": "evidence",
+    "affected_area": "evidence",
+    "symptom": "У результата отсутствует evidence ref.",
+    "title": "Recovery: evidence",
+    "severity": "medium",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "У результата отсутствует evidence ref.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": false,
+    "next_action": "выбрать repair workspace или owner-assisted путь",
+    "playbook_id": "missing_evidence_ref",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397781_93lfe",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397781_93lfe",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.781Z",
+      "updated_at": "2026-05-30T15:19:57.781Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "medium",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397773_iwfsh",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "evidence",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "memory_search_degraded",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.781Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "diagnostic_pack_created",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "incident_id": "incident_v2_1780154397781_kjewt",
+    "component": "memory_search",
+    "affected_area": "memory_search",
+    "symptom": "Memory Search index stale / degraded.",
+    "title": "Recovery: memory_search",
+    "severity": "medium",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Memory Search index stale / degraded.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [
+        "memory index stale"
+      ],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": false,
+    "next_action": "выбрать repair workspace или owner-assisted путь",
+    "playbook_id": "memory_search_degraded",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397782_up9tb",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397782_up9tb",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.782Z",
+      "updated_at": "2026-05-30T15:19:57.782Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "medium",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397781_kjewt",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "memory_search",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "verifier_fail",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "blocked",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "incident_id": "incident_v2_1780154397783_b2fg7",
+    "component": "verifier",
+    "affected_area": "verifier",
+    "symptom": "Verifier FAIL after Codex report.",
+    "title": "Recovery: verifier",
+    "severity": "high",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Verifier FAIL after Codex report.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "FAIL",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": false,
+    "next_action": "не выполнять действие, показать причину",
+    "playbook_id": "verifier_fail",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397783_ksbx5",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397783_ksbx5",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.783Z",
+      "updated_at": "2026-05-30T15:19:57.783Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "high",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397783_b2fg7",
+        "from": "verifier_check",
+        "to": "blocked",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "privacy_warning",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "owner_assisted_required",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "incident_id": "incident_v2_1780154397784_yvwv7",
+    "component": "privacy_guard",
+    "affected_area": "privacy_guard",
+    "symptom": "Diagnostic input contains fake secret-like marker and [env-file] marker.",
+    "title": "Recovery: privacy_guard",
+    "severity": "high",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Diagnostic input contains fake secret-like marker and [env-file] marker.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": true,
+    "next_action": "владелец проверяет вручную",
+    "playbook_id": "privacy_warning",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397784_twtae",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397784_twtae",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.784Z",
+      "updated_at": "2026-05-30T15:19:57.784Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "high",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397784_yvwv7",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "privacy_guard",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "cost_guard_unknown",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.785Z",
+    "status": "owner_assisted_required",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "incident_id": "incident_v2_1780154397784_etmkt",
+    "component": "cost_guard",
+    "affected_area": "cost_guard",
+    "symptom": "Billing status unknown for cloud provider.",
+    "title": "Recovery: cost_guard",
+    "severity": "medium",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Billing status unknown for cloud provider.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": true,
+    "next_action": "владелец проверяет вручную",
+    "playbook_id": "cost_guard_unknown",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397785_281gs",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397785_281gs",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.785Z",
+      "updated_at": "2026-05-30T15:19:57.785Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "medium",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397784_etmkt",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "cost_guard",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "emergency_stop_active",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.787Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "owner_assisted_required",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "incident_id": "incident_v2_1780154397787_mjohq",
+    "component": "guardian",
+    "affected_area": "guardian",
+    "symptom": "Emergency Stop active; reset requires typed phrase.",
+    "title": "Recovery: guardian",
+    "severity": "high",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Emergency Stop active; reset requires typed phrase.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": true,
+    "next_action": "владелец проверяет вручную",
+    "playbook_id": "emergency_stop_active",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397788_s770n",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397788_s770n",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.788Z",
+      "updated_at": "2026-05-30T15:19:57.788Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "high",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397787_mjohq",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "guardian",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "repair_workspace_unavailable",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.789Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "escalated",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "incident_id": "incident_v2_1780154397789_k20ay",
+    "component": "codex_repair",
+    "affected_area": "codex_repair",
+    "symptom": "Repair workspace unavailable; apply must not continue.",
+    "title": "Recovery: codex_repair",
+    "severity": "high",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Repair workspace unavailable; apply must not continue.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": false,
+    "next_action": "передать владельцу как ручной сценарий",
+    "playbook_id": "repair_workspace_unavailable",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397790_g6c41",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397790_g6c41",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.790Z",
+      "updated_at": "2026-05-30T15:19:57.790Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "high",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397789_k20ay",
+        "from": "repair_workspace_required",
+        "to": "escalated",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "local_agent_unavailable_placeholder",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "owner_assisted_required",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "incident_id": "incident_v2_1780154397791_81zef",
+    "component": "local_agent",
+    "affected_area": "local_agent",
+    "symptom": "Local Agent unavailable placeholder only; no runtime change.",
+    "title": "Recovery: local_agent",
+    "severity": "medium",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Local Agent unavailable placeholder only; no runtime change.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": true,
+    "next_action": "владелец проверяет вручную",
+    "playbook_id": "local_agent_unavailable_placeholder",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397791_w7r18",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397791_w7r18",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.791Z",
+      "updated_at": "2026-05-30T15:19:57.791Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "medium",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397791_81zef",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "local_agent",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  },
+  {
+    "id": "direct_bridge_unavailable_placeholder",
+    "type": "incident",
+    "contract_name": "V2IncidentContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "owner_assisted_required",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "incident_id": "incident_v2_1780154397791_jdnet",
+    "component": "direct_bridge",
+    "affected_area": "direct_bridge",
+    "symptom": "Direct Bridge unavailable placeholder; no Cloudflare change.",
+    "title": "Recovery: direct_bridge",
+    "severity": "medium",
+    "source": "v2_recovery_preview",
+    "source_ref": "",
+    "user_message": "Direct Bridge unavailable placeholder; no Cloudflare change.",
+    "expert_details": {
+      "source": "v2_recovery_preview",
+      "risk_hints": [],
+      "verifier_status": "unknown",
+      "guardian_verdict": "unknown"
+    },
+    "evidence_refs": [],
+    "artifact_refs": [],
+    "owner_assisted_required": true,
+    "next_action": "владелец проверяет вручную",
+    "playbook_id": "direct_bridge_unavailable_placeholder",
+    "transition_status": "PASS",
+    "transition_reason": "Переход разрешён state machine.",
+    "last_recovery_event_id": "v2_recovery_v2_incident_state_changed_1780154397792_qt36f",
+    "event": {
+      "id": "v2_recovery_v2_incident_state_changed_1780154397792_qt36f",
+      "type": "event",
+      "contract_name": "V2EventContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T15:19:57.792Z",
+      "updated_at": "2026-05-30T15:19:57.792Z",
+      "status": "preview",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      },
+      "risk_level": "medium",
+      "event_type": "v2.incident.state_changed",
+      "actor": "recovery_wizard",
+      "resource": "task_state",
+      "message": "v2.incident.state_changed",
+      "payload": {
+        "incident_id": "incident_v2_1780154397791_jdnet",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "direct_bridge",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    }
+  }
+]

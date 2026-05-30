@@ -1,0 +1,2588 @@
+[
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397779_j05q9",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.779Z",
+    "updated_at": "2026-05-30T15:19:57.779Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "severity": "medium",
+      "refs": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780154397773_iwfsh"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397779_n4rvn",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.779Z",
+    "updated_at": "2026-05-30T15:19:57.779Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "проверить ссылку evidence или повторить проверку результата",
+    "payload": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "playbook_id": "missing_evidence_ref",
+      "message": "проверить ссылку evidence или повторить проверку результата",
+      "refs": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780154397773_iwfsh"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397779_ast30",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.779Z",
+    "updated_at": "2026-05-30T15:19:57.779Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "pack_id": "v2_diagpack_1780154397777_zdjpy"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "pack_id": "v2_diagpack_1780154397777_zdjpy",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780154397773_iwfsh",
+        "pack_id": "v2_diagpack_1780154397777_zdjpy"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397780_jsjae",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.780Z",
+    "updated_at": "2026-05-30T15:19:57.780Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "evidence",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397780_2o3at",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.780Z",
+    "updated_at": "2026-05-30T15:19:57.780Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "evidence",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397781_kxaqx",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.781Z",
+    "updated_at": "2026-05-30T15:19:57.781Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "evidence",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397781_93lfe",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.781Z",
+    "updated_at": "2026-05-30T15:19:57.781Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "evidence",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_ready_1780154397781_aijn1",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.781Z",
+    "updated_at": "2026-05-30T15:19:57.781Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.ready",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "выбрать repair workspace или owner-assisted путь",
+    "payload": {
+      "sample_id": "missing_evidence_ref",
+      "incident_id": "incident_v2_1780154397773_iwfsh",
+      "playbook_id": "missing_evidence_ref",
+      "final_state": "diagnostic_pack_created",
+      "message": "выбрать repair workspace или owner-assisted путь",
+      "refs": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780154397773_iwfsh"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397782_22wxi",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "severity": "medium",
+      "refs": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780154397781_kjewt"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397782_uavr1",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+    "payload": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "playbook_id": "memory_search_degraded",
+      "message": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+      "refs": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780154397781_kjewt"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397782_4m3zl",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "pack_id": "v2_diagpack_1780154397782_khs2o"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "pack_id": "v2_diagpack_1780154397782_khs2o",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780154397781_kjewt",
+        "pack_id": "v2_diagpack_1780154397782_khs2o"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397782_botn9",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "memory_search",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397782_dsius",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "memory_search",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397782_6ac99",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "memory_search",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397782_up9tb",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.782Z",
+    "updated_at": "2026-05-30T15:19:57.782Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "memory_search",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_ready_1780154397782_gqeav",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.ready",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "выбрать repair workspace или owner-assisted путь",
+    "payload": {
+      "sample_id": "memory_search_degraded",
+      "incident_id": "incident_v2_1780154397781_kjewt",
+      "playbook_id": "memory_search_degraded",
+      "final_state": "diagnostic_pack_created",
+      "message": "выбрать repair workspace или owner-assisted путь",
+      "refs": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780154397781_kjewt"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397783_1vg8d",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7"
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "severity": "high",
+      "refs": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780154397783_b2fg7"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397783_eqypa",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "вернуть результат на исправление, применение заблокировано",
+    "payload": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "playbook_id": "verifier_fail",
+      "message": "вернуть результат на исправление, применение заблокировано",
+      "refs": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780154397783_b2fg7"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397783_9obxl",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "pack_id": "v2_diagpack_1780154397783_n03md"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "pack_id": "v2_diagpack_1780154397783_n03md",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780154397783_b2fg7",
+        "pack_id": "v2_diagpack_1780154397783_n03md"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_x2t4s",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_vfncu",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_g2vuf",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_u0dwi",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_aig7z",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "diagnostic_pack_created",
+      "to": "repair_workspace_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_hxcbh",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "repair_workspace_required",
+      "to": "repair_workspace_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_eyo19",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "repair_workspace_created",
+      "to": "verifier_check",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397783_ksbx5",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.783Z",
+    "updated_at": "2026-05-30T15:19:57.783Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "from": "verifier_check",
+      "to": "blocked",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "verifier",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_blocked_1780154397784_qoid1",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.blocked",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "не выполнять действие, показать причину",
+    "payload": {
+      "sample_id": "verifier_fail",
+      "incident_id": "incident_v2_1780154397783_b2fg7",
+      "playbook_id": "verifier_fail",
+      "final_state": "blocked",
+      "message": "не выполнять действие, показать причину",
+      "refs": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780154397783_b2fg7"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397784_kijdx",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7"
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "severity": "high",
+      "refs": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780154397784_yvwv7"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397784_32d5y",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+    "payload": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "playbook_id": "privacy_warning",
+      "message": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+      "refs": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780154397784_yvwv7"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397784_nzwsu",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "pack_id": "v2_diagpack_1780154397784_lhcy0"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "pack_id": "v2_diagpack_1780154397784_lhcy0",
+      "privacy_warning": true,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780154397784_yvwv7",
+        "pack_id": "v2_diagpack_1780154397784_lhcy0"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_9i3ku",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "privacy_guard",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_m08vj",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "privacy_guard",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_x1odm",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "privacy_guard",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_sv8s8",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "privacy_guard",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_twtae",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "from": "diagnostic_pack_created",
+      "to": "owner_assisted_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "privacy_guard",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_owner_assisted_required_1780154397784_yphrm",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.owner_assisted_required",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "владелец проверяет вручную",
+    "payload": {
+      "sample_id": "privacy_warning",
+      "incident_id": "incident_v2_1780154397784_yvwv7",
+      "playbook_id": "privacy_warning",
+      "final_state": "owner_assisted_required",
+      "message": "владелец проверяет вручную",
+      "refs": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780154397784_yvwv7"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397784_pi0m6",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "severity": "medium",
+      "refs": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780154397784_etmkt"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397784_dofxp",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "попросить владельца вручную проверить billing, ничего не включать",
+    "payload": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "playbook_id": "cost_guard_unknown",
+      "message": "попросить владельца вручную проверить billing, ничего не включать",
+      "refs": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780154397784_etmkt"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397784_ul7xp",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "pack_id": "v2_diagpack_1780154397784_pa74w"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "pack_id": "v2_diagpack_1780154397784_pa74w",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780154397784_etmkt",
+        "pack_id": "v2_diagpack_1780154397784_pa74w"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_i38rd",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "cost_guard",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397784_85qqu",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.784Z",
+    "updated_at": "2026-05-30T15:19:57.784Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "cost_guard",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397785_b7ljq",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.785Z",
+    "updated_at": "2026-05-30T15:19:57.785Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "cost_guard",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397785_nmyef",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.785Z",
+    "updated_at": "2026-05-30T15:19:57.785Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "cost_guard",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397785_281gs",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.785Z",
+    "updated_at": "2026-05-30T15:19:57.785Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "from": "diagnostic_pack_created",
+      "to": "owner_assisted_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "cost_guard",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_owner_assisted_required_1780154397787_pa7so",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.787Z",
+    "updated_at": "2026-05-30T15:19:57.787Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.owner_assisted_required",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "владелец проверяет вручную",
+    "payload": {
+      "sample_id": "cost_guard_unknown",
+      "incident_id": "incident_v2_1780154397784_etmkt",
+      "playbook_id": "cost_guard_unknown",
+      "final_state": "owner_assisted_required",
+      "message": "владелец проверяет вручную",
+      "refs": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780154397784_etmkt"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397788_g2hxt",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq"
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "severity": "high",
+      "refs": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780154397787_mjohq"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397788_g41fm",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "оставить risky actions заблокированными; сброс только точной фразой",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "playbook_id": "emergency_stop_active",
+      "message": "оставить risky actions заблокированными; сброс только точной фразой",
+      "refs": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780154397787_mjohq"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397788_v24us",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "pack_id": "v2_diagpack_1780154397787_v2j7r"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "pack_id": "v2_diagpack_1780154397787_v2j7r",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780154397787_mjohq",
+        "pack_id": "v2_diagpack_1780154397787_v2j7r"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397788_2qdjy",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "guardian",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397788_ovj54",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "guardian",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397788_h1nsk",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "guardian",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397788_6njux",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "guardian",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397788_s770n",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.788Z",
+    "updated_at": "2026-05-30T15:19:57.788Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "from": "diagnostic_pack_created",
+      "to": "owner_assisted_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "guardian",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_owner_assisted_required_1780154397789_8fhuk",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.789Z",
+    "updated_at": "2026-05-30T15:19:57.789Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.owner_assisted_required",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "владелец проверяет вручную",
+    "payload": {
+      "sample_id": "emergency_stop_active",
+      "incident_id": "incident_v2_1780154397787_mjohq",
+      "playbook_id": "emergency_stop_active",
+      "final_state": "owner_assisted_required",
+      "message": "владелец проверяет вручную",
+      "refs": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780154397787_mjohq"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397790_vjuju",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay"
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "severity": "high",
+      "refs": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780154397789_k20ay"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397790_7p9g6",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "остановить apply и запросить создание repair workspace",
+    "payload": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "playbook_id": "repair_workspace_unavailable",
+      "message": "остановить apply и запросить создание repair workspace",
+      "refs": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780154397789_k20ay"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397790_jzojg",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "pack_id": "v2_diagpack_1780154397789_o19gl"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "pack_id": "v2_diagpack_1780154397789_o19gl",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780154397789_k20ay",
+        "pack_id": "v2_diagpack_1780154397789_o19gl"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397790_sgosw",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "codex_repair",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397790_dmvhc",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "codex_repair",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397790_n53qk",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "codex_repair",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397790_ywr09",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "codex_repair",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397790_l1y12",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "from": "diagnostic_pack_created",
+      "to": "repair_workspace_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "codex_repair",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397790_g6c41",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.790Z",
+    "updated_at": "2026-05-30T15:19:57.790Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "high",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "from": "repair_workspace_required",
+      "to": "escalated",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "codex_repair",
+      "severity": "high",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_escalated_1780154397791_nyip4",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.escalated",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "передать владельцу как ручной сценарий",
+    "payload": {
+      "sample_id": "repair_workspace_unavailable",
+      "incident_id": "incident_v2_1780154397789_k20ay",
+      "playbook_id": "repair_workspace_unavailable",
+      "final_state": "escalated",
+      "message": "передать владельцу как ручной сценарий",
+      "refs": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780154397789_k20ay"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397791_7zcg9",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "severity": "medium",
+      "refs": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_81zef"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397791_v658l",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "показать read-only incident и owner-assisted проверку, runtime не менять",
+    "payload": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "playbook_id": "local_agent_unavailable_placeholder",
+      "message": "показать read-only incident и owner-assisted проверку, runtime не менять",
+      "refs": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_81zef"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397791_if1n2",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "pack_id": "v2_diagpack_1780154397791_9vmkz"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "pack_id": "v2_diagpack_1780154397791_9vmkz",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_81zef",
+        "pack_id": "v2_diagpack_1780154397791_9vmkz"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397791_3lei0",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "local_agent",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397791_0obso",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "local_agent",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397791_wjic8",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "local_agent",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397791_17rty",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "local_agent",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397791_w7r18",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "from": "diagnostic_pack_created",
+      "to": "owner_assisted_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "local_agent",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_owner_assisted_required_1780154397791_ccqfo",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.791Z",
+    "updated_at": "2026-05-30T15:19:57.791Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.owner_assisted_required",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "владелец проверяет вручную",
+    "payload": {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_81zef",
+      "playbook_id": "local_agent_unavailable_placeholder",
+      "final_state": "owner_assisted_required",
+      "message": "владелец проверяет вручную",
+      "refs": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_81zef"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_detected_1780154397792_x8g6t",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.detected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.detected",
+    "payload": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "severity": "medium",
+      "refs": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_jdnet"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_playbook_selected_1780154397792_hfk6z",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.playbook_selected",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "показать warning и не менять Cloudflare settings",
+    "payload": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "playbook_id": "direct_bridge_unavailable_placeholder",
+      "message": "показать warning и не менять Cloudflare settings",
+      "refs": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_jdnet"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_diagnostic_pack_created_1780154397792_zkm3z",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "pack_id": "v2_diagpack_1780154397791_v229b"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.diagnostic_pack.created",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "Diagnostic Pack preview created.",
+    "payload": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "pack_id": "v2_diagpack_1780154397791_v229b",
+      "privacy_warning": false,
+      "message": "Diagnostic Pack preview created.",
+      "refs": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_jdnet",
+        "pack_id": "v2_diagpack_1780154397791_v229b"
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397792_l1xoi",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "from": "detected",
+      "to": "classified",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "direct_bridge",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397792_cjyao",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "from": "classified",
+      "to": "explained",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "direct_bridge",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397792_k3370",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "from": "explained",
+      "to": "awaiting_user_action",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "direct_bridge",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397792_jaw2m",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "from": "awaiting_user_action",
+      "to": "diagnostic_pack_created",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "direct_bridge",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_incident_state_changed_1780154397792_qt36f",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "task_id": "",
+      "evidence_refs": [],
+      "artifact_refs": []
+    },
+    "risk_level": "medium",
+    "event_type": "v2.incident.state_changed",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "v2.incident.state_changed",
+    "payload": {
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "from": "diagnostic_pack_created",
+      "to": "owner_assisted_required",
+      "allowed": true,
+      "reason": "Переход разрешён state machine.",
+      "component": "direct_bridge",
+      "severity": "medium",
+      "refs": {
+        "task_id": "",
+        "evidence_refs": [],
+        "artifact_refs": []
+      }
+    }
+  },
+  {
+    "id": "v2_recovery_v2_recovery_owner_assisted_required_1780154397792_mywun",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T15:19:57.792Z",
+    "updated_at": "2026-05-30T15:19:57.792Z",
+    "status": "preview",
+    "refs": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet"
+    },
+    "risk_level": "medium",
+    "event_type": "v2.recovery.owner_assisted_required",
+    "actor": "recovery_wizard",
+    "resource": "task_state",
+    "message": "владелец проверяет вручную",
+    "payload": {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "incident_id": "incident_v2_1780154397791_jdnet",
+      "playbook_id": "direct_bridge_unavailable_placeholder",
+      "final_state": "owner_assisted_required",
+      "message": "владелец проверяет вручную",
+      "refs": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780154397791_jdnet"
+      }
+    }
+  }
+]

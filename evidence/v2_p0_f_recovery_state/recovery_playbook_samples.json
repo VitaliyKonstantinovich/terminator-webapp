@@ -1,0 +1,139 @@
+[
+  {
+    "schema_version": 1,
+    "playbook_id": "missing_evidence_ref",
+    "title": "Не хватает evidence",
+    "safe_next_action": "проверить ссылку evidence или повторить проверку результата",
+    "what_happened": "У результата не хватает доказательства проверки.",
+    "forbidden_actions": [
+      "ставить PASS без evidence",
+      "подменять evidence"
+    ],
+    "owner_assisted_required": false,
+    "component": "evidence",
+    "severity": "medium",
+    "ordinary_message": "проверить ссылку evidence или повторить проверку результата"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "memory_search_degraded",
+    "title": "Память работает неуверенно",
+    "safe_next_action": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+    "what_happened": "Поиск памяти работает неуверенно или индекс устарел.",
+    "forbidden_actions": [
+      "удалять память",
+      "сканировать весь диск",
+      "показывать секреты"
+    ],
+    "owner_assisted_required": false,
+    "component": "memory_search",
+    "severity": "medium",
+    "ordinary_message": "проверить статус индекса памяти и предложить пересборку без удаления данных"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "verifier_fail",
+    "title": "Verifier не принял результат",
+    "safe_next_action": "вернуть результат на исправление, применение заблокировано",
+    "what_happened": "Проверка не приняла результат.",
+    "forbidden_actions": [
+      "применять fix",
+      "закрывать incident как recovered"
+    ],
+    "owner_assisted_required": false,
+    "component": "verifier",
+    "severity": "high",
+    "ordinary_message": "вернуть результат на исправление, применение заблокировано"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "privacy_warning",
+    "title": "Предупреждение приватности",
+    "safe_next_action": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+    "what_happened": "В данных есть признаки секрета или приватной информации.",
+    "forbidden_actions": [
+      "показывать .env",
+      "отправлять токены",
+      "читать cookies"
+    ],
+    "owner_assisted_required": true,
+    "component": "privacy_guard",
+    "severity": "high",
+    "ordinary_message": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "cost_guard_unknown",
+    "title": "Финансовый статус неизвестен",
+    "safe_next_action": "попросить владельца вручную проверить billing, ничего не включать",
+    "what_happened": "Cost Guard не может подтвердить отсутствие платного риска.",
+    "forbidden_actions": [
+      "включать платные сервисы",
+      "менять payment settings"
+    ],
+    "owner_assisted_required": true,
+    "component": "cost_guard",
+    "severity": "medium",
+    "ordinary_message": "попросить владельца вручную проверить billing, ничего не включать"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "emergency_stop_active",
+    "title": "Стоп действия активен",
+    "safe_next_action": "оставить risky actions заблокированными; сброс только точной фразой",
+    "what_happened": "Emergency Stop блокирует рискованные действия.",
+    "forbidden_actions": [
+      "сбрасывать одной кнопкой",
+      "запускать risky actions"
+    ],
+    "owner_assisted_required": true,
+    "component": "guardian",
+    "severity": "high",
+    "ordinary_message": "оставить risky actions заблокированными; сброс только точной фразой"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "repair_workspace_unavailable",
+    "title": "Ремонтная зона недоступна",
+    "safe_next_action": "остановить apply и запросить создание repair workspace",
+    "what_happened": "Без ремонтной зоны Codex Repair не должен работать с active project.",
+    "forbidden_actions": [
+      "писать в active project",
+      "делать repair без rollback"
+    ],
+    "owner_assisted_required": false,
+    "component": "codex_repair",
+    "severity": "high",
+    "ordinary_message": "остановить apply и запросить создание repair workspace"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "local_agent_unavailable_placeholder",
+    "title": "Local Agent недоступен",
+    "safe_next_action": "показать read-only incident и owner-assisted проверку, runtime не менять",
+    "what_happened": "Local Agent требует проверки владельцем или отдельным approved repair.",
+    "forbidden_actions": [
+      "останавливать/перезапускать agent без approval",
+      "менять autostart"
+    ],
+    "owner_assisted_required": true,
+    "component": "local_agent",
+    "severity": "medium",
+    "ordinary_message": "показать read-only incident и owner-assisted проверку, runtime не менять"
+  },
+  {
+    "schema_version": 1,
+    "playbook_id": "direct_bridge_unavailable_placeholder",
+    "title": "Direct Bridge недоступен",
+    "safe_next_action": "показать warning и не менять Cloudflare settings",
+    "what_happened": "Bridge health требует отдельной проверки, настройки облака не трогаются.",
+    "forbidden_actions": [
+      "менять Cloudflare",
+      "трогать DNS/proxy/network"
+    ],
+    "owner_assisted_required": true,
+    "component": "direct_bridge",
+    "severity": "medium",
+    "ordinary_message": "показать warning и не менять Cloudflare settings"
+  }
+]
