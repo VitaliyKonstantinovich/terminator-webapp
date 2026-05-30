@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-  <link rel="stylesheet" href="styles.css?v=20260529-final-product-gate-v1">
+  <link rel="stylesheet" href="styles.css?v=20260529-v2-first-run-recovery-v1">
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -36,6 +36,7 @@
           <span class="button-icon">▶</span>
           <span class="button-label">Старт</span>
         </button>
+        <div id="start-v2-command-center" class="v2-start-status" aria-label="Статус запуска Терминатора"></div>
       </div>
     </section>
 
@@ -76,6 +77,8 @@
               <span class="button-arrow">›</span>
             </button>
           </div>
+
+          <section id="menu-v2-command-center" class="v2-menu-command-center" aria-label="Пульт первого запуска"></section>
 
           <p class="status-pill status-pill--success">Рабочее активно • рабочее ядро готово</p>
         </article>
@@ -526,6 +529,8 @@
             <p>Сводка проектов, задач и рисков</p>
           </div>
 
+          <section id="mission-v2-command-center" class="runtime-panel runtime-panel--wide" aria-label="V2 центр запуска и восстановления"></section>
+
           <section id="mission-summary" class="mission-grid" aria-label="Сводка"></section>
           <section class="runtime-panel mina-scheme-entry">
             <div class="runtime-panel-head">
@@ -633,6 +638,8 @@
             <h2>Система</h2>
             <p>Рабочее ядро, безопасность и будущие устройства</p>
           </div>
+
+          <section id="system-v2-command-center" class="runtime-panel runtime-panel--wide" aria-label="V2 центр первого запуска и восстановления"></section>
 
           <section class="runtime-panel mina-scheme-entry">
             <div class="runtime-panel-head">
@@ -812,7 +819,7 @@
             <div class="runtime-panel-head">
               <div>
                 <strong>Мобильное приложение</strong>
-                <span>PWA, установка на телефон, offline shell и быстрый вход</span>
+                <span>PWA, установка на телефон, режим без сети и быстрый вход</span>
               </div>
             </div>
             <div id="system-pwa-panel" class="pwa-system-panel"></div>
@@ -1116,6 +1123,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=20260529-final-product-gate-v1"></script>
+  <script src="app.js?v=20260529-v2-first-run-recovery-v1"></script>
 </body>
 </html>

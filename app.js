@@ -323,6 +323,7 @@ const CONTINUITY_MAX_OFFLINE_EVENTS = 40;
 const SOURCE_OF_TRUTH_SCHEMA_VERSION = 1;
 const SOURCE_OF_TRUTH_STORAGE_KEY = 'mina_source_of_truth_v1';
 const SOURCE_OF_TRUTH_MAX_HISTORY = 24;
+const V2_FIRST_RUN_RECOVERY_STATE_KEY = 'mina_v2_first_run_recovery_state_v1';
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -740,7 +741,7 @@ const DEPENDENCY_REGISTRY_CATALOG = [
   ['task_scheduler', 'Windows Task Scheduler', 'autostart Local Agent', 'LastTaskResult / single-instance', 'ручной запуск агента', 'review'],
   ['terminator_storage_d', 'D:\\TerminatorStorage', 'files/evidence/backups/restore points', 'проверить путь и screenshots', 'lightweight browser metadata only', 'high'],
   ['indexeddb', 'Локальное хранилище браузера', 'локальная база задач и metadata', 'статус рабочего ядра', 'резерв браузера', 'medium'],
-  ['service_worker', 'Service Worker', 'PWA/offline shell', 'service worker marker', 'online-only browser mode', 'medium'],
+  ['service_worker', 'Service Worker', 'PWA / режим без сети', 'маркер service worker', 'браузерный режим только online', 'medium'],
   ['github_actions_secrets', 'GitHub Actions secrets', 'controlled deploy secrets', 'GitHub settings без вывода значений', 'manual local deploy prohibited', 'critical'],
   ['future_sqlite_fts', 'SQLite FTS', 'future fast memory search', 'not active', 'current keyword index', 'review'],
   ['future_local_stt', 'Local STT', 'future Mina Voice', 'not active', 'text input / push-to-talk later', 'review']
@@ -2486,6 +2487,7 @@ const App = {
   controlledApplyPipelineState: null,
   activeApplyPackageId: '',
   sourceOfTruthState: null,
+  v2FirstRunRecoveryState: null,
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -2530,6 +2532,7 @@ const App = {
     this.loadControlledWorkerRuntimeState();
     this.loadControlledApplyPipelineState();
     this.loadSourceOfTruthState();
+    this.loadV2FirstRunRecoveryState();
     this.loadContinuityState();
     this.bindContinuityRuntime();
     this.loadMinaSchemeState();
@@ -2784,6 +2787,12 @@ const App = {
         return;
       }
 
+      const v2CommandButton = event.target.closest('[data-v2-command-action]');
+      if (v2CommandButton) {
+        this.handleV2FirstRunRecoveryAction(v2CommandButton.dataset.v2CommandAction, v2CommandButton);
+        return;
+      }
+
       const schemeButton = event.target.closest('[data-scheme-action]');
       if (schemeButton) {
         this.handleMinaSchemeAction(schemeButton.dataset.schemeAction, schemeButton);
@@ -3021,6 +3030,7 @@ const App = {
     if (name === 'mission') this.renderMissionControl();
     if (name === 'system') this.renderSystemStatus();
     if (name === 'scheme') this.renderMinaSystemScheme();
+    if (['start', 'menu', 'mission', 'system'].includes(name)) this.renderV2FirstRunRecoveryCenter();
     this.renderSideHud();
     this.updateTelegramControls();
   },
@@ -3683,6 +3693,7 @@ const App = {
         <p>${this.escapeHtml(note)}</p>
       </article>
     `).join('');
+    this.renderV2FirstRunRecoveryCenter();
     this.renderMissionProjectOverview(projects, tasks);
     this.renderMissionRiskRadar(tasks);
     this.renderMissionRuntimeHealth(tasks);
@@ -4716,7 +4727,7 @@ const App = {
       this.liveRuntimeCheck('direct_bridge', 'Мост сайт-ПК', directReady ? 'partial' : 'manual_check', direct.note, { action: 'refresh', source: 'direct_mode_snapshot' }),
       this.liveRuntimeCheck('task_store', 'Общее хранилище задач', taskReady ? 'partial' : 'manual_check', taskStore.note, { action: 'sync_taskstore', source: 'task_store_snapshot', task_count: this.taskStoreLastTaskCount }),
       this.liveRuntimeCheck('local_agent', 'Локальный агент', agentReady ? 'partial' : 'manual_check', agent.note, { action: 'open_diagnostics', source: 'device_registry' }),
-      this.liveRuntimeCheck('pwa', 'PWA / offline shell', pwa.serviceWorker === 'registered' ? 'ready' : 'review', `Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`, { action: 'open_pwa', source: 'pwa_runtime' }),
+      this.liveRuntimeCheck('pwa', 'PWA / режим без сети', pwa.serviceWorker === 'registered' ? 'ready' : 'review', `Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`, { action: 'open_pwa', source: 'pwa_runtime' }),
       this.liveRuntimeCheck('guardian', 'Guardian', guardian.tone === 'danger' ? 'blocked' : guardian.tone === 'review' ? 'review' : 'ready', guardian.note, { action: 'open_guardian', source: 'guardian_state' })
     ];
   },
@@ -4898,7 +4909,7 @@ const App = {
   probeLivePwaSummary() {
     const pwa = this.pwaSnapshot();
     const status = pwa.serviceWorker === 'registered' ? 'ready' : pwa.serviceWorker === 'failed' ? 'review' : 'partial';
-    return this.liveRuntimeCheck('pwa', 'PWA / offline shell', status, `Установка: ${pwa.installLabel}; Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`, { action: 'open_pwa', source: 'pwa_runtime' });
+    return this.liveRuntimeCheck('pwa', 'PWA / режим без сети', status, `Установка: ${pwa.installLabel}; Service Worker: ${pwa.serviceWorker}; режим: ${pwa.displayMode}.`, { action: 'open_pwa', source: 'pwa_runtime' });
   },
 
   probeLiveGuardianSummary() {
@@ -5584,7 +5595,7 @@ const App = {
       this.sourceTruthItem('voice', 'Голос / intent preview', voice.score >= 86 ? 'ready' : voice.score >= 60 ? 'partial' : 'review', voice.score, voice.note, 'open_voice'),
       this.sourceTruthItem('legs', 'Ноги / Device Mesh', deviceMesh.readiness >= 78 ? 'ready' : 'review', Math.max(deviceMesh.readiness, continuity.readiness), `${deviceMesh.next}; continuity: ${continuity.next}`, 'open_devices'),
       this.sourceTruthItem('taskstore', 'TaskStore / Direct Bridge', taskStore.tone === 'synced' ? 'ready' : direct.status === 'сессия активна' ? 'partial' : 'review', taskStore.tone === 'synced' ? 88 : direct.status === 'сессия активна' ? 70 : 52, `${taskStore.note}; мост: ${direct.status}; агент: ${agent.status}`, 'open_live_runtime'),
-      this.sourceTruthItem('pwa', 'PWA / mobile shell', pwa.serviceWorker === 'registered' ? 'ready' : 'partial', pwa.serviceWorker === 'registered' ? 82 : 58, `установка: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}`, 'open_pwa'),
+      this.sourceTruthItem('pwa', 'PWA / мобильный вход', pwa.serviceWorker === 'registered' ? 'ready' : 'partial', pwa.serviceWorker === 'registered' ? 82 : 58, `установка: ${pwa.installLabel}; режим без сети: ${pwa.serviceWorker}`, 'open_pwa'),
       this.sourceTruthItem('windows_companion', 'Windows-компаньон', companion.status === 'ready' ? 'ready' : companion.status === 'blocked' ? 'blocked' : 'review', companion.score || 0, `тихий автозапуск: ${companion.autostart_silent_status}; legacy PM2: ${companion.legacy_pm2_status}; окна: ${companion.visible_window_status}`, 'open_companion'),
       this.sourceTruthItem('diagnostics', 'Диагност / incidents', latestDiagnostic ? (latestDiagnostic.status === 'pass' ? 'ready' : latestDiagnostic.status === 'fail' ? 'blocked' : 'review') : 'partial', latestDiagnostic ? (latestDiagnostic.status === 'pass' ? 86 : latestDiagnostic.status === 'fail' ? 20 : 62) : 54, latestDiagnostic ? this.diagnosticSummaryText(latestDiagnostic.checks || []) : 'последний прогон диагностики отсутствует', 'open_diagnostics'),
       this.sourceTruthItem('controlled_runtime', 'Controlled Runtime', runtime.status === 'ready' ? 'ready' : runtime.status === 'review' ? 'review' : 'partial', runtime.readiness, runtime.note, 'open_hands')
@@ -5812,7 +5823,7 @@ const App = {
         'mobile_pwa',
         'Mobile / PWA',
         pwa.installLabel === 'установлено' || pwa.serviceWorker === 'registered' ? 'ready' : 'partial',
-        `установка: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}`,
+        `установка: ${pwa.installLabel}; режим без сети: ${pwa.serviceWorker}`,
         'open_pwa'
       )
     ];
@@ -7565,7 +7576,7 @@ const App = {
         'pwa_mobile',
         'Mobile / PWA',
         pwa.serviceWorker === 'registered' ? 'pass' : 'review',
-        `PWA: ${pwa.installLabel}; offline shell: ${pwa.serviceWorker}.`,
+        `PWA: ${pwa.installLabel}; режим без сети: ${pwa.serviceWorker}.`,
         pwa.serviceWorker === 'registered' ? 'safe' : 'review'
       ),
       this.preQamaxGateCheck(
@@ -9194,7 +9205,7 @@ const App = {
       ['Реестр владельца', `${ownedRegistry.readiness}%`, `агент ${ownedRegistry.primary_agent_id}; online=${ownedRegistry.online_count}; устройств на связи=${ownedRegistry.connected_devices}`],
       ['Ноги / Устройства', `${deviceMesh.readiness}%`, `${trustedDevices} доверенных; ${deviceMesh.routes.length} маршрутов; ${deviceMesh.attention} требуют внимания`],
       ['Телефон / PWA', `${presence.readiness}%`, `${presence.phone.owner_confirmed ? 'телефон отмечен владельцем' : 'телефон ждёт подключения'}; PWA: ${presence.pwa.install_label}`],
-      ['Мобильное приложение', pwa.installLabel, `offline shell: ${pwa.serviceWorker}`],
+      ['Мобильное приложение', pwa.installLabel, `режим без сети: ${pwa.serviceWorker}`],
       ['Голос Мины', this.workspaceVoiceSupported ? 'по кнопке' : 'текстовый режим', 'без фонового прослушивания и без AI API'],
       ['Хранилище', TERMINATOR_STORAGE_ROOT, 'тяжёлые outputs и evidence на D'],
       ['Мост', direct.status, direct.note],
@@ -9231,6 +9242,493 @@ const App = {
     this.renderSystemBackupCenter();
     this.renderSystemObservabilityPanel();
     this.renderMinaSystemScheme();
+    this.renderV2FirstRunRecoveryCenter();
+  },
+
+  defaultV2FirstRunRecoveryState() {
+    return {
+      schema_version: 1,
+      demo_mode: false,
+      demo_task_id: '',
+      owner_assisted_acknowledged_at: '',
+      last_opened_at: '',
+      last_snapshot_at: ''
+    };
+  },
+
+  loadV2FirstRunRecoveryState() {
+    this.v2FirstRunRecoveryState = {
+      ...this.defaultV2FirstRunRecoveryState(),
+      ...(this.readJsonStorage(V2_FIRST_RUN_RECOVERY_STATE_KEY, {}) || {})
+    };
+  },
+
+  saveV2FirstRunRecoveryState(patch = {}) {
+    this.v2FirstRunRecoveryState = {
+      ...this.defaultV2FirstRunRecoveryState(),
+      ...(this.v2FirstRunRecoveryState || {}),
+      ...(patch || {}),
+      last_snapshot_at: new Date().toISOString()
+    };
+    this.writeJsonStorage(V2_FIRST_RUN_RECOVERY_STATE_KEY, this.v2FirstRunRecoveryState);
+    return this.v2FirstRunRecoveryState;
+  },
+
+  v2CommandStatusScore(status) {
+    const scores = {
+      ready: 100,
+      partial: 72,
+      review: 56,
+      owner: 50,
+      waiting: 36,
+      blocked: 0
+    };
+    return scores[status] ?? 42;
+  },
+
+  v2CommandStatusLabel(status) {
+    const labels = {
+      ready: 'готово',
+      partial: 'частично',
+      review: 'проверить',
+      owner: 'проверка владельца',
+      waiting: 'ожидает',
+      blocked: 'блокер'
+    };
+    return labels[status] || status || 'проверить';
+  },
+
+  v2CommandItem(id, name, status, note, action) {
+    return { id, name, status, note, action, score: this.v2CommandStatusScore(status) };
+  },
+
+  v2CommandLevel(id, title, target, items) {
+    const score = Math.round(items.reduce((sum, item) => sum + item.score, 0) / Math.max(1, items.length));
+    const blocked = items.some((item) => item.status === 'blocked');
+    const ready = !blocked && items.every((item) => item.status === 'ready' || item.status === 'partial' || item.status === 'owner');
+    const status = blocked ? 'blocked' : ready && score >= target ? 'ready' : score >= Math.max(50, target - 20) ? 'partial' : 'review';
+    return { id, title, target, items, score, status, ready };
+  },
+
+  buildV2FirstRunRecoverySnapshot() {
+    const scheme = this.minaSchemeHealth();
+    const guardian = this.guardianSnapshot();
+    const truth = this.sourceOfTruthState?.checked_at
+      ? this.currentSourceOfTruthSnapshot({ refresh: false, persist: false })
+      : this.refreshSourceOfTruthSnapshot({ persist: false });
+    const liveRuntime = this.buildLiveRuntimeSnapshot();
+    const memory = this.memorySearchSnapshot();
+    const head = this.headStatusSnapshot();
+    const hands = this.handsSnapshot();
+    const applyPipeline = this.controlledApplySnapshot();
+    const pwa = this.pwaSnapshot();
+    const companion = this.windowsCompanionState?.checked_at ? this.windowsCompanionState : this.buildWindowsCompanionSnapshot();
+    const latestDiagnostic = (this.systemDiagnostics || [])[0] || null;
+    const taskStore = this.taskStoreStatusSnapshot();
+    const direct = this.directModeStatusSnapshot();
+    const agent = this.localAgentStatusSnapshot();
+    const deviceMesh = this.buildDeviceMeshSnapshot();
+    const voice = this.buildVoiceReadinessSnapshot();
+    const body = scheme.subsystems.body;
+    const diagnost = scheme.subsystems.diagnost;
+    const localAgentReady = /на связи|connected|готов|доверено|системное/i.test(agent.status);
+    const localAgentKnown = !/не найден/i.test(agent.status);
+    const liveReady = liveRuntime.status === 'ready' || liveRuntime.score >= 70;
+    const memoryReady = memory.status === 'ready' || memory.count > 0;
+    const headReady = head.tone === 'pass' || Boolean(this.mainStrategistBrain());
+    const handsReady = Math.max(hands.readiness || 0, applyPipeline.readiness || 0) >= 60;
+    const companionReady = companion.status === 'ready' || companion.score >= 70;
+    const diagnosticReady = latestDiagnostic && latestDiagnostic.status !== 'danger';
+
+    const minimum = this.v2CommandLevel('minimum', 'Минимум для запуска', 65, [
+      this.v2CommandItem('storage', 'Хранилище задач', this.taskRuntimeReady ? 'ready' : 'partial', this.taskRuntimeReady ? 'Локальная база задач активна.' : 'Работает резерв браузера, нужен контроль перед большим сценарием.', 'open_work'),
+      this.v2CommandItem('body', 'Тело системы', body.readiness >= 65 ? body.status : 'review', body.note, 'open_scheme_body'),
+      this.v2CommandItem('diagnost', 'Диагност и защита', diagnost.readiness >= 65 && !guardian.state.emergency_stop_active ? diagnost.status : guardian.state.emergency_stop_active ? 'blocked' : 'review', diagnost.note, 'open_guardian'),
+      this.v2CommandItem('local_agent', 'Локальный агент', localAgentReady ? 'ready' : localAgentKnown ? 'partial' : 'review', agent.note, 'open_companion')
+    ]);
+
+    const comfort = this.v2CommandLevel('comfort', 'Комфортная работа', 70, [
+      this.v2CommandItem('head', 'Голова / Стратег', headReady ? 'ready' : 'review', head.note, 'open_head'),
+      this.v2CommandItem('memory', 'Память и поиск', memoryReady ? 'ready' : 'partial', memory.note, 'open_memory'),
+      this.v2CommandItem('hands', 'Руки под контролем', handsReady ? 'partial' : 'review', `${hands.note}; проверка применения: ${applyPipeline.note}`, 'open_hands'),
+      this.v2CommandItem('live', 'Живой контур', liveReady ? 'ready' : 'partial', liveRuntime.summary, 'open_live_runtime')
+    ]);
+
+    const full = this.v2CommandLevel('full', 'Полная готовность V2', 82, [
+      this.v2CommandItem('eyes', 'Глаза / evidence', scheme.subsystems.eyes.readiness >= 70 ? 'ready' : 'partial', scheme.subsystems.eyes.summary, 'open_eyes'),
+      this.v2CommandItem('voice', 'Голос', voice.score >= 70 ? 'partial' : 'review', voice.note, 'open_voice'),
+      this.v2CommandItem('legs', 'Ноги / устройства', deviceMesh.readiness >= 70 ? 'partial' : 'review', deviceMesh.next, 'open_devices'),
+      this.v2CommandItem('pwa', 'Мобильная оболочка', pwa.serviceWorker === 'registered' ? 'partial' : 'review', `Установка: ${pwa.installLabel}; режим без сети: ${pwa.serviceWorker}.`, 'open_pwa'),
+      this.v2CommandItem('companion', 'Windows-компаньон', companionReady ? 'partial' : 'review', `Окна: ${companion.visible_window_status}; автозапуск: ${companion.autostart_silent_status}.`, 'open_companion')
+    ]);
+
+    const ownerAssisted = [
+      this.v2CommandItem('real_phone', 'Реальный телефон', 'owner', 'APK/PWA на настоящем телефоне отложены до production V2 final.', 'owner_assisted'),
+      this.v2CommandItem('billing', 'Платные кабинеты', 'owner', 'Cloudflare, GitHub, Amvera, n8n и подписки проверяются владельцем вручную. Новые платные сервисы не включались.', 'owner_assisted'),
+      this.v2CommandItem('production_signing', 'Подпись APK', 'owner', 'Production signing не выполняется до финального production решения.', 'owner_assisted'),
+      this.v2CommandItem('production_rollback', 'Боевой откат', 'owner', 'Откат active project проверяется только после отдельного разрешения.', 'owner_assisted')
+    ];
+
+    const levels = [minimum, comfort, full];
+    const openOwnerChecks = ownerAssisted.filter((item) => item.status === 'owner').length;
+    const blocked = levels.flatMap((level) => level.items).filter((item) => item.status === 'blocked');
+    const review = levels.flatMap((level) => level.items).filter((item) => ['review', 'waiting'].includes(item.status));
+    const score = Math.round((minimum.score * 0.4) + (comfort.score * 0.38) + (full.score * 0.22));
+    const status = blocked.length ? 'blocked' : minimum.ready && comfort.score >= 64 ? 'ready' : minimum.score >= 55 ? 'partial' : 'review';
+    let next = blocked[0]
+      || minimum.items.find((item) => !['ready', 'partial'].includes(item.status))
+      || comfort.items.find((item) => !['ready', 'partial'].includes(item.status))
+      || full.items.find((item) => !['ready', 'partial'].includes(item.status))
+      || this.v2CommandItem('launch', 'Открыть Рабочее', 'ready', 'Базовый путь готов: можно создавать управляемую задачу.', 'open_work');
+
+    if (guardian.state.emergency_stop_active) {
+      next = this.v2CommandItem('emergency_stop', 'Разобрать Стоп действия', 'blocked', guardian.note, 'open_guardian');
+    } else if (diagnosticReady && next.status === 'ready') {
+      next = this.v2CommandItem('workspace', 'Начать рабочий сценарий', 'ready', 'Создать задачу или открыть текущий рабочий процесс.', 'open_work');
+    }
+
+    return {
+      status,
+      tone: status === 'blocked' ? 'blocked' : status === 'ready' ? 'ready' : 'review',
+      score,
+      label: status === 'ready' ? 'V2-контур готов к работе' : status === 'blocked' ? 'есть защитный блокер' : 'V2-контур настраивается',
+      summary: `${minimum.score}% минимум · ${comfort.score}% комфорт · ${full.score}% полный режим`,
+      next,
+      levels,
+      ownerAssisted,
+      ownerAssistedOpen: openOwnerChecks,
+      guardian,
+      truth,
+      liveRuntime,
+      demoMode: Boolean(this.v2FirstRunRecoveryState?.demo_mode),
+      demoTaskId: this.v2FirstRunRecoveryState?.demo_task_id || '',
+      checkedAt: new Date().toISOString()
+    };
+  },
+
+  renderV2FirstRunRecoveryCenter() {
+    const hosts = {
+      start: document.getElementById('start-v2-command-center'),
+      menu: document.getElementById('menu-v2-command-center'),
+      mission: document.getElementById('mission-v2-command-center'),
+      system: document.getElementById('system-v2-command-center')
+    };
+    if (!hosts.start && !hosts.menu && !hosts.mission && !hosts.system) return;
+    const snapshot = this.buildV2FirstRunRecoverySnapshot();
+    this.saveV2FirstRunRecoveryState({ last_opened_at: new Date().toISOString() });
+    if (hosts.start) hosts.start.innerHTML = this.renderV2StartStatus(snapshot);
+    if (hosts.menu) hosts.menu.innerHTML = this.renderV2MenuCommandCenter(snapshot);
+    if (hosts.mission) hosts.mission.innerHTML = this.renderV2FullCommandCenter(snapshot, 'mission');
+    if (hosts.system) hosts.system.innerHTML = this.renderV2FullCommandCenter(snapshot, 'system');
+  },
+
+  renderV2StartStatus(snapshot) {
+    return `
+      <button type="button" class="v2-start-status-card v2-command-center--${this.escapeHtml(snapshot.tone)}" data-v2-command-action="continue_setup" aria-label="Открыть следующий шаг запуска Терминатора">
+        <span>${this.escapeHtml(String(snapshot.score))}%</span>
+        <strong>${this.escapeHtml(snapshot.label)}</strong>
+        <small>${this.escapeHtml(snapshot.next.name)}</small>
+      </button>
+    `;
+  },
+
+  renderV2MenuCommandCenter(snapshot) {
+    return `
+      <div class="v2-menu-card v2-command-center--${this.escapeHtml(snapshot.tone)}">
+        <div>
+          <span>V2 запуск</span>
+          <strong>${this.escapeHtml(snapshot.label)}</strong>
+          <p>${this.escapeHtml(snapshot.next.note)}</p>
+        </div>
+        <div class="v2-menu-meter" aria-label="Готовность ${this.escapeHtml(String(snapshot.score))}%">
+          <b>${this.escapeHtml(String(snapshot.score))}%</b>
+          <small>${this.escapeHtml(snapshot.summary)}</small>
+        </div>
+        <div class="v2-command-actions">
+          <button type="button" data-v2-command-action="continue_setup">Продолжить</button>
+          <button type="button" data-v2-command-action="open_scheme">Схема Мины</button>
+        </div>
+      </div>
+    `;
+  },
+
+  renderV2FullCommandCenter(snapshot, variant = 'system') {
+    return `
+      <section class="v2-command-center v2-command-center--${this.escapeHtml(snapshot.tone)}" data-v2-command-center="${this.escapeHtml(variant)}">
+        <header class="v2-command-hero">
+          <div>
+            <span>V2 P0 · первый запуск и восстановление</span>
+            <h3>Пульт запуска Терминатора</h3>
+            <p>${this.escapeHtml(snapshot.label)}. ${this.escapeHtml(snapshot.next.note)}</p>
+          </div>
+          <div class="v2-command-score">
+            <strong>${this.escapeHtml(String(snapshot.score))}%</strong>
+            <span>${this.escapeHtml(snapshot.summary)}</span>
+          </div>
+          <div class="v2-command-next">
+            <span>Следующий шаг</span>
+            <strong>${this.escapeHtml(snapshot.next.name)}</strong>
+            <button type="button" data-v2-command-action="continue_setup">Открыть</button>
+          </div>
+        </header>
+
+        <div class="v2-command-layout">
+          <section class="v2-readiness-levels" aria-label="Готовность V2">
+            ${snapshot.levels.map((level) => this.renderV2ReadinessLevel(level)).join('')}
+          </section>
+
+          <section class="v2-recovery-rail" aria-label="Восстановление и безопасные действия">
+            <div class="v2-recovery-card v2-recovery-card--${this.escapeHtml(snapshot.guardian.tone)}">
+              <span>Защита</span>
+              <strong>${this.escapeHtml(snapshot.guardian.label)}</strong>
+              <p>${this.escapeHtml(snapshot.guardian.note)}</p>
+              <button type="button" data-v2-command-action="open_guardian">Открыть Защитника</button>
+            </div>
+            <div class="v2-recovery-card">
+              <span>Диагност</span>
+              <strong>${this.escapeHtml(snapshot.liveRuntime.label || 'проверить контур')}</strong>
+              <p>${this.escapeHtml(snapshot.liveRuntime.summary || 'Проверка живого контура доступна из Системы.')}</p>
+              <button type="button" data-v2-command-action="run_diagnostics">Проверить систему</button>
+            </div>
+            <div class="v2-recovery-card">
+              <span>Демо без риска</span>
+              <strong>${snapshot.demoTaskId ? this.escapeHtml(snapshot.demoTaskId) : 'безопасный пример'}</strong>
+              <p>${snapshot.demoMode ? 'Демо-задача создана локально и не трогает внешние сервисы.' : 'Можно создать безопасную демо-задачу для проверки первого пути.'}</p>
+              <button type="button" data-v2-command-action="start_demo">${snapshot.demoMode ? 'Открыть демо' : 'Создать демо'}</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="v2-owner-assisted" aria-label="Проверки владельца">
+          <div>
+            <strong>Проверки владельца до production V2 final</strong>
+            <p>Они не блокируют WebApp/PC V1, но не должны маскироваться как готовые.</p>
+          </div>
+          ${snapshot.ownerAssisted.map((item) => `
+            <article class="v2-owner-item">
+              <span>${this.escapeHtml(this.v2CommandStatusLabel(item.status))}</span>
+              <strong>${this.escapeHtml(item.name)}</strong>
+              <p>${this.escapeHtml(item.note)}</p>
+            </article>
+          `).join('')}
+        </section>
+
+        <div class="v2-command-actions v2-command-actions--wide">
+          <button type="button" data-v2-command-action="refresh">Обновить снимок</button>
+          <button type="button" data-v2-command-action="open_scheme">Схема Мины</button>
+          <button type="button" data-v2-command-action="open_recovery">Мастер восстановления</button>
+          <button type="button" data-v2-command-action="open_work">Открыть Рабочее</button>
+        </div>
+      </section>
+    `;
+  },
+
+  renderV2ReadinessLevel(level) {
+    return `
+      <article class="v2-readiness-level v2-readiness-level--${this.escapeHtml(level.status)}">
+        <div class="v2-level-head">
+          <div>
+            <span>${this.escapeHtml(this.v2CommandStatusLabel(level.status))}</span>
+            <strong>${this.escapeHtml(level.title)}</strong>
+          </div>
+          <b>${this.escapeHtml(String(level.score))}%</b>
+        </div>
+        <div class="v2-level-items">
+          ${level.items.map((item) => `
+            <button type="button" class="v2-level-item v2-level-item--${this.escapeHtml(item.status)}" data-v2-command-action="${this.escapeHtml(item.action)}">
+              <span>${this.escapeHtml(this.v2CommandStatusLabel(item.status))}</span>
+              <strong>${this.escapeHtml(item.name)}</strong>
+              <small>${this.escapeHtml(item.note)}</small>
+            </button>
+          `).join('')}
+        </div>
+      </article>
+    `;
+  },
+
+  async handleV2FirstRunRecoveryAction(action) {
+    const scrollTo = (id) => {
+      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    };
+    if (action === 'refresh') {
+      this.refreshSourceOfTruthSnapshot();
+      this.renderMissionControl();
+      this.renderSystemStatus();
+      this.renderV2FirstRunRecoveryCenter();
+      this.toast('V2 снимок обновлён');
+      return;
+    }
+    if (action === 'continue_setup') {
+      const snapshot = this.buildV2FirstRunRecoverySnapshot();
+      await this.handleV2FirstRunRecoveryAction(snapshot.next.action || 'open_system');
+      return;
+    }
+    if (action === 'open_work') {
+      this.go('work');
+      return;
+    }
+    if (action === 'open_system') {
+      this.go('system');
+      return;
+    }
+    if (action === 'open_scheme') {
+      this.go('scheme');
+      return;
+    }
+    if (action === 'open_scheme_body') {
+      this.go('scheme');
+      this.selectMinaSchemeZone('body');
+      return;
+    }
+    if (action === 'open_guardian') {
+      this.go('system');
+      scrollTo('system-guardian-panel');
+      return;
+    }
+    if (action === 'open_recovery') {
+      this.go('system');
+      scrollTo('system-diagnostics');
+      this.toast('Мастер восстановления открывается через Диагност и предложения восстановления');
+      return;
+    }
+    if (action === 'run_diagnostics') {
+      this.go('system');
+      scrollTo('system-diagnostics');
+      await this.runSystemDiagnostics();
+      return;
+    }
+    if (action === 'open_live_runtime') {
+      this.go('system');
+      scrollTo('system-live-runtime-panel');
+      return;
+    }
+    if (action === 'open_memory') {
+      this.go('system');
+      scrollTo('system-memory-search-panel');
+      return;
+    }
+    if (action === 'open_head') {
+      this.go('system');
+      scrollTo('system-head-panel');
+      return;
+    }
+    if (action === 'open_hands') {
+      this.go('system');
+      scrollTo('system-hands-panel');
+      return;
+    }
+    if (action === 'open_eyes') {
+      this.go('system');
+      scrollTo('system-eyes-panel');
+      return;
+    }
+    if (action === 'open_voice') {
+      this.go('system');
+      scrollTo('system-voice-hooks');
+      return;
+    }
+    if (action === 'open_devices') {
+      this.go('system');
+      scrollTo('system-device-preview');
+      return;
+    }
+    if (action === 'open_pwa') {
+      this.go('system');
+      scrollTo('system-pwa-panel');
+      return;
+    }
+    if (action === 'open_companion') {
+      this.go('system');
+      scrollTo('system-companion-panel');
+      return;
+    }
+    if (action === 'owner_assisted') {
+      this.saveV2FirstRunRecoveryState({ owner_assisted_acknowledged_at: new Date().toISOString() });
+      this.toast('Owner-assisted checks отмечены как ручной хвост production V2');
+      this.renderV2FirstRunRecoveryCenter();
+      return;
+    }
+    if (action === 'start_demo') {
+      await this.createV2FirstRunDemoTask();
+      return;
+    }
+    this.go('system');
+  },
+
+  async createV2FirstRunDemoTask() {
+    const existingId = this.v2FirstRunRecoveryState?.demo_task_id || '';
+    const existing = existingId ? (this.workTasks || []).find((task) => task.task_id === existingId) : null;
+    if (existing) {
+      existing.context_scope = 'безопасный демо-пример: локальная задача, без внешних сервисов, без секретов, без deploy.';
+      (existing.artifacts || []).forEach((artifact) => {
+        artifact.summary = String(artifact.summary || '')
+          .replace(/Safe fixture/gi, 'Безопасный пример')
+          .replace(/safe fixture/gi, 'безопасный пример')
+          .replace(/safe demo fixture/gi, 'безопасный демо-пример');
+        artifact.content = String(artifact.content || '')
+          .replace(/Safe fixture/gi, 'Безопасный пример')
+          .replace(/safe fixture/gi, 'безопасный пример')
+          .replace(/safe demo fixture/gi, 'безопасный демо-пример');
+      });
+      this.activeWorkTaskId = existing.task_id;
+      this.workspaceActiveTab = 'artifacts';
+      this.saveWorkTasks();
+      this.renderWorkTaskCard();
+      this.go('work');
+      this.toast('Демо-задача открыта');
+      return existing;
+    }
+    this.workPreview = this.buildWorkPreview('Демо: проверить первый запуск Терминатора, безопасное восстановление и следующий шаг без внешних сервисов.', {
+      project_id: 'terminator',
+      mode: 'analysis',
+      quality_level: 'maximum'
+    });
+    this.workPreview.title = 'Демо: первый запуск и восстановление V2';
+    this.workPreview.context_scope = 'безопасный демо-пример: локальная задача, без внешних сервисов, без секретов, без deploy.';
+    this.workPreview.constraints = [
+      'без AI API',
+      'без deploy/push',
+      'без чтения secrets',
+      'без изменения Local Agent или Bridge'
+    ];
+    this.workPreview.forbidden_actions = [
+      'изменение .env',
+      'сетевые настройки',
+      'платные сервисы',
+      'автоматическое применение изменений'
+    ];
+    const task = this.confirmWorkPreview();
+    if (!task) return null;
+    task.demo_fixture = 'v2_first_run_recovery';
+    task.status = 'context_ready';
+    const artifact = this.createArtifact(
+      task,
+      'CONTEXT_PACK',
+      'Демо-пакет первого запуска V2',
+      'Безопасный пример для проверки: стартовый статус, Диагност, Схема Мины, память, Руки и следующий шаг.',
+      [
+        '# Демо-пакет V2',
+        '',
+        'Назначение: проверить первый запуск и восстановление без внешних сервисов.',
+        'Запрещено: secrets, deploy, push, network settings, paid services.',
+        'Ожидаемый результат: Терминатор показывает статус, evidence, риски и следующий шаг.'
+      ].join('\n'),
+      'v2_first_run_recovery'
+    );
+    task.memory_preview = this.buildWorkspaceMemoryPreview(task, 'draft');
+    task.memory_preview.linked_artifact_ids = [...new Set([...(task.memory_preview.linked_artifact_ids || []), artifact.artifact_id])];
+    this.addWorkspaceMessage(task, 'system_event', 'V2 запуск', 'Создана безопасная демо-задача первого запуска. Внешние сервисы не использовались.', {
+      linked_artifact_id: artifact.artifact_id
+    });
+    this.saveV2FirstRunRecoveryState({ demo_mode: true, demo_task_id: task.task_id });
+    this.saveWorkTasks();
+    await this.refreshMemorySearchIndex({ silent: true, render: false });
+    this.activeWorkTaskId = task.task_id;
+    this.workspaceActiveTab = 'artifacts';
+    this.renderWorkTaskCard();
+    this.go('work');
+    this.toast('Демо первого запуска создано локально');
+    return task;
   },
 
   renderSystemIntegrationPanel() {
@@ -12173,7 +12671,7 @@ const App = {
         next.handoff_state = pwa.installed
           ? 'готов к мобильному входу как установленное приложение'
           : pwa.serviceWorker === 'registered'
-            ? 'offline shell готов, установка PWA опциональна'
+            ? 'режим без сети готов, установка PWA опциональна'
             : 'ожидает установки или проверки PWA';
         next.notes = 'PWA используется как мобильный контроллер интерфейса; не выполняет системные команды.';
       }
@@ -12814,7 +13312,7 @@ const App = {
         can_prepare: hasTask && pwaReady,
         note: pwaReady
           ? 'Фиксируется маршрут возврата контекста в Рабочее. Реальный heartbeat телефона будет отдельным слоем.'
-          : 'PWA/offline shell ещё не готов к честному маршруту возврата.'
+          : 'PWA / режим без сети ещё не готов к честному маршруту возврата.'
       }
     ];
     return routes.map((route) => ({
@@ -13539,7 +14037,7 @@ const App = {
           <article><span>Checkpoint</span><strong>${this.escapeHtml(latestCheckpoint ? this.formatTaskTime(latestCheckpoint.created_at) : 'нет')}</strong><p>${this.escapeHtml(latestCheckpoint?.reason || 'создайте checkpoint перед переносом')}</p></article>
           <article><span>Task Teleport</span><strong>${this.escapeHtml(String(snapshot.task_teleport_count))}</strong><p>${this.escapeHtml(task ? 'пакеты активной задачи' : 'задача не выбрана')}</p></article>
           <article><span>Offline</span><strong>${snapshot.browser_online ? 'online' : 'offline'}</strong><p>Состояние браузера владельца</p></article>
-          <article><span>PWA</span><strong>${this.escapeHtml(snapshot.pwa_service_worker)}</strong><p>offline shell / mobile continuity</p></article>
+            <article><span>PWA</span><strong>${this.escapeHtml(snapshot.pwa_service_worker)}</strong><p>режим без сети / мобильная непрерывность</p></article>
         </div>
         <div class="continuity-actions">
           <button type="button" data-continuity-action="create_checkpoint">Создать checkpoint</button>
@@ -14650,7 +15148,7 @@ const App = {
       ['Задачи', `${sample.task_count ?? 0}`, `${sample.active_tasks ?? 0} активных; ждут отчёт: ${sample.waiting_reports ?? 0}`],
       ['Approval / incidents', `${sample.approvals_pending ?? 0} / ${sample.open_incidents ?? 0}`, 'Открытые решения владельца и предупреждения Guardian.'],
       ['Синхронизация', sample.task_store_status || 'not_checked', sample.last_sync_at ? `последняя: ${this.formatTaskTime(sample.last_sync_at)}` : 'последней синхронизации нет'],
-      ['PWA', sample.pwa_service_worker || this.pwaServiceWorkerStatus, 'offline shell и установка контролируются отдельно.']
+      ['PWA', sample.pwa_service_worker || this.pwaServiceWorkerStatus, 'режим без сети и установка контролируются отдельно.']
     ];
     host.innerHTML = `
       <div class="voice-system-grid">
@@ -16629,7 +17127,7 @@ const App = {
         status: 'unknown',
         risk_level: 'safe',
         owner_confirmed: false,
-        notes: 'Будущий удобный вход с телефона. Сейчас проверяется оболочка и offline shell, без нативных команд.',
+        notes: 'Будущий удобный вход с телефона. Сейчас проверяется оболочка и режим без сети, без нативных команд.',
         route_role: 'мобильный контроллер без выполнения опасных действий',
         handoff_state: 'ожидает установки или проверки PWA',
         capabilities: [
@@ -17379,6 +17877,7 @@ const App = {
     this.persistTaskStoreSyncState();
     this.renderMissionControl();
     this.renderSystemStatus();
+    this.renderV2FirstRunRecoveryCenter();
     this.renderMinaSystemScheme();
 
     try {

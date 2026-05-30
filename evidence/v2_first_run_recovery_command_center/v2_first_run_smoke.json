@@ -1,0 +1,43 @@
+{
+  "desktop": {
+    "actionCount": 21,
+    "activeScreen": "screen-system",
+    "bodyHasEnglishPlaceholder": false,
+    "hasNextAction": true,
+    "hasOwnerAssisted": true,
+    "hasTechnicalJunk": false,
+    "overflow": false,
+    "ownerItems": 4,
+    "panelHasEnglishPlaceholder": false,
+    "panelVisible": true,
+    "readinessLevels": 3,
+    "recoveryCards": 3,
+    "url": "http://127.0.0.1:8812/?screen=system&force=v2-first-run-recovery-local",
+    "viewport": 1366,
+    "width": 1366
+  },
+  "continueCount": 1,
+  "afterContinue": {
+    "activeScreen": "screen-scheme",
+    "schemeOpen": true,
+    "systemOpen": false
+  },
+  "demoCount": 1,
+  "demo": {
+    "activeScreen": "screen-work",
+    "hasDemoTask": true,
+    "hasEnglishPlaceholder": false
+  },
+  "mobile390": {
+    "overflow": false,
+    "panelVisible": true,
+    "viewport": 390,
+    "width": 390
+  },
+  "mobile430": {
+    "overflow": false,
+    "panelVisible": true,
+    "viewport": 430,
+    "width": 430
+  }
+}

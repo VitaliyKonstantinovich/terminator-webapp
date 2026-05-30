@@ -2638,6 +2638,355 @@ button:not(:disabled) {
   line-height: 1.5;
 }
 
+.v2-start-status {
+  width: min(100%, 420px);
+  margin-top: 16px;
+}
+
+.v2-start-status-card {
+  width: 100%;
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(108, 225, 255, 0.44);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 16% 20%, rgba(96, 225, 255, 0.18), transparent 38%),
+    linear-gradient(135deg, rgba(3, 30, 66, 0.8), rgba(2, 14, 36, 0.92));
+  color: #eaf9ff;
+  text-align: left;
+  box-shadow: inset 0 0 24px rgba(42, 168, 255, 0.11), 0 0 20px rgba(21, 123, 255, 0.14);
+}
+
+.v2-start-status-card span {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(97, 239, 255, 0.5);
+  border-radius: 50%;
+  color: #62edff;
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+.v2-start-status-card strong,
+.v2-menu-card strong,
+.v2-command-hero h3,
+.v2-command-next strong,
+.v2-readiness-level strong,
+.v2-recovery-card strong,
+.v2-owner-assisted strong {
+  overflow-wrap: anywhere;
+}
+
+.v2-start-status-card small {
+  color: #b9def7;
+  font-size: 12px;
+}
+
+.v2-menu-command-center {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.v2-menu-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 13px;
+  border: 1px solid rgba(82, 203, 255, 0.32);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(5, 38, 79, 0.78), rgba(2, 16, 38, 0.9)),
+    rgba(3, 20, 44, 0.72);
+}
+
+.v2-menu-card span,
+.v2-command-hero span,
+.v2-command-next span,
+.v2-recovery-card span,
+.v2-owner-item span,
+.v2-level-head span,
+.v2-level-item span {
+  display: block;
+  color: #91c7eb;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.v2-menu-card strong {
+  display: block;
+  margin-top: 3px;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.v2-menu-card p,
+.v2-menu-card small {
+  margin: 5px 0 0;
+  color: #b8def7;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.v2-menu-meter {
+  min-width: 110px;
+  text-align: right;
+}
+
+.v2-menu-meter b {
+  display: block;
+  color: #62edff;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.v2-command-center {
+  display: grid;
+  gap: 14px;
+}
+
+.v2-command-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.26fr) minmax(220px, 0.38fr);
+  gap: 14px;
+  align-items: stretch;
+  padding: 16px;
+  border: 1px solid rgba(90, 210, 255, 0.36);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 14% 16%, rgba(98, 237, 255, 0.22), transparent 36%),
+    radial-gradient(circle at 82% 24%, rgba(61, 247, 165, 0.13), transparent 34%),
+    linear-gradient(135deg, rgba(5, 38, 80, 0.9), rgba(2, 14, 34, 0.94));
+  box-shadow: inset 0 0 28px rgba(42, 168, 255, 0.1), 0 0 22px rgba(22, 139, 255, 0.11);
+}
+
+.v2-command-hero h3 {
+  margin: 5px 0 0;
+  color: #ffffff;
+  font-size: clamp(24px, 3.2vw, 42px);
+  line-height: 1.04;
+}
+
+.v2-command-hero p,
+.v2-command-next p,
+.v2-recovery-card p,
+.v2-owner-assisted p,
+.v2-level-item small {
+  margin: 7px 0 0;
+  color: #c8ecff;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.v2-command-score,
+.v2-command-next,
+.v2-recovery-card,
+.v2-readiness-level,
+.v2-owner-item {
+  min-width: 0;
+  border: 1px solid rgba(86, 196, 255, 0.23);
+  border-radius: 8px;
+  background: rgba(2, 18, 43, 0.74);
+  box-shadow: inset 0 0 18px rgba(42, 168, 255, 0.07);
+}
+
+.v2-command-score,
+.v2-command-next,
+.v2-recovery-card,
+.v2-owner-item {
+  padding: 12px;
+}
+
+.v2-command-score strong {
+  display: block;
+  color: #62edff;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 1;
+}
+
+.v2-command-score span {
+  display: block;
+  margin-top: 8px;
+  color: #b8def7;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.v2-command-next button,
+.v2-command-actions button,
+.v2-recovery-card button,
+.v2-level-item {
+  min-height: 38px;
+  border: 1px solid rgba(93, 214, 255, 0.38);
+  border-radius: 8px;
+  background: rgba(8, 46, 91, 0.78);
+  color: #ecfbff;
+  font-weight: 900;
+}
+
+.v2-command-next button {
+  margin-top: 10px;
+  padding: 0 14px;
+}
+
+.v2-command-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.75fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.v2-readiness-levels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.v2-readiness-level {
+  padding: 12px;
+}
+
+.v2-level-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.v2-level-head strong {
+  display: block;
+  margin-top: 3px;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.v2-level-head b {
+  color: #62edff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.v2-level-items {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.v2-level-item {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+}
+
+.v2-recovery-rail {
+  display: grid;
+  gap: 10px;
+}
+
+.v2-recovery-card strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.v2-recovery-card button {
+  margin-top: 10px;
+  padding: 0 12px;
+}
+
+.v2-owner-assisted {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.v2-owner-assisted > div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(86, 196, 255, 0.23);
+  border-radius: 8px;
+  background: rgba(2, 18, 43, 0.7);
+}
+
+.v2-owner-assisted > div strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.v2-owner-item strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.v2-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.v2-command-actions button {
+  padding: 0 14px;
+}
+
+.v2-command-actions--wide {
+  justify-content: flex-end;
+}
+
+.v2-command-center--ready .v2-command-hero,
+.v2-command-center--ready.v2-start-status-card,
+.v2-command-center--ready.v2-menu-card,
+.v2-readiness-level--ready {
+  border-color: rgba(61, 247, 165, 0.46);
+}
+
+.v2-command-center--blocked .v2-command-hero,
+.v2-command-center--blocked.v2-start-status-card,
+.v2-command-center--blocked.v2-menu-card,
+.v2-readiness-level--blocked,
+.v2-recovery-card--danger {
+  border-color: rgba(255, 116, 116, 0.58);
+}
+
+.v2-command-center--review .v2-command-hero,
+.v2-command-center--review.v2-start-status-card,
+.v2-command-center--review.v2-menu-card,
+.v2-readiness-level--review,
+.v2-readiness-level--partial {
+  border-color: rgba(255, 209, 102, 0.42);
+}
+
+.v2-level-item--ready {
+  border-color: rgba(61, 247, 165, 0.42);
+  background: rgba(4, 54, 51, 0.68);
+}
+
+.v2-level-item--blocked {
+  border-color: rgba(255, 116, 116, 0.56);
+  background: rgba(62, 15, 32, 0.68);
+}
+
+.v2-level-item--owner,
+.v2-level-item--review,
+.v2-level-item--waiting {
+  border-color: rgba(255, 209, 102, 0.36);
+}
+
 .head-panel {
   display: grid;
   gap: 14px;
@@ -9547,6 +9896,11 @@ button:not(:disabled) {
 
 @media (max-width: 720px) {
   .system-action-strip,
+  .v2-menu-card,
+  .v2-command-hero,
+  .v2-command-layout,
+  .v2-readiness-levels,
+  .v2-owner-assisted,
   .companion-contract-grid,
   .voice-command-center,
   .workspace-voice-dock-head,
@@ -9577,6 +9931,27 @@ button:not(:disabled) {
 
   .system-action-strip button {
     width: 100%;
+  }
+
+  .v2-menu-meter {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .v2-command-actions,
+  .v2-command-actions--wide {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .v2-command-actions button,
+  .v2-recovery-card button,
+  .v2-command-next button {
+    width: 100%;
+  }
+
+  .v2-start-status {
+    width: min(100%, 360px);
   }
 
   .continuity-head > strong {
