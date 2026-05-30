@@ -1,0 +1,500 @@
+{
+  "generated_at": "2026-05-30T12:14:56.648Z",
+  "samples": [
+    {
+      "sample_id": "safe_read_task_state",
+      "event": {
+        "id": "evt_1780143295475_q8xaj5",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.476Z",
+        "updated_at": "2026-05-30T12:14:55.476Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "safe_read_task_state"
+        },
+        "risk_level": "low",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "task_state",
+        "message": "Можно читать состояние задачи.",
+        "payload": {
+          "verdict": "allow",
+          "riskLevel": "low",
+          "reason": "Safe read of task state.",
+          "actor": "webapp",
+          "action": "read",
+          "resource": "task_state",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": false,
+          "userMessage": "Можно читать состояние задачи."
+        }
+      }
+    },
+    {
+      "sample_id": "write_evidence",
+      "event": {
+        "id": "evt_1780143295477_r4g21p",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.477Z",
+        "updated_at": "2026-05-30T12:14:55.477Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "write_evidence"
+        },
+        "risk_level": "low",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "evidence",
+        "message": "Можно добавить evidence, но без секретов и raw-токенов.",
+        "payload": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "low",
+          "reason": "Writing evidence metadata is allowed, but raw secrets must stay out.",
+          "actor": "webapp",
+          "action": "write",
+          "resource": "evidence",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Можно добавить evidence, но без секретов и raw-токенов."
+        }
+      }
+    },
+    {
+      "sample_id": "write_repair_workspace",
+      "event": {
+        "id": "evt_1780143295477_nfmkjq",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.477Z",
+        "updated_at": "2026-05-30T12:14:55.477Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "write_repair_workspace"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.guardian.verdict",
+        "actor": "codex_repair",
+        "resource": "repair_workspace",
+        "message": "Можно работать в ремонтной папке, active project не трогаем.",
+        "payload": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium",
+          "reason": "Repair workspace writes are sandboxed and allowed with evidence.",
+          "actor": "codex_repair",
+          "action": "write",
+          "resource": "repair_workspace",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Можно работать в ремонтной папке, active project не трогаем."
+        }
+      }
+    },
+    {
+      "sample_id": "write_active_project_no_rollback",
+      "event": {
+        "id": "evt_1780143295477_sbnrli",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.477Z",
+        "updated_at": "2026-05-30T12:14:55.477Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "write_active_project_no_rollback"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "codex_repair",
+        "resource": "active_project_files",
+        "message": "Нельзя применять изменение проекта без rollback point.",
+        "payload": {
+          "verdict": "approval_required",
+          "riskLevel": "high",
+          "reason": "Active project mutation has no rollback proof yet.",
+          "actor": "codex_repair",
+          "action": "write",
+          "resource": "active_project_files",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "",
+          "requiredRollback": true,
+          "evidenceRequired": true,
+          "userMessage": "Нельзя применять изменение проекта без rollback point."
+        }
+      }
+    },
+    {
+      "sample_id": "deploy_github_repo",
+      "event": {
+        "id": "evt_1780143295478_vrujtt",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.478Z",
+        "updated_at": "2026-05-30T12:14:55.478Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "deploy_github_repo"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "github_repo",
+        "message": "Deploy требует точную фразу подтверждения и approval.",
+        "payload": {
+          "verdict": "typed_confirmation_required",
+          "riskLevel": "high",
+          "reason": "Deploy requires typed confirmation and owner approval.",
+          "actor": "webapp",
+          "action": "deploy",
+          "resource": "github_repo",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Deploy требует точную фразу подтверждения и approval."
+        }
+      }
+    },
+    {
+      "sample_id": "push_github_repo",
+      "event": {
+        "id": "evt_1780143295478_dd15uq",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.478Z",
+        "updated_at": "2026-05-30T12:14:55.478Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "push_github_repo"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "github_repo",
+        "message": "Push требует точную фразу подтверждения и approval.",
+        "payload": {
+          "verdict": "typed_confirmation_required",
+          "riskLevel": "high",
+          "reason": "Push to repository requires typed confirmation and owner approval.",
+          "actor": "webapp",
+          "action": "push",
+          "resource": "github_repo",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Push требует точную фразу подтверждения и approval."
+        }
+      }
+    },
+    {
+      "sample_id": "delete_restore_points",
+      "event": {
+        "id": "evt_1780143295478_4ziojt",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.478Z",
+        "updated_at": "2026-05-30T12:14:55.478Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "delete_restore_points"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "system_worker",
+        "resource": "restore_points",
+        "message": "Удаление требует точную фразу, approval и rollback/evidence.",
+        "payload": {
+          "verdict": "typed_confirmation_required",
+          "riskLevel": "high",
+          "reason": "Delete action requires typed confirmation, approval, and evidence.",
+          "actor": "system_worker",
+          "action": "delete",
+          "resource": "restore_points",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": true,
+          "evidenceRequired": true,
+          "userMessage": "Удаление требует точную фразу, approval и rollback/evidence."
+        }
+      }
+    },
+    {
+      "sample_id": "read_secrets_env",
+      "event": {
+        "id": "evt_1780143295478_pef15g",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.479Z",
+        "updated_at": "2026-05-30T12:14:55.479Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "read_secrets_env"
+        },
+        "risk_level": "critical",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "secrets_env",
+        "message": "Секреты и .env заблокированы. Это red-zone.",
+        "payload": {
+          "verdict": "red_zone_stop",
+          "riskLevel": "critical",
+          "reason": "Secrets/env access is red-zone blocked by default.",
+          "actor": "webapp",
+          "action": "read",
+          "resource": "secrets_env",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Секреты и .env заблокированы. Это red-zone."
+        }
+      }
+    },
+    {
+      "sample_id": "configure_billing_payment",
+      "event": {
+        "id": "evt_1780143295479_sfr3cs",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.479Z",
+        "updated_at": "2026-05-30T12:14:55.479Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "configure_billing_payment"
+        },
+        "risk_level": "critical",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "billing_payment",
+        "message": "Платёжные действия выполняет только владелец после ручной проверки.",
+        "payload": {
+          "verdict": "owner_assisted_required",
+          "riskLevel": "critical",
+          "reason": "Billing/payment actions require owner-assisted manual review.",
+          "actor": "webapp",
+          "action": "configure",
+          "resource": "billing_payment",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Платёжные действия выполняет только владелец после ручной проверки."
+        }
+      }
+    },
+    {
+      "sample_id": "configure_network_settings",
+      "event": {
+        "id": "evt_1780143295479_8thui5",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.479Z",
+        "updated_at": "2026-05-30T12:14:55.479Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "configure_network_settings"
+        },
+        "risk_level": "critical",
+        "event_type": "v2.guardian.verdict",
+        "actor": "system_worker",
+        "resource": "network_settings",
+        "message": "Действие заблокировано как red-zone.",
+        "payload": {
+          "verdict": "red_zone_stop",
+          "riskLevel": "critical",
+          "reason": "network_settings is red-zone blocked by default.",
+          "actor": "system_worker",
+          "action": "configure",
+          "resource": "network_settings",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Действие заблокировано как red-zone."
+        }
+      }
+    },
+    {
+      "sample_id": "enable_ai_api",
+      "event": {
+        "id": "evt_1780143295479_bcth55",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.479Z",
+        "updated_at": "2026-05-30T12:14:55.479Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "enable_ai_api"
+        },
+        "risk_level": "critical",
+        "event_type": "v2.guardian.verdict",
+        "actor": "webapp",
+        "resource": "ai_api",
+        "message": "Действие заблокировано как red-zone.",
+        "payload": {
+          "verdict": "red_zone_stop",
+          "riskLevel": "critical",
+          "reason": "ai_api is red-zone blocked by default.",
+          "actor": "webapp",
+          "action": "configure",
+          "resource": "ai_api",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Действие заблокировано как red-zone."
+        }
+      }
+    },
+    {
+      "sample_id": "read_browser_profiles",
+      "event": {
+        "id": "evt_1780143295481_tdxcl7",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.481Z",
+        "updated_at": "2026-05-30T12:14:55.481Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "read_browser_profiles"
+        },
+        "risk_level": "critical",
+        "event_type": "v2.guardian.verdict",
+        "actor": "browser_worker",
+        "resource": "browser_profiles",
+        "message": "Действие заблокировано как red-zone.",
+        "payload": {
+          "verdict": "red_zone_stop",
+          "riskLevel": "critical",
+          "reason": "browser_profiles is red-zone blocked by default.",
+          "actor": "browser_worker",
+          "action": "read",
+          "resource": "browser_profiles",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Действие заблокировано как red-zone."
+        }
+      }
+    },
+    {
+      "sample_id": "reset_emergency_stop_no_phrase",
+      "event": {
+        "id": "evt_1780143295481_ni4wwj",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.481Z",
+        "updated_at": "2026-05-30T12:14:55.481Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "reset_emergency_stop_no_phrase"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "guardian",
+        "resource": "task_state",
+        "message": "Сброс Стоп действия требует точную фразу подтверждения.",
+        "payload": {
+          "verdict": "typed_confirmation_required",
+          "riskLevel": "high",
+          "reason": "Emergency Stop reset requires exact typed confirmation.",
+          "actor": "guardian",
+          "action": "reset_emergency_stop",
+          "resource": "task_state",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Сброс Стоп действия требует точную фразу подтверждения."
+        }
+      }
+    },
+    {
+      "sample_id": "reset_emergency_stop_wrong_phrase",
+      "event": {
+        "id": "evt_1780143295482_59e3e2",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.482Z",
+        "updated_at": "2026-05-30T12:14:55.482Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "reset_emergency_stop_wrong_phrase"
+        },
+        "risk_level": "high",
+        "event_type": "v2.guardian.verdict",
+        "actor": "guardian",
+        "resource": "task_state",
+        "message": "Фраза неверная. Стоп действия остаётся активным.",
+        "payload": {
+          "verdict": "blocked",
+          "riskLevel": "high",
+          "reason": "Emergency Stop reset phrase is incorrect.",
+          "actor": "guardian",
+          "action": "reset_emergency_stop",
+          "resource": "task_state",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Фраза неверная. Стоп действия остаётся активным."
+        }
+      }
+    },
+    {
+      "sample_id": "reset_emergency_stop_correct_phrase",
+      "event": {
+        "id": "evt_1780143295482_h98zm3",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T12:14:55.482Z",
+        "updated_at": "2026-05-30T12:14:55.482Z",
+        "status": "recorded",
+        "refs": {
+          "sample_id": "reset_emergency_stop_correct_phrase"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.guardian.verdict",
+        "actor": "guardian",
+        "resource": "task_state",
+        "message": "Стоп действия можно сбросить, событие будет записано.",
+        "payload": {
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium",
+          "reason": "Emergency Stop reset phrase confirmed; event required.",
+          "actor": "guardian",
+          "action": "reset_emergency_stop",
+          "resource": "task_state",
+          "requiredApproval": false,
+          "requiredTypedPhrase": "[required]",
+          "requiredRollback": false,
+          "evidenceRequired": true,
+          "userMessage": "Стоп действия можно сбросить, событие будет записано."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "generated_at": "2026-05-30T12:14:56.655Z",
+  "samples": [
+    {
+      "sample_id": "safe_read_task_state",
+      "expected": [
+        "allow"
+      ],
+      "actual": "allow",
+      "status": "PASS",
+      "userMessage": "Можно читать состояние задачи."
+    },
+    {
+      "sample_id": "write_evidence",
+      "expected": [
+        "allow",
+        "allow_with_warning"
+      ],
+      "actual": "allow_with_warning",
+      "status": "PASS",
+      "userMessage": "Можно добавить evidence, но без секретов и raw-токенов."
+    },
+    {
+      "sample_id": "write_repair_workspace",
+      "expected": [
+        "allow_with_warning"
+      ],
+      "actual": "allow_with_warning",
+      "status": "PASS",
+      "userMessage": "Можно работать в ремонтной папке, active project не трогаем."
+    },
+    {
+      "sample_id": "write_active_project_no_rollback",
+      "expected": [
+        "approval_required",
+        "blocked"
+      ],
+      "actual": "approval_required",
+      "status": "PASS",
+      "userMessage": "Нельзя применять изменение проекта без rollback point."
+    },
+    {
+      "sample_id": "deploy_github_repo",
+      "expected": [
+        "typed_confirmation_required"
+      ],
+      "actual": "typed_confirmation_required",
+      "status": "PASS",
+      "userMessage": "Deploy требует точную фразу подтверждения и approval."
+    },
+    {
+      "sample_id": "push_github_repo",
+      "expected": [
+        "typed_confirmation_required"
+      ],
+      "actual": "typed_confirmation_required",
+      "status": "PASS",
+      "userMessage": "Push требует точную фразу подтверждения и approval."
+    },
+    {
+      "sample_id": "delete_restore_points",
+      "expected": [
+        "typed_confirmation_required",
+        "blocked"
+      ],
+      "actual": "typed_confirmation_required",
+      "status": "PASS",
+      "userMessage": "Удаление требует точную фразу, approval и rollback/evidence."
+    },
+    {
+      "sample_id": "read_secrets_env",
+      "expected": [
+        "red_zone_stop"
+      ],
+      "actual": "red_zone_stop",
+      "status": "PASS",
+      "userMessage": "Секреты и .env заблокированы. Это red-zone."
+    },
+    {
+      "sample_id": "configure_billing_payment",
+      "expected": [
+        "owner_assisted_required",
+        "red_zone_stop"
+      ],
+      "actual": "owner_assisted_required",
+      "status": "PASS",
+      "userMessage": "Платёжные действия выполняет только владелец после ручной проверки."
+    },
+    {
+      "sample_id": "configure_network_settings",
+      "expected": [
+        "red_zone_stop"
+      ],
+      "actual": "red_zone_stop",
+      "status": "PASS",
+      "userMessage": "Действие заблокировано как red-zone."
+    },
+    {
+      "sample_id": "enable_ai_api",
+      "expected": [
+        "red_zone_stop"
+      ],
+      "actual": "red_zone_stop",
+      "status": "PASS",
+      "userMessage": "Действие заблокировано как red-zone."
+    },
+    {
+      "sample_id": "read_browser_profiles",
+      "expected": [
+        "red_zone_stop"
+      ],
+      "actual": "red_zone_stop",
+      "status": "PASS",
+      "userMessage": "Действие заблокировано как red-zone."
+    },
+    {
+      "sample_id": "reset_emergency_stop_no_phrase",
+      "expected": [
+        "typed_confirmation_required"
+      ],
+      "actual": "typed_confirmation_required",
+      "status": "PASS",
+      "userMessage": "Сброс Стоп действия требует точную фразу подтверждения."
+    },
+    {
+      "sample_id": "reset_emergency_stop_wrong_phrase",
+      "expected": [
+        "blocked"
+      ],
+      "actual": "blocked",
+      "status": "PASS",
+      "userMessage": "Фраза неверная. Стоп действия остаётся активным."
+    },
+    {
+      "sample_id": "reset_emergency_stop_correct_phrase",
+      "expected": [
+        "allow_with_warning"
+      ],
+      "actual": "allow_with_warning",
+      "status": "PASS",
+      "userMessage": "Стоп действия можно сбросить, событие будет записано."
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "allow": 1,
+    "allow_with_warning": 3,
+    "approval_required": 1,
+    "typed_confirmation_required": 4,
+    "blocked": 1,
+    "owner_assisted_required": 1,
+    "red_zone_stop": 4
+  }
+}
