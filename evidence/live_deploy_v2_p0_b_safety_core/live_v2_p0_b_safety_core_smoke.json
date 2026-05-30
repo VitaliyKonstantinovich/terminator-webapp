@@ -1,0 +1,87 @@
+{
+  "generated_at": "2026-05-30T12:19:13.718Z",
+  "live": {
+    "href": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p0-b-safety-live-smoke",
+    "title": "TERMINATOR MINA UI",
+    "ready": true,
+    "activeScreen": "screen-scheme",
+    "hasSafetyCore": true,
+    "totalSamples": 15,
+    "failedSamples": 0,
+    "verdicts": [
+      [
+        "safe_read_task_state",
+        "allow"
+      ],
+      [
+        "write_evidence",
+        "allow_with_warning"
+      ],
+      [
+        "write_repair_workspace",
+        "allow_with_warning"
+      ],
+      [
+        "write_active_project_no_rollback",
+        "approval_required"
+      ],
+      [
+        "deploy_github_repo",
+        "typed_confirmation_required"
+      ],
+      [
+        "push_github_repo",
+        "typed_confirmation_required"
+      ],
+      [
+        "delete_restore_points",
+        "typed_confirmation_required"
+      ],
+      [
+        "read_secrets_env",
+        "red_zone_stop"
+      ],
+      [
+        "configure_billing_payment",
+        "owner_assisted_required"
+      ],
+      [
+        "configure_network_settings",
+        "red_zone_stop"
+      ],
+      [
+        "enable_ai_api",
+        "red_zone_stop"
+      ],
+      [
+        "read_browser_profiles",
+        "red_zone_stop"
+      ],
+      [
+        "reset_emergency_stop_no_phrase",
+        "typed_confirmation_required"
+      ],
+      [
+        "reset_emergency_stop_wrong_phrase",
+        "blocked"
+      ],
+      [
+        "reset_emergency_stop_correct_phrase",
+        "allow_with_warning"
+      ]
+    ],
+    "scrollWidth": 762,
+    "viewportWidth": 762,
+    "noHorizontalOverflow": true
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noHorizontalOverflow": true
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noHorizontalOverflow": true
+  }
+}
