@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-05-30T12:00:04.677Z",
+  "live": {
+    "href": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p0-a-foundation-live-smoke",
+    "title": "TERMINATOR MINA UI",
+    "ready": true,
+    "activeScreen": "screen-scheme",
+    "hasV2Foundation": true,
+    "flags": {
+      "v2FoundationEnabled": false,
+      "v2EventLogEnabled": false,
+      "v2CapabilityMatrixEnabled": false,
+      "v2SourceSnapshotsEnabled": false,
+      "v2SafetyPolicyPreviewEnabled": false,
+      "v2MemoryContractPreviewEnabled": false,
+      "v2RecoveryStatePreviewEnabled": false
+    },
+    "previewContractNames": [
+      "V2TaskContract",
+      "V2ArtifactContract",
+      "V2EvidenceContract",
+      "V2MemoryRecordContract",
+      "V2IncidentContract",
+      "V2ApprovalContract",
+      "V2CapabilityContract",
+      "V2EventContract",
+      "V2SnapshotContract"
+    ],
+    "capabilityVerdicts": [
+      "allow",
+      "approval_required",
+      "red_zone_stop",
+      "allow"
+    ],
+    "scrollWidth": 762,
+    "viewportWidth": 762,
+    "noHorizontalOverflow": true
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noHorizontalOverflow": true
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noHorizontalOverflow": true
+  }
+}
