@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-05-30T11:54:40.799Z",
+  "desktopSmoke": {
+    "title": "TERMINATOR MINA UI",
+    "activeScreen": "screen-scheme",
+    "bodyWidth": 762,
+    "viewportWidth": 762,
+    "noHorizontalOverflow": true,
+    "v2PreviewAvailable": true
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noHorizontalOverflow": true
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noHorizontalOverflow": true
+  },
+  "redaction_pass": true
+}

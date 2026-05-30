@@ -1,0 +1,279 @@
+{
+  "generated_at": "2026-05-30T11:54:40.797Z",
+  "snapshots": {
+    "system": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T11:54:40.112Z",
+      "flags": {
+        "v2FoundationEnabled": false,
+        "v2EventLogEnabled": false,
+        "v2CapabilityMatrixEnabled": false,
+        "v2SourceSnapshotsEnabled": false,
+        "v2SafetyPolicyPreviewEnabled": false,
+        "v2MemoryContractPreviewEnabled": false,
+        "v2RecoveryStatePreviewEnabled": false
+      },
+      "v1_status": "productized_rc",
+      "status": "review",
+      "source_state": "known",
+      "owner_assisted_required": [],
+      "summary": "4/15 источников готовы; 11 требуют проверки; 0 блокеров"
+    },
+    "readiness": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T11:54:40.114Z",
+      "status": "partial",
+      "readiness_score": 75,
+      "unknown_is_pass": false,
+      "next_action": {
+        "id": "body",
+        "name": "Тело системы",
+        "status": "review",
+        "note": "Мост: ожидает вход; локальный агент: не проверено; основной агент: Terminator-PC; хранилище задач: ждёт вход.",
+        "action": "open_scheme_body",
+        "score": 56
+      },
+      "owner_assisted": [
+        {
+          "id": "real_phone",
+          "name": "Реальный телефон",
+          "status": "owner",
+          "note": "APK/PWA на настоящем телефоне отложены до production V2 final.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        {
+          "id": "billing",
+          "name": "Платные кабинеты",
+          "status": "owner",
+          "note": "Cloudflare, GitHub, Amvera, n8n и подписки проверяются владельцем вручную. Новые платные сервисы не включались.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        {
+          "id": "production_signing",
+          "name": "Подпись APK",
+          "status": "owner",
+          "note": "Production signing не выполняется до финального production решения.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        {
+          "id": "production_rollback",
+          "name": "Боевой откат",
+          "status": "owner",
+          "note": "Откат active project проверяется только после отдельного разрешения.",
+          "action": "owner_assisted",
+          "score": 50
+        }
+      ]
+    },
+    "safety": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T11:54:40.114Z",
+      "status": "active",
+      "label": "активен",
+      "emergency_stop_active": false,
+      "unknown_is_pass": false,
+      "capability_sample": {
+        "schema_version": 1,
+        "actor": "codex_repair",
+        "resource": "active_project_files",
+        "action": "write",
+        "verdict": "approval_required",
+        "risk_level": "high",
+        "reason": "Mutable/high-risk resource requires approval.",
+        "requires_approval": true,
+        "typed_confirmation_required": false,
+        "rollback_required": true,
+        "evidence_required": true
+      },
+      "policy_preview": "dangerous actions require Guardian/Approval/rollback gates"
+    },
+    "memory": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T11:54:40.114Z",
+      "status": "ready",
+      "readiness": 0,
+      "index_status": "ready",
+      "records": 0,
+      "unknown_is_pass": false
+    },
+    "recovery": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T11:54:40.114Z",
+      "status": "active",
+      "open_incidents": 0,
+      "unknown_is_pass": false,
+      "state_model": [
+        "detected",
+        "classified",
+        "explained",
+        "awaiting_user_action",
+        "diagnostic_pack_created",
+        "repair_workspace_created",
+        "verifier_check",
+        "guardian_check",
+        "approval_required",
+        "ready_to_apply",
+        "applied",
+        "rollback_available",
+        "recovered",
+        "closed",
+        "blocked",
+        "owner_assisted_required"
+      ],
+      "owner_assisted_postponed": [
+        "real_phone_apk",
+        "billing_dashboards",
+        "production_signing",
+        "production_rollback"
+      ]
+    },
+    "capability": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T11:54:40.114Z",
+      "matrix": {
+        "schema_version": 1,
+        "actors": [
+          "owner",
+          "webapp",
+          "local_agent",
+          "codex_repair",
+          "guardian",
+          "verifier",
+          "memory_search",
+          "brain_council",
+          "research_agent",
+          "file_worker",
+          "code_worker",
+          "browser_worker",
+          "system_worker",
+          "device_mesh",
+          "voice",
+          "recovery_wizard",
+          "external_adapter_candidate"
+        ],
+        "resources": [
+          "task_state",
+          "artifacts",
+          "evidence",
+          "memory_records",
+          "memory_index",
+          "source_files",
+          "active_project_files",
+          "repair_workspace",
+          "restore_points",
+          "d_terminator_storage",
+          "secrets_env",
+          "browser_profiles",
+          "github_repo",
+          "github_settings",
+          "cloudflare_settings",
+          "billing_payment",
+          "network_settings",
+          "apk_signing",
+          "os_system_settings"
+        ],
+        "actions": [
+          "read",
+          "write",
+          "execute",
+          "delete",
+          "deploy",
+          "push",
+          "configure",
+          "approve"
+        ],
+        "verdicts": [
+          "allow",
+          "allow_with_warning",
+          "approval_required",
+          "typed_confirmation_required",
+          "blocked",
+          "owner_assisted_required",
+          "red_zone_stop"
+        ],
+        "defaults": {
+          "red_zone_resources": [
+            "secrets_env",
+            "billing_payment",
+            "network_settings",
+            "github_settings",
+            "cloudflare_settings",
+            "apk_signing",
+            "browser_profiles"
+          ],
+          "high_risk_resources": [
+            "active_project_files",
+            "source_files",
+            "github_repo",
+            "os_system_settings",
+            "restore_points"
+          ],
+          "dangerous_actions": [
+            "delete",
+            "deploy",
+            "push",
+            "configure"
+          ],
+          "broad_access_allowed": false
+        }
+      },
+      "sample_verdicts": [
+        {
+          "schema_version": 1,
+          "actor": "webapp",
+          "resource": "task_state",
+          "action": "read",
+          "verdict": "allow",
+          "risk_level": "low",
+          "reason": "Read-only or low-risk foundation action.",
+          "requires_approval": false,
+          "typed_confirmation_required": false,
+          "rollback_required": false,
+          "evidence_required": false
+        },
+        {
+          "schema_version": 1,
+          "actor": "codex_repair",
+          "resource": "active_project_files",
+          "action": "write",
+          "verdict": "approval_required",
+          "risk_level": "high",
+          "reason": "Mutable/high-risk resource requires approval.",
+          "requires_approval": true,
+          "typed_confirmation_required": false,
+          "rollback_required": true,
+          "evidence_required": true
+        },
+        {
+          "schema_version": 1,
+          "actor": "system_worker",
+          "resource": "network_settings",
+          "action": "configure",
+          "verdict": "red_zone_stop",
+          "risk_level": "critical",
+          "reason": "Red-zone resource is blocked by default.",
+          "requires_approval": false,
+          "typed_confirmation_required": false,
+          "rollback_required": true,
+          "evidence_required": true
+        },
+        {
+          "schema_version": 1,
+          "actor": "owner",
+          "resource": "artifacts",
+          "action": "approve",
+          "verdict": "allow",
+          "risk_level": "low",
+          "reason": "Read-only or low-risk foundation action.",
+          "requires_approval": false,
+          "typed_confirmation_required": false,
+          "rollback_required": false,
+          "evidence_required": false
+        }
+      ]
+    }
+  }
+}
