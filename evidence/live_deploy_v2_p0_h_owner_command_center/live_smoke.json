@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-05-30T18:29:20.877Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "cache_bust": "v2-p0-h-1780165759755",
+  "commit": "31b0a6e57a7069f5b514f6fa347cf2d1ca8aee66",
+  "workflow_run": "https://github.com/VitaliyKonstantinovich/terminator-webapp/actions/runs/26691427958",
+  "fetch": {
+    "html": 200,
+    "app_js": 200,
+    "css": 200
+  },
+  "pass": {
+    "html_200": true,
+    "app_js_200": true,
+    "css_200": true,
+    "buildV2OwnerCommandCenterSnapshot": true,
+    "renderV2AttentionPanel": true,
+    "renderV2CommandExpertDetails": true,
+    "v2_command_center_opened_event": true,
+    "feature_flag": true,
+    "owner_assisted_complete": true,
+    "owner_css": true,
+    "system_panel_rendered": true,
+    "readiness_levels_visible": true,
+    "owner_assisted_separated": true,
+    "expert_collapsed": true,
+    "normal_mode_no_forbidden_terms": true,
+    "sample_matrix_pass": true,
+    "all_green_creates_task": true,
+    "owner_assisted_not_blocker": true,
+    "postponed_phone_not_blocker": true,
+    "no_ai_api_runtime_domains": true
+  },
+  "samples": [
+    {
+      "sample_id": "all_green_owner_independent",
+      "expected_route": "start_workspace",
+      "next_route": "start_workspace",
+      "next_action": "Создать задачу",
+      "score": 100,
+      "owner_items": 0,
+      "pass": true
+    },
+    {
+      "sample_id": "safety_blocker",
+      "expected_route": "open_safety_guardian",
+      "next_route": "open_safety_guardian",
+      "next_action": "Открыть Guardian / Emergency",
+      "score": 42,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "recovery_degraded",
+      "expected_route": "open_recovery",
+      "next_route": "open_recovery",
+      "next_action": "Открыть Центр восстановления",
+      "score": 42,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "memory_degraded",
+      "expected_route": "open_memory_search",
+      "next_route": "open_memory_search",
+      "next_action": "Проверить память",
+      "score": 48,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "brain_council_unverified",
+      "expected_route": "open_head_readiness",
+      "next_route": "open_head_readiness",
+      "next_action": "Проверить мозги",
+      "score": 84,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "owner_assisted_only",
+      "expected_route": "show_owner_checklist",
+      "next_route": "show_owner_checklist",
+      "next_action": "Показать финальный чеклист владельца",
+      "score": 84,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "real_phone_apk_postponed",
+      "expected_route": "show_owner_checklist",
+      "next_route": "show_owner_checklist",
+      "next_action": "Показать финальный чеклист владельца",
+      "score": 84,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "emergency_stop_active",
+      "expected_route": "open_safety_guardian",
+      "next_route": "open_safety_guardian",
+      "next_action": "Открыть Guardian / Emergency",
+      "score": 42,
+      "owner_items": 4,
+      "pass": true
+    },
+    {
+      "sample_id": "v2_foundation_disabled",
+      "expected_route": "open_setup_minimum",
+      "next_route": "open_setup_minimum",
+      "next_action": "Завершить минимум запуска",
+      "score": 20,
+      "owner_items": 4,
+      "pass": true
+    }
+  ],
+  "no_bluestacks": true,
+  "no_screenshots": true,
+  "all_pass": true
+}
