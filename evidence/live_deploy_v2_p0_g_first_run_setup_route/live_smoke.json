@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-05-30T17:41:40.732Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "cache_bust": "v2-p0-g-1780162899071",
+  "workflow_head": "cb25784a81e0a628ecab9e6037bd420b48976c9a",
+  "markers": {
+    "html_200": true,
+    "app_js_200": true,
+    "getV2FirstRunReadinessSnapshot": true,
+    "getV2SetupRoute": true,
+    "buildV2FirstRunPreview": true,
+    "event_readiness_checked": true,
+    "event_next_action_selected": true,
+    "memory_impossible_query_marker": true,
+    "no_ai_api_runtime_domains": true
+  },
+  "runtime": {
+    "samples_total": 9,
+    "samples_pass": 9,
+    "one_primary_next_action": true,
+    "owner_assisted_not_blocker": true,
+    "real_phone_postponed_not_blocker": true,
+    "emergency_stop_routes_to_guardian": true,
+    "memory_impossible_empty": true
+  },
+  "no_bluestacks": true,
+  "no_screenshots": true,
+  "all_pass": true
+}
