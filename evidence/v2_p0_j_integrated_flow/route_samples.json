@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-05-30T19:14:57.971Z",
+  "samples": [
+    {
+      "sample_id": "all_green_owner_independent",
+      "expected_route": "open_work",
+      "actual_route": "open_work",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Создать задачу",
+        "description": "Ядро Терминатора готово. Можно создать рабочую задачу.",
+        "action": "open_work",
+        "status": "ready",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "safety_blocker",
+      "expected_route": "open_guardian",
+      "actual_route": "open_guardian",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Открыть защиту",
+        "description": "Есть блокер безопасности. Сначала откройте защиту и восстановление.",
+        "action": "open_guardian",
+        "status": "blocked",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "emergency_stop_active",
+      "expected_route": "open_guardian",
+      "actual_route": "open_guardian",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Разобрать Стоп действия",
+        "description": "Аварийная остановка включена. Рискованные действия заблокированы.",
+        "action": "open_guardian",
+        "status": "blocked",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "recovery_degraded",
+      "expected_route": "open_recovery",
+      "actual_route": "open_recovery",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Открыть Центр восстановления",
+        "description": "Восстановление требует внимания.",
+        "action": "open_recovery",
+        "status": "blocked",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "memory_degraded",
+      "expected_route": "open_memory",
+      "actual_route": "open_memory",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Открыть память",
+        "description": "Поиск памяти требует проверки.",
+        "action": "open_memory",
+        "status": "warning",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "controlled_apply_blocked",
+      "expected_route": "open_hands",
+      "actual_route": "open_hands",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Открыть безопасные руки",
+        "description": "Controlled Apply требует проверки safety/rollback.",
+        "action": "open_hands",
+        "status": "warning",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "brain_unverified",
+      "expected_route": "open_head",
+      "actual_route": "open_head",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Проверить мозги",
+        "description": "Стратег или Совет мозгов требуют проверки.",
+        "action": "open_head",
+        "status": "warning",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "owner_assisted_only",
+      "expected_route": "owner_assisted",
+      "actual_route": "owner_assisted",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Показать чеклист владельца",
+        "description": "Остались проверки владельца. Они не блокируют текущую работу.",
+        "action": "owner_assisted",
+        "status": "owner_assisted",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "real_phone_apk_postponed",
+      "expected_route": "owner_assisted",
+      "actual_route": "owner_assisted",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Показать чеклист владельца",
+        "description": "Остались проверки владельца. Они не блокируют текущую работу.",
+        "action": "owner_assisted",
+        "status": "owner_assisted",
+        "primary": true
+      }
+    },
+    {
+      "sample_id": "contradiction_safety_ready_mismatch",
+      "expected_route": "open_guardian",
+      "actual_route": "open_guardian",
+      "status": "PASS",
+      "next_best_action": {
+        "label": "Разобрать Стоп действия",
+        "description": "Аварийная остановка включена. Рискованные действия заблокированы.",
+        "action": "open_guardian",
+        "status": "blocked",
+        "primary": true
+      }
+    }
+  ]
+}

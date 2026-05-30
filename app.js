@@ -339,7 +339,8 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2RecoveryCommandCenterPreviewEnabled: false,
   v2FirstRunReadinessPreviewEnabled: false,
   v2SetupRoutePreviewEnabled: false,
-  v2OwnerCommandCenterPreviewEnabled: false
+  v2OwnerCommandCenterPreviewEnabled: false,
+  v2P0IntegrationPreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -408,7 +409,14 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.setup_route.postponed_item',
   'v2.setup_route.blocked',
   'v2.setup_route.ready',
-  'v2.command_center.opened'
+  'v2.command_center.opened',
+  'v2.p0.integration.checked',
+  'v2.p0.integration.consistency_pass',
+  'v2.p0.integration.consistency_warning',
+  'v2.p0.integration.consistency_fail',
+  'v2.p0.integration.next_route_selected',
+  'v2.p0.integration.owner_assisted_pending',
+  'v2.p0.integration.postponed_item'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -2933,6 +2941,12 @@ const App = {
       const v2RecoveryButton = event.target.closest('[data-v2-recovery-action]');
       if (v2RecoveryButton) {
         this.handleV2RecoveryCommandAction(v2RecoveryButton.dataset.v2RecoveryAction, v2RecoveryButton);
+        return;
+      }
+
+      const v2P0IntegrationButton = event.target.closest('[data-v2-p0-action]');
+      if (v2P0IntegrationButton) {
+        this.handleV2P0IntegrationAction(v2P0IntegrationButton.dataset.v2P0Action, v2P0IntegrationButton);
         return;
       }
 
@@ -6278,6 +6292,310 @@ const App = {
         blocked: sampleSnapshots.filter((sample) => ['blocked', 'review'].includes(sample.snapshot.next.status)).length,
         owner_assisted: sampleSnapshots.filter((sample) => sample.snapshot.owner_assisted.length).length,
         diagnostic_pack_safe: sampleSnapshots.every((sample) => sample.snapshot.diagnostic_pack && sample.snapshot.diagnostic_pack.active_project_mutation_allowed === false)
+      }
+    };
+  },
+
+  recordV2P0IntegrationEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.p0.integration.checked';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_p0_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'p0_integration_gate',
+        resource: payload.resource || 'snapshot',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'p0_integration_gate',
+      resource: payload.resource || 'snapshot',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  buildV2P0IntegrationSampleInputs() {
+    const base = {
+      first_run: { minimum_ready: true, comfort_ready: true, maximum_ready: false, readiness_percent: 84, next_route: 'start_workspace', blockers: [], warnings: [], owner_assisted_items: [], postponed_items: [] },
+      safety: { status: 'ready', emergency_stop_active: false, capability_sample: { verdict: 'allow_with_warning' } },
+      memory: { status: 'ready', readiness: 88, index_status: 'ready' },
+      recovery: { status: 'ready', recovery_health: 'ready', active_incidents_count: 0, blocked_count: 0, owner_assisted_count: 0 },
+      controlled_apply: { status: 'ready', available: true, blocked: false },
+      brain: { status: 'verified', readiness: 80 },
+      owner_assisted_complete: true,
+      mobile: { status: 'checked' }
+    };
+    const sample = (sample_id, expected_route, patch = {}) => ({
+      sample_id,
+      expected_route,
+      snapshots: {
+        ...base,
+        ...patch,
+        first_run: { ...base.first_run, ...(patch.first_run || {}) },
+        safety: { ...base.safety, ...(patch.safety || {}) },
+        memory: { ...base.memory, ...(patch.memory || {}) },
+        recovery: { ...base.recovery, ...(patch.recovery || {}) },
+        controlled_apply: { ...base.controlled_apply, ...(patch.controlled_apply || {}) },
+        brain: { ...base.brain, ...(patch.brain || {}) },
+        mobile: { ...base.mobile, ...(patch.mobile || {}) }
+      }
+    });
+    return [
+      sample('all_green_owner_independent', 'open_work'),
+      sample('safety_blocker', 'open_guardian', { safety: { status: 'blocked', capability_sample: { verdict: 'red_zone_stop' } }, first_run: { comfort_ready: false, readiness_percent: 42, next_route: 'open_safety_guardian' } }),
+      sample('emergency_stop_active', 'open_guardian', { safety: { status: 'ready', emergency_stop_active: true }, first_run: { comfort_ready: false, readiness_percent: 42, next_route: 'open_safety_guardian' } }),
+      sample('recovery_degraded', 'open_recovery', { recovery: { status: 'review', recovery_health: 'review', active_incidents_count: 1, blocked_count: 1 }, first_run: { comfort_ready: false, readiness_percent: 48, next_route: 'open_recovery' } }),
+      sample('memory_degraded', 'open_memory', { memory: { status: 'partial', readiness: 35, index_status: 'stale' }, first_run: { comfort_ready: false, readiness_percent: 58, next_route: 'open_memory_search', warnings: [{ id: 'memory_degraded', label: 'Память требует проверки', reason: 'Index stale.' }] } }),
+      sample('controlled_apply_blocked', 'open_hands', { controlled_apply: { status: 'blocked', available: true, blocked: true }, first_run: { comfort_ready: false, readiness_percent: 66, next_route: 'open_hands_safety' } }),
+      sample('brain_unverified', 'open_head', { brain: { status: 'unknown', readiness: 0 }, first_run: { comfort_ready: false, readiness_percent: 72, next_route: 'open_head_readiness' } }),
+      sample('owner_assisted_only', 'owner_assisted', { owner_assisted_complete: false, first_run: { owner_assisted_items: [{ id: 'billing_dashboard', label: 'Billing dashboard', reason: 'Проверяет владелец.' }], next_route: 'show_owner_checklist' } }),
+      sample('real_phone_apk_postponed', 'owner_assisted', { owner_assisted_complete: false, first_run: { postponed_items: [{ id: 'real_phone_apk', label: 'Телефон / APK', reason: 'Проверка перенесена до production V2 final.' }], next_route: 'show_owner_checklist' }, mobile: { status: 'postponed' } }),
+      sample('contradiction_safety_ready_mismatch', 'open_guardian', { safety: { status: 'ready', emergency_stop_active: true }, first_run: { minimum_ready: true, comfort_ready: true, maximum_ready: true, readiness_percent: 100, next_route: 'start_workspace', blockers: [] } })
+    ];
+  },
+
+  getV2P0IntegratedRoute(snapshot = {}) {
+    const hasBlocker = (id) => (snapshot.blockers || []).some((item) => String(item.id || '').includes(id));
+    const hasWarning = (id) => (snapshot.warnings || []).some((item) => String(item.id || '').includes(id));
+    const route = (route_id, label, description, action, status = 'review') => ({
+      route_id,
+      label,
+      description,
+      action,
+      status,
+      primary: true
+    });
+    if (hasBlocker('safety') || hasBlocker('red_zone')) return route('open_guardian', 'Открыть защиту', 'Есть блокер безопасности. Сначала откройте защиту и восстановление.', 'open_guardian', 'blocked');
+    if (hasBlocker('emergency')) return route('open_guardian', 'Разобрать Стоп действия', 'Аварийная остановка включена. Рискованные действия заблокированы.', 'open_guardian', 'blocked');
+    if (hasBlocker('recovery') || hasWarning('recovery')) return route('open_recovery', 'Открыть Центр восстановления', 'Восстановление требует внимания.', 'open_recovery', hasBlocker('recovery') ? 'blocked' : 'warning');
+    if (hasBlocker('memory') || hasWarning('memory')) return route('open_memory', 'Открыть память', 'Поиск памяти требует проверки.', 'open_memory', hasBlocker('memory') ? 'blocked' : 'warning');
+    if (hasBlocker('controlled_apply') || hasWarning('controlled_apply')) return route('open_hands', 'Открыть безопасные руки', 'Controlled Apply требует проверки safety/rollback.', 'open_hands', hasBlocker('controlled_apply') ? 'blocked' : 'warning');
+    if (hasWarning('brain')) return route('open_head', 'Проверить мозги', 'Стратег или Совет мозгов требуют проверки.', 'open_head', 'warning');
+    if ((snapshot.owner_assisted_items || []).length || (snapshot.postponed_items || []).length) return route('owner_assisted', 'Показать чеклист владельца', 'Остались проверки владельца. Они не блокируют текущую работу.', 'owner_assisted', 'owner_assisted');
+    return route('open_work', 'Создать задачу', 'Ядро Терминатора готово. Можно создать рабочую задачу.', 'open_work', 'ready');
+  },
+
+  validateV2P0SourceConsistency(snapshot = {}) {
+    const contradictions = [];
+    const warnings = [];
+    const firstRun = snapshot.source_snapshots?.first_run || {};
+    const owner = snapshot.source_snapshots?.owner_command || {};
+    const recoveryCommand = snapshot.source_snapshots?.recovery_command || {};
+    const memory = snapshot.source_snapshots?.memory || {};
+    const recovery = snapshot.source_snapshots?.recovery || {};
+    const safetyBlocked = (snapshot.blockers || []).some((item) => ['safety_blocker', 'emergency_stop_active', 'red_zone_stop'].includes(item.id));
+    const recoveryBlocked = (snapshot.blockers || []).some((item) => item.id === 'recovery_blocked');
+    const memoryDegraded = (snapshot.warnings || []).some((item) => item.id === 'memory_degraded') || (snapshot.blockers || []).some((item) => item.id === 'memory_unknown');
+    if (safetyBlocked && (firstRun.comfort_ready || firstRun.maximum_ready || firstRun.next_route === 'start_workspace')) {
+      contradictions.push({ id: 'first_run_ready_with_safety_blocker', message: 'First Run показывает готовность, но Safety/Emergency имеет блокер.' });
+    }
+    if (safetyBlocked && owner.status === 'ready') {
+      contradictions.push({ id: 'owner_command_ready_with_safety_blocker', message: 'Owner Command Center не должен показывать ready при safety blocker.' });
+    }
+    if (recoveryBlocked && ['ready', 'active'].includes(recoveryCommand.status)) {
+      contradictions.push({ id: 'recovery_command_ready_with_recovery_blocker', message: 'Recovery Command Center не должен маскировать recovery blocker.' });
+    }
+    if (memoryDegraded && ['ready'].includes(memory.status) && Number(memory.readiness || 0) >= 85 && String(memory.index_status || '').toLowerCase() !== 'stale') {
+      warnings.push({ id: 'memory_degraded_status_needs_review', message: 'Memory degraded должен быть предупреждением, не уверенным PASS.' });
+    }
+    if ((snapshot.postponed_items || []).some((item) => item.id === 'real_phone_apk') && (snapshot.blockers || []).some((item) => item.id === 'real_phone_apk')) {
+      contradictions.push({ id: 'postponed_phone_as_blocker', message: 'Real phone APK postponed не должен быть blocker.' });
+    }
+    if (snapshot.next_route !== snapshot.next_best_action?.action) {
+      warnings.push({ id: 'next_route_action_mismatch', message: 'next_route должен соответствовать next_best_action.action.' });
+    }
+    const status = contradictions.length ? 'fail' : warnings.length ? 'partial' : 'pass';
+    return {
+      consistency_status: status,
+      contradictions,
+      warnings,
+      recommended_fix_or_next_action: contradictions.length
+        ? 'Показать блокер и открыть безопасный маршрут.'
+        : warnings.length
+          ? 'Показать warning и перейти к проверке.'
+          : 'Единая правда согласована.'
+    };
+  },
+
+  getV2P0IntegratedSnapshot(inputSnapshots = null, options = {}) {
+    const sourceSnapshots = inputSnapshots || {
+      first_run: this.getV2FirstRunReadinessSnapshot(),
+      safety: this.getV2SafetySnapshot(),
+      memory: this.getV2MemoryRuntimeSnapshot(),
+      recovery: this.getV2RecoveryRuntimeSnapshot(),
+      capability: this.getV2CapabilitySnapshot(),
+      controlled_apply: { status: typeof this.getV2ControlledApplyPreview === 'function' ? 'ready' : 'unknown', available: typeof this.getV2ControlledApplyPreview === 'function' },
+      brain: this.headStatusSnapshot?.() || { status: 'unknown' }
+    };
+    const firstRun = sourceSnapshots.first_run || {};
+    const safety = sourceSnapshots.safety || {};
+    const memory = sourceSnapshots.memory || {};
+    const recovery = sourceSnapshots.recovery || {};
+    const controlledApply = sourceSnapshots.controlled_apply || {};
+    const capability = sourceSnapshots.capability || {};
+    const brain = sourceSnapshots.brain || {};
+    const blockers = [];
+    const warnings = [];
+    const ownerAssisted = [
+      ...(firstRun.owner_assisted_items || []),
+      ...(sourceSnapshots.owner_assisted_items || [])
+    ];
+    const postponed = [
+      ...(firstRun.postponed_items || []),
+      ...(sourceSnapshots.postponed_items || []),
+      ...(sourceSnapshots.mobile?.status === 'postponed' ? [{ id: 'real_phone_apk', label: 'Телефон / APK', reason: 'Проверка перенесена до production V2 final.' }] : [])
+    ].filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index);
+    const addBlocker = (id, label, reason, route = 'open_guardian') => blockers.push({ id, label, reason, route });
+    const addWarning = (id, label, reason, route = 'open_system') => warnings.push({ id, label, reason, route });
+    const safetyStatus = safety.status || 'unknown';
+    const emergencyActive = Boolean(safety.emergency_stop_active);
+    const redZone = safety.capability_sample?.verdict === 'red_zone_stop' || (capability.sample_verdicts || []).some((item) => item.verdict === 'red_zone_stop');
+    if (safetyStatus === 'unknown') addBlocker('safety_unknown', 'Защита неизвестна', 'Safety status неизвестен, это не PASS.', 'open_guardian');
+    if (['blocked', 'danger', 'critical'].includes(safetyStatus) || redZone) addBlocker('safety_blocker', 'Блокер безопасности', 'Safety Core показывает blocker/red-zone.', 'open_guardian');
+    if (emergencyActive) addBlocker('emergency_stop_active', 'Стоп действия включён', 'Рискованные действия заблокированы.', 'open_guardian');
+    const memoryStatus = memory.status || memory.index_status || 'unknown';
+    const memoryReadiness = Number(memory.readiness || 0);
+    if (memoryStatus === 'unknown') addBlocker('memory_unknown', 'Память неизвестна', 'Memory status неизвестен, это не PASS.', 'open_memory');
+    else if (['stale', 'partial', 'not_indexed', 'review'].includes(memoryStatus) || memoryReadiness < 60) addWarning('memory_degraded', 'Память требует проверки', 'Поиск памяти не должен маскироваться как healthy.', 'open_memory');
+    const recoveryStatus = recovery.recovery_health || recovery.status || 'unknown';
+    if (recoveryStatus === 'unknown') addBlocker('recovery_unknown', 'Recovery неизвестен', 'Recovery snapshot неизвестен.', 'open_recovery');
+    if (Number(recovery.blocked_count || 0) > 0 || ['blocked', 'escalated', 'critical'].includes(recoveryStatus)) addBlocker('recovery_blocked', 'Recovery требует внимания', 'Есть blocked/escalated incident.', 'open_recovery');
+    else if (Number(recovery.active_incidents_count || recovery.open_incidents || 0) > 0 || ['active', 'review'].includes(recoveryStatus)) addWarning('recovery_degraded', 'Recovery требует проверки', 'Есть активный incident или review state.', 'open_recovery');
+    const controlledApplyStatus = controlledApply.status || (controlledApply.available ? 'ready' : 'unknown');
+    if (controlledApplyStatus === 'unknown') addWarning('controlled_apply_unknown', 'Controlled Apply неизвестен', 'Safety/rollback apply path требует проверки.', 'open_hands');
+    if (controlledApply.blocked || ['blocked', 'fail'].includes(controlledApplyStatus)) addWarning('controlled_apply_blocked', 'Controlled Apply заблокирован', 'Apply path требует rollback/safety проверки.', 'open_hands');
+    if (!['verified', 'ready', 'pass'].includes(String(brain.status || '').toLowerCase())) addWarning('brain_unverified', 'Голова требует проверки', 'Стратег или Совет мозгов не подтверждены.', 'open_head');
+    const ownerIndependentReady = !blockers.length && !warnings.some((item) => ['memory_unknown', 'recovery_unknown', 'safety_unknown'].includes(item.id)) && (firstRun.minimum_ready !== false);
+    const score = blockers.length ? Math.max(20, 48 - blockers.length * 4) : warnings.length ? Math.max(62, 86 - warnings.length * 6) : 100;
+    const baseSnapshot = {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      timestamp: new Date().toISOString(),
+      owner_independent_p0_ready: ownerIndependentReady,
+      p0_readiness_percent: score,
+      first_run_status: firstRun.readiness_level || (firstRun.comfort_ready ? 'comfort' : firstRun.minimum_ready ? 'minimum' : 'review'),
+      safety_status: emergencyActive ? 'emergency_stop' : safetyStatus,
+      memory_status: memoryStatus,
+      recovery_status: recoveryStatus,
+      controlled_apply_status: controlledApplyStatus,
+      emergency_stop_status: emergencyActive ? 'active' : 'inactive',
+      owner_assisted_items: ownerAssisted,
+      postponed_items: postponed,
+      blockers,
+      warnings,
+      contradictions: [],
+      next_best_action: null,
+      next_route: '',
+      source_snapshots: {
+        first_run: this.sanitizeV2EventPayload(firstRun),
+        safety: this.sanitizeV2EventPayload(safety),
+        memory: this.sanitizeV2EventPayload(memory),
+        recovery: this.sanitizeV2EventPayload(recovery),
+        capability: this.sanitizeV2EventPayload(capability),
+        controlled_apply: this.sanitizeV2EventPayload(controlledApply),
+        brain: this.sanitizeV2EventPayload(brain),
+        owner_command: this.sanitizeV2EventPayload(sourceSnapshots.owner_command || {}),
+        recovery_command: this.sanitizeV2EventPayload(sourceSnapshots.recovery_command || {})
+      }
+    };
+    const route = this.getV2P0IntegratedRoute(baseSnapshot);
+    baseSnapshot.next_best_action = {
+      label: route.label,
+      description: route.description,
+      action: route.action,
+      status: route.status,
+      primary: true
+    };
+    baseSnapshot.next_route = route.action;
+    const consistency = this.validateV2P0SourceConsistency(baseSnapshot);
+    baseSnapshot.consistency = consistency;
+    baseSnapshot.contradictions = consistency.contradictions;
+    if (consistency.consistency_status === 'fail') baseSnapshot.owner_independent_p0_ready = false;
+    baseSnapshot.status = baseSnapshot.owner_independent_p0_ready && consistency.consistency_status === 'pass' ? 'ready' : blockers.length || consistency.consistency_status === 'fail' ? 'blocked' : 'review';
+    return baseSnapshot;
+  },
+
+  buildV2P0IntegrationPreview(options = {}) {
+    const sampleResults = this.buildV2P0IntegrationSampleInputs().map((sample) => {
+      const ownerCommand = this.buildV2OwnerCommandCenterSnapshot(sample.snapshots, { recordOpened: false, persistEvents: false });
+      const recoveryCommand = this.buildV2RecoveryCommandCenterSnapshot(null, { recordOpened: false, persistEvents: false });
+      const snapshot = this.getV2P0IntegratedSnapshot({
+        ...sample.snapshots,
+        owner_command: ownerCommand,
+        recovery_command: sample.sample_id === 'recovery_degraded'
+          ? { status: 'review' }
+          : recoveryCommand
+      });
+      const consistency = snapshot.consistency || this.validateV2P0SourceConsistency(snapshot);
+      const checkedEvent = this.recordV2P0IntegrationEvent('v2.p0.integration.checked', {
+        sample_id: sample.sample_id,
+        status: snapshot.status,
+        next_route: snapshot.next_route,
+        message: 'P0 integrated snapshot checked.',
+        refs: { sample_id: sample.sample_id }
+      }, { persist: options.persistEvents === true });
+      const consistencyType = consistency.consistency_status === 'pass' ? 'v2.p0.integration.consistency_pass'
+        : consistency.consistency_status === 'fail' ? 'v2.p0.integration.consistency_fail'
+          : 'v2.p0.integration.consistency_warning';
+      const consistencyEvent = this.recordV2P0IntegrationEvent(consistencyType, {
+        sample_id: sample.sample_id,
+        contradictions_count: consistency.contradictions.length,
+        warnings_count: consistency.warnings.length,
+        message: consistency.recommended_fix_or_next_action,
+        refs: { sample_id: sample.sample_id }
+      }, { persist: options.persistEvents === true });
+      const routeEvent = this.recordV2P0IntegrationEvent('v2.p0.integration.next_route_selected', {
+        sample_id: sample.sample_id,
+        next_route: snapshot.next_route,
+        label: snapshot.next_best_action.label,
+        message: snapshot.next_best_action.description,
+        refs: { sample_id: sample.sample_id }
+      }, { persist: options.persistEvents === true });
+      const ownerEvents = (snapshot.owner_assisted_items || []).map((item) => this.recordV2P0IntegrationEvent('v2.p0.integration.owner_assisted_pending', {
+        sample_id: sample.sample_id,
+        item_id: item.id,
+        label: item.label,
+        message: item.reason,
+        refs: { sample_id: sample.sample_id, item_id: item.id }
+      }, { persist: options.persistEvents === true }));
+      const postponedEvents = (snapshot.postponed_items || []).map((item) => this.recordV2P0IntegrationEvent('v2.p0.integration.postponed_item', {
+        sample_id: sample.sample_id,
+        item_id: item.id,
+        label: item.label,
+        message: item.reason,
+        refs: { sample_id: sample.sample_id, item_id: item.id }
+      }, { persist: options.persistEvents === true }));
+      return {
+        sample_id: sample.sample_id,
+        expected_route: sample.expected_route,
+        actual_route: snapshot.next_route,
+        status: snapshot.next_route === sample.expected_route ? 'PASS' : 'REVIEW',
+        snapshot,
+        consistency,
+        events: [checkedEvent, consistencyEvent, routeEvent, ...ownerEvents, ...postponedEvents].filter(Boolean)
+      };
+    });
+    const current = this.getV2P0IntegratedSnapshot();
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2P0IntegrationPreviewEnabled: Boolean(options.previewEnabled) }),
+      current,
+      samples: sampleResults,
+      summary: {
+        total: sampleResults.length,
+        pass: sampleResults.filter((sample) => sample.status === 'PASS').length,
+        consistency_failures_detected: sampleResults.filter((sample) => sample.consistency.consistency_status === 'fail').length,
+        owner_assisted_not_blocker: sampleResults.some((sample) => sample.sample_id === 'owner_assisted_only' && sample.snapshot.status !== 'blocked'),
+        postponed_phone_not_blocker: sampleResults.some((sample) => sample.sample_id === 'real_phone_apk_postponed' && sample.snapshot.status !== 'blocked'),
+        no_fake_ready: sampleResults.every((sample) => !(sample.sample_id.includes('blocker') || sample.sample_id.includes('contradiction')) || sample.snapshot.status !== 'ready')
       }
     };
   },
@@ -12607,14 +12925,161 @@ const App = {
     return task;
   },
 
+  renderV2P0IntegrationGatePanel(preview = this.buildV2P0IntegrationPreview({ previewEnabled: true })) {
+    const snapshot = preview.current;
+    const consistency = snapshot.consistency || { consistency_status: 'partial', contradictions: [], warnings: [] };
+    const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
+    return `
+      <section class="v2-p0-gate v2-p0-gate--${this.escapeHtml(tone)}" aria-label="Готовность P0 ядра">
+        <header class="v2-p0-gate-hero">
+          <div>
+            <span>P0 ядро</span>
+            <h3>${snapshot.owner_independent_p0_ready && consistency.consistency_status !== 'fail' ? 'P0-ядро готово' : snapshot.status === 'blocked' ? 'Есть блокер' : 'Требует внимания'}</h3>
+            <p>${this.escapeHtml(snapshot.next_best_action.description)}</p>
+          </div>
+          <div class="v2-p0-score">
+            <strong>${this.escapeHtml(String(snapshot.p0_readiness_percent))}%</strong>
+            <span>${this.escapeHtml(consistency.consistency_status === 'pass' ? 'единая правда согласована' : consistency.consistency_status === 'fail' ? 'есть противоречие' : 'есть предупреждения')}</span>
+          </div>
+          <div class="v2-p0-next">
+            <span>Следующий шаг</span>
+            <strong>${this.escapeHtml(snapshot.next_best_action.label)}</strong>
+            <p>${this.escapeHtml(snapshot.next_best_action.description)}</p>
+            <button type="button" data-v2-p0-action="${this.escapeHtml(snapshot.next_route)}">Перейти</button>
+          </div>
+        </header>
+
+        <div class="v2-p0-status-grid">
+          ${this.renderV2P0StatusMetric('Первый запуск', snapshot.first_run_status)}
+          ${this.renderV2P0StatusMetric('Защита', snapshot.safety_status)}
+          ${this.renderV2P0StatusMetric('Память', snapshot.memory_status)}
+          ${this.renderV2P0StatusMetric('Восстановление', snapshot.recovery_status)}
+          ${this.renderV2P0StatusMetric('Руки', snapshot.controlled_apply_status)}
+          ${this.renderV2P0StatusMetric('Стоп действия', snapshot.emergency_stop_status)}
+        </div>
+
+        <div class="v2-p0-gate-grid">
+          <article class="v2-p0-card">
+            <span>Блокеры</span>
+            <strong>${this.escapeHtml(String(snapshot.blockers.length))}</strong>
+            ${(snapshot.blockers || []).slice(0, 4).map((item) => `<p>${this.escapeHtml(item.label)}: ${this.escapeHtml(item.reason)}</p>`).join('') || '<p>Критичных P0 блокеров нет.</p>'}
+          </article>
+          <article class="v2-p0-card">
+            <span>Предупреждения</span>
+            <strong>${this.escapeHtml(String(snapshot.warnings.length))}</strong>
+            ${(snapshot.warnings || []).slice(0, 4).map((item) => `<p>${this.escapeHtml(item.label)}: ${this.escapeHtml(item.reason)}</p>`).join('') || '<p>Предупреждений P0 нет.</p>'}
+          </article>
+          <article class="v2-p0-card">
+            <span>Consistency gate</span>
+            <strong>${this.escapeHtml(consistency.consistency_status)}</strong>
+            ${(consistency.contradictions || []).slice(0, 3).map((item) => `<p>${this.escapeHtml(item.message)}</p>`).join('') || (consistency.warnings || []).slice(0, 3).map((item) => `<p>${this.escapeHtml(item.message)}</p>`).join('') || '<p>Противоречий между P0 панелями нет.</p>'}
+          </article>
+        </div>
+
+        ${this.renderV2P0OwnerItems(snapshot)}
+        ${this.renderV2P0ExpertDetails(snapshot, preview)}
+      </section>
+    `;
+  },
+
+  renderV2P0StatusMetric(label, value) {
+    return `
+      <article class="v2-p0-status">
+        <span>${this.escapeHtml(label)}</span>
+        <strong>${this.escapeHtml(String(value || 'unknown'))}</strong>
+      </article>
+    `;
+  },
+
+  renderV2P0OwnerItems(snapshot) {
+    const items = [
+      ...(snapshot.owner_assisted_items || []).map((item) => ({ ...item, status: 'owner' })),
+      ...(snapshot.postponed_items || []).map((item) => ({ ...item, status: 'postponed' }))
+    ];
+    if (!items.length) {
+      return `
+        <section class="v2-p0-owner-row">
+          <strong>Проверки владельца</strong>
+          <p>Owner-assisted и postponed пункты не блокируют текущий owner-independent P0 flow.</p>
+        </section>
+      `;
+    }
+    return `
+      <section class="v2-p0-owner-row">
+        <strong>Проверки владельца</strong>
+        <div>
+          ${items.map((item) => `
+            <article class="v2-p0-owner-item v2-p0-owner-item--${this.escapeHtml(item.status)}">
+              <span>${this.escapeHtml(item.status === 'postponed' ? 'перенесено' : 'владелец')}</span>
+              <b>${this.escapeHtml(item.label || item.id)}</b>
+              <p>${this.escapeHtml(item.reason || 'Проверяется отдельно.')}</p>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  },
+
+  renderV2P0ExpertDetails(snapshot, preview) {
+    const details = {
+      schema_version: snapshot.schema_version,
+      owner_independent_p0_ready: snapshot.owner_independent_p0_ready,
+      next_route: snapshot.next_route,
+      consistency_status: snapshot.consistency?.consistency_status,
+      contradictions: snapshot.contradictions,
+      sample_summary: preview.summary
+    };
+    return `
+      <details class="v2-p0-expert">
+        <summary>Экспертные детали</summary>
+        <pre>${this.escapeHtml(JSON.stringify(details, null, 2))}</pre>
+      </details>
+    `;
+  },
+
+  async handleV2P0IntegrationAction(action = '', button = null) {
+    const snapshot = this.getV2P0IntegratedSnapshot();
+    this.recordV2P0IntegrationEvent('v2.p0.integration.next_route_selected', {
+      action,
+      current_next_route: snapshot.next_route,
+      message: 'P0 integrated route selected.',
+      refs: { component: 'p0_integration_gate', action }
+    });
+    if (action === 'owner_assisted') {
+      this.recordV2P0IntegrationEvent('v2.p0.integration.owner_assisted_pending', {
+        action,
+        message: 'Owner-assisted checklist selected.',
+        refs: { component: 'p0_integration_gate' }
+      });
+      this.handleIntegrationAction('open_system');
+      window.setTimeout(() => document.getElementById('system-v2-command-center')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      this.toast('Проверки владельца не блокируют P0 flow.');
+      return;
+    }
+    if (action === 'open_recovery') {
+      this.handleIntegrationAction('open_diagnostics');
+      window.setTimeout(() => document.getElementById('v2-recovery-command-center')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+      return;
+    }
+    const allowed = new Set(['open_guardian', 'open_memory', 'open_hands', 'open_head', 'open_work', 'open_scheme', 'open_diagnostics', 'open_system']);
+    if (allowed.has(action)) {
+      this.handleIntegrationAction(action === 'open_system' ? 'open_diagnostics' : action);
+      return;
+    }
+    this.handleIntegrationAction('open_diagnostics');
+    this.toast('Маршрут P0 определён, открыт безопасный Диагност.');
+  },
+
   renderSystemIntegrationPanel() {
     const host = document.getElementById('system-integration-panel');
     if (!host) return;
     const snapshot = this.buildIntegrationSnapshot();
     const truth = this.currentSourceOfTruthSnapshot({ refresh: true });
+    const p0Preview = this.buildV2P0IntegrationPreview({ previewEnabled: true, persistEvents: false });
     const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
     const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
+      ${this.renderV2P0IntegrationGatePanel(p0Preview)}
       <section class="source-truth-panel source-truth-panel--${this.escapeHtml(truthTone)}" aria-label="Единый источник истины">
         <div>
           <span>Источник истины</span>

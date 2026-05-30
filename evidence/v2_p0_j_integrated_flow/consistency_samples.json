@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-05-30T19:14:57.969Z",
+  "samples": [
+    {
+      "sample_id": "all_green_owner_independent",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "safety_blocker",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "emergency_stop_active",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "recovery_degraded",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "memory_degraded",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "controlled_apply_blocked",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "brain_unverified",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "owner_assisted_only",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "real_phone_apk_postponed",
+      "consistency_status": "pass",
+      "contradictions": [],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Единая правда согласована."
+    },
+    {
+      "sample_id": "contradiction_safety_ready_mismatch",
+      "consistency_status": "fail",
+      "contradictions": [
+        {
+          "id": "first_run_ready_with_safety_blocker",
+          "message": "First Run показывает готовность, но Safety/Emergency имеет блокер."
+        }
+      ],
+      "warnings": [],
+      "recommended_fix_or_next_action": "Показать блокер и открыть безопасный маршрут."
+    }
+  ]
+}

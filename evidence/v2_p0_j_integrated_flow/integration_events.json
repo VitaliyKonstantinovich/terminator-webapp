@@ -1,0 +1,455 @@
+{
+  "generated_at": "2026-05-30T19:14:57.975Z",
+  "events": [
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497823_yyf6j",
+      "status": "preview",
+      "payload": {
+        "sample_id": "all_green_owner_independent",
+        "status": "ready",
+        "next_route": "open_work",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "all_green_owner_independent"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497824_zzul1",
+      "status": "preview",
+      "payload": {
+        "sample_id": "all_green_owner_independent",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "all_green_owner_independent"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497824_2tm85",
+      "status": "preview",
+      "payload": {
+        "sample_id": "all_green_owner_independent",
+        "next_route": "open_work",
+        "label": "Создать задачу",
+        "message": "Ядро Терминатора готово. Можно создать рабочую задачу.",
+        "refs": {
+          "sample_id": "all_green_owner_independent"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497835_0723s",
+      "status": "preview",
+      "payload": {
+        "sample_id": "safety_blocker",
+        "status": "blocked",
+        "next_route": "open_guardian",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "safety_blocker"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497835_zqthp",
+      "status": "preview",
+      "payload": {
+        "sample_id": "safety_blocker",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "safety_blocker"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497835_xhb28",
+      "status": "preview",
+      "payload": {
+        "sample_id": "safety_blocker",
+        "next_route": "open_guardian",
+        "label": "Открыть защиту",
+        "message": "Есть блокер безопасности. Сначала откройте защиту и восстановление.",
+        "refs": {
+          "sample_id": "safety_blocker"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497841_6ftle",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "status": "blocked",
+        "next_route": "open_guardian",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "emergency_stop_active"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497841_oqss0",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "emergency_stop_active"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497841_lfd1c",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "next_route": "open_guardian",
+        "label": "Разобрать Стоп действия",
+        "message": "Аварийная остановка включена. Рискованные действия заблокированы.",
+        "refs": {
+          "sample_id": "emergency_stop_active"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497851_kx7nm",
+      "status": "preview",
+      "payload": {
+        "sample_id": "recovery_degraded",
+        "status": "blocked",
+        "next_route": "open_recovery",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "recovery_degraded"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497851_953q9",
+      "status": "preview",
+      "payload": {
+        "sample_id": "recovery_degraded",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "recovery_degraded"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497851_a9gsz",
+      "status": "preview",
+      "payload": {
+        "sample_id": "recovery_degraded",
+        "next_route": "open_recovery",
+        "label": "Открыть Центр восстановления",
+        "message": "Восстановление требует внимания.",
+        "refs": {
+          "sample_id": "recovery_degraded"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497858_dkow3",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_degraded",
+        "status": "ready",
+        "next_route": "open_memory",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "memory_degraded"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497858_gukv0",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_degraded",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "memory_degraded"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497858_p9djs",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_degraded",
+        "next_route": "open_memory",
+        "label": "Открыть память",
+        "message": "Поиск памяти требует проверки.",
+        "refs": {
+          "sample_id": "memory_degraded"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497863_dl7lx",
+      "status": "preview",
+      "payload": {
+        "sample_id": "controlled_apply_blocked",
+        "status": "ready",
+        "next_route": "open_hands",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "controlled_apply_blocked"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497863_ygeza",
+      "status": "preview",
+      "payload": {
+        "sample_id": "controlled_apply_blocked",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "controlled_apply_blocked"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497864_2q9vy",
+      "status": "preview",
+      "payload": {
+        "sample_id": "controlled_apply_blocked",
+        "next_route": "open_hands",
+        "label": "Открыть безопасные руки",
+        "message": "Controlled Apply требует проверки safety/rollback.",
+        "refs": {
+          "sample_id": "controlled_apply_blocked"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497870_2hqdy",
+      "status": "preview",
+      "payload": {
+        "sample_id": "brain_unverified",
+        "status": "ready",
+        "next_route": "open_head",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "brain_unverified"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497870_6z5sf",
+      "status": "preview",
+      "payload": {
+        "sample_id": "brain_unverified",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "brain_unverified"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497871_eyf4o",
+      "status": "preview",
+      "payload": {
+        "sample_id": "brain_unverified",
+        "next_route": "open_head",
+        "label": "Проверить мозги",
+        "message": "Стратег или Совет мозгов требуют проверки.",
+        "refs": {
+          "sample_id": "brain_unverified"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497883_68p4s",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "status": "ready",
+        "next_route": "owner_assisted",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "owner_assisted_only"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497883_g38wd",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "owner_assisted_only"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497883_5403n",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "next_route": "owner_assisted",
+        "label": "Показать чеклист владельца",
+        "message": "Остались проверки владельца. Они не блокируют текущую работу.",
+        "refs": {
+          "sample_id": "owner_assisted_only"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.owner_assisted_pending",
+      "id": "v2_p0_v2_p0_integration_owner_assisted_pending_1780168497884_rjrut",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "item_id": "billing_dashboard",
+        "label": "Billing dashboard",
+        "message": "Проверяет владелец.",
+        "refs": {
+          "sample_id": "owner_assisted_only",
+          "item_id": "billing_dashboard"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497893_kg7v5",
+      "status": "preview",
+      "payload": {
+        "sample_id": "real_phone_apk_postponed",
+        "status": "ready",
+        "next_route": "owner_assisted",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "real_phone_apk_postponed"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_pass",
+      "id": "v2_p0_v2_p0_integration_consistency_pass_1780168497893_6ppby",
+      "status": "preview",
+      "payload": {
+        "sample_id": "real_phone_apk_postponed",
+        "contradictions_count": 0,
+        "warnings_count": 0,
+        "message": "Единая правда согласована.",
+        "refs": {
+          "sample_id": "real_phone_apk_postponed"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497893_cgp4n",
+      "status": "preview",
+      "payload": {
+        "sample_id": "real_phone_apk_postponed",
+        "next_route": "owner_assisted",
+        "label": "Показать чеклист владельца",
+        "message": "Остались проверки владельца. Они не блокируют текущую работу.",
+        "refs": {
+          "sample_id": "real_phone_apk_postponed"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.postponed_item",
+      "id": "v2_p0_v2_p0_integration_postponed_item_1780168497893_73l4u",
+      "status": "preview",
+      "payload": {
+        "sample_id": "real_phone_apk_postponed",
+        "item_id": "real_phone_apk",
+        "label": "Телефон / APK",
+        "message": "Проверка перенесена до production V2 final.",
+        "refs": {
+          "sample_id": "real_phone_apk_postponed",
+          "item_id": "real_phone_apk"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.checked",
+      "id": "v2_p0_v2_p0_integration_checked_1780168497901_2wgd8",
+      "status": "preview",
+      "payload": {
+        "sample_id": "contradiction_safety_ready_mismatch",
+        "status": "blocked",
+        "next_route": "open_guardian",
+        "message": "P0 integrated snapshot checked.",
+        "refs": {
+          "sample_id": "contradiction_safety_ready_mismatch"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.consistency_fail",
+      "id": "v2_p0_v2_p0_integration_consistency_fail_1780168497901_0bzfp",
+      "status": "preview",
+      "payload": {
+        "sample_id": "contradiction_safety_ready_mismatch",
+        "contradictions_count": 1,
+        "warnings_count": 0,
+        "message": "Показать блокер и открыть безопасный маршрут.",
+        "refs": {
+          "sample_id": "contradiction_safety_ready_mismatch"
+        }
+      }
+    },
+    {
+      "event_type": "v2.p0.integration.next_route_selected",
+      "id": "v2_p0_v2_p0_integration_next_route_selected_1780168497902_svebo",
+      "status": "preview",
+      "payload": {
+        "sample_id": "contradiction_safety_ready_mismatch",
+        "next_route": "open_guardian",
+        "label": "Разобрать Стоп действия",
+        "message": "Аварийная остановка включена. Рискованные действия заблокированы.",
+        "refs": {
+          "sample_id": "contradiction_safety_ready_mismatch"
+        }
+      }
+    }
+  ]
+}

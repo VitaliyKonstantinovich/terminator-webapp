@@ -1,0 +1,151 @@
+{
+  "generated_at": "2026-05-30T19:14:57.967Z",
+  "samples": [
+    {
+      "sample_id": "all_green_owner_independent",
+      "expected_route": "open_work",
+      "actual_route": "open_work",
+      "status": "PASS",
+      "owner_independent_p0_ready": true,
+      "consistency_status": "pass",
+      "blockers": [],
+      "warnings": [],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "safety_blocker",
+      "expected_route": "open_guardian",
+      "actual_route": "open_guardian",
+      "status": "PASS",
+      "owner_independent_p0_ready": false,
+      "consistency_status": "pass",
+      "blockers": [
+        "safety_blocker"
+      ],
+      "warnings": [],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "emergency_stop_active",
+      "expected_route": "open_guardian",
+      "actual_route": "open_guardian",
+      "status": "PASS",
+      "owner_independent_p0_ready": false,
+      "consistency_status": "pass",
+      "blockers": [
+        "emergency_stop_active"
+      ],
+      "warnings": [],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "recovery_degraded",
+      "expected_route": "open_recovery",
+      "actual_route": "open_recovery",
+      "status": "PASS",
+      "owner_independent_p0_ready": false,
+      "consistency_status": "pass",
+      "blockers": [
+        "recovery_blocked"
+      ],
+      "warnings": [],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "memory_degraded",
+      "expected_route": "open_memory",
+      "actual_route": "open_memory",
+      "status": "PASS",
+      "owner_independent_p0_ready": true,
+      "consistency_status": "pass",
+      "blockers": [],
+      "warnings": [
+        "memory_degraded"
+      ],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "controlled_apply_blocked",
+      "expected_route": "open_hands",
+      "actual_route": "open_hands",
+      "status": "PASS",
+      "owner_independent_p0_ready": true,
+      "consistency_status": "pass",
+      "blockers": [],
+      "warnings": [
+        "controlled_apply_blocked"
+      ],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "brain_unverified",
+      "expected_route": "open_head",
+      "actual_route": "open_head",
+      "status": "PASS",
+      "owner_independent_p0_ready": true,
+      "consistency_status": "pass",
+      "blockers": [],
+      "warnings": [
+        "brain_unverified"
+      ],
+      "owner_assisted": [],
+      "postponed": []
+    },
+    {
+      "sample_id": "owner_assisted_only",
+      "expected_route": "owner_assisted",
+      "actual_route": "owner_assisted",
+      "status": "PASS",
+      "owner_independent_p0_ready": true,
+      "consistency_status": "pass",
+      "blockers": [],
+      "warnings": [],
+      "owner_assisted": [
+        "billing_dashboard"
+      ],
+      "postponed": []
+    },
+    {
+      "sample_id": "real_phone_apk_postponed",
+      "expected_route": "owner_assisted",
+      "actual_route": "owner_assisted",
+      "status": "PASS",
+      "owner_independent_p0_ready": true,
+      "consistency_status": "pass",
+      "blockers": [],
+      "warnings": [],
+      "owner_assisted": [],
+      "postponed": [
+        "real_phone_apk"
+      ]
+    },
+    {
+      "sample_id": "contradiction_safety_ready_mismatch",
+      "expected_route": "open_guardian",
+      "actual_route": "open_guardian",
+      "status": "PASS",
+      "owner_independent_p0_ready": false,
+      "consistency_status": "fail",
+      "blockers": [
+        "emergency_stop_active"
+      ],
+      "warnings": [],
+      "owner_assisted": [],
+      "postponed": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "pass": 10,
+    "consistency_failures_detected": 1,
+    "owner_assisted_not_blocker": true,
+    "postponed_phone_not_blocker": true,
+    "no_fake_ready": true
+  }
+}
