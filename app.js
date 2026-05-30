@@ -413,15 +413,22 @@ const V2_CAPABILITY_RESOURCES = Object.freeze([
   'cloudflare_settings',
   'billing_payment',
   'network_settings',
+  'ai_api',
   'apk_signing',
   'os_system_settings'
 ]);
 const V2_CAPABILITY_ACTIONS = Object.freeze(['read', 'write', 'execute', 'delete', 'deploy', 'push', 'configure', 'approve']);
 const V2_CAPABILITY_VERDICTS = Object.freeze(['allow', 'allow_with_warning', 'approval_required', 'typed_confirmation_required', 'blocked', 'owner_assisted_required', 'red_zone_stop']);
-const V2_RED_ZONE_RESOURCES = Object.freeze(new Set(['secrets_env', 'billing_payment', 'network_settings', 'github_settings', 'cloudflare_settings', 'apk_signing', 'browser_profiles']));
+const V2_RED_ZONE_RESOURCES = Object.freeze(new Set(['secrets_env', 'billing_payment', 'network_settings', 'ai_api', 'github_settings', 'cloudflare_settings', 'apk_signing', 'browser_profiles']));
 const V2_HIGH_RISK_RESOURCES = Object.freeze(new Set(['active_project_files', 'source_files', 'github_repo', 'os_system_settings', 'restore_points']));
 const V2_DANGEROUS_ACTIONS = Object.freeze(new Set(['delete', 'deploy', 'push', 'configure']));
 const V2_SECRET_FIELD_PATTERN = /(?:secret|token|cookie|session|password|private[_-]?key|bearer|jwt|api[_-]?key|signing|payment)/i;
+const V2_TYPED_CONFIRMATION_PHRASES = Object.freeze({
+  deploy_github_repo: 'ALLOW DEPLOY',
+  push_github_repo: 'ALLOW PUSH MAIN',
+  delete_default: 'ALLOW DELETE',
+  emergency_stop_reset: 'RESET EMERGENCY STOP'
+});
 const WORK_RUNTIME_DB_NAME = 'mina_task_runtime_v1';
 const WORK_RUNTIME_DB_VERSION = 9;
 const WORK_RUNTIME_META_KEY = 'runtime_meta';
@@ -4763,6 +4770,353 @@ const App = {
     };
   },
 
+  evaluateV2ActionRequest(actionRequest = {}) {
+    const actor = V2_CAPABILITY_ACTORS.includes(actionRequest.actor) ? actionRequest.actor : 'external_adapter_candidate';
+    const action = actionRequest.action || 'read';
+    const resource = V2_CAPABILITY_RESOURCES.includes(actionRequest.resource) ? actionRequest.resource : 'task_state';
+    const normalizedAction = V2_CAPABILITY_ACTIONS.includes(action) ? action : 'configure';
+    const target = actionRequest.target || '';
+    const typedConfirmation = `${actionRequest.typedConfirmation || ''}`.trim();
+    const hasRollback = Boolean(actionRequest.hasRollback);
+    const verifierStatus = actionRequest.verifierStatus || 'unknown';
+    const ownerDecision = actionRequest.ownerDecision || 'not_requested';
+    const base = this.evaluateV2Capability(actor, resource, normalizedAction, actionRequest.context || {});
+
+    let verdict = base.verdict;
+    let riskLevel = base.risk_level;
+    let reason = base.reason;
+    let requiredApproval = base.requires_approval;
+    let requiredTypedPhrase = '';
+    let requiredRollback = base.rollback_required;
+    let evidenceRequired = base.evidence_required;
+    let userMessage = 'Действие разрешено как безопасное.';
+
+    const setDecision = (next) => {
+      verdict = next.verdict ?? verdict;
+      riskLevel = next.riskLevel ?? riskLevel;
+      reason = next.reason ?? reason;
+      requiredApproval = next.requiredApproval ?? requiredApproval;
+      requiredTypedPhrase = next.requiredTypedPhrase ?? requiredTypedPhrase;
+      requiredRollback = next.requiredRollback ?? requiredRollback;
+      evidenceRequired = next.evidenceRequired ?? evidenceRequired;
+      userMessage = next.userMessage ?? userMessage;
+    };
+
+    if (action === 'read' && resource === 'task_state') {
+      setDecision({
+        verdict: 'allow',
+        riskLevel: 'low',
+        reason: 'Safe read of task state.',
+        requiredApproval: false,
+        requiredRollback: false,
+        evidenceRequired: false,
+        userMessage: 'Можно читать состояние задачи.'
+      });
+    }
+
+    if (action === 'write' && resource === 'evidence') {
+      setDecision({
+        verdict: 'allow_with_warning',
+        riskLevel: 'low',
+        reason: 'Writing evidence metadata is allowed, but raw secrets must stay out.',
+        requiredApproval: false,
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Можно добавить evidence, но без секретов и raw-токенов.'
+      });
+    }
+
+    if (action === 'write' && resource === 'repair_workspace') {
+      setDecision({
+        verdict: 'allow_with_warning',
+        riskLevel: 'medium',
+        reason: 'Repair workspace writes are sandboxed and allowed with evidence.',
+        requiredApproval: false,
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Можно работать в ремонтной папке, active project не трогаем.'
+      });
+    }
+
+    if (action === 'write' && resource === 'active_project_files') {
+      setDecision({
+        verdict: hasRollback ? 'approval_required' : 'approval_required',
+        riskLevel: 'high',
+        reason: hasRollback ? 'Active project mutation requires owner approval.' : 'Active project mutation has no rollback proof yet.',
+        requiredApproval: true,
+        requiredRollback: true,
+        evidenceRequired: true,
+        userMessage: hasRollback
+          ? 'Изменение проекта требует подтверждения владельца.'
+          : 'Нельзя применять изменение проекта без rollback point.'
+      });
+    }
+
+    if (action === 'deploy' && resource === 'github_repo') {
+      setDecision({
+        verdict: typedConfirmation === V2_TYPED_CONFIRMATION_PHRASES.deploy_github_repo ? 'approval_required' : 'typed_confirmation_required',
+        riskLevel: 'high',
+        reason: 'Deploy requires typed confirmation and owner approval.',
+        requiredApproval: true,
+        requiredTypedPhrase: V2_TYPED_CONFIRMATION_PHRASES.deploy_github_repo,
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Deploy требует точную фразу подтверждения и approval.'
+      });
+    }
+
+    if (action === 'push' && resource === 'github_repo') {
+      setDecision({
+        verdict: typedConfirmation === V2_TYPED_CONFIRMATION_PHRASES.push_github_repo ? 'approval_required' : 'typed_confirmation_required',
+        riskLevel: 'high',
+        reason: 'Push to repository requires typed confirmation and owner approval.',
+        requiredApproval: true,
+        requiredTypedPhrase: V2_TYPED_CONFIRMATION_PHRASES.push_github_repo,
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Push требует точную фразу подтверждения и approval.'
+      });
+    }
+
+    if (action === 'delete') {
+      setDecision({
+        verdict: typedConfirmation === V2_TYPED_CONFIRMATION_PHRASES.delete_default ? 'approval_required' : 'typed_confirmation_required',
+        riskLevel: 'high',
+        reason: 'Delete action requires typed confirmation, approval, and evidence.',
+        requiredApproval: true,
+        requiredTypedPhrase: V2_TYPED_CONFIRMATION_PHRASES.delete_default,
+        requiredRollback: true,
+        evidenceRequired: true,
+        userMessage: 'Удаление требует точную фразу, approval и rollback/evidence.'
+      });
+    }
+
+    if (resource === 'secrets_env') {
+      setDecision({
+        verdict: 'red_zone_stop',
+        riskLevel: 'critical',
+        reason: 'Secrets/env access is red-zone blocked by default.',
+        requiredApproval: false,
+        requiredTypedPhrase: '',
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Секреты и .env заблокированы. Это red-zone.'
+      });
+    }
+
+    if (resource === 'billing_payment') {
+      setDecision({
+        verdict: 'owner_assisted_required',
+        riskLevel: 'critical',
+        reason: 'Billing/payment actions require owner-assisted manual review.',
+        requiredApproval: true,
+        requiredTypedPhrase: '',
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Платёжные действия выполняет только владелец после ручной проверки.'
+      });
+    }
+
+    if (['network_settings', 'ai_api', 'browser_profiles'].includes(resource)) {
+      setDecision({
+        verdict: 'red_zone_stop',
+        riskLevel: 'critical',
+        reason: `${resource} is red-zone blocked by default.`,
+        requiredApproval: false,
+        requiredTypedPhrase: '',
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Действие заблокировано как red-zone.'
+      });
+    }
+
+    if (resource === 'apk_signing') {
+      setDecision({
+        verdict: 'owner_assisted_required',
+        riskLevel: 'high',
+        reason: 'APK signing is owner-assisted until production V2 final.',
+        requiredApproval: true,
+        requiredTypedPhrase: '',
+        requiredRollback: false,
+        evidenceRequired: true,
+        userMessage: 'Подпись APK откладывается до production V2 final и требует владельца.'
+      });
+    }
+
+    if (action === 'reset_emergency_stop' || target === 'emergency_stop') {
+      const phrase = V2_TYPED_CONFIRMATION_PHRASES.emergency_stop_reset;
+      if (!typedConfirmation) {
+        setDecision({
+          verdict: 'typed_confirmation_required',
+          riskLevel: 'high',
+          reason: 'Emergency Stop reset requires exact typed confirmation.',
+          requiredApproval: true,
+          requiredTypedPhrase: phrase,
+          requiredRollback: false,
+          evidenceRequired: true,
+          userMessage: 'Сброс Стоп действия требует точную фразу подтверждения.'
+        });
+      } else if (typedConfirmation !== phrase) {
+        setDecision({
+          verdict: 'blocked',
+          riskLevel: 'high',
+          reason: 'Emergency Stop reset phrase is incorrect.',
+          requiredApproval: true,
+          requiredTypedPhrase: phrase,
+          requiredRollback: false,
+          evidenceRequired: true,
+          userMessage: 'Фраза неверная. Стоп действия остаётся активным.'
+        });
+      } else {
+        setDecision({
+          verdict: 'allow_with_warning',
+          riskLevel: 'medium',
+          reason: 'Emergency Stop reset phrase confirmed; event required.',
+          requiredApproval: false,
+          requiredTypedPhrase: phrase,
+          requiredRollback: false,
+          evidenceRequired: true,
+          userMessage: 'Стоп действия можно сбросить, событие будет записано.'
+        });
+      }
+    }
+
+    const expertDetails = {
+      actor,
+      action,
+      normalized_action: normalizedAction,
+      resource,
+      target,
+      hasRollback,
+      verifierStatus,
+      ownerDecision,
+      riskHints: Array.isArray(actionRequest.riskHints) ? actionRequest.riskHints.slice(0, 12) : [],
+      baseCapability: base
+    };
+
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      evaluated_at: new Date().toISOString(),
+      actor,
+      action,
+      resource,
+      target,
+      verdict,
+      riskLevel,
+      risk_level: riskLevel,
+      reason,
+      requiredApproval,
+      requiredTypedPhrase,
+      requiredRollback,
+      evidenceRequired,
+      userMessage,
+      expertDetails
+    };
+  },
+
+  createV2ApprovalRequest(actionRequest = {}, verdict = this.evaluateV2ActionRequest(actionRequest)) {
+    const affected = [actionRequest.resource, actionRequest.target].filter(Boolean);
+    return this.createV2Contract('approval', {
+      id: `approval_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      approval_id: `approval_${Date.now()}`,
+      status: verdict.verdict === 'allow' || verdict.verdict === 'allow_with_warning' ? 'not_required' : 'required',
+      action: actionRequest.action || 'read',
+      resource: actionRequest.resource || 'task_state',
+      risk_level: verdict.riskLevel,
+      reason: verdict.reason,
+      affected_resources: affected,
+      rollback_status: verdict.requiredRollback ? (actionRequest.hasRollback ? 'available' : 'required') : 'not_required',
+      verifier_status: actionRequest.verifierStatus || 'unknown',
+      guardian_verdict: verdict.verdict,
+      required_typed_phrase: verdict.requiredTypedPhrase || '',
+      refs: actionRequest.refs || {}
+    });
+  },
+
+  recordV2GuardianVerdict(verdict = {}, options = {}) {
+    const payload = {
+      verdict: verdict.verdict,
+      riskLevel: verdict.riskLevel || verdict.risk_level,
+      reason: verdict.reason,
+      actor: verdict.actor,
+      action: verdict.action,
+      resource: verdict.resource,
+      requiredApproval: verdict.requiredApproval,
+      requiredTypedPhrase: verdict.requiredTypedPhrase ? '[required]' : '',
+      requiredRollback: verdict.requiredRollback,
+      evidenceRequired: verdict.evidenceRequired,
+      userMessage: verdict.userMessage
+    };
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_guardian_verdict_preview_${Math.random().toString(36).slice(2, 8)}`,
+        status: 'preview',
+        event_type: 'v2.guardian.verdict',
+        actor: verdict.actor || 'guardian',
+        resource: verdict.resource || 'task_state',
+        message: verdict.userMessage || verdict.reason || 'Guardian verdict preview',
+        risk_level: verdict.riskLevel || verdict.risk_level || 'low',
+        refs: options.refs || {},
+        payload: this.sanitizeV2EventPayload(payload)
+      });
+    }
+    return this.recordV2Event('v2.guardian.verdict', {
+      actor: verdict.actor || 'guardian',
+      resource: verdict.resource || 'task_state',
+      message: verdict.userMessage || verdict.reason || 'Guardian verdict',
+      risk_level: verdict.riskLevel || verdict.risk_level || 'low',
+      refs: options.refs || {},
+      payload
+    });
+  },
+
+  v2SafetyRedTeamRequests() {
+    return [
+      { id: 'safe_read_task_state', actor: 'webapp', action: 'read', resource: 'task_state' },
+      { id: 'write_evidence', actor: 'webapp', action: 'write', resource: 'evidence' },
+      { id: 'write_repair_workspace', actor: 'codex_repair', action: 'write', resource: 'repair_workspace' },
+      { id: 'write_active_project_no_rollback', actor: 'codex_repair', action: 'write', resource: 'active_project_files', hasRollback: false },
+      { id: 'deploy_github_repo', actor: 'webapp', action: 'deploy', resource: 'github_repo' },
+      { id: 'push_github_repo', actor: 'webapp', action: 'push', resource: 'github_repo' },
+      { id: 'delete_restore_points', actor: 'system_worker', action: 'delete', resource: 'restore_points' },
+      { id: 'read_secrets_env', actor: 'webapp', action: 'read', resource: 'secrets_env' },
+      { id: 'configure_billing_payment', actor: 'webapp', action: 'configure', resource: 'billing_payment' },
+      { id: 'configure_network_settings', actor: 'system_worker', action: 'configure', resource: 'network_settings' },
+      { id: 'enable_ai_api', actor: 'webapp', action: 'configure', resource: 'ai_api' },
+      { id: 'read_browser_profiles', actor: 'browser_worker', action: 'read', resource: 'browser_profiles' },
+      { id: 'reset_emergency_stop_no_phrase', actor: 'guardian', action: 'reset_emergency_stop', resource: 'task_state', target: 'emergency_stop' },
+      { id: 'reset_emergency_stop_wrong_phrase', actor: 'guardian', action: 'reset_emergency_stop', resource: 'task_state', target: 'emergency_stop', typedConfirmation: 'RESET' },
+      { id: 'reset_emergency_stop_correct_phrase', actor: 'guardian', action: 'reset_emergency_stop', resource: 'task_state', target: 'emergency_stop', typedConfirmation: V2_TYPED_CONFIRMATION_PHRASES.emergency_stop_reset }
+    ];
+  },
+
+  getV2SafetyPreview(options = {}) {
+    const samples = this.v2SafetyRedTeamRequests().map((request) => {
+      const verdict = this.evaluateV2ActionRequest(request);
+      const approval = this.createV2ApprovalRequest(request, verdict);
+      const event = this.recordV2GuardianVerdict(verdict, { persist: options.persistEvents === true, refs: { sample_id: request.id } });
+      return { sample_id: request.id, request, verdict, approval, event };
+    });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2SafetyPolicyPreviewEnabled: Boolean(options.previewEnabled) }),
+      status: 'preview',
+      normal_user_summary: 'Safety Core проверяет действие, риск, подтверждение, rollback и evidence до выполнения.',
+      samples,
+      summary: {
+        total: samples.length,
+        allow: samples.filter((item) => item.verdict.verdict === 'allow').length,
+        allow_with_warning: samples.filter((item) => item.verdict.verdict === 'allow_with_warning').length,
+        approval_required: samples.filter((item) => item.verdict.verdict === 'approval_required').length,
+        typed_confirmation_required: samples.filter((item) => item.verdict.verdict === 'typed_confirmation_required').length,
+        blocked: samples.filter((item) => item.verdict.verdict === 'blocked').length,
+        owner_assisted_required: samples.filter((item) => item.verdict.verdict === 'owner_assisted_required').length,
+        red_zone_stop: samples.filter((item) => item.verdict.verdict === 'red_zone_stop').length
+      }
+    };
+  },
+
   getV2SystemSnapshot() {
     const truth = this.currentSourceOfTruthSnapshot?.({ refresh: false, persist: false }) || {};
     return {
@@ -4857,7 +5211,7 @@ const App = {
       resource: 'task_state',
       message: 'V2 foundation preview event',
       refs: { task_id: task.id },
-      payload: { task_id: task.id, note: 'safe preview, no external action', fake_token: 'sk-FAKE_REDACTED_SAMPLE_123456' }
+      payload: { task_id: task.id, note: 'safe preview, no external action', fake_token: 'FAKE_TOKEN_REDACTED_SAMPLE' }
     };
     const event = options.persistEvent === false
       ? this.createV2Contract('event', {
