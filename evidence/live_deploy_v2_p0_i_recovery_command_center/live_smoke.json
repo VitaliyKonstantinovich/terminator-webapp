@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-05-30T18:54:31.531Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "cache_bust": "v2-p0-i-1780167270789",
+  "commit": "eafaa75c",
+  "workflow_run": "https://github.com/VitaliyKonstantinovich/terminator-webapp/actions/runs/26692108756",
+  "fetch": {
+    "html": 200,
+    "app_js": 200,
+    "css": 200
+  },
+  "pass": {
+    "html_200": true,
+    "app_js_200": true,
+    "css_200": true,
+    "buildV2RecoveryCommandCenterSnapshot": true,
+    "renderV2RecoveryCommandCenterPanel": true,
+    "handleV2RecoveryCommandAction": true,
+    "v2_recovery_command_center_opened_event": true,
+    "v2_diagnostic_pack_preview_opened_event": true,
+    "feature_flag": true,
+    "owner_assisted_generic": true,
+    "recovery_css": true,
+    "panel_rendered": true,
+    "incident_card": true,
+    "playbook_card": true,
+    "diagnostic_pack_card": true,
+    "owner_assisted_section": true,
+    "expert_collapsed": true,
+    "normal_mode_no_forbidden_terms": true,
+    "no_active_incident_continue_work": true,
+    "sample_matrix_pass": true,
+    "diagnostic_pack_safe": true,
+    "invalid_transition_blocked": true,
+    "owner_assisted_separated": true,
+    "no_ai_api_runtime_domains": true
+  },
+  "sample_summary": {
+    "total": 11,
+    "pass": 11,
+    "blocked": 5,
+    "owner_assisted": 10,
+    "diagnostic_pack_safe": true
+  },
+  "no_bluestacks": true,
+  "no_screenshots": true,
+  "all_pass": true
+}
