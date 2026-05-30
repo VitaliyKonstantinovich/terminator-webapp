@@ -1,0 +1,63 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('Terminator QA Factory safe demo', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('about:blank');
+    await page.setContent(`
+      <main>
+        <button data-testid="primary-cta">Запустить проверку</button>
+        <form data-testid="demo-form">
+          <label>Имя <input name="name" aria-label="Имя" /></label>
+          <label>Email <input name="email" aria-label="Email" /></label>
+          <button type="submit">Проверить</button>
+          <p data-testid="form-status"></p>
+        </form>
+      </main>
+      <script>
+        document.querySelector('[data-testid="primary-cta"]').addEventListener('click', () => {
+          document.body.dataset.state = 'demo-ready';
+        });
+        document.querySelector('[data-testid="demo-form"]').addEventListener('submit', (event) => {
+          event.preventDefault();
+          const name = event.target.elements.name.value.trim();
+          const email = event.target.elements.email.value.trim();
+          const status = document.querySelector('[data-testid="form-status"]');
+          if (!name || !email.includes('@')) status.textContent = 'Проверьте имя и email';
+          else status.textContent = 'Локальный preview готов';
+        });
+      </script>
+    `);
+  });
+
+  test('smoke: CTA visible', async ({ page }) => {
+    await expect(page.getByTestId('primary-cta')).toBeVisible();
+  });
+
+  test('positive: valid form shows local preview', async ({ page }) => {
+    await page.getByLabel('Имя').fill('Mina');
+    await page.getByLabel('Email').fill('mina@example.test');
+    await page.getByRole('button', { name: 'Проверить' }).click();
+    await expect(page.getByTestId('form-status')).toHaveText('Локальный preview готов');
+  });
+
+  test('negative: invalid email is blocked', async ({ page }) => {
+    await page.getByLabel('Имя').fill('Mina');
+    await page.getByLabel('Email').fill('bad-email');
+    await page.getByRole('button', { name: 'Проверить' }).click();
+    await expect(page.getByTestId('form-status')).toHaveText('Проверьте имя и email');
+  });
+
+  test('edge: mobile viewport has no horizontal overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByTestId('primary-cta')).toBeVisible();
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(width).toBeLessThanOrEqual(390);
+  });
+
+  test('api placeholder: backend contract required', async () => {
+    test.info().annotations.push({
+      type: 'owner-assisted',
+      description: 'Backend/API endpoint is PARTIAL until approved contract exists.'
+    });
+  });
+});

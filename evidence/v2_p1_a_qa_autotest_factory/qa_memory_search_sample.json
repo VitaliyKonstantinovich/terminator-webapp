@@ -1,0 +1,542 @@
+{
+  "memory_record": {
+    "id": "v2_qa_memory_task_qa_demo_autotest",
+    "type": "memory_record",
+    "contract_name": "V2MemoryRecordContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T22:42:35.104Z",
+    "updated_at": "2026-05-30T22:42:35.104Z",
+    "status": "candidate",
+    "refs": {
+      "task_id": "task_qa_demo_autotest",
+      "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+      "plan_id": "v2_qa_plan_task_qa_demo_autotest"
+    },
+    "risk_level": "low",
+    "record_type": "qa_autotest_factory",
+    "title": "Autotest Playwright форма negative QA Factory",
+    "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+    "project_id": "terminator",
+    "task_id": "task_qa_demo_autotest",
+    "source": {
+      "source_type": "qa_factory_preview",
+      "source_id": "v2_qa_artifact_task_qa_demo_autotest"
+    },
+    "evidence_refs": []
+  },
+  "samples": {
+    "autotest": {
+      "schema_version": 1,
+      "normalizedQuery": "autotest",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "task_id": "task_qa_demo_autotest",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest"
+          },
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "score": 16,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.141Z",
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest",
+            "artifact_refs": [
+              "v2_qa_artifact_task_qa_demo_autotest"
+            ],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "source": {
+            "source_id": "",
+            "source_type": "memory",
+            "source_ref": ""
+          },
+          "task_id": "task_qa_demo_autotest",
+          "artifact_refs": [
+            "v2_qa_artifact_task_qa_demo_autotest"
+          ],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 16,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 34,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780180955144_3jrn",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.152Z",
+          "updated_at": "2026-05-30T22:42:35.152Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "autotest",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 34,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780180955153_dv2y",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.175Z",
+          "updated_at": "2026-05-30T22:42:35.175Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "autotest",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 34,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "playwright": {
+      "schema_version": 1,
+      "normalizedQuery": "Playwright",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "task_id": "task_qa_demo_autotest",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest"
+          },
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "score": 16,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.177Z",
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest",
+            "artifact_refs": [
+              "v2_qa_artifact_task_qa_demo_autotest"
+            ],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "source": {
+            "source_id": "",
+            "source_type": "memory",
+            "source_ref": ""
+          },
+          "task_id": "task_qa_demo_autotest",
+          "artifact_refs": [
+            "v2_qa_artifact_task_qa_demo_autotest"
+          ],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 16,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 2,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780180955177_u0es",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.177Z",
+          "updated_at": "2026-05-30T22:42:35.177Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "Playwright",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 2,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780180955177_kuf5",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.177Z",
+          "updated_at": "2026-05-30T22:42:35.177Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "Playwright",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 2,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "form": {
+      "schema_version": 1,
+      "normalizedQuery": "форма",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "task_id": "task_qa_demo_autotest",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest"
+          },
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "score": 12,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.188Z",
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest",
+            "artifact_refs": [
+              "v2_qa_artifact_task_qa_demo_autotest"
+            ],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "source": {
+            "source_id": "",
+            "source_type": "memory",
+            "source_ref": ""
+          },
+          "task_id": "task_qa_demo_autotest",
+          "artifact_refs": [
+            "v2_qa_artifact_task_qa_demo_autotest"
+          ],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 12,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 10,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780180955188_2y7z",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.188Z",
+          "updated_at": "2026-05-30T22:42:35.188Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "форма",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 10,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780180955188_4bl7",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.188Z",
+          "updated_at": "2026-05-30T22:42:35.188Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "форма",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 10,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "negative": {
+      "schema_version": 1,
+      "normalizedQuery": "negative",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "task_id": "task_qa_demo_autotest",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest"
+          },
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "score": 16,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_qa_memory_task_qa_demo_autotest",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.189Z",
+          "updated_at": "2026-05-30T22:42:35.104Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_qa_demo_autotest",
+            "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+            "plan_id": "v2_qa_plan_task_qa_demo_autotest",
+            "artifact_refs": [
+              "v2_qa_artifact_task_qa_demo_autotest"
+            ],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Autotest Playwright форма negative QA Factory",
+          "summary": "QA Factory создала autotest plan, Playwright-style skeleton, smoke/positive/negative проверки формы, edge mobile check, evidence checklist и Verifier result.",
+          "source": {
+            "source_id": "",
+            "source_type": "memory",
+            "source_ref": ""
+          },
+          "task_id": "task_qa_demo_autotest",
+          "artifact_refs": [
+            "v2_qa_artifact_task_qa_demo_autotest"
+          ],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 16,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780180955189_t1zm",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.189Z",
+          "updated_at": "2026-05-30T22:42:35.189Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "negative",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780180955189_cst7",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T22:42:35.189Z",
+          "updated_at": "2026-05-30T22:42:35.189Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "negative",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  },
+  "all_queries_found": true
+}

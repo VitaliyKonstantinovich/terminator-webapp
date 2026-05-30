@@ -1,0 +1,71 @@
+{
+  "id": "v2_qa_evidence_task_qa_demo_autotest",
+  "type": "qa_evidence_checklist",
+  "contract_name": "V2QAEvidenceChecklistContract",
+  "schema_version": 1,
+  "created_at": "2026-05-30T22:42:35.098Z",
+  "updated_at": "2026-05-30T22:42:35.098Z",
+  "status": "ready_with_placeholders",
+  "refs": {
+    "task_id": "task_qa_demo_autotest",
+    "plan_id": "v2_qa_plan_task_qa_demo_autotest"
+  },
+  "risk_level": "low",
+  "project_id": "terminator",
+  "task_id": "task_qa_demo_autotest",
+  "title": "QA evidence checklist",
+  "checklist": [
+    {
+      "id": "qa_evd_dom",
+      "label": "DOM assertions",
+      "status": "required",
+      "evidence_type": "assertion"
+    },
+    {
+      "id": "qa_evd_screenshot",
+      "label": "Screenshot",
+      "status": "optional",
+      "evidence_type": "screenshot"
+    },
+    {
+      "id": "qa_evd_console",
+      "label": "Console errors",
+      "status": "required",
+      "evidence_type": "console_log"
+    },
+    {
+      "id": "qa_evd_network",
+      "label": "Network/API status",
+      "status": "placeholder",
+      "evidence_type": "network_log",
+      "owner_assisted_required": true
+    },
+    {
+      "id": "qa_evd_backend",
+      "label": "Backend assertion",
+      "status": "placeholder",
+      "evidence_type": "backend_assertion",
+      "owner_assisted_required": true
+    },
+    {
+      "id": "qa_evd_cleanup",
+      "label": "Cleanup proof",
+      "status": "required",
+      "evidence_type": "cleanup_note"
+    },
+    {
+      "id": "qa_evd_verifier",
+      "label": "Verifier notes",
+      "status": "required",
+      "evidence_type": "verifier_report"
+    }
+  ],
+  "required_count": 4,
+  "placeholder_count": 2,
+  "owner_assisted_required": true,
+  "not_checked": [
+    "trace/video optional",
+    "backend/API evidence pending contract"
+  ],
+  "evidence_refs": []
+}

@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T22:42:35.249Z",
+  "status": "PASS",
+  "summary": {
+    "status": "PASS_WITH_RISKS",
+    "test_case_count": 8,
+    "smoke_count": 2,
+    "positive_count": 2,
+    "negative_count": 2,
+    "edge_count": 1,
+    "api_backend_placeholder_count": 1,
+    "backend_api_partial": true,
+    "no_external_site_execution": true,
+    "no_dependency_install": true,
+    "no_ai_api": true,
+    "no_billing": true
+  },
+  "checks": [
+    {
+      "id": "request_created",
+      "status": "PASS"
+    },
+    {
+      "id": "plan_generated",
+      "status": "PASS"
+    },
+    {
+      "id": "eight_plus_cases",
+      "status": "PASS"
+    },
+    {
+      "id": "smoke_cases",
+      "status": "PASS"
+    },
+    {
+      "id": "positive_cases",
+      "status": "PASS"
+    },
+    {
+      "id": "negative_cases",
+      "status": "PASS"
+    },
+    {
+      "id": "edge_cases",
+      "status": "PASS"
+    },
+    {
+      "id": "api_backend_placeholder",
+      "status": "PASS"
+    },
+    {
+      "id": "skeleton_artifact",
+      "status": "PASS"
+    },
+    {
+      "id": "evidence_checklist",
+      "status": "PASS"
+    },
+    {
+      "id": "verifier_partial_backend",
+      "status": "PASS"
+    },
+    {
+      "id": "verifier_catches_missing_expected",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search_autotest",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search_playwright",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search_form",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search_negative",
+      "status": "PASS"
+    },
+    {
+      "id": "events_sanitized",
+      "status": "PASS"
+    },
+    {
+      "id": "no_external_execution",
+      "status": "PASS"
+    },
+    {
+      "id": "no_ai_api",
+      "status": "PASS"
+    },
+    {
+      "id": "no_billing",
+      "status": "PASS"
+    }
+  ],
+  "negative_verifier_sample": {
+    "id": "v2_qa_verifier_task_qa_demo_autotest",
+    "type": "qa_verifier_result",
+    "contract_name": "V2QAVerifierResultContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T22:42:35.103Z",
+    "updated_at": "2026-05-30T22:42:35.103Z",
+    "status": "FAIL",
+    "refs": {
+      "task_id": "task_qa_demo_autotest",
+      "artifact_id": "v2_qa_artifact_missing_expected"
+    },
+    "risk_level": "low",
+    "verdict": "NEEDS_FIX",
+    "project_id": "terminator",
+    "task_id": "task_qa_demo_autotest",
+    "title": "QA Verifier result",
+    "checks": [
+      {
+        "id": "goal",
+        "label": "Цель проверки есть",
+        "status": "PASS"
+      },
+      {
+        "id": "expected_results",
+        "label": "Expected result есть у каждого case",
+        "status": "FAIL"
+      },
+      {
+        "id": "smoke",
+        "label": "Есть минимум 2 smoke checks",
+        "status": "PASS"
+      },
+      {
+        "id": "positive",
+        "label": "Есть минимум 2 positive checks",
+        "status": "PASS"
+      },
+      {
+        "id": "negative",
+        "label": "Есть минимум 2 negative checks",
+        "status": "PASS"
+      },
+      {
+        "id": "edge",
+        "label": "Есть edge case для mobile/overflow",
+        "status": "PASS"
+      },
+      {
+        "id": "evidence",
+        "label": "Evidence checklist создан",
+        "status": "PASS"
+      },
+      {
+        "id": "backend_api",
+        "label": "Backend/API unknown marked partial",
+        "status": "PARTIAL"
+      }
+    ],
+    "missing_expected_count": 1,
+    "backend_api_partial": true,
+    "owner_assisted_required": true,
+    "not_checked": [
+      "real backend/API endpoint",
+      "external network execution"
+    ],
+    "evidence_refs": []
+  },
+  "events": [
+    {
+      "id": "v2_qa_v2_qa_test_request_created_1780180955192_e3ob9",
+      "event_type": "v2.qa.test_request.created",
+      "status": "preview",
+      "refs": {
+        "request_id": "v2_qa_request_1780180955092",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "QA test request created."
+    },
+    {
+      "id": "v2_qa_v2_qa_test_plan_generated_1780180955192_sreho",
+      "event_type": "v2.qa.test_plan.generated",
+      "status": "preview",
+      "refs": {
+        "plan_id": "v2_qa_plan_task_qa_demo_autotest",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "QA test plan generated."
+    },
+    {
+      "id": "v2_qa_v2_qa_test_case_created_1780180955192_4fi4h",
+      "event_type": "v2.qa.test_case.created",
+      "status": "preview",
+      "refs": {
+        "plan_id": "v2_qa_plan_task_qa_demo_autotest",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "QA test cases created."
+    },
+    {
+      "id": "v2_qa_v2_qa_test_artifact_created_1780180955193_6o233",
+      "event_type": "v2.qa.test_artifact.created",
+      "status": "preview",
+      "refs": {
+        "artifact_id": "v2_qa_artifact_task_qa_demo_autotest",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "Playwright-style skeleton artifact created."
+    },
+    {
+      "id": "v2_qa_v2_qa_evidence_checklist_created_1780180955193_4xyzk",
+      "event_type": "v2.qa.evidence_checklist.created",
+      "status": "preview",
+      "refs": {
+        "checklist_id": "v2_qa_evidence_task_qa_demo_autotest",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "QA evidence checklist created."
+    },
+    {
+      "id": "v2_qa_v2_qa_verifier_verdict_1780180955193_g8y64",
+      "event_type": "v2.qa.verifier.verdict",
+      "status": "preview",
+      "refs": {
+        "verifier_id": "v2_qa_verifier_task_qa_demo_autotest",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "QA verifier verdict created."
+    },
+    {
+      "id": "v2_qa_v2_qa_memory_summary_created_1780180955193_sfl8q",
+      "event_type": "v2.qa.memory_summary.created",
+      "status": "preview",
+      "refs": {
+        "memory_record_id": "v2_qa_memory_task_qa_demo_autotest",
+        "task_id": "task_qa_demo_autotest"
+      },
+      "message": "QA memory summary created."
+    }
+  ],
+  "security": {
+    "no_external_site_execution": true,
+    "no_dependency_install": true,
+    "no_ai_api": true,
+    "no_billing": true,
+    "no_real_credentials": true,
+    "no_cloudflare_github_settings": true,
+    "local_agent_direct_bridge_touched": false
+  },
+  "ui": {
+    "panel_rendered": true,
+    "normal_mode_has_raw_json": false,
+    "expert_mode_contains_contract_preview": true
+  }
+}

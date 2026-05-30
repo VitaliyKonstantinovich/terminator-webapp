@@ -1,0 +1,361 @@
+{
+  "id": "v2_qa_plan_task_qa_demo_autotest",
+  "type": "qa_test_plan",
+  "contract_name": "V2QATestPlanContract",
+  "schema_version": 1,
+  "created_at": "2026-05-30T22:42:35.094Z",
+  "updated_at": "2026-05-30T22:42:35.094Z",
+  "status": "ready_with_placeholders",
+  "refs": {
+    "project_id": "terminator",
+    "task_id": "task_qa_demo_autotest",
+    "request_id": "v2_qa_request_1780180955092"
+  },
+  "risk_level": "low",
+  "project_id": "terminator",
+  "task_id": "task_qa_demo_autotest",
+  "title": "План проверки: safe demo form",
+  "qa_goal": "Проверить главную кнопку, валидацию формы и базовый backend/API placeholder.",
+  "target": {
+    "type": "web_ui_demo",
+    "name": "safe demo form",
+    "url": "about:blank"
+  },
+  "smoke_checks": [
+    "qa_tc_smoke_001",
+    "qa_tc_smoke_002"
+  ],
+  "positive_checks": [
+    "qa_tc_positive_001",
+    "qa_tc_positive_002"
+  ],
+  "negative_checks": [
+    "qa_tc_negative_001",
+    "qa_tc_negative_002"
+  ],
+  "edge_cases": [
+    "qa_tc_edge_001"
+  ],
+  "api_backend_placeholders": [
+    "qa_tc_api_001"
+  ],
+  "data_setup": [
+    "Use local safe demo HTML only",
+    "No production credentials",
+    "No external website execution"
+  ],
+  "cleanup_expectation": [
+    "No persistent remote data created",
+    "No files deleted",
+    "No cookies read"
+  ],
+  "evidence_requirements": [
+    "DOM assertion",
+    "optional screenshot",
+    "console errors",
+    "network/API placeholder",
+    "Verifier notes"
+  ],
+  "risks": [
+    "Backend/API unknown is PARTIAL, not PASS",
+    "External URL requires owner approval"
+  ],
+  "not_checked": [
+    "real backend/API endpoint",
+    "trace/video",
+    "real production form submission"
+  ],
+  "test_cases": [
+    {
+      "id": "qa_tc_smoke_001",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Страница открывается и главный CTA виден",
+      "test_type": "smoke",
+      "preconditions": [
+        "safe demo HTML is loaded through page.setContent"
+      ],
+      "steps": [
+        "Открыть safe demo page",
+        "Найти главный CTA",
+        "Проверить доступность текста кнопки"
+      ],
+      "expected_result": "Главная кнопка видима, доступна и не перекрыта.",
+      "evidence_expected": [
+        "screenshot optional",
+        "DOM assertion"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_smoke_002",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Форма доступна без горизонтального overflow",
+      "test_type": "smoke",
+      "preconditions": [
+        "viewport 390px or desktop demo viewport"
+      ],
+      "steps": [
+        "Открыть форму",
+        "Проверить поля name/email",
+        "Проверить ширину документа"
+      ],
+      "expected_result": "Поля видимы, страница не имеет horizontal overflow.",
+      "evidence_expected": [
+        "viewport width assertion",
+        "DOM assertion"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_positive_001",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Валидная форма показывает preview отправки",
+      "test_type": "positive",
+      "preconditions": [
+        "safe demo form loaded"
+      ],
+      "steps": [
+        "Ввести имя",
+        "Ввести корректный email",
+        "Нажать demo submit"
+      ],
+      "expected_result": "Появляется локальный success preview без реальной отправки.",
+      "evidence_expected": [
+        "DOM text assertion",
+        "console error check"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_positive_002",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Главная кнопка ведёт к ожидаемому состоянию",
+      "test_type": "positive",
+      "preconditions": [
+        "CTA visible"
+      ],
+      "steps": [
+        "Нажать главный CTA",
+        "Проверить state label",
+        "Проверить, что действие не внешнее"
+      ],
+      "expected_result": "State меняется на локальный demo-ready, внешняя сеть не используется.",
+      "evidence_expected": [
+        "state assertion",
+        "network stays idle placeholder"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_negative_001",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Пустая форма не проходит validation",
+      "test_type": "negative",
+      "preconditions": [
+        "safe demo form loaded"
+      ],
+      "steps": [
+        "Оставить поля пустыми",
+        "Нажать demo submit"
+      ],
+      "expected_result": "Показано понятное сообщение validation, success не появляется.",
+      "evidence_expected": [
+        "validation text assertion"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_negative_002",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Некорректный email блокируется",
+      "test_type": "negative",
+      "preconditions": [
+        "safe demo form loaded"
+      ],
+      "steps": [
+        "Ввести имя",
+        "Ввести email без домена",
+        "Нажать demo submit"
+      ],
+      "expected_result": "Показано сообщение о некорректном email, отправка не выполняется.",
+      "evidence_expected": [
+        "validation text assertion"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_edge_001",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "ready",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "low",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Mobile narrow viewport keeps the form usable",
+      "test_type": "edge",
+      "preconditions": [
+        "safe demo form loaded",
+        "viewport width is 390px"
+      ],
+      "steps": [
+        "Открыть форму в narrow viewport",
+        "Проверить CTA и поля",
+        "Проверить document width <= viewport width"
+      ],
+      "expected_result": "Форма остаётся читаемой, CTA доступен, горизонтального overflow нет.",
+      "evidence_expected": [
+        "viewport assertion",
+        "DOM width assertion"
+      ],
+      "automation_candidate": "yes",
+      "owner_assisted_required": false,
+      "not_checked": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "qa_tc_api_001",
+      "type": "qa_test_case",
+      "contract_name": "V2QATestCaseContract",
+      "schema_version": 1,
+      "created_at": "2026-05-30T22:42:35.093Z",
+      "updated_at": "2026-05-30T22:42:35.093Z",
+      "status": "partial",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "task_qa_demo_autotest",
+        "request_id": "v2_qa_request_1780180955092"
+      },
+      "risk_level": "medium",
+      "task_id": "task_qa_demo_autotest",
+      "project_id": "terminator",
+      "title": "Backend/API health placeholder",
+      "test_type": "API",
+      "preconditions": [
+        "API contract is provided by owner or backend team"
+      ],
+      "steps": [
+        "Не выполнять реальный network call без approval",
+        "Проверить contract placeholder",
+        "Отметить required endpoint and expected status"
+      ],
+      "expected_result": "API check remains PARTIAL until contract and approved endpoint exist.",
+      "evidence_expected": [
+        "API contract reference",
+        "owner approval if external"
+      ],
+      "automation_candidate": "partial",
+      "owner_assisted_required": true,
+      "not_checked": [
+        "backend/API endpoint not provided",
+        "external network execution not approved"
+      ],
+      "evidence_refs": []
+    }
+  ],
+  "owner_assisted_required": true,
+  "evidence_refs": []
+}

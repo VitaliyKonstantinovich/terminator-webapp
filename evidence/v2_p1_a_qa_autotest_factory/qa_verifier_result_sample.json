@@ -1,0 +1,68 @@
+{
+  "id": "v2_qa_verifier_task_qa_demo_autotest",
+  "type": "qa_verifier_result",
+  "contract_name": "V2QAVerifierResultContract",
+  "schema_version": 1,
+  "created_at": "2026-05-30T22:42:35.103Z",
+  "updated_at": "2026-05-30T22:42:35.103Z",
+  "status": "PARTIAL",
+  "refs": {
+    "task_id": "task_qa_demo_autotest",
+    "artifact_id": "v2_qa_artifact_task_qa_demo_autotest"
+  },
+  "risk_level": "low",
+  "verdict": "PASS_WITH_RISKS",
+  "project_id": "terminator",
+  "task_id": "task_qa_demo_autotest",
+  "title": "QA Verifier result",
+  "checks": [
+    {
+      "id": "goal",
+      "label": "Цель проверки есть",
+      "status": "PASS"
+    },
+    {
+      "id": "expected_results",
+      "label": "Expected result есть у каждого case",
+      "status": "PASS"
+    },
+    {
+      "id": "smoke",
+      "label": "Есть минимум 2 smoke checks",
+      "status": "PASS"
+    },
+    {
+      "id": "positive",
+      "label": "Есть минимум 2 positive checks",
+      "status": "PASS"
+    },
+    {
+      "id": "negative",
+      "label": "Есть минимум 2 negative checks",
+      "status": "PASS"
+    },
+    {
+      "id": "edge",
+      "label": "Есть edge case для mobile/overflow",
+      "status": "PASS"
+    },
+    {
+      "id": "evidence",
+      "label": "Evidence checklist создан",
+      "status": "PASS"
+    },
+    {
+      "id": "backend_api",
+      "label": "Backend/API unknown marked partial",
+      "status": "PARTIAL"
+    }
+  ],
+  "missing_expected_count": 0,
+  "backend_api_partial": true,
+  "owner_assisted_required": true,
+  "not_checked": [
+    "real backend/API endpoint",
+    "external network execution"
+  ],
+  "evidence_refs": []
+}

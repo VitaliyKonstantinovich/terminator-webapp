@@ -3520,6 +3520,114 @@ button:not(:disabled) {
   overflow-wrap: anywhere;
 }
 
+.v2-qa-factory {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid rgba(61, 247, 165, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(5, 42, 48, 0.92), rgba(3, 14, 31, 0.96)),
+    radial-gradient(circle at 14% 12%, rgba(61, 247, 165, 0.14), transparent 34%);
+  box-shadow: inset 0 0 28px rgba(61, 247, 165, 0.07);
+}
+
+.v2-qa-factory-hero,
+.v2-qa-factory-grid,
+.v2-qa-factory-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.v2-qa-factory-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.24fr) minmax(210px, 0.32fr);
+}
+
+.v2-qa-factory-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.v2-qa-factory-grid--compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.v2-qa-factory-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.v2-qa-factory-hero > div,
+.v2-qa-factory-grid article,
+.v2-qa-factory-expert {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(92, 240, 203, 0.23);
+  border-radius: 8px;
+  background: rgba(2, 25, 41, 0.76);
+  box-shadow: inset 0 0 18px rgba(61, 247, 165, 0.06);
+}
+
+.v2-qa-factory span,
+.v2-qa-factory-grid span {
+  display: block;
+  color: #9debd3;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.v2-qa-factory h3 {
+  margin: 5px 0 0;
+  color: #ffffff;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.06;
+}
+
+.v2-qa-factory p {
+  margin: 7px 0 0;
+  color: #d1f6ed;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.v2-qa-factory strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.v2-qa-factory-actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(93, 255, 203, 0.34);
+  border-radius: 8px;
+  background: rgba(8, 73, 68, 0.74);
+  color: #effffc;
+  font-weight: 900;
+}
+
+.v2-qa-factory-expert summary {
+  cursor: pointer;
+  color: #67ffdc;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.v2-qa-factory-expert pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 8, 20, 0.72);
+  color: #d5fff4;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .v2-command-center--ready .v2-command-hero,
 .v2-command-center--ready.v2-start-status-card,
 .v2-command-center--ready.v2-menu-card,
@@ -10549,6 +10657,9 @@ button:not(:disabled) {
   .v2-recovery-command-grid,
   .v2-recovery-owner,
   .v2-recovery-owner > div,
+  .v2-qa-factory-hero,
+  .v2-qa-factory-grid,
+  .v2-qa-factory-actions,
   .v2-p0-acceptance-hero,
   .v2-p0-acceptance-strip,
   .v2-p0-acceptance-grid,
