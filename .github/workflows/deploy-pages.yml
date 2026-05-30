@@ -86,7 +86,7 @@ jobs:
             {
               name: 'html',
               url: `${root}?force=workflow-smoke-${Date.now()}`,
-              validate: (text) => text.includes('20260529-v2-first-run-recovery-v1') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),
+              validate: (text) => text.includes('20260530-mina-scheme-visual-v1') && text.includes('manifest.webmanifest') && text.includes('screen-start') && text.includes('btn-start'),
             },
             {
               name: 'manifest',
@@ -99,7 +99,7 @@ jobs:
             {
               name: 'service-worker',
               url: `${root}sw.js?force=workflow-smoke-${Date.now()}`,
-              validate: (text) => text.includes('terminator-mina-pwa-20260529-v2-first-run-recovery-v1'),
+              validate: (text) => text.includes('terminator-mina-pwa-20260530-mina-scheme-visual-v1'),
             },
           ];
 
