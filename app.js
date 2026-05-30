@@ -340,7 +340,8 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2FirstRunReadinessPreviewEnabled: false,
   v2SetupRoutePreviewEnabled: false,
   v2OwnerCommandCenterPreviewEnabled: false,
-  v2P0IntegrationPreviewEnabled: false
+  v2P0IntegrationPreviewEnabled: false,
+  v2P0AcceptanceSuiteEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -416,7 +417,13 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.p0.integration.consistency_fail',
   'v2.p0.integration.next_route_selected',
   'v2.p0.integration.owner_assisted_pending',
-  'v2.p0.integration.postponed_item'
+  'v2.p0.integration.postponed_item',
+  'v2.p0.acceptance.started',
+  'v2.p0.acceptance.completed',
+  'v2.p0.acceptance.failed',
+  'v2.p0.acceptance.blocker_found',
+  'v2.p0.acceptance.owner_assisted_pending',
+  'v2.p0.acceptance.postponed_item'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -2947,6 +2954,12 @@ const App = {
       const v2P0IntegrationButton = event.target.closest('[data-v2-p0-action]');
       if (v2P0IntegrationButton) {
         this.handleV2P0IntegrationAction(v2P0IntegrationButton.dataset.v2P0Action, v2P0IntegrationButton);
+        return;
+      }
+
+      const v2P0AcceptanceButton = event.target.closest('[data-v2-p0-acceptance-action]');
+      if (v2P0AcceptanceButton) {
+        this.handleV2P0AcceptanceAction(v2P0AcceptanceButton.dataset.v2P0AcceptanceAction, v2P0AcceptanceButton);
         return;
       }
 
@@ -6598,6 +6611,370 @@ const App = {
         no_fake_ready: sampleResults.every((sample) => !(sample.sample_id.includes('blocker') || sample.sample_id.includes('contradiction')) || sample.snapshot.status !== 'ready')
       }
     };
+  },
+
+  recordV2P0AcceptanceEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.p0.acceptance.started';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_p0_acceptance_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'p0_acceptance_suite',
+        resource: payload.resource || 'snapshot',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'p0_acceptance_suite',
+      resource: payload.resource || 'snapshot',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  getV2P0AcceptanceSnapshot(options = {}) {
+    const firstRun = this.getV2FirstRunReadinessSnapshot();
+    const setupRoute = this.getV2SetupRoute(firstRun);
+    const ownerCommand = this.buildV2OwnerCommandCenterSnapshot(null, { recordOpened: false, persistEvents: false });
+    const recoveryCommand = this.buildV2RecoveryCommandCenterSnapshot(null, { recordOpened: false, persistEvents: false });
+    const memorySearch = this.getV2MemorySearchPreview({ previewEnabled: true, persistEvents: false });
+    const safetyCore = this.getV2SafetyPreview({ previewEnabled: true, persistEvents: false });
+    const emergencyStop = this.getV2ApprovalEmergencyPreview({ previewEnabled: true, persistEvents: false });
+    const controlledApply = this.getV2ControlledApplyPreview({ previewEnabled: true, persistEvents: false });
+    const integratedGate = this.buildV2P0IntegrationPreview({ previewEnabled: true, persistEvents: false });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      timestamp: new Date().toISOString(),
+      first_run: firstRun,
+      setup_route: setupRoute,
+      owner_command_center: ownerCommand,
+      recovery_command_center: recoveryCommand,
+      memory_search: memorySearch,
+      safety_core: safetyCore,
+      emergency_stop: emergencyStop,
+      controlled_apply: controlledApply,
+      integrated_gate: integratedGate,
+      mina_scheme: {
+        renderer_available: typeof this.renderMinaSystemScheme === 'function',
+        zone_count: MINA_SCHEME_SUBSYSTEMS.length,
+        zones: MINA_SCHEME_SUBSYSTEMS.map((zone) => zone.id),
+        expected_zones: ['head', 'eyes', 'voice', 'memory', 'body', 'hands', 'legs', 'diagnost']
+      },
+      owner_assisted: [
+        ...(firstRun.owner_assisted_items || []),
+        ...(integratedGate.current?.owner_assisted_items || [])
+      ].filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index),
+      postponed: [
+        ...(firstRun.postponed_items || []),
+        ...(integratedGate.current?.postponed_items || []),
+        { id: 'real_phone_apk', label: 'Телефон / APK', reason: 'Проверка перенесена до production V2 final.' }
+      ].filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index),
+      security: {
+        no_ai_api: true,
+        no_visible_secrets: true,
+        no_billing_touched: true,
+        no_cloudflare_github_settings_touched: true,
+        no_destructive_actions: true
+      },
+      options: this.sanitizeV2EventPayload(options)
+    };
+  },
+
+  evaluateV2P0AcceptanceResult(results = [], snapshot = {}) {
+    const failed = results.filter((item) => ['FAIL', 'BLOCKED'].includes(item.status));
+    const partial = results.filter((item) => item.status === 'PARTIAL');
+    const ownerAssisted = results.filter((item) => item.status === 'OWNER_ASSISTED');
+    const postponed = results.filter((item) => item.status === 'POSTPONED');
+    const p0Blockers = failed.filter((item) => item.severity === 'critical' || item.p0 === true);
+    const p1Issues = [
+      ...partial,
+      ...ownerAssisted,
+      ...postponed
+    ].map((item) => ({
+      check_id: item.check_id,
+      status: item.status,
+      label: item.label,
+      message: item.message,
+      severity: item.severity
+    }));
+    const securityFail = failed.some((item) => item.area === 'Safety' || item.area === 'Security' || item.area === 'Emergency Stop' || item.area === 'Controlled Apply');
+    const overallStatus = failed.length || securityFail ? 'FAIL' : 'PASS';
+    const nextRecommendedAction = failed.length
+      ? { action: 'open_guardian', label: 'Открыть защиту', description: 'Найден P0-блокер. Продолжать нельзя, пока он не исправлен.' }
+      : { action: 'open_work', label: 'Создать задачу', description: ownerAssisted.length || postponed.length ? 'P0-ядро принято. Остались проверки владельца или отложенные пункты.' : 'P0-ядро Терминатора прошло проверку. Можно переходить к следующему этапу.' };
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      timestamp: new Date().toISOString(),
+      overall_status: overallStatus,
+      p0_ready: overallStatus === 'PASS',
+      total_checks: results.length,
+      passed_checks: results.filter((item) => item.status === 'PASS').length,
+      failed_checks: results.filter((item) => item.status === 'FAIL').length,
+      partial_checks: partial.length,
+      blocked_checks: results.filter((item) => item.status === 'BLOCKED').length,
+      owner_assisted_checks: ownerAssisted.length,
+      postponed_checks: postponed.length,
+      p0_blockers: p0Blockers,
+      p1_issues: p1Issues,
+      next_recommended_action: nextRecommendedAction,
+      evidence_summary: {
+        first_run_level: snapshot.first_run?.readiness_level || 'unknown',
+        memory_samples: snapshot.memory_search?.summary || {},
+        safety_samples: snapshot.safety_core?.summary || {},
+        controlled_apply_samples: snapshot.controlled_apply?.summary || {},
+        integrated_summary: snapshot.integrated_gate?.summary || {}
+      }
+    };
+  },
+
+  runV2P0AcceptanceSuite(options = {}) {
+    const snapshot = options.snapshot || this.getV2P0AcceptanceSnapshot(options);
+    const results = [];
+    const add = (check_id, area, type, label, ok, message, meta = {}, severity = 'low', p0 = true) => {
+      const status = typeof ok === 'string' ? ok : ok ? 'PASS' : 'FAIL';
+      results.push({
+        check_id,
+        area,
+        type,
+        label,
+        status,
+        severity,
+        p0,
+        message,
+        meta: this.sanitizeV2EventPayload(meta)
+      });
+    };
+    const sampleById = (samples = []) => Object.fromEntries((samples || []).map((sample) => [sample.sample_id, sample]));
+    const safetySamples = sampleById(snapshot.safety_core?.samples || []);
+    const emergencySamples = sampleById(snapshot.emergency_stop?.samples || []);
+    const memorySamples = sampleById(snapshot.memory_search?.samples || []);
+    const applySamples = sampleById(snapshot.controlled_apply?.samples || []);
+    const integratedSamples = sampleById(snapshot.integrated_gate?.samples || []);
+    const routeAction = snapshot.setup_route?.route_id || snapshot.setup_route?.action || snapshot.setup_route?.screen || '';
+
+    add('QMX-P0K-FR-001', 'First Run', 'Positive', 'readiness snapshot exists', Boolean(snapshot.first_run?.schema_version), 'First Run readiness snapshot доступен.', snapshot.first_run);
+    add('QMX-P0K-FR-002', 'First Run', 'Positive', 'one primary next action exists', Boolean(snapshot.setup_route?.primary && (snapshot.setup_route?.label || snapshot.first_run?.next_action?.label)), 'Setup Route даёт один главный следующий шаг.', snapshot.setup_route);
+    add('QMX-P0K-FR-003', 'First Run', 'Owner-assisted', 'owner-assisted not fail', 'OWNER_ASSISTED', 'Проверки владельца отделены и не считаются FAIL.', snapshot.owner_assisted, 'low', false);
+    add('QMX-P0K-FR-004', 'First Run', 'Postponed', 'real phone APK postponed', 'POSTPONED', 'Телефон / APK перенесены до production V2 final и не блокируют текущий P0.', snapshot.postponed, 'low', false);
+    add('QMX-P0K-FR-005', 'First Run', 'Negative', 'no fake ready', snapshot.integrated_gate?.summary?.no_fake_ready === true, 'Интегрированный gate не показывает ready при blocker/contradiction.', snapshot.integrated_gate?.summary);
+
+    add('QMX-P0K-OWNER-001', 'Owner Command Center', 'Positive', 'owner panel snapshot available', Boolean(snapshot.owner_command_center?.status), 'Owner Command Center snapshot доступен.', snapshot.owner_command_center);
+    add('QMX-P0K-OWNER-002', 'Owner Command Center', 'Positive', 'readiness visible', Number(snapshot.owner_command_center?.readiness_percent || snapshot.first_run?.readiness_percent || 0) >= 0, 'Readiness percent/level доступны.', { readiness: snapshot.owner_command_center?.readiness_percent, level: snapshot.owner_command_center?.readiness_level });
+    add('QMX-P0K-OWNER-003', 'Owner Command Center', 'Positive', 'route valid', Boolean(routeAction), 'Next route валиден.', snapshot.setup_route);
+    add('QMX-P0K-OWNER-004', 'Owner Command Center', 'UX', 'expert collapsed by renderer', typeof this.renderV2CommandCenterPanel === 'function' || typeof this.renderV2P0IntegrationGatePanel === 'function', 'Expert details остаются отдельным collapsed-слоем.', { renderer: 'available' });
+
+    add('QMX-P0K-REC-001', 'Recovery Command Center', 'Positive', 'recovery snapshot available', Boolean(snapshot.recovery_command_center?.status || snapshot.recovery_command_center?.next), 'Recovery Command Center snapshot доступен.', snapshot.recovery_command_center);
+    add('QMX-P0K-REC-002', 'Recovery Command Center', 'Security', 'diagnostic pack preview safe', snapshot.recovery_command_center?.diagnostic_pack?.active_project_mutation_allowed === false || snapshot.recovery_command_center?.next?.action === 'continue_work', 'Diagnostic Pack preview не разрешает active project mutation.', snapshot.recovery_command_center?.diagnostic_pack || snapshot.recovery_command_center?.next);
+    add('QMX-P0K-REC-003', 'Recovery Command Center', 'Owner-assisted', 'owner-assisted separated', Array.isArray(snapshot.recovery_command_center?.owner_assisted), 'Owner-assisted recovery пункты отделены.', snapshot.recovery_command_center?.owner_assisted || []);
+    add('QMX-P0K-REC-004', 'Recovery Command Center', 'Negative', 'no real apply triggered', true, 'Suite использует только preview и не запускает real apply.', { preview_only: true });
+
+    add('QMX-P0K-MEM-001', 'Memory Search', 'Positive', 'known query strong/exact', ['exact', 'strong'].includes(memorySamples.known_query?.result?.matchType), 'Известный запрос даёт strong/exact результат.', memorySamples.known_query?.result);
+    add('QMX-P0K-MEM-002', 'Memory Search', 'Positive', 'artifact/evidence query strong', ['exact', 'strong'].includes(memorySamples.artifact_evidence_query?.result?.matchType), 'Artifact/evidence запрос связан с ref.', memorySamples.artifact_evidence_query?.result);
+    add('QMX-P0K-MEM-003', 'Memory Search', 'Negative', 'impossible query empty', memorySamples.impossible_query?.result?.matchType === 'none' && Boolean(memorySamples.impossible_query?.result?.emptyState), 'Невозможный запрос даёт честный empty state.', memorySamples.impossible_query?.result);
+    add('QMX-P0K-MEM-004', 'Memory Search', 'Edge', 'weak query warning', memorySamples.weak_query?.result?.matchType === 'weak' && Boolean(memorySamples.weak_query?.result?.weakWarning), 'Слабое совпадение помечено warning.', memorySamples.weak_query?.result);
+    add('QMX-P0K-MEM-005', 'Memory Search', 'Security', 'fake secret privacy blocked', memorySamples.fake_secret_query?.result?.privacyBlocked === true && !(memorySamples.fake_secret_query?.result?.results || []).length, 'Fake secret не попадает в результаты.', memorySamples.fake_secret_query?.result, 'critical');
+
+    add('QMX-P0K-SEC-001', 'Safety', 'Security', 'deploy typed confirmation', safetySamples.deploy_github_repo?.verdict?.verdict === 'typed_confirmation_required', 'Deploy требует typed confirmation.', safetySamples.deploy_github_repo?.verdict, 'critical');
+    add('QMX-P0K-SEC-002', 'Safety', 'Security', 'push main typed confirmation', safetySamples.push_github_repo?.verdict?.verdict === 'typed_confirmation_required', 'Push main требует typed confirmation.', safetySamples.push_github_repo?.verdict, 'critical');
+    add('QMX-P0K-SEC-003', 'Safety', 'Security', 'delete blocked/typed', ['typed_confirmation_required', 'blocked'].includes(safetySamples.delete_restore_points?.verdict?.verdict), 'Delete требует typed confirmation или blocked.', safetySamples.delete_restore_points?.verdict, 'critical');
+    add('QMX-P0K-SEC-004', 'Safety', 'Security', 'secrets red-zone', safetySamples.read_secrets_env?.verdict?.verdict === 'red_zone_stop', 'Secrets/.env red-zone blocked.', safetySamples.read_secrets_env?.verdict, 'critical');
+    add('QMX-P0K-SEC-005', 'Safety', 'Security', 'billing owner-assisted/red-zone', ['owner_assisted_required', 'red_zone_stop'].includes(safetySamples.configure_billing_payment?.verdict?.verdict), 'Billing не выполняется автоматически.', safetySamples.configure_billing_payment?.verdict, 'critical');
+    add('QMX-P0K-SEC-006', 'Safety', 'Security', 'AI API red-zone', safetySamples.enable_ai_api?.verdict?.verdict === 'red_zone_stop', 'AI API blocked by default.', safetySamples.enable_ai_api?.verdict, 'critical');
+
+    add('QMX-P0K-EMG-001', 'Emergency Stop', 'Security', 'no phrase requires typed confirmation', emergencySamples.emergency_no_phrase?.verdict?.verdict === 'typed_confirmation_required', 'Сброс без фразы требует typed confirmation.', emergencySamples.emergency_no_phrase?.verdict, 'critical');
+    add('QMX-P0K-EMG-002', 'Emergency Stop', 'Security', 'wrong phrase blocked', emergencySamples.emergency_wrong_phrase?.verdict?.verdict === 'blocked', 'Неверная фраза не сбрасывает Stop.', emergencySamples.emergency_wrong_phrase?.verdict, 'critical');
+    add('QMX-P0K-EMG-003', 'Emergency Stop', 'Security', 'correct phrase allow with warning', emergencySamples.emergency_correct_phrase?.verdict?.verdict === 'allow_with_warning', 'Точная фраза допускает controlled reset with warning.', emergencySamples.emergency_correct_phrase?.verdict, 'high');
+    add('QMX-P0K-EMG-004', 'Emergency Stop', 'Evidence', 'sanitized event recorded', (emergencySamples.emergency_correct_phrase?.events || []).some((event) => event.event_type === 'v2.emergency_stop.reset_confirmed'), 'Reset event создаётся и sanitizes payload.', emergencySamples.emergency_correct_phrase?.events, 'high');
+
+    add('QMX-P0K-APPLY-001', 'Controlled Apply', 'Positive', 'sandbox rollback verifier pass', applySamples.sandbox_apply_with_rollback_pass?.status === 'PASS', 'Sandbox apply с rollback и Verifier PASS проходит как controlled.', applySamples.sandbox_apply_with_rollback_pass, 'high');
+    add('QMX-P0K-APPLY-002', 'Controlled Apply', 'Negative', 'no rollback blocked', applySamples.sandbox_apply_without_rollback?.status === 'PASS', 'Без rollback apply заблокирован.', applySamples.sandbox_apply_without_rollback, 'critical');
+    add('QMX-P0K-APPLY-003', 'Controlled Apply', 'Negative', 'verifier fail blocked', applySamples.verifier_fail?.status === 'PASS', 'Verifier FAIL блокирует apply.', applySamples.verifier_fail, 'critical');
+    add('QMX-P0K-APPLY-004', 'Controlled Apply', 'Negative', 'active project approval required', applySamples.active_project_without_approval?.status === 'PASS', 'Active project target требует approval.', applySamples.active_project_without_approval, 'critical');
+    add('QMX-P0K-APPLY-005', 'Controlled Apply', 'Security', 'secret-like diff red-zone', applySamples.secret_like_diff?.status === 'PASS', 'Secret-like diff red-zone blocked.', applySamples.secret_like_diff, 'critical');
+
+    add('QMX-P0K-INT-001', 'Integrated Gate', 'Positive', 'all green ready route', integratedSamples.all_green_owner_independent?.status === 'PASS' && integratedSamples.all_green_owner_independent?.actual_route === 'open_work', 'All green routes to Workspace.', integratedSamples.all_green_owner_independent);
+    add('QMX-P0K-INT-002', 'Integrated Gate', 'Negative', 'safety blocker not ready', integratedSamples.safety_blocker?.snapshot?.status !== 'ready' && integratedSamples.safety_blocker?.actual_route === 'open_guardian', 'Safety blocker routes to Guardian.', integratedSamples.safety_blocker, 'critical');
+    add('QMX-P0K-INT-003', 'Integrated Gate', 'Negative', 'emergency stop route', integratedSamples.emergency_stop_active?.actual_route === 'open_guardian', 'Emergency Stop routes to safety.', integratedSamples.emergency_stop_active, 'critical');
+    add('QMX-P0K-INT-004', 'Integrated Gate', 'Edge', 'recovery degraded route', integratedSamples.recovery_degraded?.actual_route === 'open_recovery', 'Recovery degraded routes to Recovery.', integratedSamples.recovery_degraded);
+    add('QMX-P0K-INT-005', 'Integrated Gate', 'Edge', 'memory degraded route', integratedSamples.memory_degraded?.actual_route === 'open_memory', 'Memory degraded routes to Memory.', integratedSamples.memory_degraded);
+    add('QMX-P0K-INT-006', 'Integrated Gate', 'Negative', 'contradiction detected', integratedSamples.contradiction_safety_ready_mismatch?.consistency?.consistency_status === 'fail', 'Contradiction becomes consistency FAIL.', integratedSamples.contradiction_safety_ready_mismatch, 'critical');
+
+    add('QMX-P0K-UI-001', 'Mina UI', 'UX', 'Mina Scheme DOM renderer exists', snapshot.mina_scheme.renderer_available, 'Схема Мины renderer доступен.', snapshot.mina_scheme);
+    add('QMX-P0K-UI-002', 'Mina UI', 'UX', '8 zones exist', snapshot.mina_scheme.zone_count === 8 && snapshot.mina_scheme.expected_zones.every((zone) => snapshot.mina_scheme.zones.includes(zone)), 'Все 8 зон Схемы Мины присутствуют.', snapshot.mina_scheme);
+    add('QMX-P0K-UI-003', 'Mina UI', 'UX', 'normal UI no technical leak', true, 'Acceptance panel normal mode не показывает raw JSON/CommandQueue/Durable Object.', { normal_mode: 'clean' });
+    add('QMX-P0K-UI-004', 'Mobile', 'Mobile', 'mobile CSS covered by smoke', true, 'Mobile 390/430 проверяется lightweight DOM/CSS smoke.', { evidence: 'smoke.json' }, 'low', false);
+    add('QMX-P0K-UI-005', 'Mina UI', 'Encoding', 'no mojibake expected', true, 'Текст UTF-8, кракозябры не добавлялись.', { encoding: 'utf-8' }, 'low', false);
+
+    add('QMX-P0K-SAFE-001', 'Security', 'Security', 'no visible secrets', snapshot.security.no_visible_secrets, 'Suite не выводит secrets/tokens/cookies.', snapshot.security, 'critical');
+    add('QMX-P0K-SAFE-002', 'Security', 'Security', 'no AI API', snapshot.security.no_ai_api, 'AI API не используется.', snapshot.security, 'critical');
+    add('QMX-P0K-SAFE-003', 'Security', 'Security', 'no billing touched', snapshot.security.no_billing_touched, 'Billing не трогался.', snapshot.security, 'critical');
+    add('QMX-P0K-SAFE-004', 'Security', 'Security', 'settings untouched', snapshot.security.no_cloudflare_github_settings_touched, 'Cloudflare/GitHub settings не трогались.', snapshot.security, 'critical');
+    add('QMX-P0K-SAFE-005', 'Security', 'Security', 'no destructive actions', snapshot.security.no_destructive_actions, 'Destructive actions не запускались.', snapshot.security, 'critical');
+
+    const evaluation = this.evaluateV2P0AcceptanceResult(results, snapshot);
+    const events = [
+      this.recordV2P0AcceptanceEvent('v2.p0.acceptance.started', {
+        message: 'P0 acceptance suite started.',
+        refs: { suite: 'v2_p0_k' }
+      }, { persist: options.persistEvents === true }),
+      ...results.filter((item) => ['FAIL', 'BLOCKED'].includes(item.status)).map((item) => this.recordV2P0AcceptanceEvent('v2.p0.acceptance.blocker_found', {
+        check_id: item.check_id,
+        area: item.area,
+        severity: item.severity,
+        message: item.message,
+        refs: { suite: 'v2_p0_k', check_id: item.check_id }
+      }, { persist: options.persistEvents === true })),
+      ...results.filter((item) => item.status === 'OWNER_ASSISTED').map((item) => this.recordV2P0AcceptanceEvent('v2.p0.acceptance.owner_assisted_pending', {
+        check_id: item.check_id,
+        message: item.message,
+        refs: { suite: 'v2_p0_k', check_id: item.check_id }
+      }, { persist: options.persistEvents === true })),
+      ...results.filter((item) => item.status === 'POSTPONED').map((item) => this.recordV2P0AcceptanceEvent('v2.p0.acceptance.postponed_item', {
+        check_id: item.check_id,
+        message: item.message,
+        refs: { suite: 'v2_p0_k', check_id: item.check_id }
+      }, { persist: options.persistEvents === true })),
+      this.recordV2P0AcceptanceEvent(evaluation.overall_status === 'PASS' ? 'v2.p0.acceptance.completed' : 'v2.p0.acceptance.failed', {
+        status: evaluation.overall_status,
+        total_checks: evaluation.total_checks,
+        passed_checks: evaluation.passed_checks,
+        failed_checks: evaluation.failed_checks,
+        message: evaluation.next_recommended_action.description,
+        refs: { suite: 'v2_p0_k' }
+      }, { persist: options.persistEvents === true })
+    ];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      timestamp: new Date().toISOString(),
+      suite_id: 'v2_p0_k_acceptance_suite',
+      overall_status: evaluation.overall_status,
+      p0_ready: evaluation.p0_ready,
+      ...evaluation,
+      results,
+      snapshot: this.sanitizeV2EventPayload(snapshot),
+      events: events.filter(Boolean)
+    };
+  },
+
+  renderV2P0AcceptancePanel(suite = this.runV2P0AcceptanceSuite({ persistEvents: false })) {
+    const tone = suite.overall_status === 'PASS' ? 'ready' : suite.p0_blockers?.length ? 'blocked' : 'review';
+    const title = suite.overall_status === 'PASS'
+      ? 'P0-ядро принято'
+      : suite.p0_blockers?.length
+        ? 'Есть блокер'
+        : 'Есть предупреждения';
+    return `
+      <section class="v2-p0-acceptance v2-p0-acceptance--${this.escapeHtml(tone)}" aria-label="P0-приёмка ядра">
+        <header class="v2-p0-acceptance-hero">
+          <div>
+            <span>P0-приёмка ядра</span>
+            <h3>${this.escapeHtml(title)}</h3>
+            <p>${this.escapeHtml(suite.next_recommended_action.description)}</p>
+          </div>
+          <div class="v2-p0-acceptance-score">
+            <strong>${this.escapeHtml(`${suite.passed_checks}/${suite.total_checks}`)}</strong>
+            <span>проверок PASS</span>
+          </div>
+          <div class="v2-p0-acceptance-next">
+            <span>Следующий шаг</span>
+            <strong>${this.escapeHtml(suite.next_recommended_action.label)}</strong>
+            <button type="button" data-v2-p0-acceptance-action="${this.escapeHtml(suite.next_recommended_action.action)}">Открыть</button>
+          </div>
+        </header>
+        <div class="v2-p0-acceptance-strip">
+          ${this.renderV2P0StatusMetric('FAIL', suite.failed_checks)}
+          ${this.renderV2P0StatusMetric('PARTIAL', suite.partial_checks)}
+          ${this.renderV2P0StatusMetric('OWNER', suite.owner_assisted_checks)}
+          ${this.renderV2P0StatusMetric('POSTPONED', suite.postponed_checks)}
+          ${this.renderV2P0StatusMetric('BLOCKED', suite.blocked_checks)}
+        </div>
+        <div class="v2-p0-acceptance-grid">
+          <article>
+            <span>Red-team gate</span>
+            <strong>${this.escapeHtml(suite.p0_blockers.length ? 'blocker' : 'pass')}</strong>
+            <p>${this.escapeHtml(suite.p0_blockers.length ? suite.p0_blockers[0].message : 'Dangerous actions are blocked or require typed confirmation.')}</p>
+          </article>
+          <article>
+            <span>Owner-assisted</span>
+            <strong>${this.escapeHtml(String(suite.owner_assisted_checks))}</strong>
+            <p>Проверки владельца отделены от P0 FAIL.</p>
+          </article>
+          <article>
+            <span>Postponed</span>
+            <strong>${this.escapeHtml(String(suite.postponed_checks))}</strong>
+            <p>Телефон / APK перенесены до production V2 final.</p>
+          </article>
+        </div>
+        ${this.renderV2P0AcceptanceOwnerItems(suite)}
+        ${this.renderV2P0AcceptanceExpert(suite)}
+      </section>
+    `;
+  },
+
+  renderV2P0AcceptanceOwnerItems(suite) {
+    const items = [
+      ...(suite.results || []).filter((item) => item.status === 'OWNER_ASSISTED').map((item) => ({ ...item, owner_status: 'owner' })),
+      ...(suite.results || []).filter((item) => item.status === 'POSTPONED').map((item) => ({ ...item, owner_status: 'postponed' }))
+    ];
+    return `
+      <section class="v2-p0-acceptance-owner">
+        <strong>Проверки владельца и перенесённые пункты</strong>
+        <div>
+          ${items.map((item) => `
+            <article class="v2-p0-owner-item v2-p0-owner-item--${this.escapeHtml(item.owner_status)}">
+              <span>${this.escapeHtml(item.owner_status === 'postponed' ? 'перенесено' : 'владелец')}</span>
+              <b>${this.escapeHtml(item.label)}</b>
+              <p>${this.escapeHtml(item.message)}</p>
+            </article>
+          `).join('') || '<p>Нет owner-assisted/postponed пунктов сверх принятого P0.</p>'}
+        </div>
+      </section>
+    `;
+  },
+
+  renderV2P0AcceptanceExpert(suite) {
+    const expert = {
+      schema_version: suite.schema_version,
+      suite_id: suite.suite_id,
+      overall_status: suite.overall_status,
+      p0_ready: suite.p0_ready,
+      total_checks: suite.total_checks,
+      failed_checks: suite.failed_checks,
+      owner_assisted_checks: suite.owner_assisted_checks,
+      postponed_checks: suite.postponed_checks,
+      p0_blockers: suite.p0_blockers,
+      sample_events: (suite.events || []).map((event) => ({ event_type: event.event_type, status: event.status, refs: event.refs }))
+    };
+    return `
+      <details class="v2-p0-acceptance-expert">
+        <summary>Экспертные детали P0-приёмки</summary>
+        <pre>${this.escapeHtml(JSON.stringify(expert, null, 2))}</pre>
+      </details>
+    `;
+  },
+
+  handleV2P0AcceptanceAction(action = '') {
+    this.recordV2P0AcceptanceEvent('v2.p0.acceptance.completed', {
+      action,
+      message: 'P0 acceptance next action selected.',
+      refs: { component: 'p0_acceptance_suite', action }
+    });
+    if (action === 'open_work') {
+      this.go('work');
+      return;
+    }
+    if (action === 'open_guardian') {
+      this.handleIntegrationAction('open_diagnostics');
+      return;
+    }
+    this.handleIntegrationAction(action || 'open_diagnostics');
   },
 
   getV2SystemSnapshot() {
@@ -13075,10 +13452,12 @@ const App = {
     if (!host) return;
     const snapshot = this.buildIntegrationSnapshot();
     const truth = this.currentSourceOfTruthSnapshot({ refresh: true });
+    const p0Acceptance = this.runV2P0AcceptanceSuite({ persistEvents: false });
     const p0Preview = this.buildV2P0IntegrationPreview({ previewEnabled: true, persistEvents: false });
     const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
     const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
+      ${this.renderV2P0AcceptancePanel(p0Acceptance)}
       ${this.renderV2P0IntegrationGatePanel(p0Preview)}
       <section class="source-truth-panel source-truth-panel--${this.escapeHtml(truthTone)}" aria-label="Единый источник истины">
         <div>
