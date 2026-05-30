@@ -164,6 +164,20 @@ Recommended next step after P0-4:
 
 V2 P0 Implementation Planning Pack or P0 Gap Review.
 
+## V2 P0 Implementation Planning Pack
+
+Status: planned / docs created.
+
+Planning artifacts:
+- `docs/TERMINATOR_V2_P0_IMPLEMENTATION_PACK_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_GAP_REVIEW_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_TEST_STRATEGY_2026-05-30.md`
+- `evidence/v2_p0_implementation_pack/V2_P0_IMPLEMENTATION_PACK_RESULT.md`
+
+Recommended first V2 P0 implementation block after reviewer/owner acceptance:
+
+Phase A — Foundation: data contracts, event log, capability matrix, source-of-truth snapshots and feature flags.
+
 ## Exit Gate For V2-P0
 
 V2-P0 is ready only when:
