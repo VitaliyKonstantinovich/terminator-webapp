@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-05-30T18:01:04.1955134-05:00",
+  "status": "PASS",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-a-qa-factory-live",
+  "commit": "b8435cf3708e30e9c761322189549ffca9f8ef4f",
+  "workflow": {
+    "url": "https://github.com/VitaliyKonstantinovich/terminator-webapp/actions/runs/26697153279",
+    "conclusion": "success",
+    "run_id": 26697153279,
+    "headSha": "b8435cf3708e30e9c761322189549ffca9f8ef4f",
+    "status": "completed"
+  },
+  "app_js": {
+    "has_qa_factory": true,
+    "has_feature_flag": true,
+    "length": 1303226,
+    "status": 200
+  },
+  "browser_dom": {
+    "panel_exists": true,
+    "horizontal_overflow": false,
+    "backend_partial": true,
+    "title": "Фабрика автотестов",
+    "normal_raw_json": false,
+    "actions": [
+      "Создать план проверки",
+      "Что будет проверено",
+      "Найти в памяти"
+    ],
+    "cache_note": "Initial selected browser tab was stale; cache-busted hard URL showed current live app.",
+    "verifier_partial": true,
+    "test_case_cards": 11
+  },
+  "mobile": [
+    {
+      "viewport": 390,
+      "result": {
+        "readyState": "interactive",
+        "width": 390,
+        "scrollWidth": 390,
+        "horizontalOverflow": false,
+        "panelExists": true,
+        "testCaseCards": 11,
+        "normalRawJson": false,
+        "hasBackendPartial": true
+      }
+    },
+    {
+      "viewport": 430,
+      "result": {
+        "readyState": "interactive",
+        "width": 430,
+        "scrollWidth": 430,
+        "horizontalOverflow": false,
+        "panelExists": true,
+        "testCaseCards": 11,
+        "normalRawJson": false,
+        "hasBackendPartial": true
+      }
+    }
+  ],
+  "security": {
+    "local_agent_direct_bridge_touched": false,
+    "no_ai_api": true,
+    "cloudflare_github_settings_touched": false,
+    "no_billing": true,
+    "no_secrets": true,
+    "external_site_execution": false
+  }
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "viewport": 390,
+    "result": {
+      "readyState": "interactive",
+      "width": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": false,
+      "panelExists": true,
+      "testCaseCards": 11,
+      "normalRawJson": false,
+      "hasBackendPartial": true
+    }
+  },
+  {
+    "viewport": 430,
+    "result": {
+      "readyState": "interactive",
+      "width": 430,
+      "scrollWidth": 430,
+      "horizontalOverflow": false,
+      "panelExists": true,
+      "testCaseCards": 11,
+      "normalRawJson": false,
+      "hasBackendPartial": true
+    }
+  }
+]
