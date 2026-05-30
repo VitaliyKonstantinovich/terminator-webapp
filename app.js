@@ -335,7 +335,9 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2SafetyPolicyPreviewEnabled: false,
   v2ControlledApplyPreviewEnabled: false,
   v2MemoryContractPreviewEnabled: false,
-  v2RecoveryStatePreviewEnabled: false
+  v2RecoveryStatePreviewEnabled: false,
+  v2FirstRunReadinessPreviewEnabled: false,
+  v2SetupRoutePreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -394,7 +396,13 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.recovery.blocked',
   'v2.recovery.owner_assisted_required',
   'v2.recovery.ready',
-  'v2.recovery.escalated'
+  'v2.recovery.escalated',
+  'v2.first_run.readiness_checked',
+  'v2.setup_route.next_action_selected',
+  'v2.setup_route.owner_assisted_pending',
+  'v2.setup_route.postponed_item',
+  'v2.setup_route.blocked',
+  'v2.setup_route.ready'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -6102,15 +6110,16 @@ const App = {
   },
 
   getV2ReadinessSnapshot() {
-    const firstRun = this.buildV2FirstRunRecoverySnapshot?.() || {};
+    const firstRun = this.getV2FirstRunReadinessSnapshot?.() || this.buildV2FirstRunRecoverySnapshot?.() || {};
     return {
       schema_version: V2_FOUNDATION_SCHEMA_VERSION,
       generated_at: new Date().toISOString(),
-      status: firstRun.status || 'partial',
-      readiness_score: Number(firstRun.score || 0),
+      status: firstRun.readiness_level || firstRun.status || 'partial',
+      readiness_score: Number(firstRun.readiness_percent || firstRun.score || 0),
       unknown_is_pass: false,
-      next_action: firstRun.next || { name: 'Проверить систему', action: 'open_system' },
-      owner_assisted: firstRun.ownerAssisted || []
+      next_action: firstRun.next_best_action || firstRun.next || { name: 'Проверить систему', action: 'open_system' },
+      owner_assisted: firstRun.owner_assisted_items || firstRun.ownerAssisted || [],
+      postponed: firstRun.postponed_items || []
     };
   },
 
@@ -6179,6 +6188,324 @@ const App = {
     };
   },
 
+  recordV2SetupRouteEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.first_run.readiness_checked';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_setup_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'setup_route',
+        resource: 'task_state',
+        risk_level: payload.risk_level || payload.riskLevel || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'setup_route',
+      resource: 'task_state',
+      risk_level: payload.risk_level || payload.riskLevel || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  evaluateV2SetupReadiness(sourceSnapshots = {}) {
+    const system = sourceSnapshots.system || {};
+    const safety = sourceSnapshots.safety || {};
+    const memory = sourceSnapshots.memory || {};
+    const recovery = sourceSnapshots.recovery || {};
+    const capability = sourceSnapshots.capability || {};
+    const controlledApply = sourceSnapshots.controlled_apply || {};
+    const brain = sourceSnapshots.brain || {};
+    const performance = sourceSnapshots.performance || {};
+    const mobile = sourceSnapshots.mobile || {};
+
+    const blockers = [];
+    const warnings = [];
+    const ownerAssistedItems = [];
+    const postponedItems = [];
+    const addBlocker = (id, label, reason, route = 'system') => blockers.push({ id, label, reason, route });
+    const addWarning = (id, label, reason, route = 'system') => warnings.push({ id, label, reason, route });
+    const addOwner = (id, label, reason) => ownerAssistedItems.push({ id, label, reason, status: 'owner_assisted' });
+    const addPostponed = (id, label, reason) => postponedItems.push({ id, label, reason, status: 'postponed' });
+
+    const systemKnown = system.status && system.status !== 'unknown' && system.source_state !== 'unknown';
+    const storageKnown = sourceSnapshots.storage_known !== false && system.storage_known !== false;
+    const safetyKnown = safety.status && safety.status !== 'unknown';
+    const recoveryKnown = recovery.status && recovery.status !== 'unknown';
+    const memoryKnown = memory.index_status && memory.index_status !== 'unknown';
+    const emergencyKnown = typeof safety.emergency_stop_active === 'boolean';
+    const emergencyActive = Boolean(safety.emergency_stop_active);
+    const recoveryBlocked = Number(recovery.blocked_count || 0) > 0 || ['blocked', 'escalated', 'critical'].includes(recovery.status);
+    const recoveryDegraded = recoveryBlocked || Number(recovery.open_incidents || 0) > 0 && !['ready', 'active', 'known'].includes(recovery.status);
+    const memoryReadiness = Number(memory.readiness || 0);
+    const memoryHealthy = memoryKnown && !['blocked', 'critical', 'privacy_blocked'].includes(memory.status) && memoryReadiness >= 45;
+    const controlledApplyAvailable = controlledApply.available === true || controlledApply.status === 'ready' || typeof this.getV2ControlledApplyPreview === 'function';
+    const brainKnown = brain.status && brain.status !== 'unknown';
+    const brainVerified = ['ready', 'verified'].includes(brain.status) || Number(brain.readiness || 0) >= 70;
+    const researchReady = sourceSnapshots.research_ready === true || Boolean(sourceSnapshots.research_decision_passport_ready);
+    const mobileChecked = mobile.checked === true || mobile.status === 'checked' || mobile.web_ready === true;
+    const performanceOk = performance.status ? ['pass', 'ready', 'within_budget'].includes(performance.status) : false;
+
+    if (!systemKnown) addBlocker('system_unknown', 'Состояние WebApp неизвестно', 'Unknown нельзя считать PASS.', 'system');
+    if (!storageKnown) addBlocker('storage_unknown', 'Хранилище не подтверждено', 'Минимальный запуск требует известное хранилище.', 'system_storage');
+    if (!safetyKnown) addBlocker('safety_unknown', 'Safety status неизвестен', 'Защитник должен дать известный статус.', 'system_guardian');
+    if (!recoveryKnown) addBlocker('recovery_unknown', 'Recovery status неизвестен', 'Восстановление должно иметь snapshot.', 'system_recovery');
+    if (!emergencyKnown) addBlocker('emergency_unknown', 'Стоп действия неизвестен', 'Emergency Stop state должен быть известен.', 'system_guardian');
+    if (emergencyActive) addBlocker('emergency_stop_active', 'Стоп действия включён', 'Рискованные действия заблокированы до точного подтверждения.', 'system_guardian');
+    if (!memoryKnown) addWarning('memory_unknown', 'Память требует проверки', 'Memory Search status неизвестен; это не PASS.', 'memory');
+    if (recoveryBlocked) addBlocker('recovery_blocked', 'Recovery требует внимания', 'Есть blocked/escalated incident.', 'system_recovery');
+    else if (recoveryDegraded) addWarning('recovery_degraded', 'Recovery требует проверки', 'Есть активный incident без критического блока.', 'system_recovery');
+    if (memoryKnown && !memoryHealthy) addWarning('memory_degraded', 'Поиск памяти работает не полностью', 'Можно продолжить с предупреждением или обновить индекс.', 'memory');
+    if (!brainKnown || !brainVerified) addWarning('brain_unverified', 'Голова требует проверки', 'Стратег/Совет мозгов не считаются полностью подтверждёнными.', 'head');
+    if (!controlledApplyAvailable) addWarning('controlled_apply_unavailable', 'Руки требуют safety preview', 'Controlled Apply должен быть доступен хотя бы как sandbox/preview.', 'hands');
+
+    ['real_phone_apk', 'billing_dashboards', 'production_signing', 'production_rollback'].forEach((id) => {
+      const label = id === 'real_phone_apk' ? 'APK на реальном телефоне'
+        : id === 'billing_dashboards' ? 'Billing dashboards'
+          : id === 'production_signing' ? 'Production signing'
+            : 'Production rollback';
+      if (id === 'real_phone_apk') addPostponed(id, label, 'Перенесено до production V2 final, не блокирует текущую owner-independent готовность.');
+      else addOwner(id, label, 'Проверяется владельцем, не считается runtime FAIL.');
+    });
+
+    const minimumReady = systemKnown && storageKnown && safetyKnown && recoveryKnown && emergencyKnown && memoryKnown && !blockers.length;
+    const comfortReady = minimumReady && memoryHealthy && controlledApplyAvailable && !recoveryBlocked && !blockers.length;
+    const maximumReady = comfortReady && researchReady && mobileChecked && ownerAssistedItems.length === 0 && performanceOk;
+    const readinessPercent = maximumReady ? 100
+      : comfortReady ? 74 + Math.min(18, Math.max(0, Math.round(memoryReadiness / 8)))
+        : minimumReady ? 45 + Math.min(24, Math.max(0, Math.round(memoryReadiness / 10)))
+          : Math.max(12, Math.min(44, 12 + (systemKnown ? 6 : 0) + (safetyKnown ? 8 : 0) + (recoveryKnown ? 8 : 0) + (memoryKnown ? 8 : 0)));
+    const readinessLevel = maximumReady ? 'maximum_ready'
+      : comfortReady ? 'comfort_ready'
+        : minimumReady ? 'minimum_ready'
+          : blockers.length ? 'blocked'
+            : 'partial';
+
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      evaluated_at: new Date().toISOString(),
+      minimum_ready: minimumReady,
+      comfort_ready: comfortReady,
+      maximum_ready: maximumReady,
+      readiness_percent: Math.min(100, readinessPercent),
+      readiness_level: readinessLevel,
+      blockers,
+      warnings,
+      owner_assisted_items: ownerAssistedItems,
+      postponed_items: postponedItems,
+      facts: {
+        systemKnown,
+        storageKnown,
+        safetyKnown,
+        recoveryKnown,
+        memoryKnown,
+        emergencyKnown,
+        emergencyActive,
+        memoryHealthy,
+        controlledApplyAvailable,
+        brainVerified,
+        researchReady,
+        mobileChecked,
+        performanceOk
+      }
+    };
+  },
+
+  getV2SetupRoute(snapshot = this.getV2FirstRunReadinessSnapshot()) {
+    const evaluation = snapshot.evaluation || snapshot;
+    const warnings = evaluation.warnings || [];
+    const blockers = evaluation.blockers || [];
+    const firstBlocker = blockers[0];
+    const warningById = (id) => warnings.find((item) => item.id === id);
+    const route = (route_id, label, description, screen, priority, status = 'next') => ({
+      route_id,
+      label,
+      description,
+      screen,
+      priority,
+      status,
+      primary: true
+    });
+    if (firstBlocker?.id?.includes('safety') || firstBlocker?.id?.includes('emergency')) {
+      return route('open_safety_guardian', 'Открыть Guardian / Emergency', 'Сначала снять safety-блокер. Рискованные действия остаются заблокированы.', 'system', 1, 'blocked');
+    }
+    if (firstBlocker?.id?.includes('recovery')) {
+      return route('open_recovery', 'Открыть Центр восстановления', 'Recovery требует внимания перед продолжением.', 'system', 2, 'blocked');
+    }
+    if (!evaluation.minimum_ready) {
+      return route('open_setup_minimum', 'Завершить минимум запуска', 'Проверить WebApp, хранилище, Safety, Recovery, Emergency Stop и Memory Search.', 'system', 4, 'blocked');
+    }
+    if (firstBlocker?.id?.includes('recovery') || warningById('recovery_degraded')) {
+      return route('open_recovery', 'Открыть Центр восстановления', 'Recovery требует внимания перед продолжением.', 'system', 2, firstBlocker ? 'blocked' : 'warning');
+    }
+    if (warningById('memory_unknown') || warningById('memory_degraded')) {
+      return route('open_memory_search', 'Проверить память', 'Поиск памяти работает не полностью. Можно продолжить с предупреждением или обновить индекс.', 'memory', 3, 'warning');
+    }
+    if (warningById('brain_unverified')) {
+      return route('open_head_readiness', 'Проверить мозги', 'Стратег и Совет мозгов должны быть подтверждены владельцем.', 'head', 5, 'warning');
+    }
+    if (warningById('controlled_apply_unavailable')) {
+      return route('open_hands_safety', 'Проверить Руки', 'Controlled Apply должен оставаться через Guardian, Verifier, Approval и rollback.', 'hands', 6, 'warning');
+    }
+    if ((evaluation.owner_assisted_items || []).length || (evaluation.postponed_items || []).length) {
+      return route('show_owner_checklist', 'Показать финальный чеклист владельца', 'Остались owner-assisted/postponed проверки. Они не блокируют текущую работу.', 'system', 7, 'owner_assisted');
+    }
+    return route('start_workspace', 'Создать задачу', 'Терминатор готов к работе. Можно открыть Рабочее и создать первую задачу.', 'work', 8, 'ready');
+  },
+
+  getV2FirstRunReadinessSnapshot(inputSnapshots = null) {
+    const councilReadiness = this.headCouncilReadiness?.() || {};
+    const verifiedBrains = Array.isArray(councilReadiness.verified) ? councilReadiness.verified : [];
+    const sourceSnapshots = inputSnapshots || {
+      system: this.getV2SystemSnapshot(),
+      safety: this.getV2SafetySnapshot(),
+      memory: this.getV2MemorySnapshot(),
+      recovery: this.getV2RecoverySnapshot(),
+      capability: this.getV2CapabilitySnapshot(),
+      controlled_apply: { status: typeof this.getV2ControlledApplyPreview === 'function' ? 'ready' : 'unknown', available: typeof this.getV2ControlledApplyPreview === 'function' },
+      brain: { status: verifiedBrains.length ? 'verified' : 'unknown', readiness: verifiedBrains.length ? 72 : 0 },
+      mobile: { status: 'postponed', checked: false, web_ready: true },
+      performance: { status: 'unknown' },
+      storage_known: true
+    };
+    const evaluation = this.evaluateV2SetupReadiness(sourceSnapshots);
+    const setupRoute = this.getV2SetupRoute({ evaluation });
+    const ordinaryMessage = evaluation.maximum_ready
+      ? 'Терминатор готов к работе.'
+      : evaluation.comfort_ready
+        ? 'Комфортный контур готов. Остались проверки владельца и финальная полировка.'
+        : evaluation.minimum_ready
+          ? 'Базовая система готова. Можно создать первую задачу, но часть контуров требует внимания.'
+          : setupRoute.description;
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      timestamp: new Date().toISOString(),
+      minimum_ready: evaluation.minimum_ready,
+      comfort_ready: evaluation.comfort_ready,
+      maximum_ready: evaluation.maximum_ready,
+      readiness_percent: evaluation.readiness_percent,
+      readiness_level: evaluation.readiness_level,
+      blockers: evaluation.blockers,
+      warnings: evaluation.warnings,
+      owner_assisted_items: evaluation.owner_assisted_items,
+      postponed_items: evaluation.postponed_items,
+      next_best_action: setupRoute,
+      next_route: setupRoute.route_id,
+      ordinary_message: ordinaryMessage,
+      source_snapshots: this.sanitizeV2EventPayload(sourceSnapshots),
+      evaluation
+    };
+  },
+
+  buildV2FirstRunSampleSnapshots() {
+    const base = {
+      system: { status: 'known', source_state: 'known', storage_known: true },
+      safety: { status: 'ready', emergency_stop_active: false },
+      memory: { status: 'ready', readiness: 82, index_status: 'ready' },
+      recovery: { status: 'active', open_incidents: 0, blocked_count: 0, owner_assisted_count: 0, state_model: ['detected'] },
+      capability: { matrix: { actors: [] } },
+      controlled_apply: { status: 'ready', available: true },
+      brain: { status: 'verified', readiness: 78 },
+      mobile: { status: 'postponed', checked: false, web_ready: true },
+      performance: { status: 'unknown' },
+      storage_known: true
+    };
+    const sample = (sample_id, expected_route, patch = {}) => ({
+      sample_id,
+      expected_route,
+      snapshots: {
+        ...base,
+        ...patch,
+        system: { ...base.system, ...(patch.system || {}) },
+        safety: { ...base.safety, ...(patch.safety || {}) },
+        memory: { ...base.memory, ...(patch.memory || {}) },
+        recovery: { ...base.recovery, ...(patch.recovery || {}) },
+        controlled_apply: { ...base.controlled_apply, ...(patch.controlled_apply || {}) },
+        brain: { ...base.brain, ...(patch.brain || {}) },
+        mobile: { ...base.mobile, ...(patch.mobile || {}) },
+        performance: { ...base.performance, ...(patch.performance || {}) }
+      }
+    });
+    return [
+      sample('all_green_owner_independent', 'show_owner_checklist'),
+      sample('safety_blocker', 'open_safety_guardian', { safety: { status: 'ready', emergency_stop_active: true } }),
+      sample('recovery_degraded', 'open_recovery', { recovery: { status: 'blocked', open_incidents: 1, blocked_count: 1 } }),
+      sample('memory_degraded', 'open_memory_search', { memory: { status: 'partial', readiness: 32, index_status: 'stale' } }),
+      sample('brain_council_unverified', 'open_head_readiness', { brain: { status: 'unknown', readiness: 0 } }),
+      sample('owner_assisted_only', 'show_owner_checklist'),
+      sample('real_phone_apk_postponed', 'show_owner_checklist', { mobile: { status: 'postponed', checked: false, web_ready: true } }),
+      sample('emergency_stop_active', 'open_safety_guardian', { safety: { status: 'ready', emergency_stop_active: true } }),
+      sample('v2_foundation_disabled', 'open_setup_minimum', { system: { status: 'unknown', source_state: 'unknown' }, safety: { status: 'unknown', emergency_stop_active: false }, memory: { status: 'unknown', readiness: 0, index_status: 'unknown' } })
+    ];
+  },
+
+  buildV2FirstRunPreview(options = {}) {
+    const samples = this.buildV2FirstRunSampleSnapshots().map((sample) => {
+      const snapshot = this.getV2FirstRunReadinessSnapshot(sample.snapshots);
+      const readinessEvent = this.recordV2SetupRouteEvent('v2.first_run.readiness_checked', {
+        sample_id: sample.sample_id,
+        readiness_level: snapshot.readiness_level,
+        readiness_percent: snapshot.readiness_percent,
+        blockers_count: snapshot.blockers.length,
+        warnings_count: snapshot.warnings.length,
+        message: snapshot.ordinary_message,
+        refs: { sample_id: sample.sample_id }
+      }, { persist: options.persistEvents === true });
+      const routeEventType = snapshot.blockers.length ? 'v2.setup_route.blocked'
+        : snapshot.next_route === 'show_owner_checklist' ? 'v2.setup_route.owner_assisted_pending'
+          : snapshot.next_route === 'start_workspace' ? 'v2.setup_route.ready'
+            : 'v2.setup_route.next_action_selected';
+      const routeEvent = this.recordV2SetupRouteEvent(routeEventType, {
+        sample_id: sample.sample_id,
+        next_route: snapshot.next_route,
+        next_action: snapshot.next_best_action.label,
+        message: snapshot.next_best_action.description,
+        refs: { sample_id: sample.sample_id }
+      }, { persist: options.persistEvents === true });
+      const postponedEvents = snapshot.postponed_items.map((item) => this.recordV2SetupRouteEvent('v2.setup_route.postponed_item', {
+        sample_id: sample.sample_id,
+        item_id: item.id,
+        label: item.label,
+        message: item.reason,
+        refs: { sample_id: sample.sample_id, item_id: item.id }
+      }, { persist: options.persistEvents === true }));
+      return {
+        sample_id: sample.sample_id,
+        expected_route: sample.expected_route,
+        status: snapshot.next_route === sample.expected_route ? 'PASS' : 'REVIEW',
+        snapshot,
+        setup_route: snapshot.next_best_action,
+        events: [readinessEvent, routeEvent, ...postponedEvents].filter(Boolean)
+      };
+    });
+    const liveSnapshot = this.getV2FirstRunReadinessSnapshot();
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({
+        v2FirstRunReadinessPreviewEnabled: Boolean(options.previewEnabled),
+        v2SetupRoutePreviewEnabled: Boolean(options.previewEnabled)
+      }),
+      ordinary_summary: liveSnapshot.ordinary_message,
+      live_snapshot: liveSnapshot,
+      samples,
+      summary: {
+        total: samples.length,
+        pass: samples.filter((sample) => sample.status === 'PASS').length,
+        blocked: samples.filter((sample) => sample.snapshot.blockers.length).length,
+        owner_assisted_only: samples.filter((sample) => !sample.snapshot.blockers.length && sample.snapshot.next_route === 'show_owner_checklist').length,
+        postponed_phone_not_blocker: samples.some((sample) => sample.sample_id === 'real_phone_apk_postponed' && sample.snapshot.postponed_items.some((item) => item.id === 'real_phone_apk') && sample.status === 'PASS'),
+        one_primary_next_action: samples.every((sample) => sample.setup_route?.primary === true)
+      }
+    };
+  },
+
   buildV2FoundationPreview(options = {}) {
     const task = this.createV2Contract('task', {
       id: 'v2_task_foundation_sample',
@@ -6230,6 +6557,8 @@ const App = {
       snapshots: {
         system: this.getV2SystemSnapshot(),
         readiness: this.getV2ReadinessSnapshot(),
+        first_run: this.getV2FirstRunReadinessSnapshot(),
+        first_run_preview: this.buildV2FirstRunPreview({ previewEnabled: true, persistEvents: false }),
         safety: this.getV2SafetySnapshot(),
         memory: this.getV2MemorySnapshot(),
         recovery: this.getV2RecoverySnapshot()
