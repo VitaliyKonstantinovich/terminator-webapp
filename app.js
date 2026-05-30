@@ -383,7 +383,12 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.apply.allowed',
   'v2.apply.completed',
   'v2.rollback.required',
-  'v2.rollback.completed'
+  'v2.rollback.completed',
+  'v2.memory.search.requested',
+  'v2.memory.search.completed',
+  'v2.memory.search.empty',
+  'v2.memory.search.weak_match',
+  'v2.memory.privacy.blocked'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -5651,14 +5656,18 @@ const App = {
   },
 
   getV2MemorySnapshot() {
-    const memory = this.memorySearchSnapshot?.() || {};
+    const memory = this.getV2MemoryRuntimeSnapshot?.() || this.memorySearchSnapshot?.() || {};
     return {
       schema_version: V2_FOUNDATION_SCHEMA_VERSION,
       generated_at: new Date().toISOString(),
       status: memory.status || 'partial',
       readiness: Number(memory.readiness || memory.score || 0),
       index_status: memory.index_status || memory.status || 'unknown',
-      records: Number(memory.records || memory.record_count || 0),
+      records: Number(memory.records || memory.record_count || memory.record_count_total || 0),
+      last_search_status: memory.last_search_status || 'not_run',
+      strong_results_count: Number(memory.strong_results_count || 0),
+      weak_results_count: Number(memory.weak_results_count || 0),
+      privacy_warnings_count: Number(memory.privacy_warnings_count || 0),
       unknown_is_pass: false
     };
   },
@@ -6253,7 +6262,8 @@ const App = {
       result_quality: 'not_run',
       last_query_warning: '',
       last_indexed_at: '',
-      last_query_at: ''
+      last_query_at: '',
+      last_query_duration_ms: 0
     };
   },
 
@@ -6272,7 +6282,8 @@ const App = {
       query: String(source.query || ''),
       context_pack: String(source.context_pack || ''),
       result_quality: source.result_quality || fallback.result_quality,
-      last_query_warning: String(source.last_query_warning || '')
+      last_query_warning: String(source.last_query_warning || ''),
+      last_query_duration_ms: Number(source.last_query_duration_ms || 0)
     };
   },
 
@@ -8356,9 +8367,378 @@ const App = {
     if (!options.silent) this.toast(`Индекс памяти собран: ${records.length} записей`);
   },
 
+  detectV2MemorySearchPrivacy(query = '') {
+    const raw = String(query || '').trim();
+    if (!raw) return { blocked: false, warnings: [], safeQuery: '' };
+    const scan = this.scanPrivacyText(raw);
+    const explicitSecretValue = /(?:FAKE_SECRET_DO_NOT_USE|sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,}|Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}|BEGIN\s+(?:RSA\s+|OPENSSH\s+|EC\s+)?PRIVATE\s+KEY|(?:api[_ -]?key|token|secret|password|passwd|pwd|cookie|session|jwt)\s*[:=]\s*\S{4,})/i.test(raw);
+    const blocked = Boolean(scan.findings.length || explicitSecretValue);
+    return {
+      blocked,
+      warnings: blocked ? ['Запрос похож на секрет или приватное значение. Поиск остановлен Privacy Guard.'] : [],
+      safeQuery: blocked ? '[privacy-blocked]' : raw,
+      scan
+    };
+  },
+
+  v2MemoryMatchType(record = {}, query = '', tokenCount = 0) {
+    if (record.match_type) return record.match_type;
+    if (!tokenCount) return 'recent';
+    const phrase = String(query || '').trim().toLowerCase();
+    const haystack = [record.title, record.summary, record.search_text].filter(Boolean).join(' ').toLowerCase();
+    if (phrase && haystack.includes(phrase) && Number(record.score || 0) >= MEMORY_SEARCH_STRONG_SCORE) return 'exact';
+    if (record.relevance === 'strong' || Number(record.score || 0) >= MEMORY_SEARCH_STRONG_SCORE) return 'strong';
+    if (record.relevance === 'weak' || Number(record.score || 0) >= MEMORY_SEARCH_WEAK_SCORE) return 'weak';
+    return 'none';
+  },
+
+  createV2MemoryRecordFromSearchResult(result = {}) {
+    const refs = result.refs && typeof result.refs === 'object' ? result.refs : {};
+    const listRefs = (...values) => [...new Set(values.flatMap((value) => {
+      if (Array.isArray(value)) return value;
+      if (value === null || value === undefined || value === '') return [];
+      return [value];
+    }).map(String).filter(Boolean))];
+    const artifactRefs = listRefs(refs.artifact_id, refs.artifact_ids, refs.linked_artifacts);
+    const evidenceRefs = listRefs(refs.evidence_id, refs.evidence_ids, result.type === 'evidence' ? result.source_id : '', refs.screenshot_ref);
+    const fileRefs = listRefs(refs.file_id, refs.file_ids, refs.storage_ref);
+    return this.createV2Contract('memory_record', {
+      id: result.record_id || `v2_memory_record_${Date.now()}`,
+      status: result.relevance === 'weak' || result.match_type === 'weak' ? 'weak_match' : 'indexed',
+      type: 'memory_record',
+      record_type: result.type || 'memory',
+      title: result.title || 'Запись памяти',
+      summary: result.summary || '',
+      source: {
+        source_id: result.source_id || refs.source_id || '',
+        source_type: result.source_type || result.type || 'memory_search',
+        source_ref: result.source_ref || ''
+      },
+      task_id: result.task_id || refs.task_id || '',
+      artifact_refs: artifactRefs,
+      evidence_refs: evidenceRefs,
+      file_refs: fileRefs,
+      confidence: result.confidence || 'metadata',
+      relevance_score: Number(result.score || 0),
+      match_type: result.match_type || result.relevance || 'none',
+      privacy_level: result.privacy_status === 'redacted' ? 'redacted' : 'normal',
+      refs: {
+        ...refs,
+        task_id: result.task_id || refs.task_id || '',
+        artifact_refs: artifactRefs,
+        evidence_refs: evidenceRefs,
+        file_refs: fileRefs
+      },
+      created_at: result.created_at || new Date().toISOString(),
+      updated_at: result.updated_at || result.created_at || new Date().toISOString()
+    });
+  },
+
+  recordV2MemorySearchEvent(searchResult = {}, options = {}) {
+    const persist = options.persist !== false;
+    const safeQuery = searchResult.privacyBlocked ? '[privacy-blocked]' : String(searchResult.normalizedQuery || '').slice(0, 120);
+    const eventBase = {
+      actor: 'memory_search',
+      resource: 'memory_index',
+      risk_level: searchResult.privacyBlocked ? 'high' : 'low',
+      refs: searchResult.refs || {},
+      payload: {
+        query: safeQuery,
+        result_count: Number(searchResult.results?.length || 0),
+        match_type: searchResult.matchType || 'none',
+        duration_ms: Number(searchResult.durationMs || 0),
+        privacy_warnings_count: Number(searchResult.privacyWarnings?.length || 0),
+        empty_state: searchResult.emptyState || '',
+        weak_warning: searchResult.weakWarning || ''
+      }
+    };
+    const makeEvent = (eventType, message, riskLevel = eventBase.risk_level) => {
+      const payload = { ...eventBase, risk_level: riskLevel, message };
+      if (persist) return this.recordV2Event(eventType, payload);
+      return this.createV2Contract('event', {
+        id: `preview_${eventType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        status: 'preview',
+        event_type: eventType,
+        actor: payload.actor,
+        resource: payload.resource,
+        message,
+        risk_level: riskLevel,
+        refs: payload.refs,
+        payload: this.sanitizeV2EventPayload(payload.payload)
+      });
+    };
+    const events = [makeEvent('v2.memory.search.requested', 'Memory Search query received.')];
+    if (searchResult.privacyBlocked || searchResult.privacyWarnings?.length) {
+      events.push(makeEvent('v2.memory.privacy.blocked', 'Privacy Guard blocked secret-like memory search query.', 'high'));
+      return events;
+    }
+    if (searchResult.matchType === 'none') {
+      events.push(makeEvent('v2.memory.search.empty', 'Memory Search found no relevant records.'));
+    } else if (searchResult.matchType === 'weak') {
+      events.push(makeEvent('v2.memory.search.weak_match', 'Memory Search found weak matches only.', 'medium'));
+    } else {
+      events.push(makeEvent('v2.memory.search.completed', 'Memory Search completed with relevant records.'));
+    }
+    return events;
+  },
+
+  evaluateV2MemorySearchQuery(query, options = {}) {
+    const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const state = this.normalizeMemorySearchState(this.memorySearchState || this.defaultMemorySearchState());
+    const normalizedQueryRaw = String(query ?? state.query ?? '').trim();
+    const privacyGate = this.detectV2MemorySearchPrivacy(normalizedQueryRaw);
+    const tokens = this.memorySearchTokenize(normalizedQueryRaw);
+    const includeArtifacts = options.includeArtifacts !== false;
+    const includeEvidence = options.includeEvidence !== false;
+    const includeFiles = options.includeFiles !== false;
+    const sourceRecords = Array.isArray(options.records) ? options.records : (state.records || []);
+    const scopedRecords = sourceRecords.filter((record) => {
+      if (options.project_id && record.project_id !== options.project_id) return false;
+      if (options.task_id && record.task_id !== options.task_id) return false;
+      if (!includeArtifacts && ['artifact', 'source', 'research', 'brain_answer', 'decision'].includes(record.type)) return false;
+      if (!includeEvidence && record.type === 'evidence') return false;
+      if (!includeFiles && record.type === 'file_ref') return false;
+      return true;
+    });
+
+    if (privacyGate.blocked) {
+      const durationMs = Math.max(0, Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - started));
+      const blocked = {
+        schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+        normalizedQuery: privacyGate.safeQuery,
+        results: [],
+        records: [],
+        matchType: 'none',
+        relevanceSummary: 'privacy_blocked',
+        emptyState: 'Есть предупреждение приватности. Запрос не выполнялся и секреты не показываются.',
+        weakWarning: '',
+        privacyWarnings: privacyGate.warnings,
+        privacyBlocked: true,
+        durationMs
+      };
+      blocked.events = this.recordV2MemorySearchEvent(blocked, { persist: options.persistEvents === true });
+      return blocked;
+    }
+
+    const scored = scopedRecords
+      .filter((record) => !this.memorySearchRecordHasSecret(record))
+      .map((record) => {
+        const score = this.scoreMemorySearchRecord(record, normalizedQueryRaw, tokens);
+        const relevance = this.memorySearchRelevanceLevel(score, tokens.length);
+        return {
+          ...record,
+          score,
+          relevance,
+          match_type: this.v2MemoryMatchType({ ...record, score, relevance }, normalizedQueryRaw, tokens.length),
+          weak_match: tokens.length > 0 && score >= MEMORY_SEARCH_WEAK_SCORE && score < MEMORY_SEARCH_STRONG_SCORE
+        };
+      })
+      .filter((record) => tokens.length ? record.score >= MEMORY_SEARCH_WEAK_SCORE : true)
+      .sort((a, b) => b.score - a.score || new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
+      .slice(0, Number(options.limit || MEMORY_SEARCH_RESULT_LIMIT));
+    const resultQuality = this.memorySearchResultQuality(scored, tokens.length);
+    const matchType = resultQuality === 'empty' ? 'none'
+      : scored.some((record) => record.match_type === 'exact') ? 'exact'
+        : resultQuality === 'strong' ? 'strong'
+          : resultQuality === 'weak' ? 'weak'
+            : 'recent';
+    const durationMs = Math.max(0, Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - started));
+    const searchResult = {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      normalizedQuery: normalizedQueryRaw,
+      scope: {
+        project_id: options.project_id || '',
+        task_id: options.task_id || '',
+        includeArtifacts,
+        includeEvidence,
+        includeFiles
+      },
+      results: scored,
+      records: scored.map((record) => this.createV2MemoryRecordFromSearchResult(record)),
+      matchType,
+      relevanceSummary: this.memorySearchQualityName(resultQuality),
+      emptyState: matchType === 'none' ? 'Ничего релевантного не найдено.' : '',
+      weakWarning: matchType === 'weak' ? 'Найдены слабые совпадения, проверьте вручную.' : (scored.some((record) => record.match_type === 'weak') ? 'Часть совпадений слабая, проверьте их перед использованием.' : ''),
+      privacyWarnings: [],
+      privacyBlocked: false,
+      durationMs
+    };
+    searchResult.events = this.recordV2MemorySearchEvent(searchResult, { persist: options.persistEvents === true });
+    return searchResult;
+  },
+
+  getV2MemoryRuntimeSnapshot() {
+    const state = this.normalizeMemorySearchState(this.memorySearchState || this.defaultMemorySearchState());
+    const snapshot = this.memorySearchSnapshot();
+    const results = state.results || [];
+    const privacyWarnings = [
+      ...(Array.isArray(state.warnings) ? state.warnings : []),
+      ...(String(state.last_query_warning || '').toLowerCase().includes('приват') ? [state.last_query_warning] : [])
+    ];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: snapshot.status || 'not_indexed',
+      readiness: snapshot.count ? (snapshot.status === 'ready' ? 88 : 70) : 35,
+      index_status: snapshot.status || 'not_indexed',
+      record_count_total: snapshot.count || 0,
+      records: snapshot.count || 0,
+      last_search_status: state.result_quality || 'not_run',
+      last_search_duration: Number(state.last_query_duration_ms || 0),
+      strong_results_count: results.filter((record) => record.relevance === 'strong' || record.match_type === 'exact').length,
+      weak_results_count: results.filter((record) => record.relevance === 'weak' || record.weak_match).length,
+      privacy_warnings_count: privacyWarnings.length,
+      owner_assisted_required: [],
+      stale: snapshot.status === 'stale',
+      degraded: ['stale', 'review', 'not_indexed', 'empty'].includes(snapshot.status),
+      note: snapshot.note || ''
+    };
+  },
+
+  buildV2MemorySearchSampleRecords() {
+    const records = [];
+    const warnings = [];
+    const now = new Date().toISOString();
+    const sampleBase = {
+      project_id: 'terminator',
+      project_name: 'Терминатор',
+      task_id: 'TASK-V2-P0-E',
+      task_title: 'Memory Search Runtime Wiring',
+      created_at: now,
+      updated_at: now
+    };
+    [
+      {
+        ...sampleBase,
+        record_id: 'task:v2-hello-world',
+        type: 'task',
+        title: 'Задача: Python hello world',
+        summary: 'Проверка простого сценария hello world, artifact и memory preview связаны через task_id.',
+        source_id: 'TASK-V2-HELLO',
+        refs: { task_id: 'TASK-V2-HELLO', project_id: 'terminator' },
+        keywords: ['hello', 'world', 'task']
+      },
+      {
+        ...sampleBase,
+        record_id: 'artifact:v2-context-pack',
+        type: 'artifact',
+        title: 'Context Pack: evidence artifact smoke',
+        summary: 'Artifact содержит evidence refs, verifier note и ссылку на результат без raw files.',
+        source_id: 'ART-V2-CONTEXT',
+        source_type: 'CONTEXT_PACK',
+        refs: { task_id: 'TASK-V2-P0-E', artifact_id: 'ART-V2-CONTEXT', evidence_id: 'EVD-V2-CONTEXT' },
+        keywords: ['artifact', 'evidence', 'context_pack']
+      },
+      {
+        ...sampleBase,
+        record_id: 'decision:v2-memory-runtime',
+        type: 'decision',
+        title: 'Паспорт решения: V2 Memory Runtime',
+        summary: 'Memory Search должен возвращать сильные совпадения, слабые совпадения с предупреждением и пустой результат для невозможного запроса.',
+        source_id: 'DEC-V2-MEMORY',
+        refs: { task_id: 'TASK-V2-P0-E', decision_id: 'DEC-V2-MEMORY' },
+        keywords: ['decision', 'memory_runtime', 'weak_match']
+      },
+      {
+        ...sampleBase,
+        record_id: 'memory:v2-route',
+        type: 'memory',
+        title: 'Маршрут настройки',
+        summary: 'Контур готовности показывает следующий шаг и не выдаёт слабое совпадение как уверенный результат.',
+        source_id: 'MEM-V2-ROUTE',
+        refs: { task_id: 'TASK-V2-P0-E' },
+        keywords: ['готовность']
+      }
+    ].forEach((item) => this.addMemorySearchRecord(records, warnings, item));
+    records.push({
+      schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
+      record_id: 'memory:v2-weak-signal',
+      type: 'memory',
+      label: MEMORY_SEARCH_TYPE_LABELS.memory,
+      title: 'Слабый сигнал памяти',
+      summary: 'Preview-запись для проверки weak match без уверенного PASS.',
+      project_id: 'terminator',
+      project_name: 'Терминатор',
+      task_id: 'TASK-V2-P0-E',
+      task_title: 'Memory Search Runtime Wiring',
+      source_id: 'MEM-V2-WEAK',
+      source_type: 'preview',
+      refs: { task_id: 'TASK-V2-P0-E' },
+      keywords: [],
+      confidence: 'metadata',
+      privacy_status: 'ok',
+      created_at: now,
+      updated_at: now,
+      search_text: 'тонкаясвязь'
+    });
+    return records;
+  },
+
+  getV2MemorySearchPreview(options = {}) {
+    const records = options.records || this.buildV2MemorySearchSampleRecords();
+    const sampleQueries = [
+      { id: 'known_query', query: 'hello world', expected: 'strong_or_exact' },
+      { id: 'artifact_evidence_query', query: 'context pack evidence', expected: 'strong' },
+      { id: 'impossible_query', query: 'zzqx impossible nebula 849203', expected: 'empty' },
+      { id: 'weak_query', query: 'тонкаясвязь слабыйнет', expected: 'weak_warning' },
+      { id: 'fake_secret_query', query: ['FAKE_SECRET_DO_NOT_USE', '12345'].join('='), expected: 'privacy_blocked' }
+    ];
+    const samples = sampleQueries.map((sample) => ({
+      sample_id: sample.id,
+      expected: sample.expected,
+      result: this.evaluateV2MemorySearchQuery(sample.query, {
+        records,
+        persistEvents: options.persistEvents === true,
+        limit: 8
+      })
+    }));
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2MemoryContractPreviewEnabled: Boolean(options.previewEnabled) }),
+      ordinary_summary: 'Memory Search использует существующий индекс, V2-контракты, пороги релевантности и Privacy Guard. Невозможный запрос даёт честный empty state.',
+      samples,
+      snapshot: this.getV2MemoryRuntimeSnapshot(),
+      summary: {
+        total: samples.length,
+        exact_or_strong: samples.filter((sample) => ['exact', 'strong'].includes(sample.result.matchType)).length,
+        weak: samples.filter((sample) => sample.result.matchType === 'weak').length,
+        empty: samples.filter((sample) => sample.result.matchType === 'none' && !sample.result.privacyBlocked).length,
+        privacy_blocked: samples.filter((sample) => sample.result.privacyBlocked).length,
+        max_duration_ms: Math.max(...samples.map((sample) => Number(sample.result.durationMs || 0)))
+      }
+    };
+  },
+
   runMemorySearch(query, options = {}) {
+    const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
     const state = this.normalizeMemorySearchState(this.memorySearchState || this.defaultMemorySearchState());
     const normalizedQuery = String(query ?? state.query ?? '').trim();
+    const privacyGate = this.detectV2MemorySearchPrivacy(normalizedQuery);
+    if (privacyGate.blocked) {
+      const durationMs = Math.max(0, Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - started));
+      this.memorySearchState = this.normalizeMemorySearchState({
+        ...state,
+        query: privacyGate.safeQuery,
+        results: [],
+        context_pack: 'Context Pack не собран: запрос заблокирован Privacy Guard.',
+        result_quality: 'empty',
+        last_query_warning: 'Есть предупреждение приватности. Запрос не выполнялся и секреты не показываются.',
+        last_query_at: new Date().toISOString(),
+        last_query_duration_ms: durationMs
+      });
+      this.recordV2MemorySearchEvent({
+        normalizedQuery: privacyGate.safeQuery,
+        results: [],
+        matchType: 'none',
+        emptyState: this.memorySearchState.last_query_warning,
+        privacyWarnings: privacyGate.warnings,
+        privacyBlocked: true,
+        durationMs
+      }, { persist: options.persist !== false && options.recordV2Events !== false });
+      if (options.persist !== false) this.saveMemorySearchState();
+      return [];
+    }
     const tokens = this.memorySearchTokenize(normalizedQuery);
     const results = (state.records || [])
       .filter((record) => !this.memorySearchRecordHasSecret(record))
@@ -8369,6 +8749,7 @@ const App = {
       .map((record) => ({
         ...record,
         relevance: this.memorySearchRelevanceLevel(record.score, tokens.length),
+        match_type: this.v2MemoryMatchType(record, normalizedQuery, tokens.length),
         weak_match: tokens.length > 0 && record.score >= MEMORY_SEARCH_WEAK_SCORE && record.score < MEMORY_SEARCH_STRONG_SCORE
       }))
       .filter((record) => tokens.length ? record.score >= MEMORY_SEARCH_WEAK_SCORE : true)
@@ -8376,6 +8757,7 @@ const App = {
       .slice(0, MEMORY_SEARCH_RESULT_LIMIT);
     const resultQuality = this.memorySearchResultQuality(results, tokens.length);
     const lastQueryWarning = this.memorySearchResultWarning(normalizedQuery, results, resultQuality);
+    const durationMs = Math.max(0, Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - started));
     this.memorySearchState = this.normalizeMemorySearchState({
       ...state,
       query: normalizedQuery,
@@ -8383,8 +8765,23 @@ const App = {
       context_pack: this.buildMemorySearchContextPack(results, normalizedQuery),
       result_quality: resultQuality,
       last_query_warning: lastQueryWarning,
-      last_query_at: new Date().toISOString()
+      last_query_at: new Date().toISOString(),
+      last_query_duration_ms: durationMs
     });
+    this.recordV2MemorySearchEvent({
+      normalizedQuery,
+      results,
+      matchType: resultQuality === 'empty' ? 'none'
+        : results.some((record) => record.match_type === 'exact') ? 'exact'
+          : resultQuality === 'strong' ? 'strong'
+            : resultQuality === 'weak' ? 'weak'
+              : 'recent',
+      emptyState: resultQuality === 'empty' ? 'Ничего релевантного не найдено.' : '',
+      weakWarning: resultQuality === 'weak' ? 'Найдены слабые совпадения, проверьте вручную.' : '',
+      privacyWarnings: [],
+      privacyBlocked: false,
+      durationMs
+    }, { persist: options.persist !== false && options.recordV2Events !== false });
     if (options.persist !== false) this.saveMemorySearchState();
     return results;
   },
@@ -8435,7 +8832,7 @@ const App = {
   memorySearchResultWarning(query, results, quality) {
     if (!String(query || '').trim()) return '';
     if (quality === 'empty') return 'Ничего релевантного не найдено.';
-    if (quality === 'weak') return 'Найдены только слабые совпадения, проверьте вручную.';
+    if (quality === 'weak') return 'Найдены слабые совпадения, проверьте вручную.';
     if ((results || []).some((record) => record.relevance === 'weak')) return 'Часть совпадений слабая, проверьте их перед использованием.';
     return '';
   },
@@ -12099,6 +12496,56 @@ const App = {
     host.innerHTML = rows.map(([name, status, note]) => this.renderSystemRow(name, status, note)).join('');
   },
 
+  renderV2MemorySearchRuntimePanel() {
+    const snapshot = this.getV2MemoryRuntimeSnapshot();
+    const preview = this.getV2MemorySearchPreview({ previewEnabled: true, persistEvents: false });
+    const impossible = preview.samples.find((sample) => sample.sample_id === 'impossible_query')?.result;
+    const weak = preview.samples.find((sample) => sample.sample_id === 'weak_query')?.result;
+    const privacy = preview.samples.find((sample) => sample.sample_id === 'fake_secret_query')?.result;
+    return `
+      <section class="approval-warning">
+        <strong>V2 Memory Runtime</strong>
+        <p>Поиск использует один индекс памяти, V2-контракты, пороги релевантности и Privacy Guard. Невозможный запрос не выдаётся как результат.</p>
+        <div class="approval-grid">
+          <div><dt>Индекс</dt><dd>${this.escapeHtml(this.memorySearchStatusName(snapshot.index_status))}</dd></div>
+          <div><dt>Последний поиск</dt><dd>${this.escapeHtml(this.memorySearchQualityName(snapshot.last_search_status))}</dd></div>
+          <div><dt>Сильные</dt><dd>${this.escapeHtml(String(snapshot.strong_results_count))}</dd></div>
+          <div><dt>Слабые</dt><dd>${this.escapeHtml(String(snapshot.weak_results_count))}</dd></div>
+          <div><dt>Приватность</dt><dd>${privacy?.privacyBlocked ? 'секретный запрос блокируется' : 'без предупреждений'}</dd></div>
+          <div><dt>Скорость</dt><dd>${this.escapeHtml(String(preview.summary.max_duration_ms))} мс preview</dd></div>
+        </div>
+        <div class="guardian-cost-grid">
+          <article class="guardian-mini-card">
+            <strong>Невозможный запрос</strong>
+            <span>${this.escapeHtml(impossible?.emptyState || 'Ничего релевантного не найдено.')}</span>
+            <p>Мусор не показывается как уверенный результат.</p>
+          </article>
+          <article class="guardian-mini-card">
+            <strong>Слабое совпадение</strong>
+            <span>${this.escapeHtml(weak?.weakWarning || 'Найдены слабые совпадения, проверьте вручную.')}</span>
+            <p>Слабые совпадения отделены от сильных.</p>
+          </article>
+          <article class="guardian-mini-card">
+            <strong>Privacy Guard</strong>
+            <span>${privacy?.privacyBlocked ? 'блокирует' : 'проверяет'}</span>
+            <p>Секретоподобные запросы не попадают в результаты и events.</p>
+          </article>
+        </div>
+        <details>
+          <summary>Экспертно</summary>
+          <dl class="approval-grid">
+            <div><dt>schema_version</dt><dd>${this.escapeHtml(String(snapshot.schema_version))}</dd></div>
+            <div><dt>index_status</dt><dd>${this.escapeHtml(snapshot.index_status)}</dd></div>
+            <div><dt>record_count</dt><dd>${this.escapeHtml(String(snapshot.record_count_total))}</dd></div>
+            <div><dt>last_duration_ms</dt><dd>${this.escapeHtml(String(snapshot.last_search_duration))}</dd></div>
+            <div><dt>events</dt><dd>${this.escapeHtml(preview.samples.flatMap((sample) => sample.result.events || []).map((event) => event.event_type).slice(0, 6).join(', '))}</dd></div>
+            <div><dt>feature_flag</dt><dd>${preview.feature_flags.v2MemoryContractPreviewEnabled ? 'preview_enabled' : 'preview_disabled'}</dd></div>
+          </dl>
+        </details>
+      </section>
+    `;
+  },
+
   renderSystemMemorySearchPanel() {
     const host = document.getElementById('system-memory-search-panel');
     if (!host) return;
@@ -12145,6 +12592,8 @@ const App = {
           <button type="button" data-memory-search-action="clear_query">Очистить</button>
         </div>
       </div>
+
+      ${this.renderV2MemorySearchRuntimePanel()}
 
       <div class="memory-search-grid">
         <section class="memory-search-results" aria-label="Результаты поиска памяти">
