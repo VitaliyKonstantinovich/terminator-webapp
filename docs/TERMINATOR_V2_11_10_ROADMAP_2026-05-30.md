@@ -117,6 +117,19 @@ Recommended next V2-P0 planning block:
 
 V2-P0-2: Recovery 11/10 detailed playbooks and state model.
 
+## V2-P0-2 Status
+
+V2-P0-2 Recovery 11/10 playbooks and state model: planned / docs created.
+
+Planning artifacts:
+- `docs/TERMINATOR_V2_P0_2_RECOVERY_11_10_PLAYBOOKS_STATE_MODEL_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_2_SCORECARD_2026-05-30.md`
+- `evidence/v2_p0_2_recovery_11_10/V2_P0_2_RESULT.md`
+
+Recommended next V2-P0 planning block:
+
+V2-P0-3: Memory Search 11/10 architecture and performance contract.
+
 ## Exit Gate For V2-P0
 
 V2-P0 is ready only when:
