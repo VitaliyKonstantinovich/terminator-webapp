@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-05-30T20:00:17.809Z",
+  "mode": "node-vm-lightweight-v2-p0-k-acceptance-suite-smoke",
+  "pass": {
+    "suite_pass": true,
+    "p0_ready": true,
+    "checks_present": true,
+    "no_failed_checks": true,
+    "owner_assisted_separated": true,
+    "postponed_phone_separated": true,
+    "red_team_all_pass": true,
+    "event_log_present": true,
+    "acceptance_panel_rendered": true,
+    "expert_collapsed": true,
+    "normal_mode_no_technical_leak": true,
+    "integrated_gate_still_pass": true,
+    "memory_preview_pass": true,
+    "mina_scheme_markers_present": true,
+    "mobile_css_present": true,
+    "no_ai_api_runtime_domains": true
+  },
+  "notes": [
+    "No screenshots, no BlueStacks, no APK, no billing, no AI API.",
+    "Acceptance suite uses existing P0 preview/evaluator APIs only.",
+    "Real phone APK remains owner-assisted/postponed until production V2 final."
+  ],
+  "all_pass": true
+}

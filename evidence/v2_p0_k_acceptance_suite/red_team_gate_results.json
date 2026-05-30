@@ -1,0 +1,1540 @@
+{
+  "generated_at": "2026-05-30T20:00:17.820Z",
+  "results": [
+    {
+      "check_id": "QMX-P0K-SEC-001",
+      "area": "Safety",
+      "type": "Security",
+      "label": "deploy typed confirmation",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Deploy требует typed confirmation.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.756Z",
+        "actor": "webapp",
+        "action": "deploy",
+        "resource": "github_repo",
+        "target": "",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Deploy requires typed confirmation and owner approval.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "ALLOW DEPLOY",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Deploy требует точную фразу подтверждения и approval.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "deploy",
+          "normalized_action": "deploy",
+          "resource": "github_repo",
+          "target": "",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "github_repo",
+            "action": "deploy",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SEC-002",
+      "area": "Safety",
+      "type": "Security",
+      "label": "push main typed confirmation",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Push main требует typed confirmation.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.757Z",
+        "actor": "webapp",
+        "action": "push",
+        "resource": "github_repo",
+        "target": "",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Push to repository requires typed confirmation and owner approval.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "ALLOW PUSH MAIN",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Push требует точную фразу подтверждения и approval.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "push",
+          "normalized_action": "push",
+          "resource": "github_repo",
+          "target": "",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "github_repo",
+            "action": "push",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SEC-003",
+      "area": "Safety",
+      "type": "Security",
+      "label": "delete blocked/typed",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Delete требует typed confirmation или blocked.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.757Z",
+        "actor": "system_worker",
+        "action": "delete",
+        "resource": "restore_points",
+        "target": "",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Delete action requires typed confirmation, approval, and evidence.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "ALLOW DELETE",
+        "requiredRollback": true,
+        "evidenceRequired": true,
+        "userMessage": "Удаление требует точную фразу, approval и rollback/evidence.",
+        "expertDetails": {
+          "actor": "system_worker",
+          "action": "delete",
+          "normalized_action": "delete",
+          "resource": "restore_points",
+          "target": "",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "system_worker",
+            "resource": "restore_points",
+            "action": "delete",
+            "verdict": "typed_confirmation_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": true,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SEC-004",
+      "area": "Safety",
+      "type": "Security",
+      "label": "secrets red-zone",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Secrets/.env red-zone blocked.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.757Z",
+        "actor": "webapp",
+        "action": "read",
+        "resource": "secrets_env",
+        "target": "",
+        "verdict": "red_zone_stop",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "Secrets/env access is red-zone blocked by default.",
+        "requiredApproval": false,
+        "requiredTypedPhrase": "",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Секреты и .env заблокированы. Это red-zone.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "read",
+          "normalized_action": "read",
+          "resource": "secrets_env",
+          "target": "",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "secrets_env",
+            "action": "read",
+            "verdict": "blocked",
+            "risk_level": "critical",
+            "reason": "Red-zone resource is blocked by default.",
+            "requires_approval": false,
+            "typed_confirmation_required": false,
+            "rollback_required": false,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SEC-005",
+      "area": "Safety",
+      "type": "Security",
+      "label": "billing owner-assisted/red-zone",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Billing не выполняется автоматически.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.757Z",
+        "actor": "webapp",
+        "action": "configure",
+        "resource": "billing_payment",
+        "target": "",
+        "verdict": "owner_assisted_required",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "Billing/payment actions require owner-assisted manual review.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Платёжные действия выполняет только владелец после ручной проверки.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "configure",
+          "normalized_action": "configure",
+          "resource": "billing_payment",
+          "target": "",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "billing_payment",
+            "action": "configure",
+            "verdict": "red_zone_stop",
+            "risk_level": "critical",
+            "reason": "Red-zone resource is blocked by default.",
+            "requires_approval": false,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SEC-006",
+      "area": "Safety",
+      "type": "Security",
+      "label": "AI API red-zone",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "AI API blocked by default.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.757Z",
+        "actor": "webapp",
+        "action": "configure",
+        "resource": "ai_api",
+        "target": "",
+        "verdict": "red_zone_stop",
+        "riskLevel": "critical",
+        "risk_level": "critical",
+        "reason": "ai_api is red-zone blocked by default.",
+        "requiredApproval": false,
+        "requiredTypedPhrase": "",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Действие заблокировано как red-zone.",
+        "expertDetails": {
+          "actor": "webapp",
+          "action": "configure",
+          "normalized_action": "configure",
+          "resource": "ai_api",
+          "target": "",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "webapp",
+            "resource": "ai_api",
+            "action": "configure",
+            "verdict": "red_zone_stop",
+            "risk_level": "critical",
+            "reason": "Red-zone resource is blocked by default.",
+            "requires_approval": false,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-EMG-001",
+      "area": "Emergency Stop",
+      "type": "Security",
+      "label": "no phrase requires typed confirmation",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Сброс без фразы требует typed confirmation.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.758Z",
+        "actor": "owner",
+        "action": "configure",
+        "resource": "emergency_stop",
+        "target": "reset",
+        "verdict": "typed_confirmation_required",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Emergency Stop reset requires exact typed confirmation.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "RESET EMERGENCY STOP",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Сброс Стоп действия требует точную фразу подтверждения.",
+        "expertDetails": {
+          "actor": "owner",
+          "action": "configure",
+          "normalized_action": "configure",
+          "resource": "emergency_stop",
+          "target": "reset",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "owner",
+            "resource": "emergency_stop",
+            "action": "configure",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-EMG-002",
+      "area": "Emergency Stop",
+      "type": "Security",
+      "label": "wrong phrase blocked",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Неверная фраза не сбрасывает Stop.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.758Z",
+        "actor": "owner",
+        "action": "configure",
+        "resource": "emergency_stop",
+        "target": "reset",
+        "verdict": "blocked",
+        "riskLevel": "high",
+        "risk_level": "high",
+        "reason": "Emergency Stop reset phrase is incorrect.",
+        "requiredApproval": true,
+        "requiredTypedPhrase": "RESET EMERGENCY STOP",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Фраза неверная. Стоп действия остаётся активным.",
+        "expertDetails": {
+          "actor": "owner",
+          "action": "configure",
+          "normalized_action": "configure",
+          "resource": "emergency_stop",
+          "target": "reset",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "owner",
+            "resource": "emergency_stop",
+            "action": "configure",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-EMG-003",
+      "area": "Emergency Stop",
+      "type": "Security",
+      "label": "correct phrase allow with warning",
+      "status": "PASS",
+      "severity": "high",
+      "p0": true,
+      "message": "Точная фраза допускает controlled reset with warning.",
+      "meta": {
+        "schema_version": 1,
+        "evaluated_at": "2026-05-30T20:00:17.758Z",
+        "actor": "owner",
+        "action": "configure",
+        "resource": "emergency_stop",
+        "target": "reset",
+        "verdict": "allow_with_warning",
+        "riskLevel": "medium",
+        "risk_level": "medium",
+        "reason": "Emergency Stop reset phrase confirmed; event required.",
+        "requiredApproval": false,
+        "requiredTypedPhrase": "RESET EMERGENCY STOP",
+        "requiredRollback": false,
+        "evidenceRequired": true,
+        "userMessage": "Стоп действия можно сбросить, событие будет записано.",
+        "expertDetails": {
+          "actor": "owner",
+          "action": "configure",
+          "normalized_action": "configure",
+          "resource": "emergency_stop",
+          "target": "reset",
+          "hasRollback": false,
+          "verifierStatus": "unknown",
+          "ownerDecision": "not_requested",
+          "riskHints": [],
+          "baseCapability": {
+            "schema_version": 1,
+            "actor": "owner",
+            "resource": "emergency_stop",
+            "action": "configure",
+            "verdict": "approval_required",
+            "risk_level": "high",
+            "reason": "Dangerous action requires owner approval and evidence.",
+            "requires_approval": true,
+            "typed_confirmation_required": false,
+            "rollback_required": true,
+            "evidence_required": true
+          }
+        }
+      }
+    },
+    {
+      "check_id": "QMX-P0K-EMG-004",
+      "area": "Emergency Stop",
+      "type": "Evidence",
+      "label": "sanitized event recorded",
+      "status": "PASS",
+      "severity": "high",
+      "p0": true,
+      "message": "Reset event создаётся и sanitizes payload.",
+      "meta": [
+        {
+          "id": "v2_guardian_verdict_preview_rdnjhd",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.758Z",
+          "updated_at": "2026-05-30T20:00:17.758Z",
+          "status": "preview",
+          "refs": {
+            "sample_id": "emergency_correct_phrase"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.guardian.verdict",
+          "actor": "owner",
+          "resource": "emergency_stop",
+          "message": "Стоп действия можно сбросить, событие будет записано.",
+          "payload": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium",
+            "reason": "Emergency Stop reset phrase confirmed; event required.",
+            "actor": "owner",
+            "action": "configure",
+            "resource": "emergency_stop",
+            "requiredApproval": false,
+            "requiredTypedPhrase": "[required]",
+            "requiredRollback": false,
+            "evidenceRequired": true,
+            "userMessage": "Стоп действия можно сбросить, событие будет записано."
+          }
+        },
+        {
+          "id": "v2_v2_emergency_stop_reset_confirmed_emergency_correct_phrase",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.758Z",
+          "updated_at": "2026-05-30T20:00:17.758Z",
+          "status": "preview",
+          "refs": {
+            "sample_id": "emergency_correct_phrase"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.emergency_stop.reset_confirmed",
+          "actor": "owner",
+          "resource": "emergency_stop",
+          "message": "Стоп действия можно сбросить, событие будет записано.",
+          "payload": {
+            "sample_id": "emergency_correct_phrase",
+            "verdict": "allow_with_warning",
+            "typed_phrase_provided": true
+          }
+        }
+      ]
+    },
+    {
+      "check_id": "QMX-P0K-APPLY-001",
+      "area": "Controlled Apply",
+      "type": "Positive",
+      "label": "sandbox rollback verifier pass",
+      "status": "PASS",
+      "severity": "high",
+      "p0": true,
+      "message": "Sandbox apply с rollback и Verifier PASS проходит как controlled.",
+      "meta": {
+        "sample_id": "sandbox_apply_with_rollback_pass",
+        "expected": "allow_with_warning",
+        "actual": "allow_with_warning",
+        "status": "PASS",
+        "request": {
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "diffSummary": "safe copy update in repair workspace",
+          "rollbackAvailable": true,
+          "verifierStatus": "PASS",
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "isSandbox": true
+        },
+        "verdict": {
+          "schema_version": 1,
+          "evaluated_at": "2026-05-30T20:00:17.759Z",
+          "allowed": true,
+          "verdict": "allow_with_warning",
+          "riskLevel": "medium",
+          "risk_level": "medium",
+          "reason": "Sandbox apply has rollback and Verifier PASS.",
+          "requiredApproval": false,
+          "requiredRollback": true,
+          "requiredVerifier": true,
+          "requiredTypedPhrase": "",
+          "userMessage": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "rollbackAvailable": true,
+          "verifierStatus": "PASS",
+          "guardianVerdict": "allow_with_warning",
+          "ownerDecision": "not_requested",
+          "isSandbox": true,
+          "isActiveProjectTarget": false,
+          "expertDetails": {
+            "baseVerdict": "allow_with_warning",
+            "baseRisk": "medium",
+            "risk": {
+              "secretLike": "[redacted]",
+              "billingLike": false,
+              "networkLike": false,
+              "aiApiLike": false,
+              "redZone": false,
+              "ownerAssisted": false
+            },
+            "guardianContext": {
+              "verdict": "allow_with_warning",
+              "riskLevel": "medium"
+            },
+            "diffSummary": "safe copy update in repair workspace"
+          }
+        },
+        "approval": {
+          "id": "approval_1780171217759_aqs0ip",
+          "type": "approval",
+          "contract_name": "V2ApprovalContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.759Z",
+          "updated_at": "2026-05-30T20:00:17.759Z",
+          "status": "not_required",
+          "refs": {},
+          "risk_level": "medium",
+          "approval_id": "approval_1780171217759",
+          "action": "write",
+          "resource": "repair_workspace",
+          "reason": "Sandbox apply has rollback and Verifier PASS.",
+          "affected_resources": [
+            "repair_workspace",
+            "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+          ],
+          "rollback_status": "available",
+          "verifier_status": "PASS",
+          "guardian_verdict": "allow_with_warning",
+          "required_typed_phrase": "",
+          "apply_id": "apply_1780171217759_nkalw8",
+          "controlled_apply_status": "ready_for_sandbox"
+        },
+        "events": [
+          {
+            "id": "v2_controlled_apply_v2_apply_requested_tjtggi",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "approval_id": "approval_1780171217759"
+            },
+            "risk_level": "medium",
+            "event_type": "v2.apply.requested",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+            "payload": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "actor": "codex_repair",
+              "targetResource": "repair_workspace",
+              "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+              "verdict": "allow_with_warning",
+              "riskLevel": "medium",
+              "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_apply_allowed_mx2r7e",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "approval_id": "approval_1780171217759"
+            },
+            "risk_level": "medium",
+            "event_type": "v2.apply.allowed",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+            "payload": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "targetResource": "repair_workspace",
+              "riskLevel": "medium",
+              "message": "Можно применить в sandbox: откат найден, Verifier PASS, событие будет записано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_rollback_created_6csqwx",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "approval_id": "approval_1780171217759"
+            },
+            "risk_level": "medium",
+            "event_type": "v2.rollback.created",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Rollback point exists before controlled apply.",
+            "payload": {
+              "sample_id": "sandbox_apply_with_rollback_pass",
+              "targetResource": "repair_workspace",
+              "riskLevel": "medium",
+              "message": "Rollback point exists before controlled apply.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "QMX-P0K-APPLY-002",
+      "area": "Controlled Apply",
+      "type": "Negative",
+      "label": "no rollback blocked",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Без rollback apply заблокирован.",
+      "meta": {
+        "sample_id": "sandbox_apply_without_rollback",
+        "expected": "blocked",
+        "actual": "blocked",
+        "status": "PASS",
+        "request": {
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "diffSummary": "safe copy update without rollback",
+          "rollbackAvailable": false,
+          "verifierStatus": "PASS",
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "isSandbox": true
+        },
+        "verdict": {
+          "schema_version": 1,
+          "evaluated_at": "2026-05-30T20:00:17.760Z",
+          "allowed": false,
+          "verdict": "blocked",
+          "riskLevel": "high",
+          "risk_level": "high",
+          "reason": "Rollback point is required before mutable apply.",
+          "requiredApproval": true,
+          "requiredRollback": true,
+          "requiredVerifier": true,
+          "requiredTypedPhrase": "",
+          "userMessage": "Нет точки отката. Применение исправления заблокировано.",
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "rollbackAvailable": false,
+          "verifierStatus": "PASS",
+          "guardianVerdict": "allow_with_warning",
+          "ownerDecision": "not_requested",
+          "isSandbox": true,
+          "isActiveProjectTarget": false,
+          "expertDetails": {
+            "baseVerdict": "allow_with_warning",
+            "baseRisk": "medium",
+            "risk": {
+              "secretLike": "[redacted]",
+              "billingLike": false,
+              "networkLike": false,
+              "aiApiLike": false,
+              "redZone": false,
+              "ownerAssisted": false
+            },
+            "guardianContext": {
+              "verdict": "allow_with_warning",
+              "riskLevel": "medium"
+            },
+            "diffSummary": "safe copy update without rollback"
+          }
+        },
+        "approval": {
+          "id": "approval_1780171217760_ukp7e4",
+          "type": "approval",
+          "contract_name": "V2ApprovalContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.760Z",
+          "updated_at": "2026-05-30T20:00:17.760Z",
+          "status": "required",
+          "refs": {},
+          "risk_level": "high",
+          "approval_id": "approval_1780171217760",
+          "action": "write",
+          "resource": "repair_workspace",
+          "reason": "Rollback point is required before mutable apply.",
+          "affected_resources": [
+            "repair_workspace",
+            "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+          ],
+          "rollback_status": "required",
+          "verifier_status": "PASS",
+          "guardian_verdict": "blocked",
+          "required_typed_phrase": "",
+          "apply_id": "apply_1780171217760_0dugul",
+          "controlled_apply_status": "blocked"
+        },
+        "events": [
+          {
+            "id": "v2_controlled_apply_v2_apply_requested_9khtvd",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.apply.requested",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Нет точки отката. Применение исправления заблокировано.",
+            "payload": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "actor": "codex_repair",
+              "targetResource": "repair_workspace",
+              "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+              "verdict": "blocked",
+              "riskLevel": "high",
+              "message": "Нет точки отката. Применение исправления заблокировано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_rollback_required_gj0vej",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.rollback.required",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Rollback is required before apply.",
+            "payload": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "targetResource": "repair_workspace",
+              "riskLevel": "high",
+              "message": "Rollback is required before apply.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_apply_blocked_lmxmx6",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.apply.blocked",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Нет точки отката. Применение исправления заблокировано.",
+            "payload": {
+              "sample_id": "sandbox_apply_without_rollback",
+              "targetResource": "repair_workspace",
+              "riskLevel": "high",
+              "message": "Нет точки отката. Применение исправления заблокировано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "QMX-P0K-APPLY-003",
+      "area": "Controlled Apply",
+      "type": "Negative",
+      "label": "verifier fail blocked",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Verifier FAIL блокирует apply.",
+      "meta": {
+        "sample_id": "verifier_fail",
+        "expected": "blocked",
+        "actual": "blocked",
+        "status": "PASS",
+        "request": {
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "diffSummary": "safe copy update but verifier failed",
+          "rollbackAvailable": true,
+          "verifierStatus": "FAIL",
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "isSandbox": true
+        },
+        "verdict": {
+          "schema_version": 1,
+          "evaluated_at": "2026-05-30T20:00:17.760Z",
+          "allowed": false,
+          "verdict": "blocked",
+          "riskLevel": "high",
+          "risk_level": "high",
+          "reason": "Verifier must be PASS or PASS_WITH_RISKS before apply.",
+          "requiredApproval": true,
+          "requiredRollback": true,
+          "requiredVerifier": true,
+          "requiredTypedPhrase": "",
+          "userMessage": "Verifier не подтвердил исправление. Применение заблокировано.",
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "rollbackAvailable": true,
+          "verifierStatus": "FAIL",
+          "guardianVerdict": "allow_with_warning",
+          "ownerDecision": "not_requested",
+          "isSandbox": true,
+          "isActiveProjectTarget": false,
+          "expertDetails": {
+            "baseVerdict": "allow_with_warning",
+            "baseRisk": "medium",
+            "risk": {
+              "secretLike": "[redacted]",
+              "billingLike": false,
+              "networkLike": false,
+              "aiApiLike": false,
+              "redZone": false,
+              "ownerAssisted": false
+            },
+            "guardianContext": {
+              "verdict": "allow_with_warning",
+              "riskLevel": "medium"
+            },
+            "diffSummary": "safe copy update but verifier failed"
+          }
+        },
+        "approval": {
+          "id": "approval_1780171217760_h0wu87",
+          "type": "approval",
+          "contract_name": "V2ApprovalContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.760Z",
+          "updated_at": "2026-05-30T20:00:17.760Z",
+          "status": "required",
+          "refs": {},
+          "risk_level": "high",
+          "approval_id": "approval_1780171217760",
+          "action": "write",
+          "resource": "repair_workspace",
+          "reason": "Verifier must be PASS or PASS_WITH_RISKS before apply.",
+          "affected_resources": [
+            "repair_workspace",
+            "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+          ],
+          "rollback_status": "available",
+          "verifier_status": "FAIL",
+          "guardian_verdict": "blocked",
+          "required_typed_phrase": "",
+          "apply_id": "apply_1780171217760_8kj0k1",
+          "controlled_apply_status": "blocked"
+        },
+        "events": [
+          {
+            "id": "v2_controlled_apply_v2_apply_requested_w8jebg",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "verifier_fail",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.apply.requested",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+            "payload": {
+              "sample_id": "verifier_fail",
+              "actor": "codex_repair",
+              "targetResource": "repair_workspace",
+              "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+              "verdict": "blocked",
+              "riskLevel": "high",
+              "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_apply_blocked_cu0yuy",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "verifier_fail",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.apply.blocked",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+            "payload": {
+              "sample_id": "verifier_fail",
+              "targetResource": "repair_workspace",
+              "riskLevel": "high",
+              "message": "Verifier не подтвердил исправление. Применение заблокировано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_rollback_created_6ozyse",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "verifier_fail",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "medium",
+            "event_type": "v2.rollback.created",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Rollback point exists before controlled apply.",
+            "payload": {
+              "sample_id": "verifier_fail",
+              "targetResource": "repair_workspace",
+              "riskLevel": "medium",
+              "message": "Rollback point exists before controlled apply.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "QMX-P0K-APPLY-004",
+      "area": "Controlled Apply",
+      "type": "Negative",
+      "label": "active project approval required",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Active project target требует approval.",
+      "meta": {
+        "sample_id": "active_project_without_approval",
+        "expected": "approval_required",
+        "actual": "approval_required",
+        "status": "PASS",
+        "request": {
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "active_project_files",
+          "targetPath": "app.js",
+          "diffSummary": "active project mutation request",
+          "rollbackAvailable": true,
+          "verifierStatus": "PASS",
+          "guardianContext": {
+            "verdict": "approval_required",
+            "riskLevel": "high"
+          },
+          "ownerDecision": "not_requested",
+          "isActiveProjectTarget": true
+        },
+        "verdict": {
+          "schema_version": 1,
+          "evaluated_at": "2026-05-30T20:00:17.760Z",
+          "allowed": false,
+          "verdict": "approval_required",
+          "riskLevel": "high",
+          "risk_level": "high",
+          "reason": "Guardian requires approval before controlled apply.",
+          "requiredApproval": true,
+          "requiredRollback": true,
+          "requiredVerifier": true,
+          "requiredTypedPhrase": "",
+          "userMessage": "Guardian требует подтверждение перед применением исправления.",
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "active_project_files",
+          "targetPath": "app.js",
+          "rollbackAvailable": true,
+          "verifierStatus": "PASS",
+          "guardianVerdict": "approval_required",
+          "ownerDecision": "not_requested",
+          "isSandbox": false,
+          "isActiveProjectTarget": true,
+          "expertDetails": {
+            "baseVerdict": "approval_required",
+            "baseRisk": "high",
+            "risk": {
+              "secretLike": "[redacted]",
+              "billingLike": false,
+              "networkLike": false,
+              "aiApiLike": false,
+              "redZone": false,
+              "ownerAssisted": false
+            },
+            "guardianContext": {
+              "verdict": "approval_required",
+              "riskLevel": "high"
+            },
+            "diffSummary": "active project mutation request"
+          }
+        },
+        "approval": {
+          "id": "approval_1780171217760_r4zr96",
+          "type": "approval",
+          "contract_name": "V2ApprovalContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.760Z",
+          "updated_at": "2026-05-30T20:00:17.760Z",
+          "status": "required",
+          "refs": {},
+          "risk_level": "high",
+          "approval_id": "approval_1780171217760",
+          "action": "write",
+          "resource": "active_project_files",
+          "reason": "Guardian requires approval before controlled apply.",
+          "affected_resources": [
+            "active_project_files",
+            "app.js"
+          ],
+          "rollback_status": "available",
+          "verifier_status": "PASS",
+          "guardian_verdict": "approval_required",
+          "required_typed_phrase": "",
+          "apply_id": "apply_1780171217760_gdppro",
+          "controlled_apply_status": "blocked"
+        },
+        "events": [
+          {
+            "id": "v2_controlled_apply_v2_apply_requested_6zilr4",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "active_project_without_approval",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.apply.requested",
+            "actor": "codex_repair",
+            "resource": "active_project_files",
+            "message": "Guardian требует подтверждение перед применением исправления.",
+            "payload": {
+              "sample_id": "active_project_without_approval",
+              "actor": "codex_repair",
+              "targetResource": "active_project_files",
+              "targetPath": "app.js",
+              "verdict": "approval_required",
+              "riskLevel": "high",
+              "message": "Guardian требует подтверждение перед применением исправления.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_apply_approval_required_yext4p",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.760Z",
+            "updated_at": "2026-05-30T20:00:17.760Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "active_project_without_approval",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "high",
+            "event_type": "v2.apply.approval_required",
+            "actor": "codex_repair",
+            "resource": "active_project_files",
+            "message": "Guardian требует подтверждение перед применением исправления.",
+            "payload": {
+              "sample_id": "active_project_without_approval",
+              "targetResource": "active_project_files",
+              "riskLevel": "high",
+              "message": "Guardian требует подтверждение перед применением исправления.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_rollback_created_nupkop",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.761Z",
+            "updated_at": "2026-05-30T20:00:17.761Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "active_project_without_approval",
+              "approval_id": "approval_1780171217760"
+            },
+            "risk_level": "medium",
+            "event_type": "v2.rollback.created",
+            "actor": "codex_repair",
+            "resource": "active_project_files",
+            "message": "Rollback point exists before controlled apply.",
+            "payload": {
+              "sample_id": "active_project_without_approval",
+              "targetResource": "active_project_files",
+              "riskLevel": "medium",
+              "message": "Rollback point exists before controlled apply.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "QMX-P0K-APPLY-005",
+      "area": "Controlled Apply",
+      "type": "Security",
+      "label": "secret-like diff red-zone",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Secret-like diff red-zone blocked.",
+      "meta": {
+        "sample_id": "secret_like_diff",
+        "expected": "red_zone_stop",
+        "actual": "red_zone_stop",
+        "status": "PASS",
+        "request": {
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "diffSummary": "secret-like marker should not be applied",
+          "rollbackAvailable": true,
+          "verifierStatus": "PASS",
+          "guardianContext": {
+            "verdict": "allow_with_warning",
+            "riskLevel": "medium"
+          },
+          "isSandbox": true
+        },
+        "verdict": {
+          "schema_version": 1,
+          "evaluated_at": "2026-05-30T20:00:17.761Z",
+          "allowed": false,
+          "verdict": "red_zone_stop",
+          "riskLevel": "critical",
+          "risk_level": "critical",
+          "reason": "Diff contains red-zone content or forbidden system/API/network intent.",
+          "requiredApproval": true,
+          "requiredRollback": true,
+          "requiredVerifier": true,
+          "requiredTypedPhrase": "",
+          "userMessage": "В diff найден red-zone риск. Исправление заблокировано.",
+          "actor": "codex_repair",
+          "action": "write",
+          "targetResource": "repair_workspace",
+          "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+          "rollbackAvailable": true,
+          "verifierStatus": "PASS",
+          "guardianVerdict": "allow_with_warning",
+          "ownerDecision": "not_requested",
+          "isSandbox": true,
+          "isActiveProjectTarget": false,
+          "expertDetails": {
+            "baseVerdict": "allow_with_warning",
+            "baseRisk": "medium",
+            "risk": {
+              "secretLike": "[redacted]",
+              "billingLike": false,
+              "networkLike": false,
+              "aiApiLike": false,
+              "redZone": true,
+              "ownerAssisted": false
+            },
+            "guardianContext": {
+              "verdict": "allow_with_warning",
+              "riskLevel": "medium"
+            },
+            "diffSummary": "secret-like marker should not be applied"
+          }
+        },
+        "approval": {
+          "id": "approval_1780171217761_53mcqe",
+          "type": "approval",
+          "contract_name": "V2ApprovalContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T20:00:17.761Z",
+          "updated_at": "2026-05-30T20:00:17.761Z",
+          "status": "required",
+          "refs": {},
+          "risk_level": "critical",
+          "approval_id": "approval_1780171217761",
+          "action": "write",
+          "resource": "repair_workspace",
+          "reason": "Diff contains red-zone content or forbidden system/API/network intent.",
+          "affected_resources": [
+            "repair_workspace",
+            "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt"
+          ],
+          "rollback_status": "available",
+          "verifier_status": "PASS",
+          "guardian_verdict": "red_zone_stop",
+          "required_typed_phrase": "",
+          "apply_id": "apply_1780171217761_0pwm76",
+          "controlled_apply_status": "blocked"
+        },
+        "events": [
+          {
+            "id": "v2_controlled_apply_v2_apply_requested_gaoo8m",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.761Z",
+            "updated_at": "2026-05-30T20:00:17.761Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "secret_like_diff",
+              "approval_id": "approval_1780171217761"
+            },
+            "risk_level": "critical",
+            "event_type": "v2.apply.requested",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "В diff найден red-zone риск. Исправление заблокировано.",
+            "payload": {
+              "sample_id": "secret_like_diff",
+              "actor": "codex_repair",
+              "targetResource": "repair_workspace",
+              "targetPath": "D:\\TerminatorStorage\\repair_workspaces\\v2_p0_d_controlled_apply\\dummy_apply_target.txt",
+              "verdict": "red_zone_stop",
+              "riskLevel": "critical",
+              "message": "В diff найден red-zone риск. Исправление заблокировано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_apply_blocked_976ljk",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.761Z",
+            "updated_at": "2026-05-30T20:00:17.761Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "secret_like_diff",
+              "approval_id": "approval_1780171217761"
+            },
+            "risk_level": "critical",
+            "event_type": "v2.apply.blocked",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "В diff найден red-zone риск. Исправление заблокировано.",
+            "payload": {
+              "sample_id": "secret_like_diff",
+              "targetResource": "repair_workspace",
+              "riskLevel": "critical",
+              "message": "В diff найден red-zone риск. Исправление заблокировано.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          },
+          {
+            "id": "v2_controlled_apply_v2_rollback_created_nmmi3q",
+            "type": "event",
+            "contract_name": "V2EventContract",
+            "schema_version": 1,
+            "created_at": "2026-05-30T20:00:17.761Z",
+            "updated_at": "2026-05-30T20:00:17.761Z",
+            "status": "preview",
+            "refs": {
+              "sample_id": "secret_like_diff",
+              "approval_id": "approval_1780171217761"
+            },
+            "risk_level": "medium",
+            "event_type": "v2.rollback.created",
+            "actor": "codex_repair",
+            "resource": "repair_workspace",
+            "message": "Rollback point exists before controlled apply.",
+            "payload": {
+              "sample_id": "secret_like_diff",
+              "targetResource": "repair_workspace",
+              "riskLevel": "medium",
+              "message": "Rollback point exists before controlled apply.",
+              "refs": {
+                "sample_id": "[truncated]",
+                "approval_id": "[truncated]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SAFE-001",
+      "area": "Security",
+      "type": "Security",
+      "label": "no visible secrets",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Suite не выводит secrets/tokens/cookies.",
+      "meta": {
+        "no_ai_api": true,
+        "no_visible_secrets": "[redacted]",
+        "no_billing_touched": true,
+        "no_cloudflare_github_settings_touched": true,
+        "no_destructive_actions": true
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SAFE-002",
+      "area": "Security",
+      "type": "Security",
+      "label": "no AI API",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "AI API не используется.",
+      "meta": {
+        "no_ai_api": true,
+        "no_visible_secrets": "[redacted]",
+        "no_billing_touched": true,
+        "no_cloudflare_github_settings_touched": true,
+        "no_destructive_actions": true
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SAFE-003",
+      "area": "Security",
+      "type": "Security",
+      "label": "no billing touched",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Billing не трогался.",
+      "meta": {
+        "no_ai_api": true,
+        "no_visible_secrets": "[redacted]",
+        "no_billing_touched": true,
+        "no_cloudflare_github_settings_touched": true,
+        "no_destructive_actions": true
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SAFE-004",
+      "area": "Security",
+      "type": "Security",
+      "label": "settings untouched",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Cloudflare/GitHub settings не трогались.",
+      "meta": {
+        "no_ai_api": true,
+        "no_visible_secrets": "[redacted]",
+        "no_billing_touched": true,
+        "no_cloudflare_github_settings_touched": true,
+        "no_destructive_actions": true
+      }
+    },
+    {
+      "check_id": "QMX-P0K-SAFE-005",
+      "area": "Security",
+      "type": "Security",
+      "label": "no destructive actions",
+      "status": "PASS",
+      "severity": "critical",
+      "p0": true,
+      "message": "Destructive actions не запускались.",
+      "meta": {
+        "no_ai_api": true,
+        "no_visible_secrets": "[redacted]",
+        "no_billing_touched": true,
+        "no_cloudflare_github_settings_touched": true,
+        "no_destructive_actions": true
+      }
+    }
+  ],
+  "all_pass": true
+}

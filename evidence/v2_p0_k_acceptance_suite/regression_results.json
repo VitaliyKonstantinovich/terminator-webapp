@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-05-30T20:00:17.823Z",
+  "results": [
+    {
+      "id": "owner_command_still_works",
+      "pass": true
+    },
+    {
+      "id": "recovery_command_still_works",
+      "pass": true
+    },
+    {
+      "id": "p0_integrated_gate_still_works",
+      "pass": true
+    },
+    {
+      "id": "memory_known_query",
+      "pass": true
+    },
+    {
+      "id": "memory_impossible_empty",
+      "pass": true
+    },
+    {
+      "id": "memory_weak_warning",
+      "pass": true
+    },
+    {
+      "id": "emergency_reset_phrase",
+      "pass": true
+    },
+    {
+      "id": "controlled_apply_without_rollback_blocked",
+      "pass": true
+    },
+    {
+      "id": "mina_scheme_still_exists",
+      "pass": true
+    },
+    {
+      "id": "v1_start_still_exists",
+      "pass": true
+    },
+    {
+      "id": "mobile_css_acceptance",
+      "pass": true
+    },
+    {
+      "id": "normal_mode_no_technical_leak",
+      "pass": true
+    },
+    {
+      "id": "no_ai_api_runtime_domains",
+      "pass": true
+    },
+    {
+      "id": "no_secret_literals_in_added_suite",
+      "pass": true
+    }
+  ],
+  "all_pass": true
+}

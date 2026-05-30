@@ -1,0 +1,104 @@
+[
+  {
+    "id": "v2_p0_acceptance_v2_p0_acceptance_started_1780171217786_ky7as",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T20:00:17.786Z",
+    "updated_at": "2026-05-30T20:00:17.786Z",
+    "status": "preview",
+    "refs": {
+      "suite": "v2_p0_k"
+    },
+    "risk_level": "low",
+    "event_type": "v2.p0.acceptance.started",
+    "actor": "p0_acceptance_suite",
+    "resource": "snapshot",
+    "message": "P0 acceptance suite started.",
+    "payload": {
+      "message": "P0 acceptance suite started.",
+      "refs": {
+        "suite": "v2_p0_k"
+      }
+    }
+  },
+  {
+    "id": "v2_p0_acceptance_v2_p0_acceptance_owner_assisted_pending_1780171217786_7m267",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T20:00:17.786Z",
+    "updated_at": "2026-05-30T20:00:17.786Z",
+    "status": "preview",
+    "refs": {
+      "suite": "v2_p0_k",
+      "check_id": "QMX-P0K-FR-003"
+    },
+    "risk_level": "low",
+    "event_type": "v2.p0.acceptance.owner_assisted_pending",
+    "actor": "p0_acceptance_suite",
+    "resource": "snapshot",
+    "message": "Проверки владельца отделены и не считаются FAIL.",
+    "payload": {
+      "check_id": "QMX-P0K-FR-003",
+      "message": "Проверки владельца отделены и не считаются FAIL.",
+      "refs": {
+        "suite": "v2_p0_k",
+        "check_id": "QMX-P0K-FR-003"
+      }
+    }
+  },
+  {
+    "id": "v2_p0_acceptance_v2_p0_acceptance_postponed_item_1780171217786_i2epj",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T20:00:17.786Z",
+    "updated_at": "2026-05-30T20:00:17.786Z",
+    "status": "preview",
+    "refs": {
+      "suite": "v2_p0_k",
+      "check_id": "QMX-P0K-FR-004"
+    },
+    "risk_level": "low",
+    "event_type": "v2.p0.acceptance.postponed_item",
+    "actor": "p0_acceptance_suite",
+    "resource": "snapshot",
+    "message": "Телефон / APK перенесены до production V2 final и не блокируют текущий P0.",
+    "payload": {
+      "check_id": "QMX-P0K-FR-004",
+      "message": "Телефон / APK перенесены до production V2 final и не блокируют текущий P0.",
+      "refs": {
+        "suite": "v2_p0_k",
+        "check_id": "QMX-P0K-FR-004"
+      }
+    }
+  },
+  {
+    "id": "v2_p0_acceptance_v2_p0_acceptance_completed_1780171217786_k4m5m",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T20:00:17.786Z",
+    "updated_at": "2026-05-30T20:00:17.786Z",
+    "status": "preview",
+    "refs": {
+      "suite": "v2_p0_k"
+    },
+    "risk_level": "low",
+    "event_type": "v2.p0.acceptance.completed",
+    "actor": "p0_acceptance_suite",
+    "resource": "snapshot",
+    "message": "P0-ядро принято. Остались проверки владельца или отложенные пункты.",
+    "payload": {
+      "status": "PASS",
+      "total_checks": 49,
+      "passed_checks": 47,
+      "failed_checks": 0,
+      "message": "P0-ядро принято. Остались проверки владельца или отложенные пункты.",
+      "refs": {
+        "suite": "v2_p0_k"
+      }
+    }
+  }
+]
