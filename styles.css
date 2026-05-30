@@ -2902,6 +2902,41 @@ button:not(:disabled) {
   font-size: 15px;
 }
 
+.v2-attention-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.v2-attention-item {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid rgba(255, 209, 102, 0.34);
+  border-radius: 8px;
+  background: rgba(52, 37, 10, 0.46);
+  color: #ecfbff;
+  text-align: left;
+}
+
+.v2-attention-item b {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.v2-attention-item small {
+  color: #c8ecff;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.v2-attention-item--blocked {
+  border-color: rgba(255, 116, 116, 0.58);
+  background: rgba(62, 15, 32, 0.62);
+}
+
 .v2-recovery-card button {
   margin-top: 10px;
   padding: 0 12px;
@@ -2932,6 +2967,40 @@ button:not(:disabled) {
   margin-top: 4px;
   color: #ffffff;
   font-size: 13px;
+}
+
+.v2-owner-item--postponed {
+  border-color: rgba(255, 209, 102, 0.36);
+  background: rgba(51, 39, 12, 0.58);
+}
+
+.v2-command-expert {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(86, 196, 255, 0.23);
+  border-radius: 8px;
+  background: rgba(2, 18, 43, 0.7);
+}
+
+.v2-command-expert summary {
+  cursor: pointer;
+  color: #67efff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.v2-command-expert pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 8, 20, 0.72);
+  color: #c8ecff;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .v2-command-actions {

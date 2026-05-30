@@ -1,0 +1,236 @@
+[
+  {
+    "id": "evt_1780165095090_ojx9za",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.090Z",
+    "updated_at": "2026-05-30T18:18:15.090Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "open_setup_minimum"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.next_action_selected",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "open_setup_minimum",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "open_setup_minimum"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095090_km96ui",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.090Z",
+    "updated_at": "2026-05-30T18:18:15.090Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "start_workspace"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.ready",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "start_workspace",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "start_workspace"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095089_fpskea",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.089Z",
+    "updated_at": "2026-05-30T18:18:15.089Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "show_owner_checklist"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.owner_assisted_pending",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "show_owner_checklist",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "show_owner_checklist"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095089_urn07p",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.089Z",
+    "updated_at": "2026-05-30T18:18:15.089Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "open_hands_safety"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.next_action_selected",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "open_hands_safety",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "open_hands_safety"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095089_gyeexe",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.089Z",
+    "updated_at": "2026-05-30T18:18:15.089Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "open_head_readiness"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.next_action_selected",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "open_head_readiness",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "open_head_readiness"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095089_3m5lkg",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.089Z",
+    "updated_at": "2026-05-30T18:18:15.089Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "open_memory_search"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.next_action_selected",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "open_memory_search",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "open_memory_search"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095089_2ah2ta",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.089Z",
+    "updated_at": "2026-05-30T18:18:15.089Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "open_recovery"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.next_action_selected",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "open_recovery",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "open_recovery"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095088_m5ppop",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.088Z",
+    "updated_at": "2026-05-30T18:18:15.088Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center",
+      "action": "open_safety_guardian"
+    },
+    "risk_level": "low",
+    "event_type": "v2.setup_route.next_action_selected",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center action selected.",
+    "payload": {
+      "action": "open_safety_guardian",
+      "message": "Owner Command Center action selected.",
+      "refs": {
+        "component": "owner_command_center",
+        "action": "open_safety_guardian"
+      }
+    }
+  },
+  {
+    "id": "evt_1780165095086_s1f2as",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-30T18:18:15.086Z",
+    "updated_at": "2026-05-30T18:18:15.086Z",
+    "status": "recorded",
+    "refs": {
+      "component": "owner_command_center"
+    },
+    "risk_level": "low",
+    "event_type": "v2.command_center.opened",
+    "actor": "setup_route",
+    "resource": "task_state",
+    "message": "Owner Command Center opened.",
+    "payload": {
+      "readiness_level": "minimum_ready",
+      "readiness_percent": 49,
+      "next_route": "open_memory_search",
+      "message": "Owner Command Center opened.",
+      "refs": {
+        "component": "owner_command_center"
+      }
+    }
+  }
+]

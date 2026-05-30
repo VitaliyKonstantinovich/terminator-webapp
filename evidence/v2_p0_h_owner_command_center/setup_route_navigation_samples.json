@@ -1,0 +1,58 @@
+[
+  {
+    "action": "open_safety_guardian",
+    "expected_screen": "system",
+    "actual_screen": "system",
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "open_recovery",
+    "expected_screen": "system",
+    "actual_screen": "system",
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "open_memory_search",
+    "expected_screen": "system",
+    "actual_screen": "system",
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "open_head_readiness",
+    "expected_screen": "system",
+    "actual_screen": "system",
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "open_hands_safety",
+    "expected_screen": "system",
+    "actual_screen": "system",
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "show_owner_checklist",
+    "expected_screen": null,
+    "actual_screen": null,
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "start_workspace",
+    "expected_screen": "work",
+    "actual_screen": "work",
+    "pass": true,
+    "dangerous_action_executed": false
+  },
+  {
+    "action": "open_setup_minimum",
+    "expected_screen": "system",
+    "actual_screen": "system",
+    "pass": true,
+    "dangerous_action_executed": false
+  }
+]

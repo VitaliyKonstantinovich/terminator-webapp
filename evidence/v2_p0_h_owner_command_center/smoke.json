@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-05-30T18:18:15.092Z",
+  "mode": "node-vm-lightweight-owner-command-center-smoke",
+  "pass": {
+    "start_panel_rendered": true,
+    "menu_panel_rendered": true,
+    "system_panel_rendered": true,
+    "readiness_panel_visible": true,
+    "owner_assisted_separated": true,
+    "expert_details_collapsed": true,
+    "normal_mode_no_forbidden_terms": true,
+    "sample_matrix_pass": true,
+    "all_green_owner_independent_creates_task": true,
+    "safety_routes_to_guardian": true,
+    "recovery_routes_to_recovery": true,
+    "memory_routes_to_memory": true,
+    "brain_routes_to_head": true,
+    "owner_assisted_not_blocker": true,
+    "postponed_phone_not_blocker": true,
+    "navigation_samples_pass": true,
+    "command_center_events_exist": true,
+    "mobile_css_present": true
+  },
+  "all_pass": true,
+  "notes": [
+    "No browser screenshots, no BlueStacks, no AI API, no billing, no network settings.",
+    "UI render was tested in a node VM with fake DOM hosts.",
+    "Expert JSON exists only inside collapsed details."
+  ]
+}

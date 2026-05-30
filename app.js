@@ -337,7 +337,8 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2MemoryContractPreviewEnabled: false,
   v2RecoveryStatePreviewEnabled: false,
   v2FirstRunReadinessPreviewEnabled: false,
-  v2SetupRoutePreviewEnabled: false
+  v2SetupRoutePreviewEnabled: false,
+  v2OwnerCommandCenterPreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -402,7 +403,8 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.setup_route.owner_assisted_pending',
   'v2.setup_route.postponed_item',
   'v2.setup_route.blocked',
-  'v2.setup_route.ready'
+  'v2.setup_route.ready',
+  'v2.command_center.opened'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -6265,14 +6267,16 @@ const App = {
     if (!brainKnown || !brainVerified) addWarning('brain_unverified', 'Голова требует проверки', 'Стратег/Совет мозгов не считаются полностью подтверждёнными.', 'head');
     if (!controlledApplyAvailable) addWarning('controlled_apply_unavailable', 'Руки требуют safety preview', 'Controlled Apply должен быть доступен хотя бы как sandbox/preview.', 'hands');
 
-    ['real_phone_apk', 'billing_dashboards', 'production_signing', 'production_rollback'].forEach((id) => {
-      const label = id === 'real_phone_apk' ? 'APK на реальном телефоне'
-        : id === 'billing_dashboards' ? 'Billing dashboards'
-          : id === 'production_signing' ? 'Production signing'
-            : 'Production rollback';
-      if (id === 'real_phone_apk') addPostponed(id, label, 'Перенесено до production V2 final, не блокирует текущую owner-independent готовность.');
-      else addOwner(id, label, 'Проверяется владельцем, не считается runtime FAIL.');
-    });
+    if (sourceSnapshots.owner_assisted_complete !== true) {
+      ['real_phone_apk', 'billing_dashboards', 'production_signing', 'production_rollback'].forEach((id) => {
+        const label = id === 'real_phone_apk' ? 'APK на реальном телефоне'
+          : id === 'billing_dashboards' ? 'Billing dashboards'
+            : id === 'production_signing' ? 'Production signing'
+              : 'Production rollback';
+        if (id === 'real_phone_apk') addPostponed(id, label, 'Перенесено до production V2 final, не блокирует текущую owner-independent готовность.');
+        else addOwner(id, label, 'Проверяется владельцем, не считается runtime FAIL.');
+      });
+    }
 
     const minimumReady = systemKnown && storageKnown && safetyKnown && recoveryKnown && emergencyKnown && memoryKnown && !blockers.length;
     const comfortReady = minimumReady && memoryHealthy && controlledApplyAvailable && !recoveryBlocked && !blockers.length;
@@ -6433,7 +6437,7 @@ const App = {
       }
     });
     return [
-      sample('all_green_owner_independent', 'show_owner_checklist'),
+      sample('all_green_owner_independent', 'start_workspace', { owner_assisted_complete: true, research_ready: true, mobile: { status: 'checked', checked: true, web_ready: true }, performance: { status: 'pass' } }),
       sample('safety_blocker', 'open_safety_guardian', { safety: { status: 'ready', emergency_stop_active: true } }),
       sample('recovery_degraded', 'open_recovery', { recovery: { status: 'blocked', open_incidents: 1, blocked_count: 1 } }),
       sample('memory_degraded', 'open_memory_search', { memory: { status: 'partial', readiness: 32, index_status: 'stale' } }),
@@ -11706,6 +11710,7 @@ const App = {
       partial: 72,
       review: 56,
       owner: 50,
+      postponed: 50,
       waiting: 36,
       blocked: 0
     };
@@ -11718,6 +11723,7 @@ const App = {
       partial: 'частично',
       review: 'проверить',
       owner: 'проверка владельца',
+      postponed: 'отложено',
       waiting: 'ожидает',
       blocked: 'блокер'
     };
@@ -11832,6 +11838,194 @@ const App = {
     };
   },
 
+  mapV2SetupRouteToCommandAction(routeId = '') {
+    const map = {
+      open_safety_guardian: 'open_guardian',
+      open_recovery: 'open_recovery',
+      open_memory_search: 'open_memory',
+      open_head_readiness: 'open_head',
+      open_hands_safety: 'open_hands',
+      show_owner_checklist: 'owner_assisted',
+      start_workspace: 'open_work',
+      open_setup_minimum: 'open_system'
+    };
+    return map[routeId] || 'open_system';
+  },
+
+  v2OwnerCommandCenterLevel(id, title, ready, items) {
+    const normalized = items.map((item) => this.v2CommandItem(
+      item.id,
+      item.name,
+      item.status,
+      item.note,
+      item.action
+    ));
+    const score = ready ? 100 : Math.round(normalized.reduce((sum, item) => sum + item.score, 0) / Math.max(1, normalized.length));
+    const blocked = normalized.some((item) => item.status === 'blocked');
+    const status = blocked ? 'blocked' : ready ? 'ready' : score >= 60 ? 'partial' : 'review';
+    return { id, title, target: ready ? 100 : 70, items: normalized, score, status, ready };
+  },
+
+  v2OwnerCommandCenterStatusFromFact(isKnown, isReady = isKnown, blocked = false) {
+    if (blocked) return 'blocked';
+    if (isReady) return 'ready';
+    return isKnown ? 'partial' : 'review';
+  },
+
+  buildV2OwnerCommandCenterSnapshot(inputSnapshots = null, options = {}) {
+    const readiness = this.getV2FirstRunReadinessSnapshot(inputSnapshots);
+    const evaluation = readiness.evaluation || {};
+    const facts = evaluation.facts || {};
+    const guardian = this.guardianSnapshot?.() || { tone: 'review', label: 'Защитник', note: 'Guardian status не проверен.' };
+    const liveRuntime = this.buildLiveRuntimeSnapshot?.() || { label: 'Живой контур', summary: 'Runtime status не проверен.' };
+    const nextRoute = readiness.next_best_action || { label: 'Проверить систему', description: 'Откройте Систему.', route_id: 'open_system', status: 'warning' };
+    const nextAction = this.mapV2SetupRouteToCommandAction(readiness.next_route || nextRoute.route_id);
+    const blocked = Boolean((readiness.blockers || []).length);
+    const tone = blocked ? 'blocked' : readiness.comfort_ready ? 'ready' : 'review';
+    const label = blocked
+      ? 'есть защитный блокер'
+      : readiness.comfort_ready
+        ? 'V2-контур готов к работе'
+        : 'V2-контур требует внимания';
+    const next = this.v2CommandItem(
+      nextRoute.route_id || readiness.next_route || 'open_system',
+      nextRoute.label || 'Проверить систему',
+      nextRoute.status === 'blocked' ? 'blocked' : nextRoute.status === 'owner_assisted' ? 'owner' : nextRoute.status === 'ready' ? 'ready' : 'review',
+      nextRoute.description || readiness.ordinary_message || 'Следующий шаг определён.',
+      nextAction
+    );
+    const minimum = this.v2OwnerCommandCenterLevel('minimum', 'Минимум для запуска', readiness.minimum_ready, [
+      {
+        id: 'system',
+        name: 'WebApp и состояние',
+        status: this.v2OwnerCommandCenterStatusFromFact(facts.systemKnown),
+        note: facts.systemKnown ? 'Состояние WebApp известно.' : 'Состояние WebApp неизвестно, это не PASS.',
+        action: 'open_system'
+      },
+      {
+        id: 'safety',
+        name: 'Защитник',
+        status: this.v2OwnerCommandCenterStatusFromFact(facts.safetyKnown, facts.safetyKnown && !facts.emergencyActive, facts.emergencyActive),
+        note: facts.emergencyActive ? 'Стоп действия включён.' : facts.safetyKnown ? 'Safety status известен.' : 'Safety status неизвестен.',
+        action: 'open_guardian'
+      },
+      {
+        id: 'recovery',
+        name: 'Восстановление',
+        status: this.v2OwnerCommandCenterStatusFromFact(facts.recoveryKnown, facts.recoveryKnown && !readiness.blockers.some((item) => item.id.includes('recovery')), readiness.blockers.some((item) => item.id.includes('recovery'))),
+        note: facts.recoveryKnown ? 'Recovery snapshot подключён.' : 'Recovery status неизвестен.',
+        action: 'open_recovery'
+      },
+      {
+        id: 'memory',
+        name: 'Память',
+        status: this.v2OwnerCommandCenterStatusFromFact(facts.memoryKnown, facts.memoryHealthy),
+        note: facts.memoryHealthy ? 'Memory Search готов к текущей работе.' : 'Поиск памяти требует проверки или обновления индекса.',
+        action: 'open_memory'
+      }
+    ]);
+    const comfort = this.v2OwnerCommandCenterLevel('comfort', 'Комфортная работа', readiness.comfort_ready, [
+      {
+        id: 'head',
+        name: 'Голова / Совет',
+        status: facts.brainVerified ? 'ready' : 'review',
+        note: facts.brainVerified ? 'Стратег/Совет подтверждены.' : 'Стратег и Совет мозгов требуют проверки владельцем.',
+        action: 'open_head'
+      },
+      {
+        id: 'hands',
+        name: 'Руки под контролем',
+        status: facts.controlledApplyAvailable ? 'partial' : 'review',
+        note: facts.controlledApplyAvailable ? 'Controlled Apply доступен через safety gate.' : 'Нужно проверить Controlled Apply preview.',
+        action: 'open_hands'
+      },
+      {
+        id: 'memory_quality',
+        name: 'Качество памяти',
+        status: facts.memoryHealthy ? 'ready' : 'partial',
+        note: facts.memoryHealthy ? 'Память не блокирует текущий сценарий.' : 'Можно продолжить с предупреждением или обновить индекс.',
+        action: 'open_memory'
+      }
+    ]);
+    const maximum = this.v2OwnerCommandCenterLevel('maximum', 'Полная готовность V2', readiness.maximum_ready, [
+      {
+        id: 'research',
+        name: 'ResearchOps',
+        status: facts.researchReady ? 'ready' : 'review',
+        note: facts.researchReady ? 'Research decision path готов.' : 'ResearchOps остаётся отдельной проверкой.',
+        action: 'open_head'
+      },
+      {
+        id: 'mobile',
+        name: 'Мобильный контур',
+        status: 'postponed',
+        note: 'APK на реальном телефоне перенесён до production V2 final.',
+        action: 'owner_assisted'
+      },
+      {
+        id: 'performance',
+        name: 'Производительность',
+        status: facts.performanceOk ? 'ready' : 'review',
+        note: facts.performanceOk ? 'Последняя проверка в бюджете.' : 'Финальный performance gate отдельно.',
+        action: 'open_system'
+      }
+    ]);
+    const attentionItems = [
+      ...(readiness.blockers || []).map((item) => ({ ...item, status: 'blocked', action: this.mapV2SetupRouteToCommandAction(item.route || readiness.next_route) })),
+      ...(readiness.warnings || []).map((item) => ({ ...item, status: 'review', action: this.mapV2SetupRouteToCommandAction(item.route || readiness.next_route) }))
+    ];
+    const ownerAssisted = [
+      ...(readiness.owner_assisted_items || []).map((item) => this.v2CommandItem(item.id, item.label, 'owner', item.reason, 'owner_assisted')),
+      ...(readiness.postponed_items || []).map((item) => this.v2CommandItem(item.id, item.label, 'postponed', item.reason, 'owner_assisted'))
+    ];
+    const expertDetails = {
+      schema_version: readiness.schema_version,
+      readiness_level: readiness.readiness_level,
+      next_route: readiness.next_route,
+      next_route_status: nextRoute.status,
+      source_snapshots: readiness.source_snapshots,
+      facts
+    };
+    const openedEvent = options.recordOpened
+      ? this.recordV2SetupRouteEvent('v2.command_center.opened', {
+        readiness_level: readiness.readiness_level,
+        readiness_percent: readiness.readiness_percent,
+        next_route: readiness.next_route,
+        message: 'Owner Command Center opened.',
+        refs: { component: 'owner_command_center' }
+      }, { persist: options.persistEvents === true })
+      : this.recordV2SetupRouteEvent('v2.command_center.opened', {
+        readiness_level: readiness.readiness_level,
+        readiness_percent: readiness.readiness_percent,
+        next_route: readiness.next_route,
+        message: 'Owner Command Center preview.',
+        refs: { component: 'owner_command_center' }
+      }, { persist: false });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      status: tone === 'ready' ? 'ready' : blocked ? 'blocked' : 'review',
+      tone,
+      score: readiness.readiness_percent,
+      label,
+      summary: `${readiness.minimum_ready ? 'минимум готов' : 'минимум требует внимания'} · ${readiness.comfort_ready ? 'комфорт готов' : 'комфорт частично'} · ${readiness.maximum_ready ? 'максимум готов' : 'максимум позже'}`,
+      ordinary_message: readiness.ordinary_message,
+      next,
+      next_best_action: readiness.next_best_action,
+      levels: [minimum, comfort, maximum],
+      attentionItems,
+      ownerAssisted,
+      ownerAssistedOpen: ownerAssisted.length,
+      readiness,
+      expertDetails,
+      openedEvent,
+      guardian,
+      liveRuntime,
+      demoMode: Boolean(this.v2FirstRunRecoveryState?.demo_mode),
+      demoTaskId: this.v2FirstRunRecoveryState?.demo_task_id || '',
+      checkedAt: new Date().toISOString()
+    };
+  },
+
   renderV2FirstRunRecoveryCenter() {
     const hosts = {
       start: document.getElementById('start-v2-command-center'),
@@ -11840,7 +12034,10 @@ const App = {
       system: document.getElementById('system-v2-command-center')
     };
     if (!hosts.start && !hosts.menu && !hosts.mission && !hosts.system) return;
-    const snapshot = this.buildV2FirstRunRecoverySnapshot();
+    const nowMs = Date.now();
+    const recordOpened = !this.v2CommandCenterLastOpenedEventAt || nowMs - this.v2CommandCenterLastOpenedEventAt > 30000;
+    const snapshot = this.buildV2OwnerCommandCenterSnapshot(null, { recordOpened, persistEvents: recordOpened });
+    if (recordOpened) this.v2CommandCenterLastOpenedEventAt = nowMs;
     this.saveV2FirstRunRecoveryState({ last_opened_at: new Date().toISOString() });
     if (hosts.start) hosts.start.innerHTML = this.renderV2StartStatus(snapshot);
     if (hosts.menu) hosts.menu.innerHTML = this.renderV2MenuCommandCenter(snapshot);
@@ -11883,9 +12080,9 @@ const App = {
       <section class="v2-command-center v2-command-center--${this.escapeHtml(snapshot.tone)}" data-v2-command-center="${this.escapeHtml(variant)}">
         <header class="v2-command-hero">
           <div>
-            <span>V2 P0 · первый запуск и восстановление</span>
+            <span>V2 P0 · готовность и следующий шаг</span>
             <h3>Пульт запуска Терминатора</h3>
-            <p>${this.escapeHtml(snapshot.label)}. ${this.escapeHtml(snapshot.next.note)}</p>
+            <p>${this.escapeHtml(snapshot.label)}. ${this.escapeHtml(snapshot.ordinary_message || snapshot.next.note)}</p>
           </div>
           <div class="v2-command-score">
             <strong>${this.escapeHtml(String(snapshot.score))}%</strong>
@@ -11894,7 +12091,8 @@ const App = {
           <div class="v2-command-next">
             <span>Следующий шаг</span>
             <strong>${this.escapeHtml(snapshot.next.name)}</strong>
-            <button type="button" data-v2-command-action="continue_setup">Открыть</button>
+            <p>${this.escapeHtml(snapshot.next.note)}</p>
+            <button type="button" data-v2-command-action="continue_setup">Перейти</button>
           </div>
         </header>
 
@@ -11903,7 +12101,8 @@ const App = {
             ${snapshot.levels.map((level) => this.renderV2ReadinessLevel(level)).join('')}
           </section>
 
-          <section class="v2-recovery-rail" aria-label="Восстановление и безопасные действия">
+          <section class="v2-recovery-rail" aria-label="Следующие действия и внимание">
+            ${this.renderV2AttentionPanel(snapshot)}
             <div class="v2-recovery-card v2-recovery-card--${this.escapeHtml(snapshot.guardian.tone)}">
               <span>Защита</span>
               <strong>${this.escapeHtml(snapshot.guardian.label)}</strong>
@@ -11922,22 +12121,11 @@ const App = {
               <p>${snapshot.demoMode ? 'Демо-задача создана локально и не трогает внешние сервисы.' : 'Можно создать безопасную демо-задачу для проверки первого пути.'}</p>
               <button type="button" data-v2-command-action="start_demo">${snapshot.demoMode ? 'Открыть демо' : 'Создать демо'}</button>
             </div>
+            ${this.renderV2CommandExpertDetails(snapshot)}
           </section>
         </div>
 
-        <section class="v2-owner-assisted" aria-label="Проверки владельца">
-          <div>
-            <strong>Проверки владельца до production V2 final</strong>
-            <p>Они не блокируют WebApp/PC V1, но не должны маскироваться как готовые.</p>
-          </div>
-          ${snapshot.ownerAssisted.map((item) => `
-            <article class="v2-owner-item">
-              <span>${this.escapeHtml(this.v2CommandStatusLabel(item.status))}</span>
-              <strong>${this.escapeHtml(item.name)}</strong>
-              <p>${this.escapeHtml(item.note)}</p>
-            </article>
-          `).join('')}
-        </section>
+        ${this.renderV2OwnerAssistedSection(snapshot)}
 
         <div class="v2-command-actions v2-command-actions--wide">
           <button type="button" data-v2-command-action="refresh">Обновить снимок</button>
@@ -11946,6 +12134,69 @@ const App = {
           <button type="button" data-v2-command-action="open_work">Открыть Рабочее</button>
         </div>
       </section>
+    `;
+  },
+
+  renderV2AttentionPanel(snapshot) {
+    const items = snapshot.attentionItems || [];
+    if (!items.length) {
+      return `
+        <div class="v2-recovery-card v2-attention-card v2-attention-card--ready">
+          <span>Что требует внимания</span>
+          <strong>Критичных блокеров нет</strong>
+          <p>Остались проверки владельца и финальные product gates.</p>
+        </div>
+      `;
+    }
+    return `
+      <div class="v2-recovery-card v2-attention-card v2-attention-card--${this.escapeHtml(items.some((item) => item.status === 'blocked') ? 'blocked' : 'review')}">
+        <span>Что требует внимания</span>
+        <strong>${this.escapeHtml(String(items.length))} пунктов</strong>
+        <div class="v2-attention-list">
+          ${items.slice(0, 6).map((item) => `
+            <button type="button" class="v2-attention-item v2-attention-item--${this.escapeHtml(item.status)}" data-v2-command-action="${this.escapeHtml(item.action || 'open_system')}">
+              <b>${this.escapeHtml(item.label || item.id || 'Проверить')}</b>
+              <small>${this.escapeHtml(item.reason || 'Нужна проверка.')}</small>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  renderV2OwnerAssistedSection(snapshot) {
+    return `
+      <section class="v2-owner-assisted" aria-label="Проверки владельца">
+        <div>
+          <strong>Проверки владельца до production V2 final</strong>
+          <p>Они не блокируют текущую работу, но не должны маскироваться как готовые.</p>
+        </div>
+        ${(snapshot.ownerAssisted || []).map((item) => `
+          <article class="v2-owner-item v2-owner-item--${this.escapeHtml(item.status)}">
+            <span>${this.escapeHtml(this.v2CommandStatusLabel(item.status))}</span>
+            <strong>${this.escapeHtml(item.name)}</strong>
+            <p>${this.escapeHtml(item.note)}</p>
+          </article>
+        `).join('')}
+      </section>
+    `;
+  },
+
+  renderV2CommandExpertDetails(snapshot) {
+    const details = {
+      schema_version: snapshot.schema_version,
+      readiness_level: snapshot.readiness?.readiness_level,
+      readiness_percent: snapshot.readiness?.readiness_percent,
+      next_route: snapshot.readiness?.next_route,
+      event_id: snapshot.openedEvent?.id || '',
+      event_type: snapshot.openedEvent?.event_type || '',
+      source_facts: snapshot.expertDetails?.facts || {}
+    };
+    return `
+      <details class="v2-command-expert">
+        <summary>Экспертные детали</summary>
+        <pre>${this.escapeHtml(JSON.stringify(details, null, 2))}</pre>
+      </details>
     `;
   },
 
@@ -11976,6 +12227,18 @@ const App = {
     const scrollTo = (id) => {
       window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
     };
+    const eventType = action === 'owner_assisted' || action === 'show_owner_checklist'
+      ? 'v2.setup_route.owner_assisted_pending'
+      : action === 'open_work' || action === 'start_workspace'
+        ? 'v2.setup_route.ready'
+        : 'v2.setup_route.next_action_selected';
+    if (action !== 'refresh') {
+      this.recordV2SetupRouteEvent(eventType, {
+        action,
+        message: 'Owner Command Center action selected.',
+        refs: { component: 'owner_command_center', action }
+      });
+    }
     if (action === 'refresh') {
       this.refreshSourceOfTruthSnapshot();
       this.renderMissionControl();
@@ -11985,16 +12248,17 @@ const App = {
       return;
     }
     if (action === 'continue_setup') {
-      const snapshot = this.buildV2FirstRunRecoverySnapshot();
+      const snapshot = this.buildV2OwnerCommandCenterSnapshot();
       await this.handleV2FirstRunRecoveryAction(snapshot.next.action || 'open_system');
       return;
     }
-    if (action === 'open_work') {
+    if (action === 'open_work' || action === 'start_workspace') {
       this.go('work');
       return;
     }
-    if (action === 'open_system') {
+    if (action === 'open_system' || action === 'open_setup_minimum') {
       this.go('system');
+      if (action === 'open_setup_minimum') this.toast('Минимум запуска требует проверки в Системе');
       return;
     }
     if (action === 'open_scheme') {
@@ -12006,7 +12270,7 @@ const App = {
       this.selectMinaSchemeZone('body');
       return;
     }
-    if (action === 'open_guardian') {
+    if (action === 'open_guardian' || action === 'open_safety_guardian') {
       this.go('system');
       scrollTo('system-guardian-panel');
       return;
@@ -12028,17 +12292,17 @@ const App = {
       scrollTo('system-live-runtime-panel');
       return;
     }
-    if (action === 'open_memory') {
+    if (action === 'open_memory' || action === 'open_memory_search') {
       this.go('system');
       scrollTo('system-memory-search-panel');
       return;
     }
-    if (action === 'open_head') {
+    if (action === 'open_head' || action === 'open_head_readiness') {
       this.go('system');
       scrollTo('system-head-panel');
       return;
     }
-    if (action === 'open_hands') {
+    if (action === 'open_hands' || action === 'open_hands_safety') {
       this.go('system');
       scrollTo('system-hands-panel');
       return;
@@ -12068,7 +12332,7 @@ const App = {
       scrollTo('system-companion-panel');
       return;
     }
-    if (action === 'owner_assisted') {
+    if (action === 'owner_assisted' || action === 'show_owner_checklist') {
       this.saveV2FirstRunRecoveryState({ owner_assisted_acknowledged_at: new Date().toISOString() });
       this.toast('Owner-assisted checks отмечены как ручной хвост production V2');
       this.renderV2FirstRunRecoveryCenter();
@@ -12079,6 +12343,7 @@ const App = {
       return;
     }
     this.go('system');
+    this.toast('Следующий шаг определён, но экран ещё не подключён. Откройте Систему.');
   },
 
   async createV2FirstRunDemoTask() {
