@@ -1,0 +1,50 @@
+{
+  "task_id": "v2_p1_b_comfort_trust_guide",
+  "created_at": "2026-05-30",
+  "sources": [
+    {
+      "name": "Microsoft Research - Guidelines for Human-AI Interaction",
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design",
+      "used_for": "user control, trust calibration, failure handling, AI limitations"
+    },
+    {
+      "name": "Microsoft Research - How to build effective human-AI interaction",
+      "url": "https://www.microsoft.com/en-us/research/project/guidelines-for-human-ai-interaction/articles/how-to-build-effective-human-ai-interaction-considerations-for-machine-learning-and-software-engineering/",
+      "used_for": "instance-level uncertainty and expectation setting"
+    },
+    {
+      "name": "W3C WAI - What's New in WCAG 2.2",
+      "url": "https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/",
+      "used_for": "focus appearance, target size, accessible authentication"
+    },
+    {
+      "name": "Apple Human Interface Guidelines - Feedback",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/feedback",
+      "used_for": "status feedback, warnings, next action clarity"
+    },
+    {
+      "name": "Material Design - Accessibility",
+      "url": "https://m2.material.io/design/usability/accessibility.html",
+      "used_for": "clear layouts, distinct calls to action, assistive support"
+    },
+    {
+      "name": "Systematic review - mobile app design for older adults",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12350549/",
+      "used_for": "large touch targets, low cognitive load, error-tolerant interface"
+    },
+    {
+      "name": "Nielsen Norman Group - Application Design Showcase",
+      "url": "https://media.nngroup.com/media/reports/free/Application_Design_Showcase_1st_edition.pdf",
+      "used_for": "progressive disclosure, linear flow for newcomers, expert path for power users"
+    }
+  ],
+  "chatgpt_consultation": {
+    "status": "completed_safe_high_level",
+    "evidence": "evidence/v2_p1_b_comfort_trust_guide/chatgpt_product_advice_full.txt",
+    "top_3_advice": [
+      "Visual Mina Canvas",
+      "Transparency Layer",
+      "Timeline Recovery"
+    ]
+  }
+}

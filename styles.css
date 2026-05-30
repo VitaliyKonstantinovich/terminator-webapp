@@ -3520,6 +3520,146 @@ button:not(:disabled) {
   overflow-wrap: anywhere;
 }
 
+.v2-comfort-guide {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid rgba(108, 226, 255, 0.38);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(5, 31, 58, 0.94), rgba(3, 13, 30, 0.96)),
+    radial-gradient(circle at 16% 8%, rgba(86, 203, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 84% 12%, rgba(61, 247, 165, 0.12), transparent 30%);
+  box-shadow: inset 0 0 28px rgba(74, 176, 255, 0.08);
+}
+
+.v2-comfort-guide--blocked {
+  border-color: rgba(255, 106, 106, 0.48);
+}
+
+.v2-comfort-guide--ready {
+  border-color: rgba(61, 247, 165, 0.42);
+}
+
+.v2-comfort-hero,
+.v2-comfort-grid,
+.v2-comfort-actions,
+.v2-comfort-guide-strip {
+  display: grid;
+  gap: 12px;
+}
+
+.v2-comfort-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.2fr) minmax(240px, 0.34fr);
+}
+
+.v2-comfort-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.v2-comfort-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.v2-comfort-guide-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.v2-comfort-hero > div,
+.v2-comfort-card,
+.v2-comfort-guide-strip span,
+.v2-comfort-expert {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(92, 207, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(2, 20, 43, 0.78);
+  box-shadow: inset 0 0 18px rgba(42, 168, 255, 0.07);
+}
+
+.v2-comfort-card--risk {
+  border-color: rgba(255, 209, 102, 0.36);
+}
+
+.v2-comfort-card--proof,
+.v2-comfort-card--safe {
+  border-color: rgba(61, 247, 165, 0.28);
+}
+
+.v2-comfort-guide span,
+.v2-comfort-card span {
+  display: block;
+  color: #a9d8f8;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.v2-comfort-guide h3 {
+  margin: 5px 0 0;
+  color: #ffffff;
+  font-size: clamp(23px, 3vw, 34px);
+  line-height: 1.06;
+}
+
+.v2-comfort-guide p {
+  margin: 7px 0 0;
+  color: #d2efff;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.v2-comfort-guide strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.v2-comfort-score strong {
+  color: #62edff;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1;
+}
+
+.v2-comfort-actions button,
+.v2-comfort-card button,
+.v2-comfort-next button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(93, 214, 255, 0.38);
+  border-radius: 8px;
+  background: rgba(8, 50, 92, 0.78);
+  color: #ecfbff;
+  font-weight: 900;
+}
+
+.v2-comfort-card button {
+  margin-top: 10px;
+}
+
+.v2-comfort-expert summary {
+  cursor: pointer;
+  color: #67efff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.v2-comfort-expert pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 8, 20, 0.72);
+  color: #d5f4ff;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .v2-qa-factory {
   display: grid;
   gap: 14px;
@@ -10657,6 +10797,10 @@ button:not(:disabled) {
   .v2-recovery-command-grid,
   .v2-recovery-owner,
   .v2-recovery-owner > div,
+  .v2-comfort-hero,
+  .v2-comfort-grid,
+  .v2-comfort-actions,
+  .v2-comfort-guide-strip,
   .v2-qa-factory-hero,
   .v2-qa-factory-grid,
   .v2-qa-factory-actions,

@@ -342,7 +342,8 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2OwnerCommandCenterPreviewEnabled: false,
   v2P0IntegrationPreviewEnabled: false,
   v2P0AcceptanceSuiteEnabled: false,
-  v2QAAutotestFactoryPreviewEnabled: false
+  v2QAAutotestFactoryPreviewEnabled: false,
+  v2ComfortTrustGuidePreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -443,7 +444,10 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.qa.test_artifact.created',
   'v2.qa.evidence_checklist.created',
   'v2.qa.verifier.verdict',
-  'v2.qa.memory_summary.created'
+  'v2.qa.memory_summary.created',
+  'v2.comfort.guide.opened',
+  'v2.comfort.next_action.selected',
+  'v2.comfort.trust_snapshot.created'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -7368,6 +7372,201 @@ test.describe('Terminator QA Factory safe demo', () => {
     };
   },
 
+  recordV2ComfortTrustEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.comfort.trust_snapshot.created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_comfort_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'comfort_trust_guide',
+        resource: payload.resource || 'system',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'comfort_trust_guide',
+      resource: payload.resource || 'system',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  buildV2ComfortTrustGuideSnapshot(options = {}) {
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: options.refresh === true });
+    const p0 = this.runV2P0AcceptanceSuite({ persistEvents: false });
+    const qa = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false });
+    const memory = this.getV2MemoryRuntimeSnapshot?.() || {};
+    const safety = this.getV2SafetyPolicySnapshot?.() || this.getV2GuardianSnapshot?.() || {};
+    const recovery = this.buildV2RecoveryCommandCenterSnapshot?.(null, { recordOpened: false, persistEvents: false }) || {};
+    const status = truth.status === 'blocked' || p0.overall_status === 'FAIL' ? 'blocked' : truth.status === 'ready' && p0.overall_status === 'PASS' ? 'ready' : 'review';
+    const confidence = status === 'ready' ? 'Высокая уверенность' : status === 'blocked' ? 'Остановиться и проверить' : 'Требуется проверка владельца';
+    const next = truth.next?.action ? {
+      label: truth.next.name || 'Открыть следующий шаг',
+      note: truth.next.note || truth.summary || 'Мина покажет безопасный следующий шаг.',
+      action: truth.next.action
+    } : {
+      label: p0.next_recommended_action?.label || 'Проверить систему',
+      note: p0.next_recommended_action?.description || 'Проверить связи, риски и evidence перед продолжением.',
+      action: p0.next_recommended_action?.action || 'open_diagnostics'
+    };
+    const risky = [
+      'Deploy, push, delete, .env, network, billing и secrets остаются только через Approval.',
+      'AI API не включаются без отдельного решения владельца.',
+      'Owner-assisted проверки не выдаются за автоматический PASS.'
+    ];
+    const checked = [
+      `${p0.passed_checks || 0}/${p0.total_checks || 0} P0-проверок пройдены`,
+      `Memory Search: ${memory.status || memory.index_health || 'требует проверки'}`,
+      `QA Factory: ${qa.summary?.test_case_count || 0} test cases, backend/API честно PARTIAL`,
+      `Источник истины: ${truth.score || 0}%`
+    ];
+    const needsAttention = [
+      ...(p0.p0_blockers || []).slice(0, 2).map((item) => item.message || item.check_id),
+      ...(p0.owner_assisted_pending || p0.owner_assisted_items || []).slice(0, 2).map((item) => item.label || item.message || item.id),
+      ...(truth.sources || []).filter((source) => source.status !== 'ready').slice(0, 2).map((source) => `${source.name}: ${source.owner_text}`)
+    ].filter(Boolean);
+    const events = [
+      this.recordV2ComfortTrustEvent('v2.comfort.trust_snapshot.created', {
+        status,
+        next_action: next.action,
+        confidence,
+        message: 'Comfort trust guide snapshot created.',
+        refs: { component: 'v2_comfort_trust_guide' }
+      }, { persist: options.persistEvents === true })
+    ];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2ComfortTrustGuidePreviewEnabled: Boolean(options.previewEnabled) }),
+      status,
+      score: truth.score || p0.p0_readiness_percent || 0,
+      confidence,
+      title: 'Проводник Мины',
+      summary: 'Один спокойный слой поверх сложной системы: что происходит, что нажать дальше, что опасно и что уже проверено.',
+      next,
+      cards: [
+        {
+          id: 'now',
+          label: 'Что происходит',
+          title: status === 'ready' ? 'Контур работает' : status === 'blocked' ? 'Есть блокер' : 'Идёт проверка зрелости',
+          text: truth.summary || p0.next_recommended_action?.description || 'Мина собирает состояние системы и показывает безопасный маршрут.',
+          action: next.action,
+          button: 'Открыть следующий шаг'
+        },
+        {
+          id: 'safe',
+          label: 'Что безопасно',
+          title: 'Можно смотреть и проверять',
+          text: 'Открывать схему, память, диагностику, отчёты и evidence можно без риска для системы.',
+          action: 'open_scheme',
+          button: 'Открыть схему'
+        },
+        {
+          id: 'risk',
+          label: 'Что опасно',
+          title: 'Только через подтверждение',
+          text: risky[0],
+          action: 'open_guardian',
+          button: 'Открыть защиту'
+        },
+        {
+          id: 'proof',
+          label: 'Что проверено',
+          title: checked[0],
+          text: checked.slice(1).join(' · '),
+          action: 'open_memory',
+          button: 'Открыть память'
+        }
+      ],
+      simple_rules: [
+        'Если сомневаешься - нажми "Проверить систему".',
+        'Если действие меняет файлы, сеть, деньги или публикацию - жди Approval.',
+        'Если Мина говорит PARTIAL - это честная зона ручной проверки.',
+        'Экспертные детали спрятаны отдельно, обычный режим говорит человеческим языком.'
+      ],
+      checked,
+      needs_attention: needsAttention.length ? needsAttention : ['Критичных блокеров в текущем снимке не найдено.'],
+      risky,
+      sources: {
+        source_truth_status: truth.status,
+        p0_status: p0.overall_status,
+        memory_status: memory.status || memory.index_health || 'unknown',
+        safety_status: safety.status || safety.guardian_status || 'unknown',
+        recovery_status: recovery.status || recovery.tone || 'unknown',
+        qa_status: qa.summary?.status || 'unknown'
+      },
+      events
+    };
+  },
+
+  renderV2ComfortTrustGuidePanel(snapshot = this.buildV2ComfortTrustGuideSnapshot({ previewEnabled: true, persistEvents: false })) {
+    const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
+    return `
+      <section class="v2-comfort-guide v2-comfort-guide--${this.escapeHtml(tone)}" aria-label="Проводник Мины">
+        <header class="v2-comfort-hero">
+          <div>
+            <span>V2 / комфорт и доверие</span>
+            <h3>${this.escapeHtml(snapshot.title)}</h3>
+            <p>${this.escapeHtml(snapshot.summary)}</p>
+          </div>
+          <div class="v2-comfort-score">
+            <span>Состояние</span>
+            <strong>${this.escapeHtml(String(snapshot.score))}%</strong>
+            <p>${this.escapeHtml(snapshot.confidence)}</p>
+          </div>
+          <div class="v2-comfort-next">
+            <span>Один следующий шаг</span>
+            <strong>${this.escapeHtml(snapshot.next.label)}</strong>
+            <p>${this.escapeHtml(snapshot.next.note)}</p>
+            <button type="button" data-integration-action="${this.escapeHtml(snapshot.next.action)}">Открыть следующий шаг</button>
+          </div>
+        </header>
+
+        <div class="v2-comfort-actions" aria-label="Быстрые действия Проводника Мины">
+          <button type="button" data-integration-action="refresh_source_truth">Проверить систему</button>
+          <button type="button" data-integration-action="open_scheme">Открыть Схему Мины</button>
+          <button type="button" data-integration-action="open_diagnostics">Открыть Диагност</button>
+          <button type="button" data-integration-action="open_memory">Найти в памяти</button>
+        </div>
+
+        <div class="v2-comfort-grid">
+          ${snapshot.cards.map((card) => `
+            <article class="v2-comfort-card v2-comfort-card--${this.escapeHtml(card.id)}">
+              <span>${this.escapeHtml(card.label)}</span>
+              <strong>${this.escapeHtml(card.title)}</strong>
+              <p>${this.escapeHtml(card.text)}</p>
+              <button type="button" data-integration-action="${this.escapeHtml(card.action)}">${this.escapeHtml(card.button)}</button>
+            </article>
+          `).join('')}
+        </div>
+
+        <div class="v2-comfort-guide-strip">
+          ${snapshot.simple_rules.map((rule) => `<span>${this.escapeHtml(rule)}</span>`).join('')}
+        </div>
+
+        <details class="v2-comfort-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            status: snapshot.status,
+            score: snapshot.score,
+            sources: snapshot.sources,
+            checked: snapshot.checked,
+            needs_attention: snapshot.needs_attention,
+            risky: snapshot.risky,
+            feature_flag: snapshot.feature_flags.v2ComfortTrustGuidePreviewEnabled
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
+  },
+
   renderV2QAAutotestFactoryPanel(preview = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false })) {
     const smoke = this.runV2QAAutotestFactorySmoke({ preview });
     const tone = smoke.status === 'PASS' ? 'ready' : 'review';
@@ -14033,6 +14232,7 @@ test.describe('Terminator QA Factory safe demo', () => {
     const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
     const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
+      ${this.renderV2ComfortTrustGuidePanel()}
       ${this.renderV2QAAutotestFactoryPanel()}
       ${this.renderV2P0AcceptancePanel(p0Acceptance)}
       ${this.renderV2P0IntegrationGatePanel(p0Preview)}
