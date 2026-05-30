@@ -1,0 +1,1767 @@
+{
+  "generated_at": "2026-05-30T18:50:58.201Z",
+  "events": [
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058171_y8f0t",
+      "status": "preview",
+      "payload": {
+        "incident_id": "",
+        "playbook_id": "",
+        "recovery_health": "ready",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058175_s49gi",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058173_r1f1s",
+        "playbook_id": "missing_evidence_ref",
+        "recovery_health": "ready",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058176_kqp1b",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058175_9yn4s",
+        "playbook_id": "memory_search_degraded",
+        "recovery_health": "ready",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_krz6q",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058176_rzauk",
+        "playbook_id": "verifier_fail",
+        "recovery_health": "blocked",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_252ll",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058177_cq07l",
+        "playbook_id": "privacy_warning",
+        "recovery_health": "owner_assisted_required",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_ckuuk",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058177_7x2yo",
+        "playbook_id": "cost_guard_unknown",
+        "recovery_health": "owner_assisted_required",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_zhh0m",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058177_2cdb5",
+        "playbook_id": "emergency_stop_active",
+        "recovery_health": "blocked",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_vy13d",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058178_yjjdu",
+        "playbook_id": "repair_workspace_unavailable",
+        "recovery_health": "blocked",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_1n809",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058178_05arf",
+        "playbook_id": "owner_assisted_generic",
+        "recovery_health": "owner_assisted_required",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058179_d9lqr",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058179_vntlz",
+        "playbook_id": "local_agent_unavailable_placeholder",
+        "recovery_health": "owner_assisted_required",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.command_center_opened",
+      "id": "v2_recovery_v2_recovery_command_center_opened_1780167058179_tx3nh",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058179_urrlv",
+        "playbook_id": "direct_bridge_unavailable_placeholder",
+        "recovery_health": "owner_assisted_required",
+        "message": "Recovery Command Center preview.",
+        "refs": {
+          "component": "recovery_command_center"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058181_tfu86",
+      "status": "preview",
+      "payload": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "severity": "medium",
+        "refs": {
+          "sample_id": "missing_evidence_ref",
+          "incident_id": "incident_v2_1780167058180_0k1p0"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058181_od74a",
+      "status": "preview",
+      "payload": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "playbook_id": "missing_evidence_ref",
+        "message": "проверить ссылку evidence или повторить проверку результата",
+        "refs": {
+          "sample_id": "missing_evidence_ref",
+          "incident_id": "incident_v2_1780167058180_0k1p0"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058181_b7ham",
+      "status": "preview",
+      "payload": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "pack_id": "v2_diagpack_1780167058180_83gtf",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "missing_evidence_ref",
+          "incident_id": "incident_v2_1780167058180_0k1p0",
+          "pack_id": "v2_diagpack_1780167058180_83gtf"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058181_vn2nm",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "evidence",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058182_dmg6g",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "evidence",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058182_4tvho",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "evidence",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058182_j3mpo",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "evidence",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.ready",
+      "id": "v2_recovery_v2_recovery_ready_1780167058182_wl3f2",
+      "status": "preview",
+      "payload": {
+        "sample_id": "missing_evidence_ref",
+        "incident_id": "incident_v2_1780167058180_0k1p0",
+        "playbook_id": "missing_evidence_ref",
+        "final_state": "diagnostic_pack_created",
+        "message": "выбрать repair workspace или owner-assisted путь",
+        "refs": {
+          "sample_id": "missing_evidence_ref",
+          "incident_id": "incident_v2_1780167058180_0k1p0"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058182_e5gfe",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "severity": "medium",
+        "refs": {
+          "sample_id": "memory_search_degraded",
+          "incident_id": "incident_v2_1780167058182_kmoyu"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058182_kuly3",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "playbook_id": "memory_search_degraded",
+        "message": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+        "refs": {
+          "sample_id": "memory_search_degraded",
+          "incident_id": "incident_v2_1780167058182_kmoyu"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058182_kexgx",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "pack_id": "v2_diagpack_1780167058182_fbvr4",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "memory_search_degraded",
+          "incident_id": "incident_v2_1780167058182_kmoyu",
+          "pack_id": "v2_diagpack_1780167058182_fbvr4"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058183_cf18w",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "memory_search",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058183_78us3",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "memory_search",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058183_n26og",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "memory_search",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058183_gk97x",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "memory_search",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.ready",
+      "id": "v2_recovery_v2_recovery_ready_1780167058183_uhwrx",
+      "status": "preview",
+      "payload": {
+        "sample_id": "memory_search_degraded",
+        "incident_id": "incident_v2_1780167058182_kmoyu",
+        "playbook_id": "memory_search_degraded",
+        "final_state": "diagnostic_pack_created",
+        "message": "выбрать repair workspace или owner-assisted путь",
+        "refs": {
+          "sample_id": "memory_search_degraded",
+          "incident_id": "incident_v2_1780167058182_kmoyu"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058183_3for5",
+      "status": "preview",
+      "payload": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "severity": "high",
+        "refs": {
+          "sample_id": "verifier_fail",
+          "incident_id": "incident_v2_1780167058183_p7i1r"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058183_ihd4r",
+      "status": "preview",
+      "payload": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "playbook_id": "verifier_fail",
+        "message": "вернуть результат на исправление, применение заблокировано",
+        "refs": {
+          "sample_id": "verifier_fail",
+          "incident_id": "incident_v2_1780167058183_p7i1r"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058183_wiom4",
+      "status": "preview",
+      "payload": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "pack_id": "v2_diagpack_1780167058183_hz4u5",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "verifier_fail",
+          "incident_id": "incident_v2_1780167058183_p7i1r",
+          "pack_id": "v2_diagpack_1780167058183_hz4u5"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_zyxr6",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_h8p7k",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_36o1j",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_7c2y3",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_d4gk8",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "diagnostic_pack_created",
+        "to": "repair_workspace_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_8tdl5",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "repair_workspace_required",
+        "to": "repair_workspace_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_fshed",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "repair_workspace_created",
+        "to": "verifier_check",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058184_x33oz",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "from": "verifier_check",
+        "to": "blocked",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "verifier",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.blocked",
+      "id": "v2_recovery_v2_recovery_blocked_1780167058185_7wi46",
+      "status": "preview",
+      "payload": {
+        "sample_id": "verifier_fail",
+        "incident_id": "incident_v2_1780167058183_p7i1r",
+        "playbook_id": "verifier_fail",
+        "final_state": "blocked",
+        "message": "не выполнять действие, показать причину",
+        "refs": {
+          "sample_id": "verifier_fail",
+          "incident_id": "incident_v2_1780167058183_p7i1r"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058185_rcj3y",
+      "status": "preview",
+      "payload": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "severity": "high",
+        "refs": {
+          "sample_id": "privacy_warning",
+          "incident_id": "incident_v2_1780167058185_3s775"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058185_5gk1p",
+      "status": "preview",
+      "payload": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "playbook_id": "privacy_warning",
+        "message": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+        "refs": {
+          "sample_id": "privacy_warning",
+          "incident_id": "incident_v2_1780167058185_3s775"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058185_jnh3t",
+      "status": "preview",
+      "payload": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "pack_id": "v2_diagpack_1780167058185_xovo2",
+        "privacy_warning": true,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "privacy_warning",
+          "incident_id": "incident_v2_1780167058185_3s775",
+          "pack_id": "v2_diagpack_1780167058185_xovo2"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058185_hiwo6",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "privacy_guard",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058185_xij3f",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "privacy_guard",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058185_mgs6f",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "privacy_guard",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058185_rv549",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "privacy_guard",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058185_d5c5h",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "privacy_guard",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.owner_assisted_required",
+      "id": "v2_recovery_v2_recovery_owner_assisted_required_1780167058185_73nyd",
+      "status": "preview",
+      "payload": {
+        "sample_id": "privacy_warning",
+        "incident_id": "incident_v2_1780167058185_3s775",
+        "playbook_id": "privacy_warning",
+        "final_state": "owner_assisted_required",
+        "message": "владелец проверяет вручную",
+        "refs": {
+          "sample_id": "privacy_warning",
+          "incident_id": "incident_v2_1780167058185_3s775"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058186_2whqh",
+      "status": "preview",
+      "payload": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "severity": "medium",
+        "refs": {
+          "sample_id": "cost_guard_unknown",
+          "incident_id": "incident_v2_1780167058185_9o4zc"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058186_y9qmo",
+      "status": "preview",
+      "payload": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "playbook_id": "cost_guard_unknown",
+        "message": "попросить владельца вручную проверить billing, ничего не включать",
+        "refs": {
+          "sample_id": "cost_guard_unknown",
+          "incident_id": "incident_v2_1780167058185_9o4zc"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058186_wu0cl",
+      "status": "preview",
+      "payload": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "pack_id": "v2_diagpack_1780167058186_krxig",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "cost_guard_unknown",
+          "incident_id": "incident_v2_1780167058185_9o4zc",
+          "pack_id": "v2_diagpack_1780167058186_krxig"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058186_9xg1c",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "cost_guard",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058186_3w2fa",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "cost_guard",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058186_6ubic",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "cost_guard",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058186_5df6q",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "cost_guard",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058186_55msl",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "cost_guard",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.owner_assisted_required",
+      "id": "v2_recovery_v2_recovery_owner_assisted_required_1780167058186_s8hgl",
+      "status": "preview",
+      "payload": {
+        "sample_id": "cost_guard_unknown",
+        "incident_id": "incident_v2_1780167058185_9o4zc",
+        "playbook_id": "cost_guard_unknown",
+        "final_state": "owner_assisted_required",
+        "message": "владелец проверяет вручную",
+        "refs": {
+          "sample_id": "cost_guard_unknown",
+          "incident_id": "incident_v2_1780167058185_9o4zc"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058187_s3fpe",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "severity": "high",
+        "refs": {
+          "sample_id": "emergency_stop_active",
+          "incident_id": "incident_v2_1780167058186_l15rf"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058187_og0uc",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "playbook_id": "emergency_stop_active",
+        "message": "оставить risky actions заблокированными; сброс только точной фразой",
+        "refs": {
+          "sample_id": "emergency_stop_active",
+          "incident_id": "incident_v2_1780167058186_l15rf"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058187_qb6gh",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "pack_id": "v2_diagpack_1780167058187_iqngi",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "emergency_stop_active",
+          "incident_id": "incident_v2_1780167058186_l15rf",
+          "pack_id": "v2_diagpack_1780167058187_iqngi"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058187_us4oq",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "guardian",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058187_0fbnh",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "guardian",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058187_l9q3x",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "guardian",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058187_0y8xz",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "guardian",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058187_xepdq",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "guardian",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.owner_assisted_required",
+      "id": "v2_recovery_v2_recovery_owner_assisted_required_1780167058187_bbocv",
+      "status": "preview",
+      "payload": {
+        "sample_id": "emergency_stop_active",
+        "incident_id": "incident_v2_1780167058186_l15rf",
+        "playbook_id": "emergency_stop_active",
+        "final_state": "owner_assisted_required",
+        "message": "владелец проверяет вручную",
+        "refs": {
+          "sample_id": "emergency_stop_active",
+          "incident_id": "incident_v2_1780167058186_l15rf"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058187_9ssmy",
+      "status": "preview",
+      "payload": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "severity": "high",
+        "refs": {
+          "sample_id": "repair_workspace_unavailable",
+          "incident_id": "incident_v2_1780167058187_pkx1d"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058187_y0ops",
+      "status": "preview",
+      "payload": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "playbook_id": "repair_workspace_unavailable",
+        "message": "остановить apply и запросить создание repair workspace",
+        "refs": {
+          "sample_id": "repair_workspace_unavailable",
+          "incident_id": "incident_v2_1780167058187_pkx1d"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058188_z38vz",
+      "status": "preview",
+      "payload": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "pack_id": "v2_diagpack_1780167058187_oicbl",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "repair_workspace_unavailable",
+          "incident_id": "incident_v2_1780167058187_pkx1d",
+          "pack_id": "v2_diagpack_1780167058187_oicbl"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058188_kr091",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058188_buakd",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058188_0o1gh",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058188_g3qk1",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058188_vulhb",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "from": "diagnostic_pack_created",
+        "to": "repair_workspace_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058188_u13v5",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "from": "repair_workspace_required",
+        "to": "escalated",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "codex_repair",
+        "severity": "high",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.escalated",
+      "id": "v2_recovery_v2_recovery_escalated_1780167058188_ysc9t",
+      "status": "preview",
+      "payload": {
+        "sample_id": "repair_workspace_unavailable",
+        "incident_id": "incident_v2_1780167058187_pkx1d",
+        "playbook_id": "repair_workspace_unavailable",
+        "final_state": "escalated",
+        "message": "передать владельцу как ручной сценарий",
+        "refs": {
+          "sample_id": "repair_workspace_unavailable",
+          "incident_id": "incident_v2_1780167058187_pkx1d"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058188_jo0u9",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "severity": "medium",
+        "refs": {
+          "sample_id": "owner_assisted_only",
+          "incident_id": "incident_v2_1780167058188_42vi8"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058188_mles7",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "playbook_id": "owner_assisted_generic",
+        "message": "показать чеклист владельца и ничего не выполнять автоматически",
+        "refs": {
+          "sample_id": "owner_assisted_only",
+          "incident_id": "incident_v2_1780167058188_42vi8"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058188_rro59",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "pack_id": "v2_diagpack_1780167058188_0ah8a",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "owner_assisted_only",
+          "incident_id": "incident_v2_1780167058188_42vi8",
+          "pack_id": "v2_diagpack_1780167058188_0ah8a"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_yk20e",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "owner_check",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_9utwy",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "owner_check",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_j12r8",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "owner_check",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_tyfns",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "owner_check",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_0kjyw",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "owner_check",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.owner_assisted_required",
+      "id": "v2_recovery_v2_recovery_owner_assisted_required_1780167058189_rhl2j",
+      "status": "preview",
+      "payload": {
+        "sample_id": "owner_assisted_only",
+        "incident_id": "incident_v2_1780167058188_42vi8",
+        "playbook_id": "owner_assisted_generic",
+        "final_state": "owner_assisted_required",
+        "message": "владелец проверяет вручную",
+        "refs": {
+          "sample_id": "owner_assisted_only",
+          "incident_id": "incident_v2_1780167058188_42vi8"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058189_tfc8d",
+      "status": "preview",
+      "payload": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "severity": "medium",
+        "refs": {
+          "sample_id": "local_agent_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058189_0im4c"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058189_cyykx",
+      "status": "preview",
+      "payload": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "playbook_id": "local_agent_unavailable_placeholder",
+        "message": "показать read-only incident и owner-assisted проверку, runtime не менять",
+        "refs": {
+          "sample_id": "local_agent_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058189_0im4c"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058189_wvbdr",
+      "status": "preview",
+      "payload": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "pack_id": "v2_diagpack_1780167058189_btqzg",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "local_agent_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058189_0im4c",
+          "pack_id": "v2_diagpack_1780167058189_btqzg"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_qq21h",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "local_agent",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_1bt4r",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "local_agent",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_dpkdt",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "local_agent",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_1ihki",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "local_agent",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058189_qwhyu",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "local_agent",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.owner_assisted_required",
+      "id": "v2_recovery_v2_recovery_owner_assisted_required_1780167058190_dcd73",
+      "status": "preview",
+      "payload": {
+        "sample_id": "local_agent_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058189_0im4c",
+        "playbook_id": "local_agent_unavailable_placeholder",
+        "final_state": "owner_assisted_required",
+        "message": "владелец проверяет вручную",
+        "refs": {
+          "sample_id": "local_agent_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058189_0im4c"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.detected",
+      "id": "v2_recovery_v2_incident_detected_1780167058190_wkhhj",
+      "status": "preview",
+      "payload": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "severity": "medium",
+        "refs": {
+          "sample_id": "direct_bridge_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058190_z41gl"
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.playbook_selected",
+      "id": "v2_recovery_v2_recovery_playbook_selected_1780167058190_ijlpv",
+      "status": "preview",
+      "payload": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "playbook_id": "direct_bridge_unavailable_placeholder",
+        "message": "показать warning и не менять Cloudflare settings",
+        "refs": {
+          "sample_id": "direct_bridge_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058190_z41gl"
+        }
+      }
+    },
+    {
+      "event_type": "v2.diagnostic_pack.created",
+      "id": "v2_recovery_v2_diagnostic_pack_created_1780167058190_489bu",
+      "status": "preview",
+      "payload": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "pack_id": "v2_diagpack_1780167058190_ez1sa",
+        "privacy_warning": false,
+        "message": "Diagnostic Pack preview created.",
+        "refs": {
+          "sample_id": "direct_bridge_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058190_z41gl",
+          "pack_id": "v2_diagpack_1780167058190_ez1sa"
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058190_npxiu",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "from": "detected",
+        "to": "classified",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "direct_bridge",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058190_7nzeb",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "from": "classified",
+        "to": "explained",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "direct_bridge",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058190_pb5xw",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "from": "explained",
+        "to": "awaiting_user_action",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "direct_bridge",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058190_4rjr3",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "from": "awaiting_user_action",
+        "to": "diagnostic_pack_created",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "direct_bridge",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.incident.state_changed",
+      "id": "v2_recovery_v2_incident_state_changed_1780167058190_puem1",
+      "status": "preview",
+      "payload": {
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "from": "diagnostic_pack_created",
+        "to": "owner_assisted_required",
+        "allowed": true,
+        "reason": "Переход разрешён state machine.",
+        "component": "direct_bridge",
+        "severity": "medium",
+        "refs": {
+          "task_id": "",
+          "evidence_refs": [],
+          "artifact_refs": []
+        }
+      }
+    },
+    {
+      "event_type": "v2.recovery.owner_assisted_required",
+      "id": "v2_recovery_v2_recovery_owner_assisted_required_1780167058190_dh2h0",
+      "status": "preview",
+      "payload": {
+        "sample_id": "direct_bridge_unavailable_placeholder",
+        "incident_id": "incident_v2_1780167058190_z41gl",
+        "playbook_id": "direct_bridge_unavailable_placeholder",
+        "final_state": "owner_assisted_required",
+        "message": "владелец проверяет вручную",
+        "refs": {
+          "sample_id": "direct_bridge_unavailable_placeholder",
+          "incident_id": "incident_v2_1780167058190_z41gl"
+        }
+      }
+    }
+  ]
+}

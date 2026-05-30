@@ -1,0 +1,208 @@
+{
+  "generated_at": "2026-05-30T18:50:58.203Z",
+  "diagnostic_packs": [
+    {
+      "sample_id": "missing_evidence_ref",
+      "playbook_id": "missing_evidence_ref",
+      "pack_id": "v2_diagpack_1780167058174_ak0xl",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "ставить PASS без evidence",
+        "подменять evidence",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "проверить ссылку evidence или повторить проверку результата"
+    },
+    {
+      "sample_id": "memory_search_degraded",
+      "playbook_id": "memory_search_degraded",
+      "pack_id": "v2_diagpack_1780167058176_kb5jk",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "удалять память",
+        "сканировать весь диск",
+        "показывать секреты",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "проверить статус индекса памяти и предложить пересборку без удаления данных"
+    },
+    {
+      "sample_id": "verifier_fail",
+      "playbook_id": "verifier_fail",
+      "pack_id": "v2_diagpack_1780167058176_bsvtv",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "применять fix",
+        "закрывать incident как recovered",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "вернуть результат на исправление, применение заблокировано"
+    },
+    {
+      "sample_id": "privacy_warning",
+      "playbook_id": "privacy_warning",
+      "pack_id": "v2_diagpack_1780167058177_vxu9s",
+      "privacy_warning": true,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "показывать .env",
+        "отправлять токены",
+        "читать cookies",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard"
+    },
+    {
+      "sample_id": "cost_guard_unknown",
+      "playbook_id": "cost_guard_unknown",
+      "pack_id": "v2_diagpack_1780167058177_fhv7p",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "включать платные сервисы",
+        "менять payment settings",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "попросить владельца вручную проверить billing, ничего не включать"
+    },
+    {
+      "sample_id": "emergency_stop_active",
+      "playbook_id": "emergency_stop_active",
+      "pack_id": "v2_diagpack_1780167058177_kr2nl",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "сбрасывать одной кнопкой",
+        "запускать risky actions",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "оставить risky actions заблокированными; сброс только точной фразой"
+    },
+    {
+      "sample_id": "repair_workspace_unavailable",
+      "playbook_id": "repair_workspace_unavailable",
+      "pack_id": "v2_diagpack_1780167058178_qzxgn",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "писать в active project",
+        "делать repair без rollback",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "остановить apply и запросить создание repair workspace"
+    },
+    {
+      "sample_id": "owner_assisted_only",
+      "playbook_id": "owner_assisted_generic",
+      "pack_id": "v2_diagpack_1780167058178_j8viv",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "выполнять автоматически",
+        "обходить Approval",
+        "скрывать риск",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "показать чеклист владельца и ничего не выполнять автоматически"
+    },
+    {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "playbook_id": "local_agent_unavailable_placeholder",
+      "pack_id": "v2_diagpack_1780167058179_khehk",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "останавливать/перезапускать agent без approval",
+        "менять autostart",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "показать read-only incident и owner-assisted проверку, runtime не менять"
+    },
+    {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "playbook_id": "direct_bridge_unavailable_placeholder",
+      "pack_id": "v2_diagpack_1780167058179_cuuhq",
+      "privacy_warning": false,
+      "active_project_mutation_allowed": false,
+      "forbidden_actions": [
+        "менять Cloudflare",
+        "трогать DNS/proxy/network",
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "safe_next_action": "показать warning и не менять Cloudflare settings"
+    }
+  ]
+}

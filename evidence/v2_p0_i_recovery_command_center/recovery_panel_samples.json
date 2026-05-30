@@ -1,0 +1,2456 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T18:50:58.179Z",
+  "feature_flags": {
+    "v2FoundationEnabled": false,
+    "v2EventLogEnabled": false,
+    "v2CapabilityMatrixEnabled": false,
+    "v2SourceSnapshotsEnabled": false,
+    "v2SafetyPolicyPreviewEnabled": false,
+    "v2ControlledApplyPreviewEnabled": false,
+    "v2MemoryContractPreviewEnabled": false,
+    "v2RecoveryStatePreviewEnabled": true,
+    "v2RecoveryCommandCenterPreviewEnabled": true,
+    "v2FirstRunReadinessPreviewEnabled": false,
+    "v2SetupRoutePreviewEnabled": false,
+    "v2OwnerCommandCenterPreviewEnabled": false
+  },
+  "no_active_incident": {
+    "expected_action": "continue_work",
+    "actual_action": "continue_work",
+    "status": "PASS",
+    "snapshot": {
+      "schema_version": 1,
+      "generated_at": "2026-05-30T18:50:58.171Z",
+      "status": "ready",
+      "tone": "ready",
+      "runtime": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.168Z",
+        "incidents_count": 0,
+        "active_incidents_count": 0,
+        "last_incident_status": "none",
+        "recovery_health": "ready",
+        "owner_assisted_count": 0,
+        "blocked_count": 0,
+        "ready_to_recover_count": 0,
+        "last_event_id": "",
+        "timestamp": "2026-05-30T18:50:58.169Z",
+        "owner_assisted_required": [
+          "real_phone_apk",
+          "billing_dashboards",
+          "production_rollback"
+        ]
+      },
+      "incident": null,
+      "playbook": null,
+      "diagnostic_pack": null,
+      "next": {
+        "id": "continue_work",
+        "name": "Продолжить работу",
+        "status": "ready",
+        "note": "Серьёзных проблем не найдено. Можно вернуться к задаче.",
+        "action": "continue_work",
+        "score": 100
+      },
+      "metrics": {
+        "recovery_health": "ready",
+        "active_incidents_count": 0,
+        "last_incident_status": "none",
+        "ready_to_recover_count": 0,
+        "blocked_count": 0,
+        "owner_assisted_count": 0
+      },
+      "allowed_actions": [
+        "продолжить работу",
+        "запустить диагностику"
+      ],
+      "blocked_actions": [
+        "deploy",
+        "push main",
+        "delete",
+        ".env",
+        "tokens",
+        "cookies",
+        "billing",
+        "network settings"
+      ],
+      "owner_assisted": [
+        {
+          "id": "real_phone_apk",
+          "name": "Телефон / APK",
+          "status": "postponed",
+          "note": "Проверка перенесена до production V2 final.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        {
+          "id": "billing_dashboards",
+          "name": "billing_dashboards",
+          "status": "owner",
+          "note": "Проверяет владелец.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        {
+          "id": "production_rollback",
+          "name": "production_rollback",
+          "status": "owner",
+          "note": "Проверяет владелец.",
+          "action": "owner_assisted",
+          "score": 50
+        }
+      ],
+      "opened_event": {
+        "id": "v2_recovery_v2_recovery_command_center_opened_1780167058171_y8f0t",
+        "type": "event",
+        "contract_name": "V2EventContract",
+        "schema_version": 1,
+        "created_at": "2026-05-30T18:50:58.171Z",
+        "updated_at": "2026-05-30T18:50:58.171Z",
+        "status": "preview",
+        "refs": {
+          "component": "recovery_command_center"
+        },
+        "risk_level": "medium",
+        "event_type": "v2.recovery.command_center_opened",
+        "actor": "recovery_wizard",
+        "resource": "task_state",
+        "message": "Recovery Command Center preview.",
+        "payload": {
+          "incident_id": "",
+          "playbook_id": "",
+          "recovery_health": "ready",
+          "message": "Recovery Command Center preview.",
+          "refs": {
+            "component": "recovery_command_center"
+          }
+        }
+      },
+      "expert_details": {
+        "incident_id": "",
+        "playbook_id": "",
+        "diagnostic_pack_id": "",
+        "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058171_y8f0t",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.168Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.169Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        }
+      }
+    }
+  },
+  "samples": [
+    {
+      "sample_id": "missing_evidence_ref",
+      "expected_state": "diagnostic_pack_created",
+      "expected_action": "open_diagnostic_pack",
+      "actual_action": "open_diagnostic_pack",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.175Z",
+        "status": "ready",
+        "tone": "ready",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.172Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.172Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "missing_evidence_ref",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.173Z",
+          "updated_at": "2026-05-30T18:50:58.173Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "medium",
+          "incident_id": "incident_v2_1780167058173_r1f1s",
+          "component": "evidence",
+          "affected_area": "evidence",
+          "symptom": "У результата отсутствует evidence ref.",
+          "title": "Recovery: evidence",
+          "severity": "medium",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "У результата отсутствует evidence ref.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": false,
+          "next_action": "проверить ссылку evidence или повторить проверку результата",
+          "playbook_id": "missing_evidence_ref"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "missing_evidence_ref",
+          "title": "Не хватает evidence",
+          "safe_next_action": "проверить ссылку evidence или повторить проверку результата",
+          "what_happened": "У результата не хватает доказательства проверки.",
+          "forbidden_actions": [
+            "ставить PASS без evidence",
+            "подменять evidence"
+          ],
+          "owner_assisted_required": false,
+          "component": "evidence",
+          "severity": "medium",
+          "ordinary_message": "проверить ссылку evidence или повторить проверку результата"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058174_ak0xl",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058173_r1f1s",
+          "symptom": "У результата отсутствует evidence ref.",
+          "component": "evidence",
+          "severity": "medium",
+          "what_happened": "У результата не хватает доказательства проверки.",
+          "safe_next_action": "проверить ссылку evidence или повторить проверку результата",
+          "forbidden_actions": [
+            "ставить PASS без evidence",
+            "подменять evidence",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.175Z"
+        },
+        "next": {
+          "id": "missing_evidence_ref",
+          "name": "Открыть пакет диагностики",
+          "status": "review",
+          "note": "Проверить evidence ref и восстановить доказательство.",
+          "action": "open_diagnostic_pack",
+          "score": 56
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "ставить PASS без evidence",
+          "подменять evidence",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058175_s49gi",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.175Z",
+          "updated_at": "2026-05-30T18:50:58.175Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058173_r1f1s",
+            "playbook_id": "missing_evidence_ref",
+            "recovery_health": "ready",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058173_r1f1s",
+          "playbook_id": "missing_evidence_ref",
+          "diagnostic_pack_id": "v2_diagpack_1780167058174_ak0xl",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058175_s49gi",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.172Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.172Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "memory_search_degraded",
+      "expected_state": "diagnostic_pack_created",
+      "expected_action": "open_memory_search",
+      "actual_action": "open_memory_search",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.176Z",
+        "status": "ready",
+        "tone": "ready",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.175Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.175Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "memory_search_degraded",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.175Z",
+          "updated_at": "2026-05-30T18:50:58.175Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "medium",
+          "incident_id": "incident_v2_1780167058175_9yn4s",
+          "component": "memory_search",
+          "affected_area": "memory_search",
+          "symptom": "Memory Search index stale / degraded.",
+          "title": "Recovery: memory_search",
+          "severity": "medium",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Memory Search index stale / degraded.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [
+              "memory index stale"
+            ],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": false,
+          "next_action": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+          "playbook_id": "memory_search_degraded"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "memory_search_degraded",
+          "title": "Память работает неуверенно",
+          "safe_next_action": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+          "what_happened": "Поиск памяти работает неуверенно или индекс устарел.",
+          "forbidden_actions": [
+            "удалять память",
+            "сканировать весь диск",
+            "показывать секреты"
+          ],
+          "owner_assisted_required": false,
+          "component": "memory_search",
+          "severity": "medium",
+          "ordinary_message": "проверить статус индекса памяти и предложить пересборку без удаления данных"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058176_kb5jk",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058175_9yn4s",
+          "symptom": "Memory Search index stale / degraded.",
+          "component": "memory_search",
+          "severity": "medium",
+          "what_happened": "Поиск памяти работает неуверенно или индекс устарел.",
+          "safe_next_action": "проверить статус индекса памяти и предложить пересборку без удаления данных",
+          "forbidden_actions": [
+            "удалять память",
+            "сканировать весь диск",
+            "показывать секреты",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.176Z"
+        },
+        "next": {
+          "id": "memory_search_degraded",
+          "name": "Открыть память",
+          "status": "review",
+          "note": "Проверить Memory Search или обновить индекс без удаления данных.",
+          "action": "open_memory_search",
+          "score": 56
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "удалять память",
+          "сканировать весь диск",
+          "показывать секреты",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058176_kqp1b",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.176Z",
+          "updated_at": "2026-05-30T18:50:58.176Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058175_9yn4s",
+            "playbook_id": "memory_search_degraded",
+            "recovery_health": "ready",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058175_9yn4s",
+          "playbook_id": "memory_search_degraded",
+          "diagnostic_pack_id": "v2_diagpack_1780167058176_kb5jk",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058176_kqp1b",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.175Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.175Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "verifier_fail",
+      "expected_state": "blocked",
+      "expected_action": "open_controlled_apply",
+      "actual_action": "open_controlled_apply",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.177Z",
+        "status": "blocked",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.176Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.176Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "verifier_fail",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.176Z",
+          "updated_at": "2026-05-30T18:50:58.176Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "high",
+          "incident_id": "incident_v2_1780167058176_rzauk",
+          "component": "verifier",
+          "affected_area": "verifier",
+          "symptom": "Verifier FAIL after Codex report.",
+          "title": "Recovery: verifier",
+          "severity": "high",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Verifier FAIL after Codex report.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "FAIL",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": false,
+          "next_action": "вернуть результат на исправление, применение заблокировано",
+          "playbook_id": "verifier_fail"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "verifier_fail",
+          "title": "Verifier не принял результат",
+          "safe_next_action": "вернуть результат на исправление, применение заблокировано",
+          "what_happened": "Проверка не приняла результат.",
+          "forbidden_actions": [
+            "применять fix",
+            "закрывать incident как recovered"
+          ],
+          "owner_assisted_required": false,
+          "component": "verifier",
+          "severity": "high",
+          "ordinary_message": "вернуть результат на исправление, применение заблокировано"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058176_bsvtv",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058176_rzauk",
+          "symptom": "Verifier FAIL after Codex report.",
+          "component": "verifier",
+          "severity": "high",
+          "what_happened": "Проверка не приняла результат.",
+          "safe_next_action": "вернуть результат на исправление, применение заблокировано",
+          "forbidden_actions": [
+            "применять fix",
+            "закрывать incident как recovered",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.177Z"
+        },
+        "next": {
+          "id": "verifier_fail",
+          "name": "Открыть безопасные руки",
+          "status": "blocked",
+          "note": "Применение заблокировано до доработки и повторной проверки.",
+          "action": "open_controlled_apply",
+          "score": 0
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "применять fix",
+          "закрывать incident как recovered",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_krz6q",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.177Z",
+          "updated_at": "2026-05-30T18:50:58.177Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058176_rzauk",
+            "playbook_id": "verifier_fail",
+            "recovery_health": "blocked",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058176_rzauk",
+          "playbook_id": "verifier_fail",
+          "diagnostic_pack_id": "v2_diagpack_1780167058176_bsvtv",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_krz6q",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.176Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.176Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "privacy_warning",
+      "expected_state": "owner_assisted_required",
+      "expected_action": "open_safety_guardian",
+      "actual_action": "open_safety_guardian",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.177Z",
+        "status": "owner_assisted_required",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.177Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.177Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "privacy_warning",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.177Z",
+          "updated_at": "2026-05-30T18:50:58.177Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "high",
+          "incident_id": "incident_v2_1780167058177_cq07l",
+          "component": "privacy_guard",
+          "affected_area": "privacy_guard",
+          "symptom": "Diagnostic input contains fake secret-like marker and [env-file] marker.",
+          "title": "Recovery: privacy_guard",
+          "severity": "high",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Diagnostic input contains fake secret-like marker and [env-file] marker.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": true,
+          "next_action": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+          "playbook_id": "privacy_warning"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "privacy_warning",
+          "title": "Предупреждение приватности",
+          "safe_next_action": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+          "what_happened": "В данных есть признаки секрета или приватной информации.",
+          "forbidden_actions": [
+            "показывать .env",
+            "отправлять токены",
+            "читать cookies"
+          ],
+          "owner_assisted_required": true,
+          "component": "privacy_guard",
+          "severity": "high",
+          "ordinary_message": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058177_vxu9s",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058177_cq07l",
+          "symptom": "Diagnostic input contains fake secret-like marker and [env-file] marker.",
+          "component": "privacy_guard",
+          "severity": "high",
+          "what_happened": "В данных есть признаки секрета или приватной информации.",
+          "safe_next_action": "очистить Diagnostic Pack от секретов и показать предупреждение Privacy Guard",
+          "forbidden_actions": [
+            "показывать .env",
+            "отправлять токены",
+            "читать cookies",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [
+            "owner_check_required"
+          ],
+          "privacy_warning": true,
+          "privacy_status": "redacted_owner_review_required",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.177Z"
+        },
+        "next": {
+          "id": "privacy_warning",
+          "name": "Открыть Защитника",
+          "status": "owner",
+          "note": "Privacy Guard требует проверки владельца.",
+          "action": "open_safety_guardian",
+          "score": 50
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "показывать .env",
+          "отправлять токены",
+          "читать cookies",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "owner_review",
+            "name": "Проверка владельца",
+            "status": "owner",
+            "note": "Действие не выполняется автоматически.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_252ll",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.177Z",
+          "updated_at": "2026-05-30T18:50:58.177Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058177_cq07l",
+            "playbook_id": "privacy_warning",
+            "recovery_health": "owner_assisted_required",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058177_cq07l",
+          "playbook_id": "privacy_warning",
+          "diagnostic_pack_id": "v2_diagpack_1780167058177_vxu9s",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_252ll",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.177Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.177Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "cost_guard_unknown",
+      "expected_state": "owner_assisted_required",
+      "expected_action": "owner_assisted",
+      "actual_action": "owner_assisted",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.177Z",
+        "status": "owner_assisted_required",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.177Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.177Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "cost_guard_unknown",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.177Z",
+          "updated_at": "2026-05-30T18:50:58.177Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "medium",
+          "incident_id": "incident_v2_1780167058177_7x2yo",
+          "component": "cost_guard",
+          "affected_area": "cost_guard",
+          "symptom": "Billing status unknown for cloud provider.",
+          "title": "Recovery: cost_guard",
+          "severity": "medium",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Billing status unknown for cloud provider.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": true,
+          "next_action": "попросить владельца вручную проверить billing, ничего не включать",
+          "playbook_id": "cost_guard_unknown"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "cost_guard_unknown",
+          "title": "Финансовый статус неизвестен",
+          "safe_next_action": "попросить владельца вручную проверить billing, ничего не включать",
+          "what_happened": "Cost Guard не может подтвердить отсутствие платного риска.",
+          "forbidden_actions": [
+            "включать платные сервисы",
+            "менять payment settings"
+          ],
+          "owner_assisted_required": true,
+          "component": "cost_guard",
+          "severity": "medium",
+          "ordinary_message": "попросить владельца вручную проверить billing, ничего не включать"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058177_fhv7p",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058177_7x2yo",
+          "symptom": "Billing status unknown for cloud provider.",
+          "component": "cost_guard",
+          "severity": "medium",
+          "what_happened": "Cost Guard не может подтвердить отсутствие платного риска.",
+          "safe_next_action": "попросить владельца вручную проверить billing, ничего не включать",
+          "forbidden_actions": [
+            "включать платные сервисы",
+            "менять payment settings",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [
+            "owner_check_required"
+          ],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.177Z"
+        },
+        "next": {
+          "id": "cost_guard_unknown",
+          "name": "Показать чеклист владельца",
+          "status": "owner",
+          "note": "Финансовый статус проверяет владелец, платные действия не включаются.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "включать платные сервисы",
+          "менять payment settings",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "owner_review",
+            "name": "Проверка владельца",
+            "status": "owner",
+            "note": "Действие не выполняется автоматически.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_ckuuk",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.177Z",
+          "updated_at": "2026-05-30T18:50:58.177Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058177_7x2yo",
+            "playbook_id": "cost_guard_unknown",
+            "recovery_health": "owner_assisted_required",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058177_7x2yo",
+          "playbook_id": "cost_guard_unknown",
+          "diagnostic_pack_id": "v2_diagpack_1780167058177_fhv7p",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058177_ckuuk",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.177Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.177Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "emergency_stop_active",
+      "expected_state": "owner_assisted_required",
+      "expected_action": "open_safety_guardian",
+      "actual_action": "open_safety_guardian",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.178Z",
+        "status": "blocked",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.177Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.177Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "emergency_stop_active",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.177Z",
+          "updated_at": "2026-05-30T18:50:58.177Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "high",
+          "incident_id": "incident_v2_1780167058177_2cdb5",
+          "component": "guardian",
+          "affected_area": "guardian",
+          "symptom": "Emergency Stop active; reset requires typed phrase.",
+          "title": "Recovery: guardian",
+          "severity": "high",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Emergency Stop active; reset requires typed phrase.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": true,
+          "next_action": "оставить risky actions заблокированными; сброс только точной фразой",
+          "playbook_id": "emergency_stop_active"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "emergency_stop_active",
+          "title": "Стоп действия активен",
+          "safe_next_action": "оставить risky actions заблокированными; сброс только точной фразой",
+          "what_happened": "Emergency Stop блокирует рискованные действия.",
+          "forbidden_actions": [
+            "сбрасывать одной кнопкой",
+            "запускать risky actions"
+          ],
+          "owner_assisted_required": true,
+          "component": "guardian",
+          "severity": "high",
+          "ordinary_message": "оставить risky actions заблокированными; сброс только точной фразой"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058177_kr2nl",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058177_2cdb5",
+          "symptom": "Emergency Stop active; reset requires typed phrase.",
+          "component": "guardian",
+          "severity": "high",
+          "what_happened": "Emergency Stop блокирует рискованные действия.",
+          "safe_next_action": "оставить risky actions заблокированными; сброс только точной фразой",
+          "forbidden_actions": [
+            "сбрасывать одной кнопкой",
+            "запускать risky actions",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [
+            "owner_check_required"
+          ],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.177Z"
+        },
+        "next": {
+          "id": "emergency_stop_active",
+          "name": "Открыть аварийную защиту",
+          "status": "blocked",
+          "note": "Стоп действия активен, risky actions остаются заблокированы.",
+          "action": "open_safety_guardian",
+          "score": 0
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "сбрасывать одной кнопкой",
+          "запускать risky actions",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "owner_review",
+            "name": "Проверка владельца",
+            "status": "owner",
+            "note": "Действие не выполняется автоматически.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_zhh0m",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.178Z",
+          "updated_at": "2026-05-30T18:50:58.178Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058177_2cdb5",
+            "playbook_id": "emergency_stop_active",
+            "recovery_health": "blocked",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058177_2cdb5",
+          "playbook_id": "emergency_stop_active",
+          "diagnostic_pack_id": "v2_diagpack_1780167058177_kr2nl",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_zhh0m",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.177Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.177Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "repair_workspace_unavailable",
+      "expected_state": "escalated",
+      "expected_action": "open_controlled_apply",
+      "actual_action": "open_controlled_apply",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.178Z",
+        "status": "blocked",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.178Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.178Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "repair_workspace_unavailable",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.178Z",
+          "updated_at": "2026-05-30T18:50:58.178Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "high",
+          "incident_id": "incident_v2_1780167058178_yjjdu",
+          "component": "codex_repair",
+          "affected_area": "codex_repair",
+          "symptom": "Repair workspace unavailable; apply must not continue.",
+          "title": "Recovery: codex_repair",
+          "severity": "high",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Repair workspace unavailable; apply must not continue.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": false,
+          "next_action": "остановить apply и запросить создание repair workspace",
+          "playbook_id": "repair_workspace_unavailable"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "repair_workspace_unavailable",
+          "title": "Ремонтная зона недоступна",
+          "safe_next_action": "остановить apply и запросить создание repair workspace",
+          "what_happened": "Без ремонтной зоны Codex Repair не должен работать с active project.",
+          "forbidden_actions": [
+            "писать в active project",
+            "делать repair без rollback"
+          ],
+          "owner_assisted_required": false,
+          "component": "codex_repair",
+          "severity": "high",
+          "ordinary_message": "остановить apply и запросить создание repair workspace"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058178_qzxgn",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058178_yjjdu",
+          "symptom": "Repair workspace unavailable; apply must not continue.",
+          "component": "codex_repair",
+          "severity": "high",
+          "what_happened": "Без ремонтной зоны Codex Repair не должен работать с active project.",
+          "safe_next_action": "остановить apply и запросить создание repair workspace",
+          "forbidden_actions": [
+            "писать в active project",
+            "делать repair без rollback",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.178Z"
+        },
+        "next": {
+          "id": "repair_workspace_unavailable",
+          "name": "Проверить repair workspace",
+          "status": "blocked",
+          "note": "Без ремонтной зоны apply не разрешается.",
+          "action": "open_controlled_apply",
+          "score": 0
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "писать в active project",
+          "делать repair без rollback",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_vy13d",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.178Z",
+          "updated_at": "2026-05-30T18:50:58.178Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058178_yjjdu",
+            "playbook_id": "repair_workspace_unavailable",
+            "recovery_health": "blocked",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058178_yjjdu",
+          "playbook_id": "repair_workspace_unavailable",
+          "diagnostic_pack_id": "v2_diagpack_1780167058178_qzxgn",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_vy13d",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.178Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.178Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "owner_assisted_only",
+      "expected_state": "owner_assisted_required",
+      "expected_action": "owner_assisted",
+      "actual_action": "owner_assisted",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.178Z",
+        "status": "owner_assisted_required",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.178Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.178Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "owner_assisted_only",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.178Z",
+          "updated_at": "2026-05-30T18:50:58.178Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "medium",
+          "incident_id": "incident_v2_1780167058178_05arf",
+          "component": "owner_check",
+          "affected_area": "owner_check",
+          "symptom": "Owner-assisted review only; owner must check manually.",
+          "title": "Recovery: owner_check",
+          "severity": "medium",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Owner-assisted review only; owner must check manually.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": true,
+          "next_action": "показать чеклист владельца и ничего не выполнять автоматически",
+          "playbook_id": "owner_assisted_generic"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "owner_assisted_generic",
+          "title": "Нужна проверка владельца",
+          "safe_next_action": "показать чеклист владельца и ничего не выполнять автоматически",
+          "what_happened": "Сценарий требует ручного решения владельца.",
+          "forbidden_actions": [
+            "выполнять автоматически",
+            "обходить Approval",
+            "скрывать риск"
+          ],
+          "owner_assisted_required": true,
+          "component": "owner_check",
+          "severity": "medium",
+          "ordinary_message": "показать чеклист владельца и ничего не выполнять автоматически"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058178_j8viv",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058178_05arf",
+          "symptom": "Owner-assisted review only; owner must check manually.",
+          "component": "owner_check",
+          "severity": "medium",
+          "what_happened": "Сценарий требует ручного решения владельца.",
+          "safe_next_action": "показать чеклист владельца и ничего не выполнять автоматически",
+          "forbidden_actions": [
+            "выполнять автоматически",
+            "обходить Approval",
+            "скрывать риск",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [
+            "owner_check_required"
+          ],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.178Z"
+        },
+        "next": {
+          "id": "owner_assisted_generic",
+          "name": "Показать чеклист владельца",
+          "status": "owner",
+          "note": "Это действие требует ручной проверки владельца.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "выполнять автоматически",
+          "обходить Approval",
+          "скрывать риск",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "owner_review",
+            "name": "Проверка владельца",
+            "status": "owner",
+            "note": "Действие не выполняется автоматически.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_1n809",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.178Z",
+          "updated_at": "2026-05-30T18:50:58.178Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058178_05arf",
+            "playbook_id": "owner_assisted_generic",
+            "recovery_health": "owner_assisted_required",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058178_05arf",
+          "playbook_id": "owner_assisted_generic",
+          "diagnostic_pack_id": "v2_diagpack_1780167058178_j8viv",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058178_1n809",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.178Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.178Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "local_agent_unavailable_placeholder",
+      "expected_state": "owner_assisted_required",
+      "expected_action": "owner_assisted",
+      "actual_action": "owner_assisted",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.179Z",
+        "status": "owner_assisted_required",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.178Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.179Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "local_agent_unavailable_placeholder",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.179Z",
+          "updated_at": "2026-05-30T18:50:58.179Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "medium",
+          "incident_id": "incident_v2_1780167058179_vntlz",
+          "component": "local_agent",
+          "affected_area": "local_agent",
+          "symptom": "Local Agent unavailable placeholder only; no runtime change.",
+          "title": "Recovery: local_agent",
+          "severity": "medium",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Local Agent unavailable placeholder only; no runtime change.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": true,
+          "next_action": "показать read-only incident и owner-assisted проверку, runtime не менять",
+          "playbook_id": "local_agent_unavailable_placeholder"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "local_agent_unavailable_placeholder",
+          "title": "Local Agent недоступен",
+          "safe_next_action": "показать read-only incident и owner-assisted проверку, runtime не менять",
+          "what_happened": "Local Agent требует проверки владельцем или отдельным approved repair.",
+          "forbidden_actions": [
+            "останавливать/перезапускать agent без approval",
+            "менять autostart"
+          ],
+          "owner_assisted_required": true,
+          "component": "local_agent",
+          "severity": "medium",
+          "ordinary_message": "показать read-only incident и owner-assisted проверку, runtime не менять"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058179_khehk",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058179_vntlz",
+          "symptom": "Local Agent unavailable placeholder only; no runtime change.",
+          "component": "local_agent",
+          "severity": "medium",
+          "what_happened": "Local Agent требует проверки владельцем или отдельным approved repair.",
+          "safe_next_action": "показать read-only incident и owner-assisted проверку, runtime не менять",
+          "forbidden_actions": [
+            "останавливать/перезапускать agent без approval",
+            "менять autostart",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [
+            "owner_check_required"
+          ],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.179Z"
+        },
+        "next": {
+          "id": "local_agent_unavailable_placeholder",
+          "name": "Показать чеклист владельца",
+          "status": "owner",
+          "note": "Это действие требует ручной проверки владельца.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "останавливать/перезапускать agent без approval",
+          "менять autostart",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "owner_review",
+            "name": "Проверка владельца",
+            "status": "owner",
+            "note": "Действие не выполняется автоматически.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058179_d9lqr",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.179Z",
+          "updated_at": "2026-05-30T18:50:58.179Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058179_vntlz",
+            "playbook_id": "local_agent_unavailable_placeholder",
+            "recovery_health": "owner_assisted_required",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058179_vntlz",
+          "playbook_id": "local_agent_unavailable_placeholder",
+          "diagnostic_pack_id": "v2_diagpack_1780167058179_khehk",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058179_d9lqr",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.178Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.179Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "direct_bridge_unavailable_placeholder",
+      "expected_state": "owner_assisted_required",
+      "expected_action": "owner_assisted",
+      "actual_action": "owner_assisted",
+      "status": "PASS",
+      "snapshot": {
+        "schema_version": 1,
+        "generated_at": "2026-05-30T18:50:58.179Z",
+        "status": "owner_assisted_required",
+        "tone": "review",
+        "runtime": {
+          "schema_version": 1,
+          "generated_at": "2026-05-30T18:50:58.179Z",
+          "incidents_count": 0,
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "recovery_health": "ready",
+          "owner_assisted_count": 0,
+          "blocked_count": 0,
+          "ready_to_recover_count": 0,
+          "last_event_id": "",
+          "timestamp": "2026-05-30T18:50:58.179Z",
+          "owner_assisted_required": [
+            "real_phone_apk",
+            "billing_dashboards",
+            "production_rollback"
+          ]
+        },
+        "incident": {
+          "id": "direct_bridge_unavailable_placeholder",
+          "type": "incident",
+          "contract_name": "V2IncidentContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.179Z",
+          "updated_at": "2026-05-30T18:50:58.179Z",
+          "status": "detected",
+          "refs": {
+            "task_id": "",
+            "evidence_refs": [],
+            "artifact_refs": []
+          },
+          "risk_level": "medium",
+          "incident_id": "incident_v2_1780167058179_urrlv",
+          "component": "direct_bridge",
+          "affected_area": "direct_bridge",
+          "symptom": "Direct Bridge unavailable placeholder; no Cloudflare change.",
+          "title": "Recovery: direct_bridge",
+          "severity": "medium",
+          "source": "v2_recovery_command_center_sample",
+          "source_ref": "",
+          "user_message": "Direct Bridge unavailable placeholder; no Cloudflare change.",
+          "expert_details": {
+            "source": "v2_recovery_command_center_sample",
+            "risk_hints": [],
+            "verifier_status": "unknown",
+            "guardian_verdict": "unknown"
+          },
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_required": true,
+          "next_action": "показать warning и не менять Cloudflare settings",
+          "playbook_id": "direct_bridge_unavailable_placeholder"
+        },
+        "playbook": {
+          "schema_version": 1,
+          "playbook_id": "direct_bridge_unavailable_placeholder",
+          "title": "Direct Bridge недоступен",
+          "safe_next_action": "показать warning и не менять Cloudflare settings",
+          "what_happened": "Bridge health требует отдельной проверки, настройки облака не трогаются.",
+          "forbidden_actions": [
+            "менять Cloudflare",
+            "трогать DNS/proxy/network"
+          ],
+          "owner_assisted_required": true,
+          "component": "direct_bridge",
+          "severity": "medium",
+          "ordinary_message": "показать warning и не менять Cloudflare settings"
+        },
+        "diagnostic_pack": {
+          "schema_version": 1,
+          "pack_id": "v2_diagpack_1780167058179_cuuhq",
+          "status": "preview",
+          "incident_id": "incident_v2_1780167058179_urrlv",
+          "symptom": "Direct Bridge unavailable placeholder; no Cloudflare change.",
+          "component": "direct_bridge",
+          "severity": "medium",
+          "what_happened": "Bridge health требует отдельной проверки, настройки облака не трогаются.",
+          "safe_next_action": "показать warning и не менять Cloudflare settings",
+          "forbidden_actions": [
+            "менять Cloudflare",
+            "трогать DNS/proxy/network",
+            "deploy",
+            "push main",
+            "delete",
+            ".env",
+            "tokens",
+            "cookies",
+            "billing",
+            "network settings"
+          ],
+          "evidence_refs": [],
+          "artifact_refs": [],
+          "owner_assisted_flags": [
+            "owner_check_required"
+          ],
+          "privacy_warning": false,
+          "privacy_status": "clean",
+          "active_project_mutation_allowed": false,
+          "repair_workspace_required": true,
+          "generated_at": "2026-05-30T18:50:58.179Z"
+        },
+        "next": {
+          "id": "direct_bridge_unavailable_placeholder",
+          "name": "Показать чеклист владельца",
+          "status": "owner",
+          "note": "Это действие требует ручной проверки владельца.",
+          "action": "owner_assisted",
+          "score": 50
+        },
+        "metrics": {
+          "recovery_health": "ready",
+          "active_incidents_count": 0,
+          "last_incident_status": "none",
+          "ready_to_recover_count": 0,
+          "blocked_count": 0,
+          "owner_assisted_count": 0
+        },
+        "allowed_actions": [
+          "открыть детали",
+          "открыть Diagnostic Pack preview",
+          "открыть безопасную панель",
+          "создать recovery evidence event"
+        ],
+        "blocked_actions": [
+          "менять Cloudflare",
+          "трогать DNS/proxy/network",
+          "deploy",
+          "push main",
+          "delete",
+          ".env",
+          "tokens",
+          "cookies",
+          "billing",
+          "network settings"
+        ],
+        "owner_assisted": [
+          {
+            "id": "owner_review",
+            "name": "Проверка владельца",
+            "status": "owner",
+            "note": "Действие не выполняется автоматически.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "real_phone_apk",
+            "name": "Телефон / APK",
+            "status": "postponed",
+            "note": "Проверка перенесена до production V2 final.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "billing_dashboards",
+            "name": "billing_dashboards",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          },
+          {
+            "id": "production_rollback",
+            "name": "production_rollback",
+            "status": "owner",
+            "note": "Проверяет владелец.",
+            "action": "owner_assisted",
+            "score": 50
+          }
+        ],
+        "opened_event": {
+          "id": "v2_recovery_v2_recovery_command_center_opened_1780167058179_tx3nh",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T18:50:58.179Z",
+          "updated_at": "2026-05-30T18:50:58.179Z",
+          "status": "preview",
+          "refs": {
+            "component": "recovery_command_center"
+          },
+          "risk_level": "medium",
+          "event_type": "v2.recovery.command_center_opened",
+          "actor": "recovery_wizard",
+          "resource": "task_state",
+          "message": "Recovery Command Center preview.",
+          "payload": {
+            "incident_id": "incident_v2_1780167058179_urrlv",
+            "playbook_id": "direct_bridge_unavailable_placeholder",
+            "recovery_health": "owner_assisted_required",
+            "message": "Recovery Command Center preview.",
+            "refs": {
+              "component": "recovery_command_center"
+            }
+          }
+        },
+        "expert_details": {
+          "incident_id": "incident_v2_1780167058179_urrlv",
+          "playbook_id": "direct_bridge_unavailable_placeholder",
+          "diagnostic_pack_id": "v2_diagpack_1780167058179_cuuhq",
+          "event_id": "v2_recovery_v2_recovery_command_center_opened_1780167058179_tx3nh",
+          "runtime": {
+            "schema_version": 1,
+            "generated_at": "2026-05-30T18:50:58.179Z",
+            "incidents_count": 0,
+            "active_incidents_count": 0,
+            "last_incident_status": "none",
+            "recovery_health": "ready",
+            "owner_assisted_count": 0,
+            "blocked_count": 0,
+            "ready_to_recover_count": 0,
+            "last_event_id": "",
+            "timestamp": "2026-05-30T18:50:58.179Z",
+            "owner_assisted_required": [
+              "real_phone_apk",
+              "billing_dashboards",
+              "production_rollback"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "pass": 11,
+    "blocked": 5,
+    "owner_assisted": 10,
+    "diagnostic_pack_safe": true
+  }
+}

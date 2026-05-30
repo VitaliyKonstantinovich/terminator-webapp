@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-05-30T18:50:58.198Z",
+  "mode": "node-vm-lightweight-v2-p0-i-recovery-command-center-smoke",
+  "pass": {
+    "panel_rendered": true,
+    "incident_card": true,
+    "plan_card": true,
+    "diagnostic_pack_card": true,
+    "owner_assisted_section": true,
+    "expert_collapsed": true,
+    "normal_mode_no_forbidden_terms": true,
+    "no_active_incident_continue_work": true,
+    "sample_matrix_pass": true,
+    "diagnostic_pack_safe": true,
+    "invalid_transitions_blocked": true,
+    "owner_assisted_separated": true,
+    "command_center_opened_event": true,
+    "diagnostic_pack_preview_event": true,
+    "mobile_css_present": true,
+    "no_ai_api_runtime_domains": true
+  },
+  "all_pass": true,
+  "notes": [
+    "No screenshots, no BlueStacks, no APK, no billing, no AI API.",
+    "UI render was tested in a Node VM with fake DOM hosts.",
+    "Expert details are inside collapsed details."
+  ]
+}

@@ -336,6 +336,7 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2ControlledApplyPreviewEnabled: false,
   v2MemoryContractPreviewEnabled: false,
   v2RecoveryStatePreviewEnabled: false,
+  v2RecoveryCommandCenterPreviewEnabled: false,
   v2FirstRunReadinessPreviewEnabled: false,
   v2SetupRoutePreviewEnabled: false,
   v2OwnerCommandCenterPreviewEnabled: false
@@ -393,7 +394,10 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.memory.search.weak_match',
   'v2.memory.privacy.blocked',
   'v2.diagnostic_pack.created',
+  'v2.diagnostic_pack.preview_opened',
   'v2.recovery.playbook_selected',
+  'v2.recovery.command_center_opened',
+  'v2.recovery.next_action_selected',
   'v2.recovery.blocked',
   'v2.recovery.owner_assisted_required',
   'v2.recovery.ready',
@@ -2625,6 +2629,7 @@ const App = {
   sourceOfTruthState: null,
   v2FirstRunRecoveryState: null,
   v2FoundationEvents: [],
+  v2RecoveryCommandCenterLastOpenedEventAt: 0,
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -2922,6 +2927,12 @@ const App = {
       const liveRuntimeButton = event.target.closest('[data-live-runtime-action]');
       if (liveRuntimeButton) {
         this.handleLiveRuntimeAction(liveRuntimeButton.dataset.liveRuntimeAction, liveRuntimeButton);
+        return;
+      }
+
+      const v2RecoveryButton = event.target.closest('[data-v2-recovery-action]');
+      if (v2RecoveryButton) {
+        this.handleV2RecoveryCommandAction(v2RecoveryButton.dataset.v2RecoveryAction, v2RecoveryButton);
         return;
       }
 
@@ -5877,6 +5888,14 @@ const App = {
         what_happened: 'Bridge health требует отдельной проверки, настройки облака не трогаются.',
         forbidden_actions: ['менять Cloudflare', 'трогать DNS/proxy/network'],
         owner_assisted_required: true
+      },
+      owner_assisted_generic: {
+        playbook_id: 'owner_assisted_generic',
+        title: 'Нужна проверка владельца',
+        safe_next_action: 'показать чеклист владельца и ничего не выполнять автоматически',
+        what_happened: 'Сценарий требует ручного решения владельца.',
+        forbidden_actions: ['выполнять автоматически', 'обходить Approval', 'скрывать риск'],
+        owner_assisted_required: true
       }
     };
     let selected = 'missing_evidence_ref';
@@ -5889,6 +5908,7 @@ const App = {
     if (/emergency stop|стоп действия|safe mode/.test(text)) selected = 'emergency_stop_active';
     if (/local agent|локальн.*агент/.test(text)) selected = 'local_agent_unavailable_placeholder';
     if (/direct bridge|bridge|cloudflare|мост/.test(text)) selected = 'direct_bridge_unavailable_placeholder';
+    if (/owner-assisted|owner assisted|проверка владельца|владелец вручную|manual owner/.test(text)) selected = 'owner_assisted_generic';
     const playbook = playbooks[selected];
     return {
       schema_version: V2_FOUNDATION_SCHEMA_VERSION,
@@ -5962,6 +5982,7 @@ const App = {
       { id: 'cost_guard_unknown', component: 'cost_guard', symptom: 'Billing status unknown for cloud provider.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
       { id: 'emergency_stop_active', component: 'guardian', symptom: 'Emergency Stop active; reset requires typed phrase.', severity: 'high', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
       { id: 'repair_workspace_unavailable', component: 'codex_repair', symptom: 'Repair workspace unavailable; apply must not continue.', severity: 'high', expected_state: 'escalated' },
+      { id: 'owner_assisted_only', component: 'owner_check', symptom: 'Owner-assisted review only; owner must check manually.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
       { id: 'local_agent_unavailable_placeholder', component: 'local_agent', symptom: 'Local Agent unavailable placeholder only; no runtime change.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' },
       { id: 'direct_bridge_unavailable_placeholder', component: 'direct_bridge', symptom: 'Direct Bridge unavailable placeholder; no Cloudflare change.', severity: 'medium', owner_assisted_required: true, expected_state: 'owner_assisted_required' }
     ];
@@ -6093,6 +6114,170 @@ const App = {
         blocked: samples.filter((sample) => ['blocked', 'escalated'].includes(sample.final_state)).length,
         owner_assisted_required: samples.filter((sample) => sample.final_state === 'owner_assisted_required').length,
         invalid_transition_blocked: samples.every((sample) => sample.invalid_transition_blocked)
+      }
+    };
+  },
+
+  v2RecoveryHealthLabel(status = 'ready') {
+    const labels = {
+      ready: 'готово',
+      active: 'есть активные события',
+      review: 'требует внимания',
+      blocked: 'заблокировано',
+      escalated: 'нужен владелец',
+      owner_assisted_required: 'проверяет владелец',
+      none: 'нет активных проблем'
+    };
+    return labels[status] || status || 'проверить';
+  },
+
+  mapV2RecoveryAction(action = '') {
+    const routes = {
+      continue_work: 'open_work',
+      open_incident: 'open_recovery',
+      open_diagnostic_pack: 'open_diagnostic_pack',
+      open_memory_search: 'open_memory',
+      open_memory: 'open_memory',
+      open_controlled_apply: 'open_hands',
+      open_hands: 'open_hands',
+      open_safety_guardian: 'open_guardian',
+      open_guardian: 'open_guardian',
+      owner_assisted: 'owner_assisted',
+      create_recovery_evidence: 'create_recovery_evidence'
+    };
+    return routes[action] || 'open_recovery';
+  },
+
+  v2RecoveryNextActionForPlaybook(playbook = {}, incident = null) {
+    if (!incident) {
+      return this.v2CommandItem('continue_work', 'Продолжить работу', 'ready', 'Серьёзных проблем не найдено. Можно вернуться к задаче.', 'continue_work');
+    }
+    const id = playbook.playbook_id || '';
+    if (id === 'memory_search_degraded') return this.v2CommandItem(id, 'Открыть память', 'review', 'Проверить Memory Search или обновить индекс без удаления данных.', 'open_memory_search');
+    if (id === 'missing_evidence_ref') return this.v2CommandItem(id, 'Открыть пакет диагностики', 'review', 'Проверить evidence ref и восстановить доказательство.', 'open_diagnostic_pack');
+    if (id === 'verifier_fail') return this.v2CommandItem(id, 'Открыть безопасные руки', 'blocked', 'Применение заблокировано до доработки и повторной проверки.', 'open_controlled_apply');
+    if (id === 'repair_workspace_unavailable') return this.v2CommandItem(id, 'Проверить repair workspace', 'blocked', 'Без ремонтной зоны apply не разрешается.', 'open_controlled_apply');
+    if (id === 'privacy_warning') return this.v2CommandItem(id, 'Открыть Защитника', 'owner', 'Privacy Guard требует проверки владельца.', 'open_safety_guardian');
+    if (id === 'cost_guard_unknown') return this.v2CommandItem(id, 'Показать чеклист владельца', 'owner', 'Финансовый статус проверяет владелец, платные действия не включаются.', 'owner_assisted');
+    if (id === 'emergency_stop_active') return this.v2CommandItem(id, 'Открыть аварийную защиту', 'blocked', 'Стоп действия активен, risky actions остаются заблокированы.', 'open_safety_guardian');
+    if (playbook.owner_assisted_required || incident.owner_assisted_required) return this.v2CommandItem(id || 'owner_assisted', 'Показать чеклист владельца', 'owner', 'Это действие требует ручной проверки владельца.', 'owner_assisted');
+    return this.v2CommandItem(id || 'diagnostic_pack', 'Открыть пакет диагностики', 'review', playbook.safe_next_action || 'Показать безопасный следующий шаг.', 'open_diagnostic_pack');
+  },
+
+  buildV2RecoveryCommandCenterSnapshot(inputIncident = null, options = {}) {
+    const runtime = this.getV2RecoveryRuntimeSnapshot();
+    const guardianIncidents = Array.isArray(this.guardianIncidents) ? this.guardianIncidents : [];
+    const activeStates = new Set(['detected', 'classified', 'explained', 'awaiting_user_action', 'diagnostic_pack_created', 'repair_workspace_required', 'repair_workspace_created', 'verifier_check', 'guardian_check', 'approval_required', 'ready_to_apply', 'rollback_available', 'blocked', 'escalated', 'owner_assisted_required']);
+    const guardianIncident = inputIncident ? null : guardianIncidents.find((incident) => activeStates.has(incident.status)) || guardianIncidents[0] || null;
+    const incident = inputIncident
+      ? this.createV2IncidentFromDiagnostic({ ...inputIncident, source: inputIncident.source || 'v2_recovery_command_center_sample' })
+      : guardianIncident
+        ? this.createV2IncidentFromDiagnostic({
+            incident_id: guardianIncident.incident_id,
+            title: guardianIncident.title,
+            component: guardianIncident.affected_area || guardianIncident.component,
+            symptom: guardianIncident.summary || guardianIncident.title,
+            severity: guardianIncident.severity || guardianIncident.risk_level,
+            source: guardianIncident.source || 'guardian',
+            evidence_refs: guardianIncident.evidence_refs || guardianIncident.refs?.evidence_refs || [],
+            artifact_refs: guardianIncident.artifact_refs || guardianIncident.refs?.artifact_refs || [],
+            owner_assisted_required: guardianIncident.owner_assisted_required || guardianIncident.approval_required,
+            risk_hints: [guardianIncident.risk_level, guardianIncident.safe_action].filter(Boolean)
+          })
+        : null;
+    const playbook = incident ? this.selectV2RecoveryPlaybook(incident) : null;
+    const diagnosticPack = incident ? this.buildV2DiagnosticPackPreview(incident, playbook) : null;
+    const next = this.v2RecoveryNextActionForPlaybook(playbook || {}, incident);
+    const health = incident
+      ? (next.status === 'blocked' ? 'blocked' : next.status === 'owner' ? 'owner_assisted_required' : runtime.recovery_health || 'active')
+      : runtime.recovery_health || 'ready';
+    const blockedActions = diagnosticPack?.forbidden_actions || ['deploy', 'push main', 'delete', '.env', 'tokens', 'cookies', 'billing', 'network settings'];
+    const ownerAssisted = [
+      ...(playbook?.owner_assisted_required || incident?.owner_assisted_required ? [this.v2CommandItem('owner_review', 'Проверка владельца', 'owner', 'Действие не выполняется автоматически.', 'owner_assisted')] : []),
+      ...(runtime.owner_assisted_required || []).map((id) => this.v2CommandItem(id, id === 'real_phone_apk' ? 'Телефон / APK' : id, id === 'real_phone_apk' ? 'postponed' : 'owner', id === 'real_phone_apk' ? 'Проверка перенесена до production V2 final.' : 'Проверяет владелец.', 'owner_assisted'))
+    ];
+    const openedEvent = options.recordOpened
+      ? this.recordV2RecoveryEvent('v2.recovery.command_center_opened', {
+          incident_id: incident?.incident_id || '',
+          playbook_id: playbook?.playbook_id || '',
+          recovery_health: health,
+          message: 'Recovery Command Center opened.',
+          refs: { component: 'recovery_command_center' }
+        }, { persist: options.persistEvents === true })
+      : this.recordV2RecoveryEvent('v2.recovery.command_center_opened', {
+          incident_id: incident?.incident_id || '',
+          playbook_id: playbook?.playbook_id || '',
+          recovery_health: health,
+          message: 'Recovery Command Center preview.',
+          refs: { component: 'recovery_command_center' }
+        }, { persist: false });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: health,
+      tone: ['blocked', 'owner_assisted_required', 'review'].includes(health) ? 'review' : 'ready',
+      runtime,
+      incident,
+      playbook,
+      diagnostic_pack: diagnosticPack,
+      next,
+      metrics: {
+        recovery_health: runtime.recovery_health,
+        active_incidents_count: runtime.active_incidents_count,
+        last_incident_status: runtime.last_incident_status,
+        ready_to_recover_count: runtime.ready_to_recover_count,
+        blocked_count: runtime.blocked_count,
+        owner_assisted_count: runtime.owner_assisted_count
+      },
+      allowed_actions: incident ? ['открыть детали', 'открыть Diagnostic Pack preview', 'открыть безопасную панель', 'создать recovery evidence event'] : ['продолжить работу', 'запустить диагностику'],
+      blocked_actions: blockedActions,
+      owner_assisted: ownerAssisted,
+      opened_event: openedEvent,
+      expert_details: {
+        incident_id: incident?.incident_id || '',
+        playbook_id: playbook?.playbook_id || '',
+        diagnostic_pack_id: diagnosticPack?.pack_id || '',
+        event_id: openedEvent?.event_id || openedEvent?.id || '',
+        runtime
+      }
+    };
+  },
+
+  buildV2RecoveryCommandCenterSamples(options = {}) {
+    const noIncident = this.buildV2RecoveryCommandCenterSnapshot(null, { recordOpened: false, persistEvents: false });
+    const sampleSnapshots = this.buildV2RecoverySampleInputs().map((input) => {
+      const snapshot = this.buildV2RecoveryCommandCenterSnapshot(input, { recordOpened: false, persistEvents: false });
+      const expectedAction = input.id === 'memory_search_degraded' ? 'open_memory_search'
+        : input.id === 'verifier_fail' || input.id === 'repair_workspace_unavailable' ? 'open_controlled_apply'
+          : input.id === 'privacy_warning' || input.id === 'emergency_stop_active' ? 'open_safety_guardian'
+            : input.owner_assisted_required || input.id === 'cost_guard_unknown' || input.id === 'owner_assisted_only' ? 'owner_assisted'
+              : 'open_diagnostic_pack';
+      return {
+        sample_id: input.id,
+        expected_state: input.expected_state,
+        expected_action: expectedAction,
+        actual_action: snapshot.next.action,
+        status: snapshot.next.action === expectedAction ? 'PASS' : 'REVIEW',
+        snapshot
+      };
+    });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2RecoveryStatePreviewEnabled: Boolean(options.previewEnabled), v2RecoveryCommandCenterPreviewEnabled: Boolean(options.previewEnabled) }),
+      no_active_incident: {
+        expected_action: 'continue_work',
+        actual_action: noIncident.next.action,
+        status: noIncident.next.action === 'continue_work' ? 'PASS' : 'REVIEW',
+        snapshot: noIncident
+      },
+      samples: sampleSnapshots,
+      summary: {
+        total: sampleSnapshots.length + 1,
+        pass: sampleSnapshots.filter((sample) => sample.status === 'PASS').length + (noIncident.next.action === 'continue_work' ? 1 : 0),
+        blocked: sampleSnapshots.filter((sample) => ['blocked', 'review'].includes(sample.snapshot.next.status)).length,
+        owner_assisted: sampleSnapshots.filter((sample) => sample.snapshot.owner_assisted.length).length,
+        diagnostic_pack_safe: sampleSnapshots.every((sample) => sample.snapshot.diagnostic_pack && sample.snapshot.diagnostic_pack.active_project_mutation_allowed === false)
       }
     };
   },
@@ -12652,6 +12837,230 @@ const App = {
     scrollTo('system-integration-panel');
   },
 
+  renderV2RecoveryCommandCenterPanel() {
+    const nowMs = Date.now();
+    const recordOpened = !this.v2RecoveryCommandCenterLastOpenedEventAt || nowMs - this.v2RecoveryCommandCenterLastOpenedEventAt > 30000;
+    const snapshot = this.buildV2RecoveryCommandCenterSnapshot(null, { recordOpened, persistEvents: recordOpened });
+    if (recordOpened) this.v2RecoveryCommandCenterLastOpenedEventAt = nowMs;
+    return `
+      <section id="v2-recovery-command-center" class="v2-recovery-command v2-recovery-command--${this.escapeHtml(snapshot.tone)}" aria-label="Центр восстановления">
+        <header class="v2-recovery-command-hero">
+          <div>
+            <span>Восстановление</span>
+            <h3>Центр восстановления</h3>
+            <p>${snapshot.incident ? this.escapeHtml(snapshot.incident.user_message || snapshot.incident.symptom) : 'Серьёзных проблем не найдено. Система готова к работе.'}</p>
+          </div>
+          <div class="v2-recovery-command-next">
+            <span>Следующий безопасный шаг</span>
+            <strong>${this.escapeHtml(snapshot.next.name)}</strong>
+            <p>${this.escapeHtml(snapshot.next.note)}</p>
+            <button type="button" data-v2-recovery-action="${this.escapeHtml(snapshot.next.action)}">Перейти</button>
+          </div>
+        </header>
+
+        <div class="v2-recovery-metrics" aria-label="Состояние восстановления">
+          ${this.renderV2RecoveryMetric('Состояние', this.v2RecoveryHealthLabel(snapshot.metrics.recovery_health), 'Recovery health')}
+          ${this.renderV2RecoveryMetric('Активные', snapshot.metrics.active_incidents_count, 'active incidents')}
+          ${this.renderV2RecoveryMetric('Последний', this.v2RecoveryHealthLabel(snapshot.metrics.last_incident_status), 'last incident')}
+          ${this.renderV2RecoveryMetric('Готовы к восстановлению', snapshot.metrics.ready_to_recover_count, 'ready')}
+          ${this.renderV2RecoveryMetric('Блокеры', snapshot.metrics.blocked_count, 'blocked')}
+          ${this.renderV2RecoveryMetric('Владелец', snapshot.metrics.owner_assisted_count, 'owner-assisted')}
+        </div>
+
+        <div class="v2-recovery-command-grid">
+          ${this.renderV2RecoveryIncidentCard(snapshot)}
+          ${this.renderV2RecoveryPlanCard(snapshot)}
+          ${this.renderV2RecoveryDiagnosticCard(snapshot)}
+        </div>
+
+        ${this.renderV2RecoveryOwnerAssisted(snapshot)}
+        ${this.renderV2RecoveryExpertDetails(snapshot)}
+      </section>
+    `;
+  },
+
+  renderV2RecoveryMetric(label, value, note) {
+    return `
+      <article class="v2-recovery-metric">
+        <span>${this.escapeHtml(label)}</span>
+        <strong>${this.escapeHtml(String(value ?? ''))}</strong>
+        <small>${this.escapeHtml(note)}</small>
+      </article>
+    `;
+  },
+
+  renderV2RecoveryIncidentCard(snapshot) {
+    const incident = snapshot.incident;
+    if (!incident) {
+      return `
+        <article class="v2-recovery-command-card v2-recovery-command-card--ready">
+          <span>Текущий инцидент</span>
+          <strong>Активных проблем нет</strong>
+          <p>Диагност не видит incident, который блокирует текущую работу.</p>
+          <button type="button" data-v2-recovery-action="create_recovery_evidence">Записать evidence</button>
+        </article>
+      `;
+    }
+    return `
+      <article class="v2-recovery-command-card v2-recovery-command-card--${this.escapeHtml(snapshot.next.status === 'blocked' ? 'blocked' : snapshot.next.status === 'owner' ? 'owner' : 'review')}">
+        <span>Текущий инцидент</span>
+        <strong>${this.escapeHtml(incident.title || incident.component)}</strong>
+        <p>${this.escapeHtml(incident.user_message || incident.symptom)}</p>
+        <dl class="v2-recovery-mini-grid">
+          <div><dt>Компонент</dt><dd>${this.escapeHtml(incident.component || incident.affected_area || 'system')}</dd></div>
+          <div><dt>Риск</dt><dd>${this.escapeHtml(INCIDENT_SEVERITY_LABELS[incident.severity] || incident.severity)}</dd></div>
+          <div><dt>Состояние</dt><dd>${this.escapeHtml(this.v2RecoveryHealthLabel(incident.status))}</dd></div>
+          <div><dt>Дальше</dt><dd>${this.escapeHtml(snapshot.next.name)}</dd></div>
+        </dl>
+        <button type="button" data-v2-recovery-action="open_incident">Открыть детали</button>
+      </article>
+    `;
+  },
+
+  renderV2RecoveryPlanCard(snapshot) {
+    const playbook = snapshot.playbook;
+    return `
+      <article class="v2-recovery-command-card">
+        <span>План восстановления</span>
+        <strong>${this.escapeHtml(playbook?.title || 'План не требуется')}</strong>
+        <p>${this.escapeHtml(playbook?.what_happened || 'Система готова. Recovery playbook будет выбран при появлении incident.')}</p>
+        <div class="v2-recovery-pill-row">
+          ${(snapshot.allowed_actions || []).map((item) => `<span>${this.escapeHtml(item)}</span>`).join('')}
+        </div>
+        <p><b>Заблокировано:</b> ${this.escapeHtml((snapshot.blocked_actions || []).slice(0, 6).join(', ') || 'опасных действий нет')}</p>
+        <button type="button" data-v2-recovery-action="${this.escapeHtml(snapshot.next.action)}">Выполнить безопасный шаг</button>
+      </article>
+    `;
+  },
+
+  renderV2RecoveryDiagnosticCard(snapshot) {
+    const pack = snapshot.diagnostic_pack;
+    if (!pack) {
+      return `
+        <article class="v2-recovery-command-card">
+          <span>Пакет диагностики</span>
+          <strong>Появится при incident</strong>
+          <p>Diagnostic Pack preview создаётся без изменения active project и без чтения секретов.</p>
+          <button type="button" data-v2-recovery-action="open_diagnostic_pack">Открыть preview</button>
+        </article>
+      `;
+    }
+    return `
+      <article class="v2-recovery-command-card v2-recovery-command-card--${pack.privacy_warning ? 'owner' : 'review'}">
+        <span>Пакет диагностики</span>
+        <strong>${this.escapeHtml(pack.privacy_warning ? 'нужна проверка приватности' : 'preview готов')}</strong>
+        <p>${this.escapeHtml(pack.what_happened || pack.symptom)}</p>
+        <p><b>Безопасный шаг:</b> ${this.escapeHtml(pack.safe_next_action)}</p>
+        <p><b>Evidence:</b> ${this.escapeHtml((pack.evidence_refs || []).join(', ') || 'нет ссылок')}</p>
+        <p><b>Privacy:</b> ${pack.privacy_warning ? 'предупреждение, данные очищены' : 'секреты не обнаружены'}</p>
+        <button type="button" data-v2-recovery-action="open_diagnostic_pack">Показать preview</button>
+      </article>
+    `;
+  },
+
+  renderV2RecoveryOwnerAssisted(snapshot) {
+    const items = snapshot.owner_assisted || [];
+    if (!items.length) {
+      return `
+        <section class="v2-recovery-owner">
+          <strong>Проверки владельца</strong>
+          <p>Owner-assisted блокеров для текущего recovery path нет.</p>
+        </section>
+      `;
+    }
+    return `
+      <section class="v2-recovery-owner">
+        <strong>Проверки владельца</strong>
+        <div>
+          ${items.map((item) => `
+            <article class="v2-recovery-owner-item v2-recovery-owner-item--${this.escapeHtml(item.status)}">
+              <span>${this.escapeHtml(this.v2CommandStatusLabel(item.status))}</span>
+              <b>${this.escapeHtml(item.name)}</b>
+              <p>${this.escapeHtml(item.note)}</p>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  },
+
+  renderV2RecoveryExpertDetails(snapshot) {
+    const details = {
+      schema_version: snapshot.schema_version,
+      incident_id: snapshot.expert_details?.incident_id || '',
+      playbook_id: snapshot.expert_details?.playbook_id || '',
+      diagnostic_pack_id: snapshot.expert_details?.diagnostic_pack_id || '',
+      event_id: snapshot.expert_details?.event_id || '',
+      transition_hint: snapshot.incident?.transition_status || '',
+      runtime: snapshot.expert_details?.runtime || {}
+    };
+    return `
+      <details class="v2-recovery-expert">
+        <summary>Экспертные детали</summary>
+        <pre>${this.escapeHtml(JSON.stringify(details, null, 2))}</pre>
+      </details>
+    `;
+  },
+
+  async handleV2RecoveryCommandAction(action = '', button = null) {
+    const scrollTo = (id) => {
+      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    };
+    const safeAction = this.mapV2RecoveryAction(action);
+    const eventType = safeAction === 'owner_assisted'
+      ? 'v2.recovery.owner_assisted_required'
+      : safeAction === 'open_diagnostic_pack'
+        ? 'v2.diagnostic_pack.preview_opened'
+        : safeAction === 'create_recovery_evidence'
+          ? 'v2.evidence.created'
+          : 'v2.recovery.next_action_selected';
+    this.recordV2RecoveryEvent(eventType, {
+      action: safeAction,
+      message: 'Recovery Command Center safe action selected.',
+      refs: { component: 'recovery_command_center', action: safeAction }
+    });
+
+    if (safeAction === 'open_work') {
+      this.go('work');
+      return;
+    }
+    if (safeAction === 'open_memory') {
+      this.go('system');
+      scrollTo('system-memory-search-panel');
+      return;
+    }
+    if (safeAction === 'open_hands') {
+      this.go('system');
+      scrollTo('system-hands-panel');
+      this.toast('Открыты безопасные Руки. Apply не выполняется.');
+      return;
+    }
+    if (safeAction === 'open_guardian') {
+      this.go('system');
+      scrollTo('system-guardian-panel');
+      return;
+    }
+    if (safeAction === 'owner_assisted') {
+      this.go('system');
+      scrollTo('system-v2-command-center');
+      this.toast('Проверки владельца показаны отдельно и не выполняются автоматически.');
+      return;
+    }
+    if (safeAction === 'open_diagnostic_pack') {
+      this.go('system');
+      scrollTo('v2-recovery-command-center');
+      this.toast('Diagnostic Pack открыт как безопасный preview.');
+      return;
+    }
+    if (safeAction === 'create_recovery_evidence') {
+      this.toast('Recovery evidence event записан без изменения проекта.');
+      this.renderSystemStatus();
+      return;
+    }
+    this.go('system');
+    scrollTo('v2-recovery-command-center');
+  },
+
   renderSystemDiagnostics() {
     const host = document.getElementById('system-diagnostics');
     if (!host) return;
@@ -12701,6 +13110,7 @@ const App = {
           <p>${this.escapeHtml(latest?.summary || 'Диагност готов к read-only проверке runtime, bridge health, approvals, storage policy и UI state.')}</p>
         </div>
       </section>
+      ${this.renderV2RecoveryCommandCenterPanel()}
       <section class="diagnost-grid">
         <div>
           <div class="diagnost-subtitle">Базовое состояние</div>
