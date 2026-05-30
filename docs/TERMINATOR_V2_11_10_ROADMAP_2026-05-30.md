@@ -98,15 +98,24 @@ Goal: extend beyond owner-first product after the core is mature.
    - Permissions.
    - Shared workflows.
 
-## First Recommended Task
+## Current P0 Planning Step
 
-V2-P0-1: First Run 11/10 + Owner Command Center hardening.
+V2-P0-1: First Run 11/10 + Recovery Command Center planning.
 
-Scope should remain narrow:
+Planning artifacts:
+- `docs/TERMINATOR_V2_P0_1_FIRST_RUN_RECOVERY_COMMAND_CENTER_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_1_SCORECARD_2026-05-30.md`
+- `evidence/v2_p0_1_first_run_recovery/V2_P0_1_RESULT.md`
+
+Scope remains narrow:
 - docs/evidence first;
-- then bounded UI changes only if accepted;
+- bounded UI changes only after explicit implementation task;
 - no billing, no AI API, no secrets, no cleanup;
 - V1 remains protected.
+
+Recommended next V2-P0 planning block:
+
+V2-P0-2: Recovery 11/10 detailed playbooks and state model.
 
 ## Exit Gate For V2-P0
 
