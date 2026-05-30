@@ -143,6 +143,27 @@ Recommended next V2-P0 planning block:
 
 V2-P0-4: Safety / Control 11/10 capability matrix and threat model.
 
+## V2-P0-4 Status
+
+V2-P0-4 Safety / Control 11/10 capability matrix and threat model: planned / docs created.
+
+Planning artifacts:
+- `docs/TERMINATOR_V2_P0_4_SAFETY_CONTROL_CAPABILITY_MATRIX_THREAT_MODEL_2026-05-30.md`
+- `docs/TERMINATOR_V2_P0_4_SCORECARD_2026-05-30.md`
+- `evidence/v2_p0_4_safety_control/V2_P0_4_RESULT.md`
+
+## P0 Planning Status Summary
+
+P0 planning docs created:
+- V2-P0-1 First Run 11/10 + Recovery Command Center.
+- V2-P0-2 Recovery 11/10 playbooks and state model.
+- V2-P0-3 Memory Search 11/10 architecture and performance contract.
+- V2-P0-4 Safety / Control 11/10 capability matrix and threat model.
+
+Recommended next step after P0-4:
+
+V2 P0 Implementation Planning Pack or P0 Gap Review.
+
 ## Exit Gate For V2-P0
 
 V2-P0 is ready only when:
