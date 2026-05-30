@@ -1,0 +1,595 @@
+[
+  {
+    "sample_id": "known_query",
+    "expected": "strong_or_exact",
+    "result": {
+      "schema_version": 1,
+      "normalizedQuery": "hello world",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "task:v2-hello-world",
+          "type": "task",
+          "label": "Задача",
+          "title": "Задача: Python hello world",
+          "summary": "Проверка простого сценария hello world, artifact и memory preview связаны через task_id.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P0-E",
+          "task_title": "Memory Search Runtime Wiring",
+          "source_id": "TASK-V2-HELLO",
+          "source_type": "",
+          "refs": {
+            "task_id": "TASK-V2-HELLO",
+            "project_id": "terminator"
+          },
+          "keywords": [
+            "задача",
+            "python",
+            "hello",
+            "world",
+            "проверка",
+            "простого",
+            "сценария",
+            "artifact",
+            "memory",
+            "preview",
+            "связаны",
+            "через",
+            "task_id",
+            "task"
+          ],
+          "confidence": "metadata",
+          "privacy_status": "ok",
+          "created_at": "2026-05-30T14:23:36.484Z",
+          "updated_at": "2026-05-30T14:23:36.484Z",
+          "search_text": "задача: python hello world проверка простого сценария hello world, artifact и memory preview связаны через task_id. задача python hello world проверка простого сценария artifact memory preview связаны через task_id task",
+          "score": 60,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "task:v2-hello-world",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.484Z",
+          "updated_at": "2026-05-30T14:23:36.484Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "TASK-V2-P0-E",
+            "project_id": "terminator",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "task",
+          "title": "Задача: Python hello world",
+          "summary": "Проверка простого сценария hello world, artifact и memory preview связаны через task_id.",
+          "source": {
+            "source_id": "TASK-V2-HELLO",
+            "source_type": "task",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P0-E",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 60,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 7,
+      "events": [
+        {
+          "id": "evt_1780151016524_ixb4y0",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.546Z",
+          "updated_at": "2026-05-30T14:23:36.546Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "hello world",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 7,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "evt_1780151016548_m9ofif",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.548Z",
+          "updated_at": "2026-05-30T14:23:36.548Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "hello world",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 7,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  },
+  {
+    "sample_id": "artifact_evidence_query",
+    "expected": "strong",
+    "result": {
+      "schema_version": 1,
+      "normalizedQuery": "context pack evidence",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "artifact:v2-context-pack",
+          "type": "artifact",
+          "label": "Артефакт",
+          "title": "Context Pack: evidence artifact smoke",
+          "summary": "Artifact содержит evidence refs, verifier note и ссылку на результат без raw files.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P0-E",
+          "task_title": "Memory Search Runtime Wiring",
+          "source_id": "ART-V2-CONTEXT",
+          "source_type": "CONTEXT_PACK",
+          "refs": {
+            "task_id": "TASK-V2-P0-E",
+            "artifact_id": "ART-V2-CONTEXT",
+            "evidence_id": "EVD-V2-CONTEXT"
+          },
+          "keywords": [
+            "context",
+            "pack",
+            "evidence",
+            "artifact",
+            "smoke",
+            "содержит",
+            "refs",
+            "verifier",
+            "note",
+            "ссылку",
+            "результат",
+            "без",
+            "raw",
+            "files",
+            "context_pack"
+          ],
+          "confidence": "metadata",
+          "privacy_status": "ok",
+          "created_at": "2026-05-30T14:23:36.484Z",
+          "updated_at": "2026-05-30T14:23:36.484Z",
+          "search_text": "context pack: evidence artifact smoke artifact содержит evidence refs, verifier note и ссылку на результат без raw files. context pack evidence artifact smoke содержит refs verifier note ссылку результат без raw files context_pack",
+          "score": 73,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "artifact:v2-context-pack",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.484Z",
+          "updated_at": "2026-05-30T14:23:36.484Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "TASK-V2-P0-E",
+            "artifact_id": "ART-V2-CONTEXT",
+            "evidence_id": "EVD-V2-CONTEXT",
+            "artifact_refs": [
+              "ART-V2-CONTEXT"
+            ],
+            "evidence_refs": [
+              "EVD-V2-CONTEXT"
+            ],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "artifact",
+          "title": "Context Pack: evidence artifact smoke",
+          "summary": "Artifact содержит evidence refs, verifier note и ссылку на результат без raw files.",
+          "source": {
+            "source_id": "ART-V2-CONTEXT",
+            "source_type": "CONTEXT_PACK",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P0-E",
+          "artifact_refs": [
+            "ART-V2-CONTEXT"
+          ],
+          "evidence_refs": [
+            "EVD-V2-CONTEXT"
+          ],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 73,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 2,
+      "events": [
+        {
+          "id": "evt_1780151016552_aomzi2",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.552Z",
+          "updated_at": "2026-05-30T14:23:36.552Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "context pack evidence",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 2,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "evt_1780151016552_9mdmfa",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.552Z",
+          "updated_at": "2026-05-30T14:23:36.552Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "context pack evidence",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 2,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  },
+  {
+    "sample_id": "impossible_query",
+    "expected": "empty",
+    "result": {
+      "schema_version": 1,
+      "normalizedQuery": "zzqx impossible nebula 849203",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [],
+      "records": [],
+      "matchType": "none",
+      "relevanceSummary": "нет релевантных",
+      "emptyState": "Ничего релевантного не найдено.",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "evt_1780151016552_5h4pdt",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.553Z",
+          "updated_at": "2026-05-30T14:23:36.553Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "zzqx impossible nebula 849203",
+            "result_count": 0,
+            "match_type": "none",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "Ничего релевантного не найдено.",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "evt_1780151016553_urhw04",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.555Z",
+          "updated_at": "2026-05-30T14:23:36.555Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.empty",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search found no relevant records.",
+          "payload": {
+            "query": "zzqx impossible nebula 849203",
+            "result_count": 0,
+            "match_type": "none",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "Ничего релевантного не найдено.",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  },
+  {
+    "sample_id": "weak_query",
+    "expected": "weak_warning",
+    "result": {
+      "schema_version": 1,
+      "normalizedQuery": "тонкаясвязь слабыйнет",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "memory:v2-weak-signal",
+          "type": "memory",
+          "label": "Память",
+          "title": "Слабый сигнал памяти",
+          "summary": "Preview-запись для проверки weak match без уверенного PASS.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P0-E",
+          "task_title": "Memory Search Runtime Wiring",
+          "source_id": "MEM-V2-WEAK",
+          "source_type": "preview",
+          "refs": {
+            "task_id": "TASK-V2-P0-E"
+          },
+          "keywords": [],
+          "confidence": "metadata",
+          "privacy_status": "ok",
+          "created_at": "2026-05-30T14:23:36.484Z",
+          "updated_at": "2026-05-30T14:23:36.484Z",
+          "search_text": "тонкаясвязь",
+          "score": 5,
+          "relevance": "weak",
+          "match_type": "weak",
+          "weak_match": true
+        }
+      ],
+      "records": [
+        {
+          "id": "memory:v2-weak-signal",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.484Z",
+          "updated_at": "2026-05-30T14:23:36.484Z",
+          "status": "weak_match",
+          "refs": {
+            "task_id": "TASK-V2-P0-E",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Слабый сигнал памяти",
+          "summary": "Preview-запись для проверки weak match без уверенного PASS.",
+          "source": {
+            "source_id": "MEM-V2-WEAK",
+            "source_type": "preview",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P0-E",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 5,
+          "match_type": "weak",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "weak",
+      "relevanceSummary": "слабые совпадения",
+      "emptyState": "",
+      "weakWarning": "Найдены слабые совпадения, проверьте вручную.",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 6,
+      "events": [
+        {
+          "id": "evt_1780151016561_stmcyi",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.561Z",
+          "updated_at": "2026-05-30T14:23:36.561Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "тонкаясвязь слабыйнет",
+            "result_count": 1,
+            "match_type": "weak",
+            "duration_ms": 6,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": "Найдены слабые совпадения, проверьте вручную."
+          }
+        },
+        {
+          "id": "evt_1780151016562_4o3x67",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.562Z",
+          "updated_at": "2026-05-30T14:23:36.562Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "medium",
+          "event_type": "v2.memory.search.weak_match",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search found weak matches only.",
+          "payload": {
+            "query": "тонкаясвязь слабыйнет",
+            "result_count": 1,
+            "match_type": "weak",
+            "duration_ms": 6,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": "Найдены слабые совпадения, проверьте вручную."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "sample_id": "fake_secret_query",
+    "expected": "privacy_blocked",
+    "result": {
+      "schema_version": 1,
+      "normalizedQuery": "[privacy-blocked]",
+      "results": [],
+      "records": [],
+      "matchType": "none",
+      "relevanceSummary": "privacy_blocked",
+      "emptyState": "Есть предупреждение приватности. Запрос не выполнялся и секреты не показываются.",
+      "weakWarning": "",
+      "privacyWarnings": [
+        "Запрос похож на секрет или приватное значение. Поиск остановлен Privacy Guard."
+      ],
+      "privacyBlocked": true,
+      "durationMs": 5,
+      "events": [
+        {
+          "id": "evt_1780151016567_fx21rx",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.567Z",
+          "updated_at": "2026-05-30T14:23:36.567Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "high",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "[privacy-blocked]",
+            "result_count": 0,
+            "match_type": "none",
+            "duration_ms": 5,
+            "privacy_warnings_count": 1,
+            "empty_state": "Есть предупреждение приватности. Запрос не выполнялся и секреты не показываются.",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "evt_1780151016567_qs5i46",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-30T14:23:36.567Z",
+          "updated_at": "2026-05-30T14:23:36.567Z",
+          "status": "recorded",
+          "refs": {},
+          "risk_level": "high",
+          "event_type": "v2.memory.privacy.blocked",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Privacy Guard blocked secret-like memory search query.",
+          "payload": {
+            "query": "[privacy-blocked]",
+            "result_count": 0,
+            "match_type": "none",
+            "duration_ms": 5,
+            "privacy_warnings_count": 1,
+            "empty_state": "Есть предупреждение приватности. Запрос не выполнялся и секреты не показываются.",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  }
+]

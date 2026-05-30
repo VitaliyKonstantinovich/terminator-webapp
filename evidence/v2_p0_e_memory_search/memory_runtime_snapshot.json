@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-30T14:23:36.572Z",
+  "status": "not_indexed",
+  "readiness": 35,
+  "index_status": "not_indexed",
+  "record_count_total": 0,
+  "records": 0,
+  "last_search_status": "not_run",
+  "last_search_duration": 0,
+  "strong_results_count": 0,
+  "weak_results_count": 0,
+  "privacy_warnings_count": 0,
+  "owner_assisted_required": [],
+  "stale": false,
+  "degraded": true,
+  "note": "нажмите “Пересобрать индекс”"
+}

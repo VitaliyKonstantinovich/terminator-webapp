@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-05-30T14:23:36.573Z",
+  "mode": "node-vm-readonly-runtime-smoke",
+  "pass": {
+    "known_query": true,
+    "artifact_query": true,
+    "impossible_empty": true,
+    "weak_warning": true,
+    "fake_secret_blocked": true,
+    "events_sanitized": true,
+    "performance_budget": true
+  },
+  "all_pass": true,
+  "summary": {
+    "total": 5,
+    "exact_or_strong": 2,
+    "weak": 1,
+    "empty": 1,
+    "privacy_blocked": 1,
+    "max_duration_ms": 7
+  },
+  "snapshot": {
+    "schema_version": 1,
+    "generated_at": "2026-05-30T14:23:36.572Z",
+    "status": "not_indexed",
+    "readiness": 35,
+    "index_status": "not_indexed",
+    "record_count_total": 0,
+    "records": 0,
+    "last_search_status": "not_run",
+    "last_search_duration": 0,
+    "strong_results_count": 0,
+    "weak_results_count": 0,
+    "privacy_warnings_count": 0,
+    "owner_assisted_required": [],
+    "stale": false,
+    "degraded": true,
+    "note": "нажмите “Пересобрать индекс”"
+  },
+  "notes": [
+    "app.js evaluated with document.readyState=loading so UI init was not started.",
+    "No AI API, no external embeddings, no network, no project/evidence scan."
+  ]
+}

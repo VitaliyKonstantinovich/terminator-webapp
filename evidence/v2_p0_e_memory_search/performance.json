@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-05-30T14:23:36.635Z",
+  "target_ms": 3000,
+  "rows": [
+    {
+      "sample_id": "known_query",
+      "match_type": "exact",
+      "duration_ms": 7,
+      "result_count": 1,
+      "privacy_blocked": false
+    },
+    {
+      "sample_id": "artifact_evidence_query",
+      "match_type": "exact",
+      "duration_ms": 2,
+      "result_count": 1,
+      "privacy_blocked": false
+    },
+    {
+      "sample_id": "impossible_query",
+      "match_type": "none",
+      "duration_ms": 0,
+      "result_count": 0,
+      "privacy_blocked": false
+    },
+    {
+      "sample_id": "weak_query",
+      "match_type": "weak",
+      "duration_ms": 6,
+      "result_count": 1,
+      "privacy_blocked": false
+    },
+    {
+      "sample_id": "fake_secret_query",
+      "match_type": "none",
+      "duration_ms": 5,
+      "result_count": 0,
+      "privacy_blocked": true
+    }
+  ],
+  "pass": true
+}
