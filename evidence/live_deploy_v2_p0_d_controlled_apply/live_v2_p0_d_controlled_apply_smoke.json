@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-05-30T13:40:18.519Z",
+  "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p0-d-controlled-apply-live-smoke&ts=1780148386701",
+  "http_status": 200,
+  "duration_ms": 28293,
+  "app_js_markers": {
+    "evaluateV2ControlledApplyRequest": true,
+    "getV2ControlledApplyPreview": true,
+    "renderV2ControlledApplyPreview": true,
+    "v2ApplyRequested": true,
+    "v2RollbackRequired": true
+  },
+  "preview_summary": {
+    "total": 10,
+    "pass": 10,
+    "failed": 0,
+    "allowed": 2,
+    "blocked": 6,
+    "approval_required": 2,
+    "rollback_required": 2
+  },
+  "sampleStatus": {
+    "sandbox_apply_with_rollback_pass": "PASS",
+    "sandbox_apply_without_rollback": "PASS",
+    "verifier_fail": "PASS",
+    "guardian_high_risk": "PASS",
+    "active_project_without_approval": "PASS",
+    "active_project_approval_no_rollback": "PASS",
+    "secret_like_diff": "PASS",
+    "billing_network_ai_diff": "PASS",
+    "unknown_target_path": "PASS",
+    "rollback_requested": "PASS"
+  },
+  "sampleVerdicts": {
+    "sandbox_apply_with_rollback_pass": "allow_with_warning",
+    "sandbox_apply_without_rollback": "blocked",
+    "verifier_fail": "blocked",
+    "guardian_high_risk": "approval_required",
+    "active_project_without_approval": "approval_required",
+    "active_project_approval_no_rollback": "blocked",
+    "secret_like_diff": "red_zone_stop",
+    "billing_network_ai_diff": "red_zone_stop",
+    "unknown_target_path": "blocked",
+    "rollback_requested": "allow_with_warning"
+  },
+  "failed": [],
+  "desktop": {
+    "title": "TERMINATOR MINA UI",
+    "activeScreen": "screen-system",
+    "hasControlledApplyPreview": true,
+    "hasSafetyPreview": true,
+    "bodyWidth": 1366,
+    "viewportWidth": 1366,
+    "noHorizontalOverflow": true,
+    "textHasMojibake": false
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noHorizontalOverflow": true
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noHorizontalOverflow": true
+  },
+  "console_warnings": [
+    "console:Failed to load resource: net::ERR_CONNECTION_TIMED_OUT",
+    "console:Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "fatalErrors": [],
+  "pass": true
+}
