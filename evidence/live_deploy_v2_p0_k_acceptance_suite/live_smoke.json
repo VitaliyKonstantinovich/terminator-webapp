@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-05-30T20:11:31.546Z",
+  "mode": "live-lightweight-v2-p0-k-acceptance-suite-smoke",
+  "live_base": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "force": "v2-p0-k-live-smoke-1780171890725",
+  "fetched": {
+    "root": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p0-k-live-smoke-1780171890725",
+      "status": 200,
+      "ok": true,
+      "bytes": 59584
+    },
+    "app_js": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/app.js?live_smoke=1780171890726",
+      "status": 200,
+      "ok": true,
+      "bytes": 1371031
+    },
+    "css": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/styles.css?live_smoke=1780171890727",
+      "status": 200,
+      "ok": true,
+      "bytes": 207627
+    }
+  },
+  "suite_summary": {
+    "overall_status": "PASS",
+    "p0_ready": true,
+    "total_checks": 49,
+    "passed_checks": 47,
+    "failed_checks": 0,
+    "owner_assisted_checks": 1,
+    "postponed_checks": 1
+  },
+  "pass": {
+    "live_url_opens": true,
+    "app_js_opens": true,
+    "css_opens": true,
+    "has_run_suite": true,
+    "has_acceptance_snapshot": true,
+    "has_result_evaluator": true,
+    "has_panel_renderer": true,
+    "has_event_recorder": true,
+    "has_feature_flag": true,
+    "has_completion_event": true,
+    "css_panel": true,
+    "css_hero": true,
+    "css_strip": true,
+    "css_mobile": true,
+    "vm_suite_pass": true,
+    "vm_p0_ready": true,
+    "vm_total_checks": true,
+    "vm_no_failures": true,
+    "vm_owner_assisted_separated": true,
+    "vm_postponed_phone_separated": true,
+    "vm_red_team_present": true,
+    "vm_panel_rendered": true,
+    "vm_expert_collapsed": true,
+    "normal_mode_no_technical_leak": true,
+    "integrated_gate_still_present": true,
+    "mina_scheme_still_present": true,
+    "no_ai_api_runtime_domains": true
+  },
+  "all_pass": true,
+  "notes": [
+    "No screenshots, no BlueStacks, no APK, no billing, no AI API.",
+    "Live check uses fetched GitHub Pages app.js/styles.css plus Node VM fake DOM.",
+    "Real phone/APK remains postponed until production V2 final."
+  ]
+}
