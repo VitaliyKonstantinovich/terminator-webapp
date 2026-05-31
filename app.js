@@ -342,7 +342,10 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2OwnerCommandCenterPreviewEnabled: false,
   v2P0IntegrationPreviewEnabled: false,
   v2P0AcceptanceSuiteEnabled: false,
-  v2QAAutotestFactoryPreviewEnabled: false
+  v2QAAutotestFactoryPreviewEnabled: false,
+  v2ComfortTrustGuidePreviewEnabled: false,
+  v2SafeUndoCenterPreviewEnabled: false,
+  v2ConfidenceLayerPreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -443,7 +446,13 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.qa.test_artifact.created',
   'v2.qa.evidence_checklist.created',
   'v2.qa.verifier.verdict',
-  'v2.qa.memory_summary.created'
+  'v2.qa.memory_summary.created',
+  'v2.comfort.guide.opened',
+  'v2.comfort.next_action.selected',
+  'v2.comfort.trust_snapshot.created',
+  'v2.safe_undo.snapshot_created',
+  'v2.safe_undo.recovery_selected',
+  'v2.confidence.snapshot_created'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -7368,6 +7377,611 @@ test.describe('Terminator QA Factory safe demo', () => {
     };
   },
 
+  recordV2ComfortTrustEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.comfort.trust_snapshot.created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_comfort_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'comfort_trust_guide',
+        resource: payload.resource || 'system',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'comfort_trust_guide',
+      resource: payload.resource || 'system',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  buildV2ComfortTrustGuideSnapshot(options = {}) {
+    const truth = this.currentSourceOfTruthSnapshot({ refresh: options.refresh === true });
+    const p0 = this.runV2P0AcceptanceSuite({ persistEvents: false });
+    const qa = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false });
+    const memory = this.getV2MemoryRuntimeSnapshot?.() || {};
+    const safety = this.getV2SafetyPolicySnapshot?.() || this.getV2GuardianSnapshot?.() || {};
+    const recovery = this.buildV2RecoveryCommandCenterSnapshot?.(null, { recordOpened: false, persistEvents: false }) || {};
+    const status = truth.status === 'blocked' || p0.overall_status === 'FAIL' ? 'blocked' : truth.status === 'ready' && p0.overall_status === 'PASS' ? 'ready' : 'review';
+    const confidence = status === 'ready' ? 'Высокая уверенность' : status === 'blocked' ? 'Остановиться и проверить' : 'Требуется проверка владельца';
+    const next = truth.next?.action ? {
+      label: truth.next.name || 'Открыть следующий шаг',
+      note: truth.next.note || truth.summary || 'Мина покажет безопасный следующий шаг.',
+      action: truth.next.action
+    } : {
+      label: p0.next_recommended_action?.label || 'Проверить систему',
+      note: p0.next_recommended_action?.description || 'Проверить связи, риски и evidence перед продолжением.',
+      action: p0.next_recommended_action?.action || 'open_diagnostics'
+    };
+    const risky = [
+      'Deploy, push, delete, .env, network, billing и secrets остаются только через Approval.',
+      'AI API не включаются без отдельного решения владельца.',
+      'Owner-assisted проверки не выдаются за автоматический PASS.'
+    ];
+    const checked = [
+      `${p0.passed_checks || 0}/${p0.total_checks || 0} P0-проверок пройдены`,
+      `Memory Search: ${memory.status || memory.index_health || 'требует проверки'}`,
+      `QA Factory: ${qa.summary?.test_case_count || 0} test cases, backend/API честно PARTIAL`,
+      `Источник истины: ${truth.score || 0}%`
+    ];
+    const needsAttention = [
+      ...(p0.p0_blockers || []).slice(0, 2).map((item) => item.message || item.check_id),
+      ...(p0.owner_assisted_pending || p0.owner_assisted_items || []).slice(0, 2).map((item) => item.label || item.message || item.id),
+      ...(truth.sources || []).filter((source) => source.status !== 'ready').slice(0, 2).map((source) => `${source.name}: ${source.owner_text}`)
+    ].filter(Boolean);
+    const events = [
+      this.recordV2ComfortTrustEvent('v2.comfort.trust_snapshot.created', {
+        status,
+        next_action: next.action,
+        confidence,
+        message: 'Comfort trust guide snapshot created.',
+        refs: { component: 'v2_comfort_trust_guide' }
+      }, { persist: options.persistEvents === true })
+    ];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2ComfortTrustGuidePreviewEnabled: Boolean(options.previewEnabled) }),
+      status,
+      score: truth.score || p0.p0_readiness_percent || 0,
+      confidence,
+      title: 'Проводник Мины',
+      summary: 'Один спокойный слой поверх сложной системы: что происходит, что нажать дальше, что опасно и что уже проверено.',
+      next,
+      cards: [
+        {
+          id: 'now',
+          label: 'Что происходит',
+          title: status === 'ready' ? 'Контур работает' : status === 'blocked' ? 'Есть блокер' : 'Идёт проверка зрелости',
+          text: truth.summary || p0.next_recommended_action?.description || 'Мина собирает состояние системы и показывает безопасный маршрут.',
+          action: next.action,
+          button: 'Открыть следующий шаг'
+        },
+        {
+          id: 'safe',
+          label: 'Что безопасно',
+          title: 'Можно смотреть и проверять',
+          text: 'Открывать схему, память, диагностику, отчёты и evidence можно без риска для системы.',
+          action: 'open_scheme',
+          button: 'Открыть схему'
+        },
+        {
+          id: 'risk',
+          label: 'Что опасно',
+          title: 'Только через подтверждение',
+          text: risky[0],
+          action: 'open_guardian',
+          button: 'Открыть защиту'
+        },
+        {
+          id: 'proof',
+          label: 'Что проверено',
+          title: checked[0],
+          text: checked.slice(1).join(' · '),
+          action: 'open_memory',
+          button: 'Открыть память'
+        }
+      ],
+      simple_rules: [
+        'Если сомневаешься - нажми "Проверить систему".',
+        'Если действие меняет файлы, сеть, деньги или публикацию - жди Approval.',
+        'Если Мина говорит PARTIAL - это честная зона ручной проверки.',
+        'Экспертные детали спрятаны отдельно, обычный режим говорит человеческим языком.'
+      ],
+      checked,
+      needs_attention: needsAttention.length ? needsAttention : ['Критичных блокеров в текущем снимке не найдено.'],
+      risky,
+      sources: {
+        source_truth_status: truth.status,
+        p0_status: p0.overall_status,
+        memory_status: memory.status || memory.index_health || 'unknown',
+        safety_status: safety.status || safety.guardian_status || 'unknown',
+        recovery_status: recovery.status || recovery.tone || 'unknown',
+        qa_status: qa.summary?.status || 'unknown'
+      },
+      events
+    };
+  },
+
+  renderV2ComfortTrustGuidePanel(snapshot = this.buildV2ComfortTrustGuideSnapshot({ previewEnabled: true, persistEvents: false })) {
+    const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
+    return `
+      <section class="v2-comfort-guide v2-comfort-guide--${this.escapeHtml(tone)}" aria-label="Проводник Мины">
+        <header class="v2-comfort-hero">
+          <div>
+            <span>V2 / комфорт и доверие</span>
+            <h3>${this.escapeHtml(snapshot.title)}</h3>
+            <p>${this.escapeHtml(snapshot.summary)}</p>
+          </div>
+          <div class="v2-comfort-score">
+            <span>Состояние</span>
+            <strong>${this.escapeHtml(String(snapshot.score))}%</strong>
+            <p>${this.escapeHtml(snapshot.confidence)}</p>
+          </div>
+          <div class="v2-comfort-next">
+            <span>Один следующий шаг</span>
+            <strong>${this.escapeHtml(snapshot.next.label)}</strong>
+            <p>${this.escapeHtml(snapshot.next.note)}</p>
+            <button type="button" data-integration-action="${this.escapeHtml(snapshot.next.action)}">Открыть следующий шаг</button>
+          </div>
+        </header>
+
+        <div class="v2-comfort-actions" aria-label="Быстрые действия Проводника Мины">
+          <button type="button" data-integration-action="refresh_source_truth">Проверить систему</button>
+          <button type="button" data-integration-action="open_scheme">Открыть Схему Мины</button>
+          <button type="button" data-integration-action="open_diagnostics">Открыть Диагност</button>
+          <button type="button" data-integration-action="open_memory">Найти в памяти</button>
+        </div>
+
+        <div class="v2-comfort-grid">
+          ${snapshot.cards.map((card) => `
+            <article class="v2-comfort-card v2-comfort-card--${this.escapeHtml(card.id)}">
+              <span>${this.escapeHtml(card.label)}</span>
+              <strong>${this.escapeHtml(card.title)}</strong>
+              <p>${this.escapeHtml(card.text)}</p>
+              <button type="button" data-integration-action="${this.escapeHtml(card.action)}">${this.escapeHtml(card.button)}</button>
+            </article>
+          `).join('')}
+        </div>
+
+        <div class="v2-comfort-guide-strip">
+          ${snapshot.simple_rules.map((rule) => `<span>${this.escapeHtml(rule)}</span>`).join('')}
+        </div>
+
+        <details class="v2-comfort-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            status: snapshot.status,
+            score: snapshot.score,
+            sources: snapshot.sources,
+            checked: snapshot.checked,
+            needs_attention: snapshot.needs_attention,
+            risky: snapshot.risky,
+            feature_flag: snapshot.feature_flags.v2ComfortTrustGuidePreviewEnabled
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
+  },
+
+  recordV2SafeUndoEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.safe_undo.snapshot_created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_safe_undo_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'safe_undo_center',
+        resource: payload.resource || 'task_state',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'safe_undo_center',
+      resource: payload.resource || 'task_state',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  normalizeSafeUndoAction(source = {}) {
+    const createdAt = source.created_at || source.updated_at || source.time || new Date().toISOString();
+    const recoverable = source.recoverable === true;
+    const unavailable = source.recoverable === false && source.needs_restore === true;
+    return {
+      action_id: source.action_id || `safe_undo_${Date.parse(createdAt) || Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      created_at: createdAt,
+      title: source.title || 'Важное действие',
+      description: source.description || 'Состояние системы изменилось.',
+      status: source.status || (recoverable ? 'can_restore' : unavailable ? 'unavailable' : 'safe'),
+      safety_label: recoverable ? 'изменение можно отменить' : unavailable ? 'восстановление недоступно' : 'не требует восстановления',
+      recoverable,
+      restore_action: recoverable ? 'open_recovery' : source.restore_action || 'open_diagnostics',
+      details_action: source.details_action || source.restore_action || 'open_recovery',
+      source_type: source.source_type || 'system',
+      refs: source.refs || {},
+      expert: source.expert || {}
+    };
+  },
+
+  buildRecoverySnapshot(options = {}) {
+    const actions = [];
+    const add = (item) => actions.push(this.normalizeSafeUndoAction(item));
+    const tasks = Array.isArray(this.workTasks) ? this.workTasks : [];
+    tasks.slice(0, 12).forEach((task) => {
+      add({
+        action_id: `task_created_${task.task_id}`,
+        created_at: task.created_at || task.updated_at,
+        title: 'Создана задача',
+        description: task.title || task.user_request || task.task_id,
+        recoverable: false,
+        status: 'safe',
+        source_type: 'task',
+        details_action: 'open_work',
+        refs: { task_id: task.task_id, project_id: task.project_id }
+      });
+      (task.artifacts || []).filter((artifact) => artifact.type === 'RESTORE_POINT').slice(0, 4).forEach((artifact) => add({
+        action_id: artifact.artifact_id || `restore_${task.task_id}_${artifact.created_at || artifact.updated_at}`,
+        created_at: artifact.created_at || artifact.updated_at || task.updated_at,
+        title: 'Создана точка восстановления',
+        description: artifact.title || 'Можно открыть безопасный центр восстановления.',
+        recoverable: true,
+        source_type: 'artifact',
+        details_action: 'open_work',
+        refs: { task_id: task.task_id, artifact_id: artifact.artifact_id }
+      }));
+      if (task.memory_preview?.status && task.memory_preview.status !== 'draft') {
+        add({
+          action_id: `memory_saved_${task.task_id}`,
+          created_at: task.updated_at || task.created_at,
+          title: 'Обновлена память',
+          description: task.memory_preview.summary || task.title || 'Memory preview сохранён локально.',
+          recoverable: false,
+          status: 'safe',
+          source_type: 'memory',
+          details_action: 'open_memory',
+          refs: { task_id: task.task_id, project_id: task.project_id }
+        });
+      }
+    });
+    (this.schemaSafetyState?.restore_points || []).slice(0, 6).forEach((point) => add({
+      action_id: point.restore_point_id || point.checkpoint_id,
+      created_at: point.created_at,
+      title: 'Сохранено состояние схемы',
+      description: point.reason || point.schema_summary || 'Перед изменением сохранено безопасное состояние.',
+      recoverable: true,
+      source_type: 'schema_restore_point',
+      details_action: 'open_diagnostics',
+      refs: { restore_point_id: point.restore_point_id || point.checkpoint_id }
+    }));
+    (this.v2FoundationEvents || []).slice(0, 18).forEach((event) => {
+      const type = String(event.event_type || '');
+      if (type === 'v2.rollback.created' || type === 'v2.rollback.completed') {
+        add({
+          action_id: event.id || event.event_id,
+          created_at: event.created_at,
+          title: type === 'v2.rollback.completed' ? 'Состояние восстановлено' : 'Подготовлено восстановление',
+          description: event.message || 'Есть безопасная запись восстановления.',
+          recoverable: type === 'v2.rollback.created',
+          source_type: 'v2_event',
+          details_action: 'open_recovery',
+          refs: event.refs || {}
+        });
+      }
+      if (type === 'v2.memory.recorded') {
+        add({
+          action_id: event.id || event.event_id,
+          created_at: event.created_at,
+          title: 'Записано в память',
+          description: event.message || 'Память обновлена после подтверждения.',
+          recoverable: false,
+          status: 'safe',
+          source_type: 'v2_event',
+          details_action: 'open_memory',
+          refs: event.refs || {}
+        });
+      }
+    });
+    if (!actions.length) {
+      add({
+        action_id: 'safe_undo_empty_state',
+        created_at: new Date().toISOString(),
+        title: 'Пока нет действий для восстановления',
+        description: 'Когда появятся задачи, точки восстановления или безопасные изменения, Мина покажет их здесь.',
+        recoverable: false,
+        status: 'safe',
+        source_type: 'empty_state',
+        details_action: 'open_work'
+      });
+    }
+    const recentActions = actions
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, Number(options.limit || 8));
+    const recoverable = recentActions.filter((item) => item.recoverable);
+    const event = this.recordV2SafeUndoEvent('v2.safe_undo.snapshot_created', {
+      recoverable_count: recoverable.length,
+      recent_count: recentActions.length,
+      message: 'Safe Undo Center snapshot created.',
+      refs: { component: 'safe_undo_center' }
+    }, { persist: options.persistEvents === true });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2SafeUndoCenterPreviewEnabled: Boolean(options.previewEnabled) }),
+      status: recoverable.length ? 'ready' : 'review',
+      title: 'Безопасное восстановление',
+      summary: recoverable.length
+        ? 'Если что-то пошло не так, Мина поможет открыть безопасное восстановление последних изменений.'
+        : 'Серьёзных изменений для восстановления сейчас не видно. Новые действия появятся здесь автоматически.',
+      recentActions,
+      recoverableCount: recoverable.length,
+      lastRecoverableAt: recoverable[0]?.created_at || '',
+      events: [event].filter(Boolean),
+      safety: {
+        read_only: true,
+        no_direct_restore: true,
+        guardian_unchanged: true,
+        approval_flow_unchanged: true,
+        no_new_persistence_format: true
+      }
+    };
+  },
+
+  renderV2SafeUndoCenterPanel(snapshot = this.buildRecoverySnapshot({ previewEnabled: true, persistEvents: false })) {
+    const tone = snapshot.recoverableCount ? 'ready' : 'review';
+    return `
+      <section class="v2-safe-undo v2-safe-undo--${this.escapeHtml(tone)}" aria-label="Безопасное восстановление">
+        <header class="v2-safe-undo-hero">
+          <div>
+            <span>V2 / спокойное восстановление</span>
+            <h3>${this.escapeHtml(snapshot.title)}</h3>
+            <p>${this.escapeHtml(snapshot.summary)}</p>
+          </div>
+          <div>
+            <span>Можно вернуть</span>
+            <strong>${this.escapeHtml(String(snapshot.recoverableCount))}</strong>
+            <p>${snapshot.lastRecoverableAt ? `Последнее: ${this.escapeHtml(this.formatTaskTime(snapshot.lastRecoverableAt))}` : 'Пока нет безопасных изменений для возврата.'}</p>
+          </div>
+          <div>
+            <span>Правило безопасности</span>
+            <strong>Без прямого отката</strong>
+            <p>Кнопка "Восстановить" открывает безопасный центр. Изменения не применяются молча.</p>
+          </div>
+        </header>
+
+        <div class="v2-safe-undo-list">
+          ${snapshot.recentActions.map((action) => `
+            <article class="v2-safe-undo-card v2-safe-undo-card--${this.escapeHtml(action.status)}">
+              <time>${this.escapeHtml(this.formatTaskTime(action.created_at))}</time>
+              <strong>${this.escapeHtml(action.title)}</strong>
+              <p>${this.escapeHtml(action.description)}</p>
+              <small>Безопасность: ${this.escapeHtml(action.safety_label)}</small>
+              <div class="v2-safe-undo-actions">
+                <button type="button" data-integration-action="${this.escapeHtml(action.details_action)}">Подробнее</button>
+                ${action.recoverable
+                  ? `<button type="button" data-integration-action="open_recovery">Восстановить</button>`
+                  : `<button type="button" data-integration-action="${this.escapeHtml(action.details_action)}">${this.escapeHtml(action.status === 'unavailable' ? 'Восстановление недоступно' : 'Не требует восстановления')}</button>`}
+              </div>
+            </article>
+          `).join('')}
+        </div>
+
+        <details class="v2-safe-undo-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            recoverableCount: snapshot.recoverableCount,
+            lastRecoverableAt: snapshot.lastRecoverableAt,
+            safety: snapshot.safety,
+            recentActions: snapshot.recentActions.map((item) => ({
+              action_id: item.action_id,
+              source_type: item.source_type,
+              recoverable: item.recoverable,
+              refs: item.refs
+            }))
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
+  },
+
+  recordV2ConfidenceEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.confidence.snapshot_created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_confidence_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'confidence_layer',
+        resource: payload.resource || 'system',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'confidence_layer',
+      resource: payload.resource || 'system',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  buildConfidenceSnapshot(options = {}) {
+    const truth = this.currentSourceOfTruthSnapshot?.({ refresh: options.refresh === true, persist: false }) || {};
+    const p0 = this.runV2P0AcceptanceSuite?.({ persistEvents: false }) || {};
+    const qa = this.buildV2QAAutotestFactoryPreview?.({ previewEnabled: true, persistEvents: false }) || {};
+    const safety = this.getV2SafetyPolicySnapshot?.() || this.getV2GuardianSnapshot?.() || {};
+    const guardian = this.guardianSnapshot?.() || {};
+    const recovery = this.buildRecoverySnapshot?.({ previewEnabled: true, persistEvents: false, limit: 5 }) || {};
+    const results = Array.isArray(p0.results) ? p0.results : [];
+    const unresolved = results.filter((item) => ['FAIL', 'BLOCKED'].includes(item.status));
+    const ownerAssisted = results.filter((item) => item.status === 'OWNER_ASSISTED');
+    const pendingApprovals = (this.approvalRecords || []).filter((item) => !['approved', 'rejected', 'cancelled', 'expired', 'closed'].includes(item.status));
+    const emergencyActive = Boolean(guardian.state?.emergency_stop_active || this.guardianState?.emergency_stop_active);
+    const safeModeActive = Boolean(guardian.state?.safe_mode || this.guardianState?.safe_mode);
+    const noData = !results.length && !truth.status && !qa.summary;
+    const attentionItems = [
+      ...pendingApprovals.slice(0, 2).map((item) => ({
+        id: item.approval_id || item.id || 'pending_approval',
+        label: 'Ожидается подтверждение действия',
+        detail: item.title || item.summary || item.reason || 'Мина ждёт решения владельца перед продолжением.'
+      })),
+      ...(emergencyActive ? [{
+        id: 'emergency_stop_active',
+        label: 'Стоп действий активен',
+        detail: 'Новые рискованные действия остаются заблокированы до осознанного сброса.'
+      }] : []),
+      ...(safeModeActive ? [{
+        id: 'safe_mode_active',
+        label: 'Безопасный режим включён',
+        detail: 'Мина работает осторожно и не применяет рискованные действия молча.'
+      }] : []),
+      ...unresolved.slice(0, 3).map((item) => ({
+        id: item.check_id,
+        label: 'Нужно проверить',
+        detail: item.message || item.label || 'Одна из проверок требует внимания.'
+      })),
+      ...ownerAssisted.slice(0, 2).map((item) => ({
+        id: item.check_id,
+        label: 'Нужна ручная проверка владельца',
+        detail: item.message || item.label || 'Этот пункт нельзя честно закрыть автоматически.'
+      }))
+    ];
+    const verifiedItems = [
+      results.some((item) => item.area === 'Safety' && item.status === 'PASS') ? 'Проверены правила безопасности' : '',
+      results.some((item) => item.area === 'Security' && item.status === 'PASS') ? 'Проверены ограничения доступа' : '',
+      results.some((item) => item.area === 'Memory Search' && item.status === 'PASS') ? 'Проверена память и поиск' : '',
+      results.some((item) => item.area === 'Controlled Apply' && item.status === 'PASS') ? 'Проверены безопасные изменения' : '',
+      qa.summary?.status ? 'Проверены тестовые сценарии интерфейса' : '',
+      recovery.safety?.no_direct_restore ? 'Восстановление не выполняется молча' : ''
+    ].filter(Boolean);
+    const confidenceLevel = noData
+      ? 'Недостаточно данных'
+      : attentionItems.length
+        ? 'Требуется проверка'
+        : 'Высокая уверенность';
+    const status = confidenceLevel === 'Высокая уверенность' ? 'high' : confidenceLevel === 'Требуется проверка' ? 'attention' : 'unknown';
+    const summary = confidenceLevel === 'Высокая уверенность'
+      ? 'Основные проверки пройдены. Мина показывает, на какие доказательства можно опираться.'
+      : confidenceLevel === 'Требуется проверка'
+        ? 'Есть пункты, где нужен человек или дополнительная проверка перед уверенным продолжением.'
+        : 'Мине не хватает данных, чтобы честно оценить уверенность.';
+    const event = this.recordV2ConfidenceEvent('v2.confidence.snapshot_created', {
+      confidence_level: confidenceLevel,
+      verified_count: verifiedItems.length,
+      attention_count: attentionItems.length,
+      message: 'Confidence snapshot created.',
+      refs: { component: 'confidence_layer' }
+    }, { persist: options.persistEvents === true });
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({ v2ConfidenceLayerPreviewEnabled: Boolean(options.previewEnabled) }),
+      status,
+      title: 'Проверка и уверенность',
+      confidenceLevel,
+      summary,
+      verifiedItems: verifiedItems.length ? verifiedItems : ['Пока нет подтверждённых проверок для показа.'],
+      attentionItems: attentionItems.length ? attentionItems : [{
+        id: 'no_attention_needed',
+        label: 'Сейчас внимание не требуется',
+        detail: 'Основные проверки не нашли новых блокеров в текущем снимке.'
+      }],
+      sources: {
+        source_truth: truth.status || 'unknown',
+        p0_acceptance: p0.overall_status || 'unknown',
+        qa_factory: qa.summary?.status || 'unknown',
+        guardian: safety.status || safety.guardian_status || guardian.status || 'unknown',
+        approval_pending: pendingApprovals.length,
+        safe_mode_active: safeModeActive,
+        emergency_stop_active: emergencyActive,
+        recovery: recovery.status || 'unknown'
+      },
+      safety: {
+        read_only: true,
+        no_ai_api: true,
+        no_network_calls: true,
+        no_persistence_format_changes: true,
+        guardian_unchanged: true,
+        approval_unchanged: true,
+        safe_mode_unchanged: true
+      },
+      events: [event].filter(Boolean)
+    };
+  },
+
+  renderV2ConfidenceLayerPanel(snapshot = this.buildConfidenceSnapshot({ previewEnabled: true, persistEvents: false })) {
+    const tone = snapshot.status === 'high' ? 'high' : snapshot.status === 'attention' ? 'attention' : 'unknown';
+    return `
+      <section class="v2-confidence v2-confidence--${this.escapeHtml(tone)}" aria-label="Проверка и уверенность">
+        <header class="v2-confidence-hero">
+          <div>
+            <span>V2 / доверие к результату</span>
+            <h3>${this.escapeHtml(snapshot.title)}</h3>
+            <p>${this.escapeHtml(snapshot.summary)}</p>
+          </div>
+          <div>
+            <span>Уровень уверенности</span>
+            <strong>${this.escapeHtml(snapshot.confidenceLevel)}</strong>
+            <p>Без процентов и скрытых рейтингов: только понятная категория.</p>
+          </div>
+        </header>
+
+        <div class="v2-confidence-grid">
+          <article class="v2-confidence-card v2-confidence-card--verified">
+            <span>Что уже проверено</span>
+            <ul>
+              ${snapshot.verifiedItems.slice(0, 6).map((item) => `<li>${this.escapeHtml(item)}</li>`).join('')}
+            </ul>
+          </article>
+          <article class="v2-confidence-card v2-confidence-card--attention">
+            <span>Требует внимания</span>
+            <ul>
+              ${snapshot.attentionItems.slice(0, 6).map((item) => `<li><strong>${this.escapeHtml(item.label)}</strong><small>${this.escapeHtml(item.detail)}</small></li>`).join('')}
+            </ul>
+          </article>
+          <article class="v2-confidence-card v2-confidence-card--source">
+            <span>Откуда вывод</span>
+            <p>Мина берёт только существующие сигналы: проверки, Диагност, Защитник, подтверждения, безопасный режим и восстановление.</p>
+            <div class="v2-confidence-actions">
+              <button type="button" data-integration-action="open_diagnostics">Открыть проверки</button>
+              <button type="button" data-integration-action="open_guardian">Открыть защиту</button>
+            </div>
+          </article>
+        </div>
+
+        <details class="v2-confidence-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            status: snapshot.status,
+            confidenceLevel: snapshot.confidenceLevel,
+            sources: snapshot.sources,
+            safety: snapshot.safety,
+            feature_flag: snapshot.feature_flags.v2ConfidenceLayerPreviewEnabled
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
+  },
+
   renderV2QAAutotestFactoryPanel(preview = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false })) {
     const smoke = this.runV2QAAutotestFactorySmoke({ preview });
     const tone = smoke.status === 'PASS' ? 'ready' : 'review';
@@ -14033,6 +14647,9 @@ test.describe('Terminator QA Factory safe demo', () => {
     const tone = snapshot.status === 'ready' ? 'ready' : snapshot.status === 'blocked' ? 'blocked' : 'review';
     const truthTone = truth.status === 'ready' ? 'ready' : truth.status === 'blocked' ? 'blocked' : 'review';
     host.innerHTML = `
+      ${this.renderV2ComfortTrustGuidePanel()}
+      ${this.renderV2SafeUndoCenterPanel()}
+      ${this.renderV2ConfidenceLayerPanel()}
       ${this.renderV2QAAutotestFactoryPanel()}
       ${this.renderV2P0AcceptancePanel(p0Acceptance)}
       ${this.renderV2P0IntegrationGatePanel(p0Preview)}
