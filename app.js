@@ -350,7 +350,10 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2BrainCouncilQualityPreviewEnabled: false,
   v2ProductShellPreviewEnabled: false,
   v2DemoModePreviewEnabled: false,
-  v2HelpCardsEnabled: false
+  v2HelpCardsEnabled: false,
+  v2AdvancedHandsPreviewEnabled: false,
+  v2HandsDryRunPlannerEnabled: false,
+  v2WorkerCapabilityProfilesEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -377,7 +380,14 @@ const V2_CONTRACT_TYPES = Object.freeze([
   'decision_passport',
   'research_verifier_result',
   'product_shell_state',
-  'product_shell_demo_preview'
+  'product_shell_demo_preview',
+  'hands_action_request',
+  'hands_action_plan',
+  'hands_dry_run_result',
+  'hands_verifier_note',
+  'hands_evidence_record',
+  'worker_capability_profile',
+  'advanced_hands_preview'
 ]);
 const V2_CONTRACT_NAMES = Object.freeze({
   task: 'V2TaskContract',
@@ -404,7 +414,14 @@ const V2_CONTRACT_NAMES = Object.freeze({
   decision_passport: 'V2DecisionPassportContract',
   research_verifier_result: 'V2ResearchVerifierResultContract',
   product_shell_state: 'V2ProductShellStateContract',
-  product_shell_demo_preview: 'V2ProductShellDemoPreviewContract'
+  product_shell_demo_preview: 'V2ProductShellDemoPreviewContract',
+  hands_action_request: 'V2HandsActionRequestContract',
+  hands_action_plan: 'V2HandsActionPlanContract',
+  hands_dry_run_result: 'V2HandsDryRunResultContract',
+  hands_verifier_note: 'V2HandsVerifierNoteContract',
+  hands_evidence_record: 'V2HandsEvidenceRecordContract',
+  worker_capability_profile: 'V2WorkerCapabilityProfileContract',
+  advanced_hands_preview: 'V2AdvancedHandsPreviewContract'
 });
 const V2_EVENT_TYPES = Object.freeze([
   'v2.task.created',
@@ -493,7 +510,16 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.product_shell.help_card_opened',
   'v2.product_shell.demo_preview_created',
   'v2.product_shell.owner_assisted_shown',
-  'v2.product_shell.postponed_shown'
+  'v2.product_shell.postponed_shown',
+  'v2.hands.action_request.created',
+  'v2.hands.action_plan.created',
+  'v2.hands.dry_run.completed',
+  'v2.hands.action.blocked',
+  'v2.hands.approval_required',
+  'v2.hands.owner_assisted_required',
+  'v2.hands.verifier_note.created',
+  'v2.hands.evidence_record.created',
+  'v2.hands.memory_summary.created'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -691,6 +717,7 @@ const HANDS_SAFE_ACTION_MAX_PLANS = 60;
 const HANDS_WORKER_OPTIONS = [
   ['file_worker', 'Файловый помощник', 'metadata, hash, task storage; без удаления и auto-run'],
   ['code_worker', 'Кодовый помощник', 'repair workspace, diff, проверки; active project не меняет напрямую'],
+  ['codex_repair', 'Codex-ремонтник', 'repair workspace, diagnostic pack, diff review; без прямого apply'],
   ['browser_worker', 'Браузерный помощник', 'future QA actions; без логинов, cookies и платежей'],
   ['system_worker', 'Системный помощник', 'только health/status; без network/firewall/Defender'],
   ['memory_worker', 'Помощник памяти', 'Memory Preview и индекс; без raw noise и секретов'],
@@ -712,6 +739,10 @@ const HANDS_STATUS_LABELS = {
   blocked: 'заблокировано',
   approval_created: 'approval создан',
   copied: 'скопировано',
+  dry_run_ready: 'пробный прогон готов',
+  owner_assisted_required: 'требуется владелец',
+  red_zone_stop: 'красная зона',
+  future_disabled: 'позже / отключено',
   controlled_running: 'runtime выполняется',
   controlled_completed: 'runtime выполнен',
   controlled_blocked: 'runtime заблокирован'
@@ -726,6 +757,229 @@ const HANDS_BLOCKED_ACTIONS = [
   'account / payment actions',
   'unknown executable / archive extraction'
 ];
+const HANDS_ACTION_TYPE_OPTIONS = [
+  ['read_evidence_metadata', 'Прочитать evidence metadata'],
+  ['create_sandbox_file_plan', 'План sandbox-файла'],
+  ['write_repair_workspace_with_rollback', 'Repair workspace + rollback'],
+  ['write_repair_workspace_without_rollback', 'Repair workspace без rollback'],
+  ['active_project_mutation', 'Изменить active project'],
+  ['verifier_fail_apply', 'Verifier FAIL'],
+  ['deploy', 'Deploy'],
+  ['push_main', 'Push main'],
+  ['delete_restore_point', 'Удалить restore point'],
+  ['read_secrets_env', 'Прочитать .env / secrets'],
+  ['billing_payment', 'Платёжное действие'],
+  ['browser_profiles', 'Browser profiles / cookies'],
+  ['network_settings', 'Network / DNS / VPN'],
+  ['browser_worker_click', 'Browser Worker click'],
+  ['openclaw_adapter_action', 'OpenClaw adapter']
+];
+const HANDS_ACTION_TYPE_LABELS = Object.fromEntries(HANDS_ACTION_TYPE_OPTIONS);
+const HANDS_ACTION_POLICIES = Object.freeze({
+  read_evidence_metadata: {
+    actor: 'file_worker',
+    worker_id: 'file_worker',
+    action: 'read',
+    resource: 'evidence',
+    risk_level: 'safe',
+    target_resource: 'evidence metadata',
+    hasRollback: false,
+    verifierStatus: 'not_required',
+    required_capabilities: ['read metadata', 'summarize evidence'],
+    affected_resources: ['evidence metadata'],
+    required_evidence: ['evidence ref'],
+    expected_dry_run_status: 'allowed_preview'
+  },
+  create_sandbox_file_plan: {
+    actor: 'code_worker',
+    worker_id: 'code_worker',
+    action: 'write',
+    resource: 'repair_workspace',
+    risk_level: 'review',
+    target_resource: 'sandbox file plan',
+    hasRollback: true,
+    verifierStatus: 'planned',
+    required_capabilities: ['prepare plan', 'diff preview'],
+    affected_resources: ['sandbox/repair workspace'],
+    required_evidence: ['planned file ref', 'diff summary'],
+    expected_dry_run_status: 'allowed_preview'
+  },
+  write_repair_workspace_with_rollback: {
+    actor: 'codex_repair',
+    worker_id: 'codex_repair',
+    action: 'write',
+    resource: 'repair_workspace',
+    risk_level: 'review',
+    target_resource: 'repair workspace',
+    hasRollback: true,
+    verifierStatus: 'planned',
+    required_capabilities: ['repair workspace write', 'rollback point', 'verifier handoff'],
+    affected_resources: ['D:\\TerminatorStorage\\repair_workspaces'],
+    required_evidence: ['rollback plan', 'verifier note'],
+    expected_dry_run_status: 'allowed_preview'
+  },
+  write_repair_workspace_without_rollback: {
+    actor: 'codex_repair',
+    worker_id: 'codex_repair',
+    action: 'write',
+    resource: 'repair_workspace',
+    risk_level: 'approval_required',
+    target_resource: 'repair workspace',
+    hasRollback: false,
+    verifierStatus: 'planned',
+    forced_block_reason: 'Нет rollback point: даже sandbox/repair write нельзя считать безопасным планом.',
+    required_capabilities: ['repair workspace write'],
+    affected_resources: ['D:\\TerminatorStorage\\repair_workspaces'],
+    required_evidence: ['rollback point required'],
+    expected_dry_run_status: 'blocked'
+  },
+  active_project_mutation: {
+    actor: 'codex_repair',
+    worker_id: 'code_worker',
+    action: 'write',
+    resource: 'active_project_files',
+    risk_level: 'approval_required',
+    target_resource: 'active project files',
+    hasRollback: true,
+    verifierStatus: 'planned',
+    required_capabilities: ['diff review', 'rollback point', 'owner approval'],
+    affected_resources: ['active project files'],
+    required_evidence: ['diff summary', 'rollback point', 'approval'],
+    expected_dry_run_status: 'approval_required'
+  },
+  verifier_fail_apply: {
+    actor: 'verifier',
+    worker_id: 'code_worker',
+    action: 'write',
+    resource: 'repair_workspace',
+    risk_level: 'approval_required',
+    target_resource: 'fix after failed verifier',
+    hasRollback: true,
+    verifierStatus: 'FAIL',
+    forced_block_reason: 'Verifier FAIL: применение заблокировано до исправления результата.',
+    required_capabilities: ['verifier review', 'fix request'],
+    affected_resources: ['repair workspace'],
+    required_evidence: ['verifier fail note'],
+    expected_dry_run_status: 'blocked'
+  },
+  deploy: {
+    actor: 'webapp',
+    worker_id: 'system_worker',
+    action: 'deploy',
+    resource: 'github_repo',
+    risk_level: 'dangerous',
+    target_resource: 'GitHub Pages deploy',
+    required_typed_phrase: 'ALLOW DEPLOY',
+    required_capabilities: ['owner approval', 'release gate'],
+    affected_resources: ['live site'],
+    required_evidence: ['release checklist', 'rollback plan'],
+    expected_dry_run_status: 'approval_required'
+  },
+  push_main: {
+    actor: 'webapp',
+    worker_id: 'system_worker',
+    action: 'push',
+    resource: 'github_repo',
+    risk_level: 'dangerous',
+    target_resource: 'GitHub main',
+    required_typed_phrase: 'ALLOW PUSH MAIN',
+    required_capabilities: ['owner approval', 'git review'],
+    affected_resources: ['GitHub repository'],
+    required_evidence: ['git diff', 'test report'],
+    expected_dry_run_status: 'approval_required'
+  },
+  delete_restore_point: {
+    actor: 'system_worker',
+    worker_id: 'system_worker',
+    action: 'delete',
+    resource: 'restore_points',
+    risk_level: 'dangerous',
+    target_resource: 'restore point',
+    required_typed_phrase: 'ALLOW DELETE',
+    required_capabilities: ['owner approval', 'backup verification'],
+    affected_resources: ['restore points'],
+    required_evidence: ['replacement backup proof'],
+    expected_dry_run_status: 'approval_required'
+  },
+  read_secrets_env: {
+    actor: 'webapp',
+    worker_id: 'file_worker',
+    action: 'read',
+    resource: 'secrets_env',
+    risk_level: 'dangerous',
+    target_resource: '.env / secrets',
+    required_capabilities: ['none'],
+    affected_resources: ['secrets'],
+    required_evidence: ['red-zone block event'],
+    expected_dry_run_status: 'red_zone_stop'
+  },
+  billing_payment: {
+    actor: 'webapp',
+    worker_id: 'system_worker',
+    action: 'configure',
+    resource: 'billing_payment',
+    risk_level: 'dangerous',
+    target_resource: 'billing/payment',
+    owner_assisted_required: true,
+    required_capabilities: ['owner manual billing check'],
+    affected_resources: ['billing/payment'],
+    required_evidence: ['owner screenshot/manual check'],
+    expected_dry_run_status: 'owner_assisted_required'
+  },
+  browser_profiles: {
+    actor: 'browser_worker',
+    worker_id: 'browser_worker',
+    action: 'read',
+    resource: 'browser_profiles',
+    risk_level: 'dangerous',
+    target_resource: 'browser profiles/cookies',
+    required_capabilities: ['none'],
+    affected_resources: ['browser profiles'],
+    required_evidence: ['red-zone block event'],
+    expected_dry_run_status: 'red_zone_stop'
+  },
+  network_settings: {
+    actor: 'system_worker',
+    worker_id: 'system_worker',
+    action: 'configure',
+    resource: 'network_settings',
+    risk_level: 'dangerous',
+    target_resource: 'network/DNS/VPN/proxy',
+    required_capabilities: ['none'],
+    affected_resources: ['network settings'],
+    required_evidence: ['red-zone block event'],
+    expected_dry_run_status: 'red_zone_stop'
+  },
+  browser_worker_click: {
+    actor: 'browser_worker',
+    worker_id: 'browser_worker',
+    action: 'execute',
+    resource: 'task_state',
+    risk_level: 'approval_required',
+    target_resource: 'browser click automation',
+    future_disabled: true,
+    forced_block_reason: 'Browser Worker click отключён: в P2-C есть только планирование, без автокликов.',
+    required_capabilities: ['future browser automation audit'],
+    affected_resources: ['browser UI'],
+    required_evidence: ['future approval pack'],
+    expected_dry_run_status: 'blocked'
+  },
+  openclaw_adapter_action: {
+    actor: 'external_adapter_candidate',
+    worker_id: 'system_worker',
+    action: 'execute',
+    resource: 'task_state',
+    risk_level: 'approval_required',
+    target_resource: 'OpenClaw/external adapter',
+    future_disabled: true,
+    owner_assisted_required: true,
+    forced_block_reason: 'OpenClaw только future candidate: нужен sandbox, audit и отдельное решение владельца.',
+    required_capabilities: ['future sandbox audit', 'owner decision'],
+    affected_resources: ['external adapter candidate'],
+    required_evidence: ['adapter audit'],
+    expected_dry_run_status: 'owner_assisted_required'
+  }
+});
 const CONTROLLED_WORKER_RUNTIME_SCHEMA_VERSION = 1;
 const CONTROLLED_WORKER_RUNTIME_STORAGE_KEY = 'mina_controlled_worker_runtime_v1';
 const CONTROLLED_WORKER_RUNTIME_MAX_RUNS = 80;
@@ -9034,6 +9288,7 @@ test.describe('Terminator QA Factory safe demo', () => {
     const memory = safeCall({ status: 'unknown', records: 0 }, () => this.getV2MemoryRuntimeSnapshot());
     const safety = safeCall({ summary: {}, status: 'unknown' }, () => this.getV2SafetyPreview({ previewEnabled: true, persistEvents: false }));
     const eyes = safeCall({ readiness: 0, advanced: { status: 'partial' } }, () => this.eyesVisualSnapshot());
+    const hands = safeCall({ readiness: 0, status: 'not_started' }, () => this.handsSnapshot());
     const goldenUseCases = this.buildV2GoldenUseCases({ first_run: firstRun, p0, owner: ownerCommand, recovery: recoveryCommand, qa, research, memory, safety });
     const quickStart = this.buildV2QuickStartGuide();
     const helpCards = this.buildV2HelpCards();
@@ -9152,6 +9407,20 @@ test.describe('Terminator QA Factory safe demo', () => {
         confidence_impact: eyes.advanced?.confidence_impact || 0,
         recent_count: eyes.count || 0
       },
+      hands_planner: {
+        status: hands.status || 'not_started',
+        readiness: hands.readiness || 0,
+        label: hands.label || 'Руки ожидают план',
+        summary: hands.summary || 'Планирование действий ожидает первого dry-run.',
+        next_action: 'open_hands',
+        plan_count: hands.count || 0,
+        dry_run_count: hands.dry_run_count || 0,
+        evidence_record_count: hands.evidence_record_count || 0,
+        memory_record_count: hands.memory_record_count || 0,
+        capability_profiles_count: hands.capability_profiles_count || 0,
+        real_execution: 'blocked',
+        latest_note: hands.note || 'Реальное выполнение отключено.'
+      },
       events: sampleEvents,
       feature_flags: this.getV2FeatureFlags({
         v2ProductShellPreviewEnabled: Boolean(options.previewEnabled),
@@ -9167,6 +9436,12 @@ test.describe('Terminator QA Factory safe demo', () => {
         research: this.sanitizeV2EventPayload(research.summary || {}),
         memory: this.sanitizeV2EventPayload(memory),
         eyes: this.sanitizeV2EventPayload(eyes.advanced || {}),
+        hands: this.sanitizeV2EventPayload({
+          status: hands.status,
+          readiness: hands.readiness,
+          dry_run_count: hands.dry_run_count,
+          real_execution: 'blocked'
+        }),
         safety: this.sanitizeV2EventPayload(safety.summary || {})
       },
       expert_summary: {
@@ -9200,6 +9475,7 @@ test.describe('Terminator QA Factory safe demo', () => {
       ['normal_mode_no_technical_junk', forbiddenNormalTerms.every((term) => !normalText.includes(term))],
       ['memory_queries_found', state.memory?.all_queries_found === true],
       ['eyes_evidence_exists', Boolean(state.eyes_evidence?.next_action)],
+      ['hands_dry_run_planner_exists', state.hands_planner?.real_execution === 'blocked' && Number(state.hands_planner?.capability_profiles_count || 0) >= 6],
       ['events_sanitized', (state.events || []).length >= 6],
       ['feature_flags_safe_preview', state.feature_flags?.v2ProductShellPreviewEnabled === true],
       ['no_ai_api', state.demo_mode?.constraints?.includes('no AI API')],
@@ -9329,6 +9605,30 @@ test.describe('Terminator QA Factory safe demo', () => {
           <button type="button" data-v2-product-shell-action="open_eyes">Открыть Глаза</button>
         </section>
 
+        <section class="v2-product-eyes v2-product-hands" aria-label="Руки и dry-run">
+          <div>
+            <span>P2 · Руки</span>
+            <strong>Руки / План действий</strong>
+            <p>Строят action request, план, пробный прогон, Verifier note, evidence и memory summary. Реальные действия не выполняются.</p>
+          </div>
+          <article>
+            <span>Готовность</span>
+            <strong>${this.escapeHtml(String(state.hands_planner?.readiness || 0))}%</strong>
+            <p>${this.escapeHtml(state.hands_planner?.label || 'ожидает план')}</p>
+          </article>
+          <article>
+            <span>Dry-run</span>
+            <strong>${this.escapeHtml(String(state.hands_planner?.dry_run_count || 0))}</strong>
+            <p>Планы: ${this.escapeHtml(String(state.hands_planner?.plan_count || 0))} · evidence: ${this.escapeHtml(String(state.hands_planner?.evidence_record_count || 0))}</p>
+          </article>
+          <article>
+            <span>Безопасность</span>
+            <strong>not executed</strong>
+            <p>Capability profiles: ${this.escapeHtml(String(state.hands_planner?.capability_profiles_count || 0))} · real execution blocked</p>
+          </article>
+          <button type="button" data-v2-product-shell-action="open_hands">Открыть Руки</button>
+        </section>
+
         <section class="v2-product-demo" aria-label="Безопасное демо">
           <div>
             <span>Demo Mode</span>
@@ -9450,6 +9750,11 @@ test.describe('Terminator QA Factory safe demo', () => {
     if (action === 'open_eyes') {
       this.go('system');
       scrollTo('system-eyes-panel');
+      return;
+    }
+    if (action === 'open_hands') {
+      this.go('system');
+      scrollTo('system-hands-panel');
       return;
     }
     if (action === 'open_recovery') {
@@ -11400,6 +11705,682 @@ test.describe('Terminator QA Factory safe demo', () => {
     return HANDS_STATUS_LABELS[status] || status || 'черновик';
   },
 
+  v2HandsActionTypeName(actionType) {
+    return HANDS_ACTION_TYPE_LABELS[actionType] || actionType || 'Действие не выбрано';
+  },
+
+  handsActionPolicy(actionType = '') {
+    return HANDS_ACTION_POLICIES[actionType] || HANDS_ACTION_POLICIES.create_sandbox_file_plan;
+  },
+
+  handsWorkerActor(workerId = '') {
+    const map = {
+      file_worker: 'file_worker',
+      code_worker: 'code_worker',
+      codex_repair: 'codex_repair',
+      browser_worker: 'browser_worker',
+      system_worker: 'system_worker',
+      memory_worker: 'memory_search',
+      device_worker: 'device_mesh'
+    };
+    return map[workerId] || 'webapp';
+  },
+
+  inferHandsActionType(text = '', fallback = 'create_sandbox_file_plan') {
+    const value = String(text || '').toLowerCase();
+    if (/\.env|secret|token|cookie|session|password|api\s*key/.test(value)) return 'read_secrets_env';
+    if (/billing|payment|оплат|платн|карта/.test(value)) return 'billing_payment';
+    if (/network|dns|vpn|proxy|firewall|hosts|route/.test(value)) return 'network_settings';
+    if (/browser profile|cookies|профил.*браузер/.test(value)) return 'browser_profiles';
+    if (/openclaw/.test(value)) return 'openclaw_adapter_action';
+    if (/click|autoclick|form submit|автоклик|нажм/.test(value)) return 'browser_worker_click';
+    if (/\bdeploy\b|деплой|publish/.test(value)) return 'deploy';
+    if (/\bpush\b|force push|main/.test(value)) return 'push_main';
+    if (/\bdelete\b|remove|restore point|удал/.test(value)) return 'delete_restore_point';
+    if (/active project|active_project|рабоч.*проект|файлы проекта/.test(value)) return 'active_project_mutation';
+    if (/verifier.*fail|провер.*fail|не прош.*verifier/.test(value)) return 'verifier_fail_apply';
+    if (/без rollback|no rollback|without rollback/.test(value)) return 'write_repair_workspace_without_rollback';
+    if (/evidence|metadata|метадан/.test(value)) return 'read_evidence_metadata';
+    return HANDS_ACTION_POLICIES[fallback] ? fallback : 'create_sandbox_file_plan';
+  },
+
+  normalizeHandsRiskFromV2(riskLevel = 'low', fallback = 'review') {
+    if (['critical', 'high'].includes(riskLevel)) return 'dangerous';
+    if (riskLevel === 'medium') return 'approval_required';
+    if (riskLevel === 'low') return 'safe';
+    return HANDS_RISK_LABELS[fallback] ? fallback : 'review';
+  },
+
+  recordV2HandsEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.hands.action_plan.created';
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_hands_event_preview_${Math.random().toString(36).slice(2, 8)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'hands',
+        resource: payload.resource || 'task_state',
+        message: payload.message || safeType,
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        payload: this.sanitizeV2EventPayload(payload.payload || {})
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'hands',
+      resource: payload.resource || 'task_state',
+      message: payload.message || safeType,
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      payload: payload.payload || {}
+    });
+  },
+
+  createV2HandsActionRequest(input = {}, options = {}) {
+    const now = new Date().toISOString();
+    const task = input.task || this.getActiveWorkTask?.() || null;
+    const rawText = [
+      input.title,
+      input.goal,
+      input.desired_outcome,
+      input.target_resource,
+      input.target_path_optional,
+      input.action_type
+    ].filter(Boolean).join('\n');
+    const actionType = HANDS_ACTION_POLICIES[input.action_type]
+      ? input.action_type
+      : this.inferHandsActionType(rawText, input.fallback_action_type || 'create_sandbox_file_plan');
+    const policy = this.handsActionPolicy(actionType);
+    const privacy = this.scanPrivacyText(rawText);
+    const safe = (value) => privacy.findings.length ? this.redactPrivacyText(String(value || '')) : String(value || '');
+    const request = this.createV2Contract('hands_action_request', {
+      id: input.request_id || `hands_request_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      request_id: input.request_id || `HREQ-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      status: privacy.blocked ? 'blocked_by_privacy' : 'request_created',
+      project_id: input.project_id || task?.project_id || 'terminator',
+      task_id: input.task_id || task?.task_id || '',
+      actor: input.actor || policy.actor,
+      worker_id: input.worker_id || policy.worker_id,
+      action_type: actionType,
+      action: input.action || policy.action,
+      resource: input.resource || policy.resource,
+      target_resource: safe(input.target_resource || policy.target_resource),
+      target_path_optional: safe(input.target_path_optional || ''),
+      desired_outcome: safe(input.desired_outcome || input.goal || 'Подготовить безопасный план действия без выполнения.'),
+      risk_hints: Array.isArray(input.risk_hints) ? input.risk_hints.map((item) => safe(item)).slice(0, 12) : [],
+      evidence_refs: Array.isArray(input.evidence_refs) ? input.evidence_refs.map((item) => safe(item)).slice(0, 20) : [],
+      owner_assisted_required: Boolean(input.owner_assisted_required || policy.owner_assisted_required),
+      hasRollback: input.hasRollback !== undefined ? Boolean(input.hasRollback) : Boolean(policy.hasRollback),
+      verifierStatus: input.verifierStatus || policy.verifierStatus || 'planned',
+      required_approval: false,
+      required_rollback: Boolean(policy.hasRollback === false ? false : policy.resource === 'active_project_files'),
+      not_executed: true,
+      privacy_status: privacy.blocked ? 'blocked' : privacy.findings.length ? 'redacted' : 'clean',
+      privacy_summary: this.privacyScanSummary(privacy),
+      refs: {
+        project_id: input.project_id || task?.project_id || 'terminator',
+        task_id: input.task_id || task?.task_id || '',
+        source: 'v2_p2_c_hands_dry_run'
+      },
+      risk_level: policy.risk_level === 'dangerous' ? 'high' : policy.risk_level === 'approval_required' ? 'high' : policy.risk_level === 'review' ? 'medium' : 'low',
+      created_at: input.created_at || now,
+      updated_at: now
+    });
+    if (options.persistEvents) {
+      this.recordV2HandsEvent('v2.hands.action_request.created', {
+        actor: request.actor,
+        resource: request.resource,
+        risk_level: request.risk_level,
+        message: `Hands action request created: ${this.v2HandsActionTypeName(actionType)}`,
+        refs: { request_id: request.request_id, task_id: request.task_id },
+        payload: request
+      });
+    }
+    return request;
+  },
+
+  createV2HandsActionPlan(actionRequest = {}, options = {}) {
+    const request = actionRequest.type === 'hands_action_request'
+      ? actionRequest
+      : this.createV2HandsActionRequest(actionRequest, { persistEvents: false });
+    const now = new Date().toISOString();
+    const policy = this.handsActionPolicy(request.action_type);
+    const safety = this.evaluateV2ActionRequest({
+      actor: request.actor,
+      action: request.action,
+      resource: request.resource,
+      target: request.target_resource,
+      hasRollback: request.hasRollback,
+      verifierStatus: request.verifierStatus,
+      ownerDecision: 'not_requested',
+      context: { owner_assisted: request.owner_assisted_required }
+    });
+    const requiredApproval = Boolean(safety.requiredApproval || ['approval_required', 'typed_confirmation_required'].includes(safety.verdict));
+    const requiredTypedPhrase = policy.required_typed_phrase || safety.requiredTypedPhrase || '';
+    const requiredRollback = Boolean(safety.requiredRollback || (request.resource === 'active_project_files') || policy.expected_dry_run_status === 'blocked');
+    const forbidden = [...new Set([
+      ...(policy.future_disabled ? ['future worker disabled'] : []),
+      ...(policy.forced_block_reason ? [policy.forced_block_reason] : []),
+      ...this.detectForbiddenActions([request.desired_outcome, request.target_resource, request.action_type].join('\n')),
+      ...(['secrets_env', 'browser_profiles', 'network_settings', 'billing_payment', 'ai_api'].includes(request.resource) ? ['red-zone resource'] : []),
+      'real execution in V2-P2-C'
+    ])].slice(0, 20);
+    const plan = this.createV2Contract('hands_action_plan', {
+      id: options.plan_id || `hands_plan_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      plan_id: options.plan_id || this.generateWorkspaceId('HAND'),
+      request_id: request.request_id,
+      action_request: request,
+      status: policy.future_disabled ? 'future_disabled' : requiredApproval ? 'approval_required' : 'plan_ready',
+      project_id: request.project_id,
+      task_id: request.task_id,
+      actor: request.actor,
+      worker_id: request.worker_id || policy.worker_id,
+      action_type: request.action_type,
+      action: request.action,
+      target_resource: request.target_resource || policy.target_resource,
+      target_path_optional: request.target_path_optional || '',
+      action_summary: `${this.v2HandsActionTypeName(request.action_type)}: ${request.desired_outcome}`,
+      title: options.title || `План действия: ${this.v2HandsActionTypeName(request.action_type)}`,
+      goal: request.desired_outcome,
+      steps: [
+        'Зафиксировать цель и затрагиваемые ресурсы.',
+        'Проверить capability matrix и Safety Core.',
+        'Выполнить только dry-run: никаких файлов, deploy, push, delete, cookies, billing и сетевых настроек.',
+        requiredRollback ? 'Перед любым будущим применением создать rollback point.' : 'Rollback не нужен для read-only preview, но future apply всё равно проверяется.',
+        'Передать план в Verifier и показать владельцу следующий безопасный шаг.'
+      ],
+      safe_steps: [
+        'Проверить цель действия и затрагиваемые ресурсы.',
+        'Запустить dry-run без выполнения.',
+        'Показать блокировки, Approval и rollback условия.',
+        'Создать evidence record и memory summary.',
+        'Остановиться до отдельного решения владельца.'
+      ],
+      affected_resources: policy.affected_resources || [request.target_resource || request.resource],
+      required_capabilities: policy.required_capabilities || ['dry-run preview'],
+      required_evidence: policy.required_evidence || ['dry-run evidence'],
+      required_verifier_status: request.verifierStatus === 'FAIL' ? 'PASS required; current FAIL blocks apply' : 'verifier note required before apply',
+      required_rollback: requiredRollback,
+      required_approval: requiredApproval,
+      required_typed_phrase: requiredTypedPhrase,
+      owner_assisted_required: Boolean(request.owner_assisted_required || safety.verdict === 'owner_assisted_required'),
+      forbidden_actions: forbidden,
+      blocked_actions: forbidden,
+      safety_notes: [safety.userMessage, policy.forced_block_reason || 'Действие не выполнялось.'].filter(Boolean),
+      owner_assisted_flags: request.owner_assisted_required || safety.verdict === 'owner_assisted_required' ? ['manual owner check required'] : [],
+      not_executed_reason: 'V2-P2-C — только планирование и dry-run. Реальное выполнение отключено.',
+      not_executed: true,
+      approval_required: requiredApproval,
+      verifier_required: true,
+      verifier_status: request.verifierStatus || 'planned',
+      rollback_required: requiredRollback,
+      rollback_plan: requiredRollback
+        ? 'Перед будущим apply создать restore/rollback point affected refs; без rollback gate блокирует действие.'
+        : 'Для этого preview rollback не требуется, потому что выполнение не запускается.',
+      execution_allowed: false,
+      execution_result: 'not_executed',
+      safety_verdict: safety.verdict,
+      capability_verdict: safety.verdict,
+      controlled_apply_verdict: 'not_executed_preview',
+      risk_level: this.normalizeHandsRiskFromV2(safety.riskLevel, request.risk_level === 'high' ? 'approval_required' : 'review'),
+      refs: { request_id: request.request_id, task_id: request.task_id, project_id: request.project_id },
+      created_at: options.created_at || now,
+      updated_at: now
+    });
+    if (options.persistEvents) {
+      this.recordV2HandsEvent('v2.hands.action_plan.created', {
+        actor: plan.actor,
+        resource: request.resource,
+        risk_level: safety.riskLevel,
+        message: `Hands action plan created: ${plan.title}`,
+        refs: { plan_id: plan.plan_id, request_id: request.request_id, task_id: plan.task_id },
+        payload: plan
+      });
+    }
+    return plan;
+  },
+
+  evaluateV2HandsDryRun(actionPlan = {}, options = {}) {
+    const plan = actionPlan.type === 'hands_action_plan' ? actionPlan : this.createV2HandsActionPlan(actionPlan, { persistEvents: false });
+    const request = plan.action_request || this.createV2HandsActionRequest(plan, { persistEvents: false });
+    const policy = this.handsActionPolicy(plan.action_type);
+    const safety = this.evaluateV2ActionRequest({
+      actor: request.actor || plan.actor,
+      action: request.action || plan.action,
+      resource: request.resource || policy.resource,
+      target: request.target_resource || plan.target_resource,
+      hasRollback: request.hasRollback,
+      verifierStatus: request.verifierStatus || plan.verifier_status,
+      ownerDecision: 'not_requested',
+      typedConfirmation: '',
+      context: { owner_assisted: Boolean(request.owner_assisted_required || plan.owner_assisted_required) }
+    });
+    let status = 'allowed_preview';
+    if (['approval_required', 'typed_confirmation_required'].includes(safety.verdict)) status = 'approval_required';
+    if (safety.verdict === 'blocked') status = 'blocked';
+    if (safety.verdict === 'owner_assisted_required') status = 'owner_assisted_required';
+    if (safety.verdict === 'red_zone_stop') status = 'red_zone_stop';
+    if (policy.expected_dry_run_status) status = policy.expected_dry_run_status;
+    if (policy.forced_block_reason && status === 'allowed_preview') status = 'blocked';
+    if (request.verifierStatus === 'FAIL') status = 'blocked';
+    if (policy.future_disabled && status === 'allowed_preview') status = 'blocked';
+    const rollbackStatus = plan.required_rollback || safety.requiredRollback
+      ? (request.hasRollback ? 'available_for_future_apply' : 'required_before_apply')
+      : 'not_required_for_preview';
+    const controlledApplyVerdict = status === 'allowed_preview'
+      ? 'preview_only_not_executed'
+      : status === 'approval_required'
+        ? 'approval_required_before_apply'
+        : status === 'owner_assisted_required'
+          ? 'owner_assisted_before_any_apply'
+          : 'blocked_no_apply';
+    const userMessageMap = {
+      allowed_preview: 'Пробный прогон готов: действие не выполнялось, можно изучить план.',
+      approval_required: 'Дальше нельзя без подтверждения владельца, Verifier и rollback/evidence.',
+      blocked: 'Действие заблокировано: исправьте условия или выберите безопасный сценарий.',
+      owner_assisted_required: 'Нужен владелец: Терминатор только показывает, что проверить вручную.',
+      red_zone_stop: 'Красная зона: действие не выполняется и не готовится к применению.'
+    };
+    const result = this.createV2Contract('hands_dry_run_result', {
+      id: options.dry_run_id || `hands_dry_run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      dry_run_id: options.dry_run_id || this.generateWorkspaceId('HDRY'),
+      status,
+      project_id: plan.project_id,
+      task_id: plan.task_id,
+      actor: plan.actor,
+      action_type: plan.action_type,
+      target_resource: plan.target_resource,
+      risk_level: safety.riskLevel || plan.risk_level,
+      required_approval: status === 'approval_required' || Boolean(safety.requiredApproval),
+      required_typed_phrase: plan.required_typed_phrase || safety.requiredTypedPhrase || '',
+      required_rollback: plan.required_rollback || safety.requiredRollback,
+      owner_assisted_required: status === 'owner_assisted_required' || Boolean(plan.owner_assisted_required),
+      not_executed: true,
+      safety_verdict: safety.verdict,
+      capability_verdict: safety.verdict,
+      controlled_apply_verdict: controlledApplyVerdict,
+      rollback_status: rollbackStatus,
+      verifier_requirement: request.verifierStatus === 'FAIL' ? 'Verifier FAIL blocks apply' : 'Verifier note required before future apply',
+      evidence_requirement: safety.evidenceRequired || plan.required_evidence?.length ? 'evidence record required' : 'evidence optional for preview',
+      user_message: userMessageMap[status],
+      expert_details: this.sanitizeV2EventPayload({
+        safety,
+        policy,
+        request_id: request.request_id,
+        plan_id: plan.plan_id,
+        forced_block_reason: policy.forced_block_reason || '',
+        future_disabled: Boolean(policy.future_disabled)
+      }),
+      refs: { plan_id: plan.plan_id, request_id: request.request_id, task_id: plan.task_id, project_id: plan.project_id }
+    });
+    if (options.persistEvents) {
+      this.recordV2HandsEvent('v2.hands.dry_run.completed', {
+        actor: result.actor,
+        resource: request.resource,
+        risk_level: result.risk_level,
+        message: result.user_message,
+        refs: result.refs,
+        payload: result
+      });
+      if (['blocked', 'red_zone_stop'].includes(status)) {
+        this.recordV2HandsEvent('v2.hands.action.blocked', {
+          actor: result.actor,
+          resource: request.resource,
+          risk_level: result.risk_level,
+          message: result.user_message,
+          refs: result.refs,
+          payload: result
+        });
+      } else if (status === 'approval_required') {
+        this.recordV2HandsEvent('v2.hands.approval_required', {
+          actor: result.actor,
+          resource: request.resource,
+          risk_level: result.risk_level,
+          message: result.user_message,
+          refs: result.refs,
+          payload: result
+        });
+      } else if (status === 'owner_assisted_required') {
+        this.recordV2HandsEvent('v2.hands.owner_assisted_required', {
+          actor: result.actor,
+          resource: request.resource,
+          risk_level: result.risk_level,
+          message: result.user_message,
+          refs: result.refs,
+          payload: result
+        });
+      }
+    }
+    return result;
+  },
+
+  createV2HandsVerifierNote(dryRunResult = {}, plan = null, options = {}) {
+    const result = dryRunResult.type === 'hands_dry_run_result' ? dryRunResult : this.evaluateV2HandsDryRun(dryRunResult, { persistEvents: false });
+    const sourcePlan = plan || {};
+    const verdict = result.status === 'allowed_preview'
+      ? 'PASS_WITH_RISKS'
+      : result.status === 'approval_required' || result.status === 'owner_assisted_required'
+        ? 'PASS_WITH_RISKS'
+        : 'FAIL';
+    const note = this.createV2Contract('hands_verifier_note', {
+      id: options.note_id || `hands_verifier_note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      verifier_note_id: options.note_id || this.generateWorkspaceId('HVER'),
+      status: verdict,
+      project_id: result.project_id || sourcePlan.project_id || '',
+      task_id: result.task_id || sourcePlan.task_id || '',
+      actor: 'verifier',
+      action_type: result.action_type || sourcePlan.action_type,
+      target_resource: result.target_resource || sourcePlan.target_resource,
+      risk_level: result.risk_level,
+      required_approval: Boolean(result.required_approval),
+      required_rollback: Boolean(result.required_rollback),
+      owner_assisted_required: Boolean(result.owner_assisted_required),
+      not_executed: true,
+      checked: [
+        'action request',
+        'capability matrix',
+        'Safety Core verdict',
+        'rollback requirement',
+        'approval requirement',
+        'red-zone boundaries',
+        'not executed proof'
+      ],
+      not_checked: [
+        'real apply',
+        'real browser/system worker execution',
+        'production rollback',
+        'external services'
+      ],
+      risks: [
+        result.status === 'allowed_preview' ? 'План безопасен только как preview.' : result.user_message,
+        result.required_typed_phrase ? `Нужна точная фраза: ${result.required_typed_phrase}` : '',
+        result.required_rollback ? 'Без rollback future apply блокируется.' : ''
+      ].filter(Boolean),
+      check_first: result.status === 'allowed_preview'
+        ? 'Проверить affected resources и evidence перед любым будущим apply.'
+        : 'Не продолжать без устранения блокера / Approval / owner-assisted проверки.',
+      refs: { ...result.refs, dry_run_id: result.dry_run_id, plan_id: result.refs?.plan_id || sourcePlan.plan_id || '' }
+    });
+    if (options.persistEvents) {
+      this.recordV2HandsEvent('v2.hands.verifier_note.created', {
+        actor: 'verifier',
+        resource: result.target_resource,
+        risk_level: result.risk_level,
+        message: `Hands verifier note: ${verdict}`,
+        refs: note.refs,
+        payload: note
+      });
+    }
+    return note;
+  },
+
+  createV2HandsEvidenceRecord(input = {}, options = {}) {
+    const plan = input.plan || input.action_plan || {};
+    const dryRun = input.dry_run || input.dryRun || this.evaluateV2HandsDryRun(plan, { persistEvents: false });
+    const verifier = input.verifier_note || input.verifier || this.createV2HandsVerifierNote(dryRun, plan, { persistEvents: false });
+    const record = this.createV2Contract('hands_evidence_record', {
+      id: input.evidence_id || `hands_evidence_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      evidence_id: input.evidence_id || this.generateWorkspaceId('HEVD'),
+      status: dryRun.status === 'red_zone_stop' ? 'blocked_evidence' : 'recorded',
+      project_id: plan.project_id || dryRun.project_id || '',
+      task_id: plan.task_id || dryRun.task_id || '',
+      actor: 'hands',
+      action_type: plan.action_type || dryRun.action_type,
+      target_resource: plan.target_resource || dryRun.target_resource,
+      risk_level: dryRun.risk_level || plan.risk_level || 'medium',
+      required_approval: Boolean(dryRun.required_approval),
+      required_rollback: Boolean(dryRun.required_rollback),
+      owner_assisted_required: Boolean(dryRun.owner_assisted_required),
+      not_executed: true,
+      claim: 'Доказательство фиксирует только план и dry-run. Реальное действие не выполнялось.',
+      action_request_ref: plan.request_id || dryRun.refs?.request_id || '',
+      action_plan_ref: plan.plan_id || dryRun.refs?.plan_id || '',
+      dry_run_ref: dryRun.dry_run_id || '',
+      verifier_note_ref: verifier.verifier_note_id || verifier.id || '',
+      safety_verdict: dryRun.safety_verdict,
+      dry_run_status: dryRun.status,
+      next_step: dryRun.status === 'allowed_preview'
+        ? 'Показать план владельцу; future apply только отдельным утверждённым блоком.'
+        : dryRun.user_message,
+      refs: {
+        request_id: plan.request_id || dryRun.refs?.request_id || '',
+        plan_id: plan.plan_id || dryRun.refs?.plan_id || '',
+        dry_run_id: dryRun.dry_run_id || '',
+        verifier_note_id: verifier.verifier_note_id || verifier.id || '',
+        task_id: plan.task_id || dryRun.task_id || '',
+        project_id: plan.project_id || dryRun.project_id || ''
+      }
+    });
+    if (options.persistEvents) {
+      this.recordV2HandsEvent('v2.hands.evidence_record.created', {
+        actor: 'hands',
+        resource: record.target_resource,
+        risk_level: record.risk_level,
+        message: `Hands evidence record created: ${record.dry_run_status}`,
+        refs: record.refs,
+        payload: record
+      });
+    }
+    return record;
+  },
+
+  buildV2HandsMemoryRecord(plan = {}, dryRun = null, verifier = null, options = {}) {
+    const result = dryRun || this.evaluateV2HandsDryRun(plan, { persistEvents: false });
+    const note = verifier || this.createV2HandsVerifierNote(result, plan, { persistEvents: false });
+    const record = this.createV2Contract('memory_record', {
+      id: options.memory_id || `hands_memory_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      memory_id: options.memory_id || this.generateWorkspaceId('HMEM'),
+      status: 'candidate',
+      title: `Hands dry run: ${this.v2HandsActionTypeName(plan.action_type || result.action_type)}`,
+      summary: [
+        'План действия создан как dry-run.',
+        `Статус: ${result.status}.`,
+        `not executed: ${result.not_executed ? 'yes' : 'no'}.`,
+        result.required_approval ? 'approval required.' : 'approval not required for preview.',
+        result.required_rollback ? 'rollback required before apply.' : 'rollback not required for preview.',
+        note.check_first || ''
+      ].filter(Boolean).join(' '),
+      project_id: plan.project_id || result.project_id || 'terminator',
+      task_id: plan.task_id || result.task_id || '',
+      risk_level: result.risk_level || 'medium',
+      keywords: ['Hands dry run', 'План действия', 'rollback required', 'not executed', 'approval required', plan.action_type || result.action_type].filter(Boolean),
+      refs: {
+        plan_id: plan.plan_id || result.refs?.plan_id || '',
+        request_id: plan.request_id || result.refs?.request_id || '',
+        dry_run_id: result.dry_run_id || '',
+        verifier_note_id: note.verifier_note_id || note.id || '',
+        task_id: plan.task_id || result.task_id || '',
+        project_id: plan.project_id || result.project_id || ''
+      }
+    });
+    if (options.persistEvents) {
+      this.recordV2HandsEvent('v2.hands.memory_summary.created', {
+        actor: 'memory_search',
+        resource: 'memory_records',
+        risk_level: record.risk_level,
+        message: `Hands memory summary created: ${record.title}`,
+        refs: record.refs,
+        payload: record
+      });
+    }
+    return record;
+  },
+
+  buildV2WorkerCapabilityProfiles(options = {}) {
+    const profiles = [
+      {
+        worker_id: 'file_worker',
+        display_name: 'File Worker Preview',
+        status: 'preview_ready',
+        allowed: ['read metadata', 'create evidence summary', 'calculate hash placeholder/sample'],
+        forbidden: ['delete', 'overwrite', 'move', 'cleanup'],
+        risk_level: 'medium'
+      },
+      {
+        worker_id: 'code_worker',
+        display_name: 'Code Worker Preview',
+        status: 'preview_ready',
+        allowed: ['syntax check plan', 'test plan', 'diff review plan'],
+        forbidden: ['mutate active project without approval/rollback', 'push', 'deploy'],
+        risk_level: 'high'
+      },
+      {
+        worker_id: 'memory_worker',
+        display_name: 'Memory Worker Preview',
+        status: 'preview_ready',
+        allowed: ['index health check plan', 'reindex proposal', 'search evidence'],
+        forbidden: ['index secrets', 'destructive cleanup'],
+        risk_level: 'medium'
+      },
+      {
+        worker_id: 'browser_worker',
+        display_name: 'Browser Worker Preview',
+        status: 'future_disabled',
+        allowed: ['future visual QA plan only'],
+        forbidden: ['autoclick', 'form submit', 'cookies', 'browser profiles'],
+        risk_level: 'high'
+      },
+      {
+        worker_id: 'system_worker',
+        display_name: 'System Worker Preview',
+        status: 'restricted_owner_assisted',
+        allowed: ['health/status plan', 'read-only diagnostics summary'],
+        forbidden: ['OS settings', 'network', 'process kill', 'Local Agent stop/restart unless explicitly scoped'],
+        risk_level: 'high'
+      },
+      {
+        worker_id: 'external_adapter_candidate',
+        display_name: 'External Adapter Preview / OpenClaw',
+        status: 'future_disabled',
+        allowed: ['future sandbox candidate after audit'],
+        forbidden: ['real execution', 'external account actions', 'autonomous control'],
+        risk_level: 'high'
+      }
+    ];
+    return profiles.map((profile) => this.createV2Contract('worker_capability_profile', {
+      id: `worker_profile_${profile.worker_id}`,
+      status: profile.status,
+      actor: profile.worker_id,
+      action_type: 'capability_profile',
+      target_resource: 'worker_capability_matrix',
+      required_approval: profile.status !== 'preview_ready',
+      required_rollback: false,
+      owner_assisted_required: profile.status.includes('owner'),
+      not_executed: true,
+      refs: { worker_id: profile.worker_id, component: 'advanced_hands' },
+      ...profile
+    }));
+  },
+
+  buildV2AdvancedHandsPreview(options = {}) {
+    const sampleTypes = [
+      'read_evidence_metadata',
+      'create_sandbox_file_plan',
+      'write_repair_workspace_with_rollback',
+      'write_repair_workspace_without_rollback',
+      'active_project_mutation',
+      'verifier_fail_apply',
+      'deploy',
+      'push_main',
+      'delete_restore_point',
+      'read_secrets_env',
+      'billing_payment',
+      'browser_profiles',
+      'network_settings',
+      'browser_worker_click',
+      'openclaw_adapter_action'
+    ];
+    const samples = sampleTypes.map((actionType) => {
+      const request = this.createV2HandsActionRequest({
+        action_type: actionType,
+        project_id: 'terminator',
+        task_id: 'TASK-V2-P2-C',
+        desired_outcome: actionType === 'create_sandbox_file_plan'
+          ? 'Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.'
+          : `Dry-run sample: ${this.v2HandsActionTypeName(actionType)}`,
+        target_resource: this.handsActionPolicy(actionType).target_resource,
+        evidence_refs: ['sample-evidence-ref']
+      }, { persistEvents: false });
+      const plan = this.createV2HandsActionPlan(request, { persistEvents: false, plan_id: `HAND-SAMPLE-${actionType}` });
+      const dryRun = this.evaluateV2HandsDryRun(plan, { persistEvents: false, dry_run_id: `HDRY-SAMPLE-${actionType}` });
+      const verifier = this.createV2HandsVerifierNote(dryRun, plan, { persistEvents: false, note_id: `HVER-SAMPLE-${actionType}` });
+      const evidence = this.createV2HandsEvidenceRecord({ plan, dry_run: dryRun, verifier_note: verifier, evidence_id: `HEVD-SAMPLE-${actionType}` }, { persistEvents: false });
+      const memory = this.buildV2HandsMemoryRecord(plan, dryRun, verifier, { persistEvents: false, memory_id: `HMEM-SAMPLE-${actionType}` });
+      return { sample_id: actionType, request, plan, dry_run: dryRun, verifier_note: verifier, evidence_record: evidence, memory_record: memory };
+    });
+    const events = [
+      this.recordV2HandsEvent('v2.hands.action_request.created', { message: 'Advanced Hands preview action request sample.', refs: { task_id: 'TASK-V2-P2-C' } }, { persist: false }),
+      this.recordV2HandsEvent('v2.hands.action_plan.created', { message: 'Advanced Hands preview action plan sample.', refs: { task_id: 'TASK-V2-P2-C' } }, { persist: false }),
+      this.recordV2HandsEvent('v2.hands.dry_run.completed', { message: 'Advanced Hands preview dry-run completed.', refs: { task_id: 'TASK-V2-P2-C' } }, { persist: false }),
+      this.recordV2HandsEvent('v2.hands.evidence_record.created', { message: 'Advanced Hands preview evidence created.', refs: { task_id: 'TASK-V2-P2-C' } }, { persist: false }),
+      this.recordV2HandsEvent('v2.hands.memory_summary.created', { message: 'Advanced Hands preview memory summary created.', refs: { task_id: 'TASK-V2-P2-C' } }, { persist: false })
+    ];
+    return this.createV2Contract('advanced_hands_preview', {
+      id: 'v2_p2_c_advanced_hands_preview',
+      status: samples.every((sample) => sample.dry_run.not_executed === true) ? 'preview_ready' : 'blocked',
+      project_id: 'terminator',
+      task_id: 'TASK-V2-P2-C',
+      sample_count: samples.length,
+      samples,
+      worker_capability_profiles: this.buildV2WorkerCapabilityProfiles(),
+      feature_flags: this.getV2FeatureFlags({
+        v2AdvancedHandsPreviewEnabled: Boolean(options.previewEnabled),
+        v2HandsDryRunPlannerEnabled: Boolean(options.previewEnabled),
+        v2WorkerCapabilityProfilesEnabled: Boolean(options.previewEnabled)
+      }),
+      events,
+      safety_summary: {
+        not_executed_all: samples.every((sample) => sample.dry_run.not_executed),
+        red_zone_blocked: ['read_secrets_env', 'browser_profiles', 'network_settings'].every((id) => samples.find((sample) => sample.sample_id === id)?.dry_run.status === 'red_zone_stop'),
+        approval_required: ['active_project_mutation', 'deploy', 'push_main', 'delete_restore_point'].every((id) => samples.find((sample) => sample.sample_id === id)?.dry_run.status === 'approval_required'),
+        blocked: ['write_repair_workspace_without_rollback', 'verifier_fail_apply', 'browser_worker_click'].every((id) => samples.find((sample) => sample.sample_id === id)?.dry_run.status === 'blocked'),
+        owner_assisted: ['billing_payment', 'openclaw_adapter_action'].every((id) => samples.find((sample) => sample.sample_id === id)?.dry_run.status === 'owner_assisted_required')
+      },
+      qualified_answer: {
+        result: 'Руки подготовили dry-run foundation.',
+        plan: 'Action request -> action plan -> dry-run -> verifier note -> evidence -> memory summary.',
+        status: 'real actions disabled',
+        affected: 'только browser/localStorage metadata и demo evidence; active project не менялся',
+        blocked: 'deploy, push, delete, secrets, billing, network, browser profiles, browser click, OpenClaw execution',
+        required: 'future apply requires Verifier, rollback and Approval',
+        next_step: 'Проверить UI, smoke и Memory Search по Hands dry run.'
+      }
+    });
+  },
+
+  runV2AdvancedHandsSmoke(options = {}) {
+    const preview = options.preview || this.buildV2AdvancedHandsPreview({ previewEnabled: true });
+    const sample = (id) => preview.samples.find((item) => item.sample_id === id);
+    const checks = [
+      ['action_request_exists', preview.samples.every((item) => item.request?.type === 'hands_action_request')],
+      ['action_plan_exists', preview.samples.every((item) => item.plan?.type === 'hands_action_plan')],
+      ['dry_run_exists', preview.samples.every((item) => item.dry_run?.type === 'hands_dry_run_result' && item.dry_run.not_executed === true)],
+      ['read_metadata_allowed_preview', sample('read_evidence_metadata')?.dry_run.status === 'allowed_preview'],
+      ['sandbox_write_with_rollback_allowed', sample('write_repair_workspace_with_rollback')?.dry_run.status === 'allowed_preview'],
+      ['no_rollback_blocked', sample('write_repair_workspace_without_rollback')?.dry_run.status === 'blocked'],
+      ['active_project_mutation_approval', sample('active_project_mutation')?.dry_run.status === 'approval_required'],
+      ['verifier_fail_blocked', sample('verifier_fail_apply')?.dry_run.status === 'blocked'],
+      ['deploy_typed_confirmation', sample('deploy')?.dry_run.required_typed_phrase === 'ALLOW DEPLOY'],
+      ['push_main_typed_confirmation', sample('push_main')?.dry_run.required_typed_phrase === 'ALLOW PUSH MAIN'],
+      ['secrets_red_zone', sample('read_secrets_env')?.dry_run.status === 'red_zone_stop'],
+      ['billing_owner_assisted', sample('billing_payment')?.dry_run.status === 'owner_assisted_required'],
+      ['browser_click_disabled', sample('browser_worker_click')?.dry_run.status === 'blocked'],
+      ['openclaw_future_owner_assisted', sample('openclaw_adapter_action')?.dry_run.status === 'owner_assisted_required'],
+      ['evidence_records_exist', preview.samples.every((item) => item.evidence_record?.not_executed === true)],
+      ['memory_records_searchable', preview.samples.some((item) => /Hands dry run|План действия|not executed|approval required/i.test([item.memory_record?.title, item.memory_record?.summary, item.memory_record?.keywords?.join(' ')].join(' ')))],
+      ['worker_profiles_exist', preview.worker_capability_profiles.length >= 6],
+      ['feature_flags_safe_preview', preview.feature_flags.v2AdvancedHandsPreviewEnabled === true],
+      ['events_sanitized', preview.events.length >= 5]
+    ].map(([id, pass]) => ({ id, status: pass ? 'PASS' : 'FAIL' }));
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: checks.every((check) => check.status === 'PASS') ? 'PASS' : 'FAIL',
+      checks,
+      preview
+    };
+  },
+
   controlledRuntimeActionName(actionId) {
     return CONTROLLED_RUNTIME_ACTION_BY_ID[actionId]?.label || actionId || 'Действие не выбрано';
   },
@@ -11411,23 +12392,43 @@ test.describe('Terminator QA Factory safe demo', () => {
   normalizeHandsActionPlan(plan = {}, task = null) {
     const now = new Date().toISOString();
     const source = plan && typeof plan === 'object' ? plan : {};
-    const workerId = HANDS_WORKER_BY_ID[source.worker_id] ? source.worker_id : 'code_worker';
+    const actionRequest = source.action_request && typeof source.action_request === 'object' ? source.action_request : null;
+    const actionType = HANDS_ACTION_POLICIES[source.action_type || actionRequest?.action_type]
+      ? (source.action_type || actionRequest.action_type)
+      : this.inferHandsActionType([
+          source.title || '',
+          source.goal || '',
+          source.expected_result || '',
+          source.action_type || '',
+          actionRequest?.desired_outcome || '',
+          actionRequest?.target_resource || ''
+        ].join('\n'));
+    const policy = this.handsActionPolicy(actionType);
+    const workerId = HANDS_WORKER_BY_ID[source.worker_id || policy.worker_id] ? (source.worker_id || policy.worker_id) : 'code_worker';
     const sourceText = [
       source.title || '',
       source.goal || '',
       source.expected_result || '',
-      source.action_type || ''
+      source.action_type || '',
+      actionRequest?.desired_outcome || ''
     ].join('\n');
     const forbiddenDetected = this.detectForbiddenActions(sourceText);
     const blockedActions = [...new Set([
       ...(Array.isArray(source.blocked_actions) ? source.blocked_actions : []),
       ...forbiddenDetected
     ])];
-    let riskLevel = HANDS_RISK_LABELS[source.risk_level] ? source.risk_level : (blockedActions.length ? 'approval_required' : 'review');
+    let riskLevel = HANDS_RISK_LABELS[source.risk_level]
+      ? source.risk_level
+      : source.risk_level && ['low', 'medium', 'high', 'critical'].includes(source.risk_level)
+        ? this.normalizeHandsRiskFromV2(source.risk_level)
+        : (blockedActions.length ? 'approval_required' : (policy.risk_level || 'review'));
+    if (!HANDS_RISK_LABELS[riskLevel]) riskLevel = policy.risk_level === 'dangerous' ? 'dangerous' : policy.risk_level === 'safe' ? 'safe' : 'review';
     if (riskLevel === 'safe' && blockedActions.length) riskLevel = 'review';
     const approvalRequired = Boolean(
       source.approval_required
       || blockedActions.length
+      || source.required_approval
+      || source.owner_assisted_required
       || riskLevel === 'approval_required'
       || riskLevel === 'dangerous'
     );
@@ -11456,7 +12457,19 @@ test.describe('Terminator QA Factory safe demo', () => {
       goal: String(source.goal || 'цель не задана'),
       worker_id: workerId,
       worker_label: this.handsWorkerLabel(workerId),
-      action_type: String(source.action_type || 'safe_worker_plan'),
+      request_id: source.request_id || actionRequest?.request_id || '',
+      action_request: actionRequest,
+      action_type: actionType,
+      action_summary: String(source.action_summary || `${this.v2HandsActionTypeName(actionType)}: ${source.goal || actionRequest?.desired_outcome || 'цель не задана'}`),
+      target_resource: String(source.target_resource || actionRequest?.target_resource || policy.target_resource || 'task_state'),
+      target_path_optional: String(source.target_path_optional || actionRequest?.target_path_optional || ''),
+      affected_resources: Array.isArray(source.affected_resources) ? source.affected_resources.map(String).slice(0, 20) : [...(policy.affected_resources || [])],
+      required_capabilities: Array.isArray(source.required_capabilities) ? source.required_capabilities.map(String).slice(0, 20) : [...(policy.required_capabilities || [])],
+      required_evidence: Array.isArray(source.required_evidence) ? source.required_evidence.map(String).slice(0, 20) : [...(policy.required_evidence || [])],
+      required_verifier_status: String(source.required_verifier_status || 'verifier note required before future apply'),
+      required_approval: Boolean(source.required_approval || approvalRequired),
+      required_typed_phrase: String(source.required_typed_phrase || policy.required_typed_phrase || ''),
+      owner_assisted_required: Boolean(source.owner_assisted_required || actionRequest?.owner_assisted_required || policy.owner_assisted_required),
       risk_level: riskLevel,
       status,
       safe_steps: safeSteps,
@@ -11468,10 +12481,24 @@ test.describe('Terminator QA Factory safe demo', () => {
       controlled_runtime_run_ids: Array.isArray(source.controlled_runtime_run_ids) ? source.controlled_runtime_run_ids.map(String).slice(0, 12) : [],
       verifier_required: source.verifier_required !== false,
       verifier_status: source.verifier_status || 'not_checked',
-      rollback_required: source.rollback_required !== undefined ? Boolean(source.rollback_required) : (approvalRequired || riskLevel === 'review'),
+      rollback_required: source.rollback_required !== undefined ? Boolean(source.rollback_required) : (approvalRequired || riskLevel === 'review' || Boolean(source.required_rollback)),
+      required_rollback: source.required_rollback !== undefined ? Boolean(source.required_rollback) : (source.rollback_required !== undefined ? Boolean(source.rollback_required) : (approvalRequired || riskLevel === 'review')),
       rollback_plan: String(source.rollback_plan || 'До применения создать restore/backup affected files; без rollback MEDIUM/HIGH изменения не применять.'),
-      execution_allowed: Boolean(source.execution_allowed && riskLevel === 'safe' && !approvalRequired && !blockedActions.length),
+      owner_assisted_flags: Array.isArray(source.owner_assisted_flags) ? source.owner_assisted_flags.map(String).slice(0, 12) : [],
+      forbidden_actions: Array.isArray(source.forbidden_actions) ? source.forbidden_actions.map(String).slice(0, 20) : blockedActions,
+      safety_notes: Array.isArray(source.safety_notes) ? source.safety_notes.map(String).slice(0, 12) : [],
+      not_executed_reason: String(source.not_executed_reason || 'V2-P2-C dry-run: реальное действие не запускалось.'),
+      not_executed: source.not_executed !== false,
+      execution_allowed: false,
       execution_result: source.execution_result || 'not_executed',
+      dry_run_result: source.dry_run_result || null,
+      verifier_note: source.verifier_note || null,
+      evidence_record: source.evidence_record || null,
+      memory_record: source.memory_record || null,
+      dry_run_status: source.dry_run_status || source.dry_run_result?.status || 'not_run',
+      safety_verdict: source.safety_verdict || source.dry_run_result?.safety_verdict || '',
+      capability_verdict: source.capability_verdict || source.dry_run_result?.capability_verdict || '',
+      controlled_apply_verdict: source.controlled_apply_verdict || source.dry_run_result?.controlled_apply_verdict || 'not_executed_preview',
       artifact_id: source.artifact_id || '',
       privacy_status: source.privacy_status || 'clean',
       privacy_summary: source.privacy_summary || 'clean',
@@ -12698,9 +13725,16 @@ test.describe('Terminator QA Factory safe demo', () => {
     const controlledRuntime = this.controlledRuntimeSnapshot();
     const controlledApply = this.controlledApplySnapshot();
     const emergency = this.guardianState?.safe_mode || guardian.status === 'safe_mode';
+    const dryRunPlans = allPlans.filter((plan) => plan.dry_run_result || plan.dry_run_status === 'allowed_preview' || plan.status === 'dry_run_ready');
+    const evidencePlans = allPlans.filter((plan) => plan.evidence_record);
+    const memoryPlans = allPlans.filter((plan) => plan.memory_record);
+    const capabilityProfiles = this.buildV2WorkerCapabilityProfiles();
     let readiness = 48;
     if (workerReports.length) readiness += 14;
     if (allPlans.length) readiness += 14;
+    if (dryRunPlans.length) readiness += 10;
+    if (evidencePlans.length) readiness += 6;
+    if (memoryPlans.length) readiness += 4;
     if (allPlans.some((plan) => plan.verifier_required)) readiness += 8;
     if (approvalPlans.length) readiness += 6;
     if (controlledRuntime.completed_count) readiness += 6;
@@ -12729,10 +13763,14 @@ test.describe('Terminator QA Factory safe demo', () => {
       controlled_runtime_completed: controlledRuntime.completed_count,
       controlled_apply_count: controlledApply.count,
       controlled_apply_verified: controlledApply.verified_count,
+      dry_run_count: dryRunPlans.length,
+      evidence_record_count: evidencePlans.length,
+      memory_record_count: memoryPlans.length,
+      capability_profiles_count: capabilityProfiles.length,
       latest: allPlans[0] || null,
       tone: status === 'ready' ? 'pass' : status === 'error' ? 'fail' : 'review',
       label: emergency ? 'Safe Mode' : allPlans.length ? `${allPlans.length} планов` : workerReports.length ? 'workers готовы' : 'ожидает план',
-      summary: allPlans.length ? 'безопасные планы действий доступны' : workerReports.length ? 'foundation готов, нужен первый план' : 'создайте безопасный план действия',
+      summary: allPlans.length ? 'планы и dry-run контур доступны; реальное выполнение заблокировано' : workerReports.length ? 'foundation готов, нужен первый план' : 'создайте безопасный план действия',
       note: emergency
         ? 'Safe Mode включён: новые действия заблокированы.'
         : controlledApply.latest
@@ -12740,7 +13778,7 @@ test.describe('Terminator QA Factory safe demo', () => {
         : controlledRuntime.latest
           ? `Controlled Runtime: ${controlledRuntime.note}`
           : allPlans[0]
-          ? `${allPlans[0].title}: ${this.handsRiskName(allPlans[0].risk_level)}`
+          ? `${allPlans[0].title}: ${this.handsRiskName(allPlans[0].risk_level)} · dry-run ${allPlans[0].dry_run_result?.status || allPlans[0].dry_run_status || 'not_run'} · real execution disabled`
           : workerReports.length
             ? 'Guardian подтверждает worker readiness; действия всё равно проходят через план и Approval.'
             : 'Руки V1 не выполняют команды напрямую. Сначала нужен безопасный план действия.',
@@ -12748,6 +13786,10 @@ test.describe('Terminator QA Factory safe demo', () => {
       checks: [
         ['Guardian gate', emergency ? 'Safe Mode' : 'активен'],
         ['Планы действий', allPlans.length ? `${allPlans.length} создано` : 'нет планов'],
+        ['Пробный прогон', dryRunPlans.length ? `${dryRunPlans.length} dry-run` : 'ожидает плана'],
+        ['Evidence', evidencePlans.length ? `${evidencePlans.length} записей` : 'создаётся с dry-run'],
+        ['Memory bridge', memoryPlans.length ? `${memoryPlans.length} кандидатов` : 'ожидает dry-run'],
+        ['Capability matrix', `${capabilityProfiles.length} профилей`],
         ['Approval bridge', approvalPlans.length ? `${approvalPlans.length} требуют решения` : 'готов'],
         ['Verifier gate', allPlans.some((plan) => plan.verifier_required) ? 'обязателен' : 'ожидает плана'],
         ['Controlled Runtime', controlledRuntime.completed_count ? `${controlledRuntime.completed_count} LOW-risk выполнено` : 'ожидает safe-план'],
@@ -12772,6 +13814,7 @@ test.describe('Terminator QA Factory safe demo', () => {
     const task = scope === 'workspace' ? this.getActiveWorkTask() : this.getActiveWorkTask();
     const title = String(document.getElementById(`${prefix}-title`)?.value || '').trim() || 'Безопасный план действия';
     const workerId = document.getElementById(`${prefix}-worker`)?.value || 'code_worker';
+    const requestedActionType = document.getElementById(`${prefix}-action-type`)?.value || '';
     const requestedRisk = document.getElementById(`${prefix}-risk`)?.value || 'review';
     const controlledAction = document.getElementById(`${prefix}-runtime-action`)?.value || 'readiness_snapshot';
     const goal = String(document.getElementById(`${prefix}-goal`)?.value || '').trim() || 'Сформировать безопасное действие без выполнения.';
@@ -12784,17 +13827,45 @@ test.describe('Terminator QA Factory safe demo', () => {
       : HANDS_RISK_LABELS[requestedRisk]
         ? requestedRisk
         : 'review';
+    const actionType = HANDS_ACTION_POLICIES[requestedActionType]
+      ? requestedActionType
+      : this.inferHandsActionType([safeTitle, safeGoal].join('\n'));
+    const request = this.createV2HandsActionRequest({
+      action_type: actionType,
+      project_id: task?.project_id || 'terminator',
+      task_id: task?.task_id || '',
+      actor: this.handsWorkerActor(workerId),
+      worker_id: workerId,
+      desired_outcome: safeGoal,
+      target_resource: this.handsActionPolicy(actionType).target_resource,
+      risk_hints: detected,
+      evidence_refs: [],
+      owner_assisted_required: this.handsActionPolicy(actionType).owner_assisted_required,
+      verifierStatus: this.handsActionPolicy(actionType).verifierStatus,
+      hasRollback: this.handsActionPolicy(actionType).hasRollback
+    }, { persistEvents: false });
+    const v2Plan = this.createV2HandsActionPlan(request, {
+      title: safeTitle,
+      persistEvents: false
+    });
     return this.normalizeHandsActionPlan({
+      ...v2Plan,
       plan_id: this.generateWorkspaceId('HAND'),
       task_id: task?.task_id || '',
       project_id: task?.project_id || '',
       title: safeTitle,
       goal: safeGoal,
       worker_id: workerId,
-      risk_level: risk,
+      action_request: request,
+      action_type: actionType,
+      risk_level: v2Plan.risk_level === 'dangerous'
+        ? 'dangerous'
+        : v2Plan.required_approval && risk === 'safe'
+          ? 'approval_required'
+          : risk,
       controlled_runtime_action: controlledAction,
       blocked_actions: detected,
-      approval_required: forceApproval || detected.length > 0 || risk === 'approval_required' || risk === 'dangerous',
+      approval_required: forceApproval || v2Plan.required_approval || detected.length > 0 || risk === 'approval_required' || risk === 'dangerous',
       privacy_status: privacy.blocked ? 'blocked' : privacy.findings.length ? 'redacted' : 'clean',
       privacy_summary: this.privacyScanSummary(privacy),
       created_at: new Date().toISOString()
@@ -12802,7 +13873,50 @@ test.describe('Terminator QA Factory safe demo', () => {
   },
 
   async saveHandsActionPlan(plan, task = null) {
-    const normalized = this.normalizeHandsActionPlan(plan, task);
+    let normalized = this.normalizeHandsActionPlan(plan, task);
+    if (!normalized.action_request) {
+      normalized.action_request = this.createV2HandsActionRequest({
+        action_type: normalized.action_type,
+        project_id: normalized.project_id || task?.project_id || 'terminator',
+        task_id: normalized.task_id || task?.task_id || '',
+        actor: this.handsWorkerActor(normalized.worker_id),
+        worker_id: normalized.worker_id,
+        desired_outcome: normalized.goal,
+        target_resource: normalized.target_resource,
+        verifierStatus: normalized.verifier_status,
+        hasRollback: normalized.rollback_required,
+        owner_assisted_required: normalized.owner_assisted_required,
+        evidence_refs: normalized.required_evidence || []
+      }, { persistEvents: false });
+      normalized.request_id = normalized.action_request.request_id;
+    }
+    normalized.dry_run_result = normalized.dry_run_result || this.evaluateV2HandsDryRun(normalized, { persistEvents: false });
+    normalized.verifier_note = normalized.verifier_note || this.createV2HandsVerifierNote(normalized.dry_run_result, normalized, { persistEvents: false });
+    normalized.evidence_record = normalized.evidence_record || this.createV2HandsEvidenceRecord({
+      plan: normalized,
+      dry_run: normalized.dry_run_result,
+      verifier_note: normalized.verifier_note
+    }, { persistEvents: false });
+    normalized.memory_record = normalized.memory_record || this.buildV2HandsMemoryRecord(normalized, normalized.dry_run_result, normalized.verifier_note, { persistEvents: false });
+    normalized.dry_run_status = normalized.dry_run_result.status;
+    normalized.safety_verdict = normalized.dry_run_result.safety_verdict;
+    normalized.capability_verdict = normalized.dry_run_result.capability_verdict;
+    normalized.controlled_apply_verdict = normalized.dry_run_result.controlled_apply_verdict;
+    normalized.required_approval = normalized.required_approval || normalized.dry_run_result.required_approval;
+    normalized.approval_required = normalized.approval_required || normalized.dry_run_result.required_approval;
+    normalized.required_rollback = normalized.required_rollback || normalized.dry_run_result.required_rollback;
+    normalized.rollback_required = normalized.rollback_required || normalized.dry_run_result.required_rollback;
+    normalized.owner_assisted_required = normalized.owner_assisted_required || normalized.dry_run_result.owner_assisted_required;
+    normalized.required_typed_phrase = normalized.required_typed_phrase || normalized.dry_run_result.required_typed_phrase || '';
+    normalized.status = normalized.dry_run_result.status === 'red_zone_stop'
+      ? 'red_zone_stop'
+      : normalized.dry_run_result.status === 'blocked'
+        ? 'blocked'
+        : normalized.dry_run_result.status === 'owner_assisted_required'
+          ? 'owner_assisted_required'
+          : normalized.dry_run_result.status === 'approval_required'
+            ? 'approval_required'
+            : 'dry_run_ready';
     if (!this.handsSafeState) this.handsSafeState = this.defaultHandsSafeState();
     this.handsSafeState.action_plans = Array.isArray(this.handsSafeState.action_plans) ? this.handsSafeState.action_plans : [];
     const globalIndex = this.handsSafeState.action_plans.findIndex((item) => item.plan_id === normalized.plan_id);
@@ -12812,6 +13926,82 @@ test.describe('Terminator QA Factory safe demo', () => {
     this.handsSafeState.last_checked_at = normalized.updated_at;
     this.handsSafeState.status = 'ready';
     this.activeHandsPlanId = normalized.plan_id;
+    this.recordV2HandsEvent('v2.hands.action_request.created', {
+      actor: normalized.actor || this.handsWorkerActor(normalized.worker_id),
+      resource: normalized.action_request?.resource || normalized.target_resource,
+      risk_level: normalized.dry_run_result.risk_level,
+      message: `Hands action request saved: ${normalized.title}`,
+      refs: { request_id: normalized.request_id, plan_id: normalized.plan_id, task_id: normalized.task_id },
+      payload: normalized.action_request
+    });
+    this.recordV2HandsEvent('v2.hands.action_plan.created', {
+      actor: normalized.actor || this.handsWorkerActor(normalized.worker_id),
+      resource: normalized.action_request?.resource || normalized.target_resource,
+      risk_level: normalized.dry_run_result.risk_level,
+      message: `Hands action plan saved: ${normalized.title}`,
+      refs: { request_id: normalized.request_id, plan_id: normalized.plan_id, task_id: normalized.task_id },
+      payload: normalized
+    });
+    this.recordV2HandsEvent('v2.hands.dry_run.completed', {
+      actor: normalized.actor || this.handsWorkerActor(normalized.worker_id),
+      resource: normalized.action_request?.resource || normalized.target_resource,
+      risk_level: normalized.dry_run_result.risk_level,
+      message: normalized.dry_run_result.user_message,
+      refs: normalized.dry_run_result.refs,
+      payload: normalized.dry_run_result
+    });
+    if (['blocked', 'red_zone_stop'].includes(normalized.dry_run_result.status)) {
+      this.recordV2HandsEvent('v2.hands.action.blocked', {
+        actor: normalized.actor || this.handsWorkerActor(normalized.worker_id),
+        resource: normalized.action_request?.resource || normalized.target_resource,
+        risk_level: normalized.dry_run_result.risk_level,
+        message: normalized.dry_run_result.user_message,
+        refs: normalized.dry_run_result.refs,
+        payload: normalized.dry_run_result
+      });
+    } else if (normalized.dry_run_result.status === 'approval_required') {
+      this.recordV2HandsEvent('v2.hands.approval_required', {
+        actor: normalized.actor || this.handsWorkerActor(normalized.worker_id),
+        resource: normalized.action_request?.resource || normalized.target_resource,
+        risk_level: normalized.dry_run_result.risk_level,
+        message: normalized.dry_run_result.user_message,
+        refs: normalized.dry_run_result.refs,
+        payload: normalized.dry_run_result
+      });
+    } else if (normalized.dry_run_result.status === 'owner_assisted_required') {
+      this.recordV2HandsEvent('v2.hands.owner_assisted_required', {
+        actor: normalized.actor || this.handsWorkerActor(normalized.worker_id),
+        resource: normalized.action_request?.resource || normalized.target_resource,
+        risk_level: normalized.dry_run_result.risk_level,
+        message: normalized.dry_run_result.user_message,
+        refs: normalized.dry_run_result.refs,
+        payload: normalized.dry_run_result
+      });
+    }
+    this.recordV2HandsEvent('v2.hands.verifier_note.created', {
+      actor: 'verifier',
+      resource: normalized.target_resource,
+      risk_level: normalized.dry_run_result.risk_level,
+      message: `Hands verifier note: ${normalized.verifier_note.status}`,
+      refs: normalized.verifier_note.refs,
+      payload: normalized.verifier_note
+    });
+    this.recordV2HandsEvent('v2.hands.evidence_record.created', {
+      actor: 'hands',
+      resource: normalized.target_resource,
+      risk_level: normalized.dry_run_result.risk_level,
+      message: `Hands evidence: ${normalized.evidence_record.status}`,
+      refs: normalized.evidence_record.refs,
+      payload: normalized.evidence_record
+    });
+    this.recordV2HandsEvent('v2.hands.memory_summary.created', {
+      actor: 'memory_search',
+      resource: 'memory_records',
+      risk_level: normalized.dry_run_result.risk_level,
+      message: `Hands memory: ${normalized.memory_record.title}`,
+      refs: normalized.memory_record.refs,
+      payload: normalized.memory_record
+    });
 
     if (task) {
       task.hands_action_plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
@@ -12854,19 +14044,46 @@ test.describe('Terminator QA Factory safe demo', () => {
       '',
       `Task: ${task?.task_id || normalized.task_id || 'не привязано'}`,
       `Worker: ${this.handsWorkerLabel(normalized.worker_id)}`,
+      `Action type: ${this.v2HandsActionTypeName(normalized.action_type)}`,
+      `Target: ${normalized.target_resource || 'не задано'}`,
       `Controlled Runtime action: ${this.controlledRuntimeActionName(normalized.controlled_runtime_action)}`,
       `Риск: ${this.handsRiskName(normalized.risk_level)}`,
       `Статус: ${this.handsStatusName(normalized.status)}`,
       `Approval: ${normalized.approval_required ? 'требуется' : 'не требуется для подготовки плана'}`,
+      `Typed phrase: ${normalized.required_typed_phrase || 'не требуется'}`,
       `Runtime: ${this.controlledRuntimeStatusName(normalized.controlled_runtime_status)}`,
       `Verifier: ${normalized.verifier_required ? 'обязателен перед применением' : 'не требуется'}`,
       `Rollback: ${normalized.rollback_required ? 'обязателен' : 'не требуется'}`,
+      `Dry-run: ${normalized.dry_run_result?.status || normalized.dry_run_status || 'not_run'}`,
+      `Execution: ${normalized.not_executed ? 'not executed' : normalized.execution_result}`,
       '',
       '## Цель',
       normalized.goal,
       '',
+      '## Что будет затронуто',
+      ...(normalized.affected_resources.length ? normalized.affected_resources : ['только preview metadata']).map((item) => `- ${item}`),
+      '',
       '## Безопасные шаги',
       ...normalized.safe_steps.map((step) => `- ${step}`),
+      '',
+      '## Dry-run verdict',
+      normalized.dry_run_result
+        ? [
+            `status: ${normalized.dry_run_result.status}`,
+            `safety: ${normalized.dry_run_result.safety_verdict}`,
+            `capability: ${normalized.dry_run_result.capability_verdict}`,
+            `controlled_apply: ${normalized.dry_run_result.controlled_apply_verdict}`,
+            `message: ${normalized.dry_run_result.user_message}`
+          ].join('\n')
+        : 'Dry-run ещё не создан.',
+      '',
+      '## Verifier note',
+      normalized.verifier_note
+        ? [
+            `status: ${normalized.verifier_note.status}`,
+            `check_first: ${normalized.verifier_note.check_first}`
+          ].join('\n')
+        : 'Verifier note ещё не создан.',
       '',
       '## Заблокированные действия',
       ...(normalized.blocked_actions.length ? normalized.blocked_actions : ['Прямое выполнение команд не разрешено в Hands V1.']).map((item) => `- ${item}`),
@@ -12875,7 +14092,7 @@ test.describe('Terminator QA Factory safe demo', () => {
       normalized.rollback_plan,
       '',
       '## Execution',
-      `${normalized.execution_result}: dangerous actions remain blocked; Controlled Runtime can run only allowlisted LOW-risk actions.`
+      `${normalized.execution_result}: dry-run only; dangerous actions remain blocked; no active project mutation, deploy, push, delete, AI API, billing, cookies or profiles.`
     ].join('\n');
   },
 
@@ -12911,6 +14128,64 @@ test.describe('Terminator QA Factory safe demo', () => {
     return approval;
   },
 
+  renderHandsDryRunCard(dryRun = null, options = {}) {
+    if (!dryRun) {
+      return '<article class="hands-dry-run hands-dry-run--empty"><strong>Пробный прогон</strong><p>Создайте план, чтобы увидеть dry-run. Действие не будет выполнено.</p></article>';
+    }
+    return `
+      <article class="hands-dry-run hands-dry-run--${this.escapeHtml(dryRun.status)}">
+        <div>
+          <span>Пробный прогон · ${this.escapeHtml(dryRun.status)}</span>
+          <strong>${this.escapeHtml(dryRun.user_message || 'Действие не выполнялось')}</strong>
+          <p>Safety: ${this.escapeHtml(dryRun.safety_verdict || 'unknown')} · Capability: ${this.escapeHtml(dryRun.capability_verdict || 'unknown')} · Apply: ${this.escapeHtml(dryRun.controlled_apply_verdict || 'not_executed')}</p>
+          <small>Rollback: ${this.escapeHtml(dryRun.rollback_status || 'не проверен')} · Verifier: ${this.escapeHtml(dryRun.verifier_requirement || 'нужен note')}</small>
+          ${dryRun.required_typed_phrase ? `<small>Точная фраза: ${this.escapeHtml(dryRun.required_typed_phrase)}</small>` : ''}
+        </div>
+        ${options.compact ? '' : '<b>Действие НЕ выполнено</b>'}
+      </article>
+    `;
+  },
+
+  renderHandsCapabilityMatrix(profiles = this.buildV2WorkerCapabilityProfiles()) {
+    return `
+      <section class="hands-worker-grid hands-worker-grid--advanced" aria-label="Матрица возможностей Рук">
+        ${profiles.map((profile) => `
+          <article class="hands-worker-card hands-worker-card--${this.escapeHtml(profile.status)}">
+            <span>${this.escapeHtml(profile.display_name)}</span>
+            <strong>${this.escapeHtml(profile.status === 'preview_ready' ? 'preview готов' : profile.status === 'future_disabled' ? 'позже' : 'ограничено')}</strong>
+            <p>Можно: ${this.escapeHtml((profile.allowed || []).slice(0, 3).join('; '))}</p>
+            <small>Нельзя: ${this.escapeHtml((profile.forbidden || []).slice(0, 4).join('; '))}</small>
+          </article>
+        `).join('')}
+      </section>
+    `;
+  },
+
+  renderHandsVerifierPanel(verifier = null, memoryRecord = null) {
+    if (!verifier) {
+      return `
+        <section class="hands-verifier-panel">
+          <strong>Verifier / Memory</strong>
+          <p>Verifier note и запись памяти появятся после dry-run. Это доказательство, а не выполнение.</p>
+        </section>
+      `;
+    }
+    return `
+      <section class="hands-verifier-panel hands-verifier-panel--${this.escapeHtml(verifier.status || 'PARTIAL')}">
+        <div>
+          <span>Verifier note</span>
+          <strong>${this.escapeHtml(verifier.status || 'PARTIAL')}</strong>
+          <p>${this.escapeHtml(verifier.check_first || 'Проверить affected resources, rollback и Approval.')}</p>
+        </div>
+        <div>
+          <span>Memory bridge</span>
+          <strong>${this.escapeHtml(memoryRecord?.title || 'запись готовится')}</strong>
+          <p>${this.escapeHtml(memoryRecord?.summary || 'Hands dry run станет searchable memory candidate.')}</p>
+        </div>
+      </section>
+    `;
+  },
+
   renderHandsPlanCard(plan, options = {}) {
     const normalized = this.normalizeHandsActionPlan(plan);
     const compact = Boolean(options.compact);
@@ -12920,14 +14195,17 @@ test.describe('Terminator QA Factory safe demo', () => {
           <span>${this.escapeHtml(this.handsWorkerLabel(normalized.worker_id))} · ${this.escapeHtml(this.handsStatusName(normalized.status))}</span>
           <strong>${this.escapeHtml(normalized.title)}</strong>
           <p>${this.escapeHtml(normalized.goal)}</p>
-          <small>${this.escapeHtml(this.handsRiskName(normalized.risk_level))} · Runtime: ${this.escapeHtml(this.controlledRuntimeStatusName(normalized.controlled_runtime_status))} · ${this.escapeHtml(this.controlledRuntimeActionName(normalized.controlled_runtime_action))}</small>
-          <small>Approval: ${normalized.approval_required ? 'да' : 'нет'} · Verifier: ${normalized.verifier_required ? 'да' : 'нет'} · Execution: ${this.escapeHtml(normalized.execution_result)}</small>
+          <small>${this.escapeHtml(this.v2HandsActionTypeName(normalized.action_type))} · ${this.escapeHtml(this.handsRiskName(normalized.risk_level))} · Dry-run: ${this.escapeHtml(normalized.dry_run_result?.status || normalized.dry_run_status || 'not_run')}</small>
+          <small>Approval: ${normalized.approval_required ? 'да' : 'нет'} · Rollback: ${normalized.rollback_required ? 'да' : 'нет'} · Verifier: ${normalized.verifier_note?.status || normalized.verifier_status} · Execution: not executed</small>
+          ${normalized.required_typed_phrase ? `<small>Точная фраза: ${this.escapeHtml(normalized.required_typed_phrase)}</small>` : ''}
           ${!compact && normalized.blocked_actions.length ? `<small>Блокировки: ${this.escapeHtml(normalized.blocked_actions.join('; '))}</small>` : ''}
+          ${!compact ? this.renderHandsDryRunCard(normalized.dry_run_result, { compact: true }) : ''}
         </div>
         <div class="hands-plan-actions">
           <button type="button" data-hands-action="copy_plan" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Скопировать</button>
+          <button type="button" data-hands-action="run_dry_run" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Пробный прогон</button>
           <button type="button" data-hands-action="prepare_apply_package" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Пакет применения</button>
-          <button type="button" data-hands-action="run_controlled" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Выполнить LOW-risk</button>
+          <button type="button" data-hands-action="run_controlled" data-plan-id="${this.escapeHtml(normalized.plan_id)}" ${normalized.risk_level === 'safe' && normalized.dry_run_result?.status === 'allowed_preview' ? '' : 'disabled'}>LOW-risk self-check</button>
           ${normalized.approval_id ? `<button type="button" data-hands-action="open_approval" data-approval-id="${this.escapeHtml(normalized.approval_id)}">Approval</button>` : `<button type="button" data-hands-action="create_approval" data-plan-id="${this.escapeHtml(normalized.plan_id)}">Approval</button>`}
         </div>
       </article>
@@ -13251,6 +14529,45 @@ test.describe('Terminator QA Factory safe demo', () => {
             updated_at: message.created_at
           });
         });
+    });
+
+    const globalHandsPlans = (this.handsSafeState?.action_plans || [])
+      .map((plan) => this.normalizeHandsActionPlan(plan))
+      .filter((plan) => !records.some((record) => record.record_id === `hands:${plan.plan_id}`))
+      .slice(0, 30);
+    globalHandsPlans.forEach((plan) => {
+      this.addMemorySearchRecord(records, warnings, {
+        record_id: `hands:${plan.plan_id}`,
+        type: 'memory',
+        title: `Руки: ${plan.title}`,
+        summary: [
+          plan.action_summary,
+          `Hands dry run: ${plan.dry_run_result?.status || plan.dry_run_status || 'not_run'}`,
+          `План действия: ${this.v2HandsActionTypeName(plan.action_type)}`,
+          plan.required_rollback ? 'rollback required' : 'rollback not required for preview',
+          plan.approval_required || plan.required_approval ? 'approval required' : 'approval not required for preview',
+          plan.not_executed ? 'not executed' : plan.execution_result,
+          plan.verifier_note?.check_first || ''
+        ],
+        project_id: plan.project_id || 'terminator',
+        project_name: plan.project_id ? this.projectName(plan.project_id) : 'Терминатор',
+        task_id: plan.task_id || '',
+        task_title: plan.title,
+        source_id: plan.plan_id,
+        source_type: 'HANDS_DRY_RUN_PLAN',
+        refs: {
+          plan_id: plan.plan_id,
+          request_id: plan.request_id,
+          dry_run_id: plan.dry_run_result?.dry_run_id || '',
+          evidence_id: plan.evidence_record?.evidence_id || '',
+          memory_id: plan.memory_record?.memory_id || '',
+          task_id: plan.task_id || ''
+        },
+        keywords: ['Hands dry run', 'План действия', 'rollback required', 'not executed', 'approval required', plan.action_type, plan.dry_run_result?.status || plan.dry_run_status],
+        confidence: plan.verifier_note?.status || 'hands_preview',
+        created_at: plan.created_at,
+        updated_at: plan.updated_at || plan.created_at
+      });
     });
 
     return records
@@ -18503,6 +19820,9 @@ test.describe('Terminator QA Factory safe demo', () => {
     const applyPackages = this.collectControlledApplyPackages();
     const activeTask = this.getActiveWorkTask();
     const plans = state.action_plans || [];
+    const latest = plans[0] ? this.normalizeHandsActionPlan(plans[0]) : null;
+    const advancedPreview = this.buildV2AdvancedHandsPreview({ previewEnabled: true });
+    const advancedSmoke = this.runV2AdvancedHandsSmoke({ preview: advancedPreview });
     host.innerHTML = `
       <section class="hands-hero hands-hero--${this.escapeHtml(snapshot.tone)}">
         <div>
@@ -18514,7 +19834,7 @@ test.describe('Terminator QA Factory safe demo', () => {
           <div><dt>Готовность</dt><dd>${this.escapeHtml(String(snapshot.readiness))}%</dd></div>
           <div><dt>Планы</dt><dd>${this.escapeHtml(String(snapshot.count))}</dd></div>
           <div><dt>Approval</dt><dd>${this.escapeHtml(String(snapshot.approval_count))}</dd></div>
-          <div><dt>LOW-run</dt><dd>${this.escapeHtml(String(runtime.completed_count))}</dd></div>
+          <div><dt>Dry-run</dt><dd>${this.escapeHtml(String(snapshot.dry_run_count || 0))}</dd></div>
           <div><dt>Apply</dt><dd>${this.escapeHtml(String(applySnapshot.verified_count))}/${this.escapeHtml(String(applySnapshot.count))}</dd></div>
         </dl>
       </section>
@@ -18529,6 +19849,12 @@ test.describe('Terminator QA Factory safe demo', () => {
             <span>Worker</span>
             <select id="system-hands-worker">
               ${HANDS_WORKER_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Тип действия</span>
+            <select id="system-hands-action-type">
+              ${HANDS_ACTION_TYPE_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}" ${id === 'create_sandbox_file_plan' ? 'selected' : ''}>${this.escapeHtml(label)}</option>`).join('')}
             </select>
           </label>
           <label class="work-field">
@@ -18551,20 +19877,28 @@ test.describe('Terminator QA Factory safe demo', () => {
         <div class="system-action-strip">
           <button type="button" data-hands-action="prepare_system_plan">Подготовить план</button>
           <button type="button" data-hands-action="prepare_system_approval">План + Approval</button>
+          <button type="button" data-hands-action="run_dry_run" data-plan-id="${this.escapeHtml(latest?.plan_id || '')}" ${latest ? '' : 'disabled'}>Пробный прогон</button>
           <button type="button" data-guardian-action="run_worker_check">Проверить workers</button>
           <button type="button" data-hands-action="open_scheme_hands">Схема Мины: Руки</button>
         </div>
       </section>
 
-      <section class="hands-worker-grid" aria-label="Матрица Рук">
-        ${HANDS_WORKER_OPTIONS.map(([id, label, note]) => `
-          <article>
-            <span>${this.escapeHtml(label)}</span>
-            <strong>${this.escapeHtml(id === 'browser_worker' ? 'позже' : id === 'system_worker' ? 'ограничено' : 'готов к плану')}</strong>
-            <p>${this.escapeHtml(note)}</p>
-          </article>
-        `).join('')}
+      <section class="hands-preview-gate hands-preview-gate--${this.escapeHtml(advancedSmoke.status.toLowerCase())}">
+        <div>
+          <span>Advanced Hands / Dry-run</span>
+          <strong>${this.escapeHtml(advancedSmoke.status)}</strong>
+          <p>Планирование, пробный прогон, Safety Core, Verifier, evidence и memory bridge. Реальное выполнение отключено.</p>
+        </div>
+        <div class="scheme-chip-list">
+          <span>Samples: ${this.escapeHtml(String(advancedPreview.sample_count))}</span>
+          <span>Dangerous blocked</span>
+          <span>AI API: нет</span>
+          <span>Execution: not executed</span>
+        </div>
       </section>
+
+      ${this.renderHandsCapabilityMatrix(advancedPreview.worker_capability_profiles)}
+      ${this.renderHandsVerifierPanel(latest?.verifier_note, latest?.memory_record)}
 
       <section class="hands-plan-grid" aria-label="Планы действий">
         ${plans.length ? plans.slice(0, 8).map((plan) => this.renderHandsPlanCard(plan)).join('') : '<p class="mission-empty">Планов Рук пока нет. Создайте безопасный план: он станет artifact, но ничего не выполнит.</p>'}
@@ -18611,6 +19945,7 @@ test.describe('Terminator QA Factory safe demo', () => {
     if (!host || !task) return;
     const plans = Array.isArray(task.hands_action_plans) ? task.hands_action_plans : [];
     const applyPackages = Array.isArray(task.controlled_apply_packages) ? task.controlled_apply_packages : [];
+    const latest = plans[0] ? this.normalizeHandsActionPlan(plans[0], task) : null;
     host.innerHTML = `
       <section class="hands-workspace-panel">
         <div class="workspace-panel-head">
@@ -18627,6 +19962,12 @@ test.describe('Terminator QA Factory safe demo', () => {
             <span>Worker</span>
             <select id="workspace-hands-worker">
               ${HANDS_WORKER_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}">${this.escapeHtml(label)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="work-field">
+            <span>Тип действия</span>
+            <select id="workspace-hands-action-type">
+              ${HANDS_ACTION_TYPE_OPTIONS.map(([id, label]) => `<option value="${this.escapeHtml(id)}" ${id === 'write_repair_workspace_with_rollback' ? 'selected' : ''}>${this.escapeHtml(label)}</option>`).join('')}
             </select>
           </label>
           <label class="work-field">
@@ -18649,10 +19990,12 @@ test.describe('Terminator QA Factory safe demo', () => {
         <div class="workspace-file-actions">
           <button type="button" data-hands-action="prepare_workspace_plan">Подготовить план</button>
           <button type="button" data-hands-action="prepare_workspace_approval">План + Approval</button>
+          <button type="button" data-hands-action="run_dry_run" data-plan-id="${this.escapeHtml(latest?.plan_id || '')}" ${latest ? '' : 'disabled'}>Пробный прогон</button>
           <button type="button" data-hands-action="copy_workspace_report">Скопировать отчёт</button>
           <button type="button" data-hands-action="open_system_hands">Открыть Руки в Системе</button>
         </div>
       </section>
+      ${latest ? this.renderHandsVerifierPanel(latest.verifier_note, latest.memory_record) : ''}
       <section class="hands-plan-grid hands-plan-grid--workspace">
         ${plans.length ? plans.map((plan) => this.renderHandsPlanCard(plan, { compact: true })).join('') : '<p class="workspace-empty">Для этой задачи планов Рук ещё нет.</p>'}
       </section>
@@ -18847,6 +20190,30 @@ test.describe('Terminator QA Factory safe demo', () => {
       this.renderWorkTaskCard();
       this.renderMinaSystemScheme();
       this.toast('Approval создан, выполнение не запускалось');
+      return;
+    }
+
+    if (action === 'run_dry_run') {
+      const plan = findPlan();
+      if (!plan) {
+        this.toast('План не найден');
+        return;
+      }
+      const ownerTask = this.workTasks.find((item) => item.task_id === plan.task_id) || task || null;
+      const normalized = this.normalizeHandsActionPlan(plan, ownerTask);
+      normalized.dry_run_result = this.evaluateV2HandsDryRun(normalized, { persistEvents: false });
+      normalized.verifier_note = this.createV2HandsVerifierNote(normalized.dry_run_result, normalized, { persistEvents: false });
+      normalized.evidence_record = this.createV2HandsEvidenceRecord({
+        plan: normalized,
+        dry_run: normalized.dry_run_result,
+        verifier_note: normalized.verifier_note
+      }, { persistEvents: false });
+      normalized.memory_record = this.buildV2HandsMemoryRecord(normalized, normalized.dry_run_result, normalized.verifier_note, { persistEvents: false });
+      await this.saveHandsActionPlan(normalized, ownerTask);
+      this.renderSystemStatus();
+      if (ownerTask) this.renderWorkTaskCard();
+      this.renderMinaSystemScheme();
+      this.toast('Пробный прогон готов: действие не выполнялось');
       return;
     }
 
@@ -23708,12 +25075,16 @@ test.describe('Terminator QA Factory safe demo', () => {
           <p>${this.escapeHtml(hands.note)} Руки выполняют только заранее разрешённые безопасные проверки. Активный проект не меняется без Защитника, проверки и подтверждения владельца.</p>
           <div class="scheme-chip-list">
             <span>Планы: ${this.escapeHtml(String(hands.count))}</span>
+            <span>Dry-run: ${this.escapeHtml(String(hands.dry_run_count || 0))}</span>
+            <span>Evidence: ${this.escapeHtml(String(hands.evidence_record_count || 0))}</span>
+            <span>Memory: ${this.escapeHtml(String(hands.memory_record_count || 0))}</span>
+            <span>Профили: ${this.escapeHtml(String(hands.capability_profiles_count || 0))}</span>
             <span>Подтверждения: ${this.escapeHtml(String(hands.approval_count))}</span>
             <span>Отчёты помощников: ${this.escapeHtml(String(hands.worker_reports))}</span>
             <span>Безопасные проверки: ${this.escapeHtml(String(runtime.completed_count))}</span>
             <span>Опасная автоматика: заблокирована</span>
           </div>
-          ${latest ? `<div class="scheme-chip-list"><span>Последний план: ${this.escapeHtml(latest.title)}</span><span>${this.escapeHtml(this.handsRiskName(latest.risk_level))}</span></div>` : ''}
+          ${latest ? `<div class="scheme-chip-list"><span>Последний план: ${this.escapeHtml(latest.title)}</span><span>${this.escapeHtml(this.handsRiskName(latest.risk_level))}</span><span>${this.escapeHtml(latest.dry_run_result?.status || latest.dry_run_status || 'not_run')}</span><span>not executed</span></div>` : ''}
         </section>
       `;
     }
