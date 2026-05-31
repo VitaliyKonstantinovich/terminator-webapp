@@ -9380,7 +9380,7 @@ test.describe('Terminator QA Factory safe demo', () => {
           <div>
             <span>P1 / QA Autotest Factory</span>
             <h3>Фабрика автотестов</h3>
-            <p>Создаёт test request, план, атомарные test cases, Playwright-style skeleton, evidence checklist, Verifier gate и Memory summary. Реальные внешние сайты не запускаются.</p>
+            <p>Создаёт запрос на проверку, план, атомарные проверки, каркас автотеста, список доказательств, проверочный gate и краткую запись для памяти. Реальные внешние сайты не запускаются.</p>
           </div>
           <div>
             <span>Test cases</span>
@@ -9421,7 +9421,7 @@ test.describe('Terminator QA Factory safe demo', () => {
           <article>
             <span>Memory Search</span>
             <strong>${preview.memory.all_queries_found ? 'готово' : 'проверить'}</strong>
-            <p>Запись находится по autotest, Playwright и форма.</p>
+            <p>Запись находится по автотесту и проверяемой форме.</p>
           </article>
           <article>
             <span>Глаза / Evidence</span>
