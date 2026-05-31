@@ -1,0 +1,57 @@
+{
+  "id": "v2_decision_passport_task_researchops_brain_council_demo",
+  "type": "decision_passport",
+  "contract_name": "V2DecisionPassportContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T01:18:06.738Z",
+  "updated_at": "2026-05-31T01:18:06.738Z",
+  "status": "needs_review",
+  "refs": {
+    "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+    "comparison_id": "v2_brain_comparison_task_researchops_brain_council_demo",
+    "contradiction_map_id": "v2_contradiction_map_task_researchops_brain_council_demo"
+  },
+  "risk_level": "medium",
+  "project_id": "terminator",
+  "task_id": "task_researchops_brain_council_demo",
+  "title": "Decision Passport: проверка формы",
+  "decision": "Использовать UI-only smoke как быстрый первый gate, а для принятия качества формы добавить UI+API checks.",
+  "rationale": "Source Cards и Совет мозгов сходятся, что один UI smoke не доказывает contract/API поведение формы.",
+  "accepted_options": [
+    "UI+API checks для критичного пути",
+    "UI-only smoke как быстрый smoke gate"
+  ],
+  "rejected_options": [
+    "Считать один UI-only smoke финальной проверкой"
+  ],
+  "risks": [
+    "Без backend/API contract решение остаётся PASS_WITH_RISKS.",
+    "External brain account status owner-assisted; не считать auto-ready."
+  ],
+  "assumptions": [
+    "Форма тестового сайта безопасная и demo-oriented.",
+    "Backend/API contract пока owner-assisted, поэтому без контракта это не full PASS."
+  ],
+  "what_to_check_first": [
+    "Проверить validation формы и API contract на одном безопасном тестовом сценарии."
+  ],
+  "evidence_refs": [
+    "evd_research_ui_smoke_demo",
+    "evd_research_ui_api_demo"
+  ],
+  "source_refs": [
+    "v2_source_ui_smoke_form",
+    "v2_source_ui_api_form"
+  ],
+  "confidence": "medium",
+  "verifier_status": "PASS_WITH_RISKS",
+  "contradictions_handled": true,
+  "missing_answers_handled": true,
+  "owner_assisted_required": true,
+  "not_checked": [
+    "strategist: account manual_required",
+    "critic: account manual_required",
+    "strategist: account manual_required",
+    "critic: account manual_required"
+  ]
+}

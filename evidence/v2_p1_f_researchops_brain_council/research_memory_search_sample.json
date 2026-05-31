@@ -1,0 +1,653 @@
+{
+  "memory_record": {
+    "id": "v2_research_memory_task_researchops_brain_council_demo",
+    "type": "memory_record",
+    "contract_name": "V2MemoryRecordContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T01:18:06.738Z",
+    "updated_at": "2026-05-31T01:18:06.738Z",
+    "status": "candidate",
+    "refs": {
+      "task_id": "task_researchops_brain_council_demo",
+      "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+      "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo"
+    },
+    "risk_level": "low",
+    "record_type": "researchops_brain_council_decision",
+    "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+    "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+    "project_id": "terminator",
+    "task_id": "task_researchops_brain_council_demo",
+    "source": {
+      "source_type": "researchops_preview",
+      "source_id": "v2_decision_passport_task_researchops_brain_council_demo"
+    },
+    "evidence_refs": [
+      "evd_research_ui_smoke_demo",
+      "evd_research_ui_api_demo"
+    ]
+  },
+  "samples": {
+    "researchops": {
+      "schema_version": 1,
+      "normalizedQuery": "ResearchOps",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "task_id": "task_researchops_brain_council_demo",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo"
+          },
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "score": 16,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "source": {
+            "source_id": "",
+            "source_type": "decision",
+            "source_ref": ""
+          },
+          "task_id": "task_researchops_brain_council_demo",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 16,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780190286738_n8uk",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "ResearchOps",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780190286738_fnzh",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "ResearchOps",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "brain_council": {
+      "schema_version": 1,
+      "normalizedQuery": "Совет мозгов",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "task_id": "task_researchops_brain_council_demo",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo"
+          },
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "score": 21,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "source": {
+            "source_id": "",
+            "source_type": "decision",
+            "source_ref": ""
+          },
+          "task_id": "task_researchops_brain_council_demo",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 21,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780190286738_qk7b",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "Совет мозгов",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780190286738_chnm",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "Совет мозгов",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "decision_passport": {
+      "schema_version": 1,
+      "normalizedQuery": "Decision Passport",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "task_id": "task_researchops_brain_council_demo",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo"
+          },
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "score": 29,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "source": {
+            "source_id": "",
+            "source_type": "decision",
+            "source_ref": ""
+          },
+          "task_id": "task_researchops_brain_council_demo",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 29,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780190286738_ed16",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "Decision Passport",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780190286738_wzbf",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "Decision Passport",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "ui_api": {
+      "schema_version": 1,
+      "normalizedQuery": "UI+API checks",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "task_id": "task_researchops_brain_council_demo",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo"
+          },
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "score": 42,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "source": {
+            "source_id": "",
+            "source_type": "decision",
+            "source_ref": ""
+          },
+          "task_id": "task_researchops_brain_council_demo",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 42,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780190286738_nu50",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "UI+API checks",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780190286738_wdoc",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "UI+API checks",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "form": {
+      "schema_version": 1,
+      "normalizedQuery": "форма",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "record_id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "task_id": "task_researchops_brain_council_demo",
+          "project_id": "terminator",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo"
+          },
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "score": 12,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_research_memory_task_researchops_brain_council_demo",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "indexed",
+          "refs": {
+            "task_id": "task_researchops_brain_council_demo",
+            "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo",
+            "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "decision",
+          "title": "ResearchOps Совет мозгов Decision Passport UI+API checks форма",
+          "summary": "ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.",
+          "source": {
+            "source_id": "",
+            "source_type": "decision",
+            "source_ref": ""
+          },
+          "task_id": "task_researchops_brain_council_demo",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "metadata",
+          "relevance_score": 12,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780190286738_jeih",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "форма",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780190286738_gydp",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T01:18:06.738Z",
+          "updated_at": "2026-05-31T01:18:06.738Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "форма",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  },
+  "all_queries_found": true
+}

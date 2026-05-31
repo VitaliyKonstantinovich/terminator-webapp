@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-05-31T01:19:25.414Z",
+  "status": "PASS",
+  "routes": [
+    {
+      "name": "system-desktop",
+      "url": "http://127.0.0.1:8825/?screen=system&force=v2-p1-f-regression",
+      "width": 1365,
+      "documentWidth": 1365,
+      "noHorizontalOverflow": true,
+      "ready": true,
+      "hasMojibake": false,
+      "markers": {
+        "startMenu": true,
+        "qaFactory": true,
+        "comfort": false,
+        "safeUndo": false,
+        "confidence": false,
+        "researchPanel": true,
+        "researchText": true,
+        "scheme": true,
+        "work": true,
+        "memory": true
+      }
+    },
+    {
+      "name": "work-desktop",
+      "url": "http://127.0.0.1:8825/?screen=work&force=v2-p1-f-regression",
+      "width": 1365,
+      "documentWidth": 1365,
+      "noHorizontalOverflow": true,
+      "ready": true,
+      "hasMojibake": false,
+      "markers": {
+        "startMenu": true,
+        "qaFactory": true,
+        "comfort": false,
+        "safeUndo": false,
+        "confidence": false,
+        "researchPanel": true,
+        "researchText": true,
+        "scheme": true,
+        "work": true,
+        "memory": true
+      }
+    },
+    {
+      "name": "scheme-desktop",
+      "url": "http://127.0.0.1:8825/?screen=scheme&force=v2-p1-f-regression",
+      "width": 1365,
+      "documentWidth": 1365,
+      "noHorizontalOverflow": true,
+      "ready": true,
+      "hasMojibake": false,
+      "markers": {
+        "startMenu": true,
+        "qaFactory": true,
+        "comfort": false,
+        "safeUndo": false,
+        "confidence": false,
+        "researchPanel": true,
+        "researchText": true,
+        "scheme": true,
+        "work": true,
+        "memory": true
+      }
+    },
+    {
+      "name": "system-mobile-390",
+      "url": "http://127.0.0.1:8825/?screen=system&force=v2-p1-f-mobile",
+      "width": 390,
+      "documentWidth": 390,
+      "noHorizontalOverflow": true,
+      "ready": true,
+      "hasMojibake": false,
+      "markers": {
+        "startMenu": true,
+        "qaFactory": true,
+        "comfort": false,
+        "safeUndo": false,
+        "confidence": false,
+        "researchPanel": true,
+        "researchText": true,
+        "scheme": true,
+        "work": true,
+        "memory": true
+      }
+    },
+    {
+      "name": "scheme-mobile-430",
+      "url": "http://127.0.0.1:8825/?screen=scheme&force=v2-p1-f-mobile",
+      "width": 430,
+      "documentWidth": 430,
+      "noHorizontalOverflow": true,
+      "ready": true,
+      "hasMojibake": false,
+      "markers": {
+        "startMenu": true,
+        "qaFactory": true,
+        "comfort": false,
+        "safeUndo": false,
+        "confidence": false,
+        "researchPanel": true,
+        "researchText": true,
+        "scheme": true,
+        "work": true,
+        "memory": true
+      }
+    }
+  ]
+}

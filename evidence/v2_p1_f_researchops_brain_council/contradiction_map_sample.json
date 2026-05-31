@@ -1,0 +1,40 @@
+{
+  "id": "v2_contradiction_map_task_researchops_brain_council_demo",
+  "type": "contradiction_map",
+  "contract_name": "V2ContradictionMapContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T01:18:06.738Z",
+  "updated_at": "2026-05-31T01:18:06.738Z",
+  "status": "visible_needs_review",
+  "refs": {
+    "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+    "comparison_id": "v2_brain_comparison_task_researchops_brain_council_demo"
+  },
+  "risk_level": "medium",
+  "project_id": "terminator",
+  "task_id": "task_researchops_brain_council_demo",
+  "title": "Contradiction Map",
+  "contradictions": [
+    "Подход UI-only быстрее, но UI+API даёт более сильную проверку формы."
+  ],
+  "unresolved_questions": [
+    "strategist: account manual_required",
+    "critic: account manual_required"
+  ],
+  "handled_by_decision": [
+    "Decision Passport must choose UI+API for critical path and keep UI-only as smoke gate."
+  ],
+  "what_to_check_first": [
+    "Проверить validation формы и API contract на одном безопасном тестовом сценарии."
+  ],
+  "confidence": "medium",
+  "owner_assisted_required": true,
+  "not_checked": [
+    "strategist: account manual_required",
+    "critic: account manual_required"
+  ],
+  "evidence_refs": [
+    "evd_research_ui_smoke_demo",
+    "evd_research_ui_api_demo"
+  ]
+}

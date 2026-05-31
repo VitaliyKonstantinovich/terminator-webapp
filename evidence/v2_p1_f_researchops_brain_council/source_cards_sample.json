@@ -1,0 +1,78 @@
+[
+  {
+    "id": "v2_source_ui_smoke_form",
+    "type": "source_card",
+    "contract_name": "V2SourceCardContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T01:18:06.737Z",
+    "updated_at": "2026-05-31T01:18:06.737Z",
+    "status": "ready",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "task_researchops_brain_council_demo",
+      "source_ref": "manual://qa-ui-smoke"
+    },
+    "risk_level": "medium",
+    "project_id": "terminator",
+    "task_id": "task_researchops_brain_council_demo",
+    "title": "Manual source: UI smoke быстро ловит видимые поломки формы",
+    "source_type": "manual_note",
+    "source_ref": "manual://qa-ui-smoke",
+    "summary": "UI-only smoke проверяет, что форма открывается, поля видимы и базовая валидация не ломает пользователя.",
+    "claims": [
+      "UI-only smoke полезен как быстрый первый gate.",
+      "UI smoke не доказывает backend/API contract."
+    ],
+    "limitations": [
+      "Не проверяет server-side validation и API response."
+    ],
+    "freshness": "manual_current_context",
+    "confidence": "medium",
+    "evidence_refs": [
+      "evd_research_ui_smoke_demo"
+    ],
+    "risk_flags": [
+      "Если считать UI-only smoke финальным PASS, это fake confidence."
+    ],
+    "owner_assisted_required": false,
+    "not_checked": []
+  },
+  {
+    "id": "v2_source_ui_api_form",
+    "type": "source_card",
+    "contract_name": "V2SourceCardContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T01:18:06.737Z",
+    "updated_at": "2026-05-31T01:18:06.737Z",
+    "status": "ready",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "task_researchops_brain_council_demo",
+      "source_ref": "manual://qa-ui-api-contract"
+    },
+    "risk_level": "medium",
+    "project_id": "terminator",
+    "task_id": "task_researchops_brain_council_demo",
+    "title": "Manual source: UI+API checks сильнее для критичных форм",
+    "source_type": "manual_note",
+    "source_ref": "manual://qa-ui-api-contract",
+    "summary": "UI+API checks проверяют пользовательский поток и contract/API слой. Это дороже, но надёжнее для принятия качества формы.",
+    "claims": [
+      "UI+API checks дают более сильную приёмку формы.",
+      "API contract требует owner-assisted/backend input."
+    ],
+    "limitations": [
+      "Без backend contract статус остаётся PASS_WITH_RISKS."
+    ],
+    "freshness": "manual_current_context",
+    "confidence": "high",
+    "evidence_refs": [
+      "evd_research_ui_api_demo"
+    ],
+    "risk_flags": [
+      "Backend/API endpoint не проверяется без approval."
+    ],
+    "owner_assisted_required": false,
+    "not_checked": []
+  }
+]

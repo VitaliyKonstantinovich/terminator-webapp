@@ -1,0 +1,91 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "research_question_created",
+      "status": "PASS"
+    },
+    {
+      "id": "two_plus_source_cards",
+      "status": "PASS"
+    },
+    {
+      "id": "research_pack_created",
+      "status": "PASS"
+    },
+    {
+      "id": "no_sources_needs_sources",
+      "status": "PASS"
+    },
+    {
+      "id": "three_brain_answers",
+      "status": "PASS"
+    },
+    {
+      "id": "missing_brain_answer_needs_review",
+      "status": "PASS"
+    },
+    {
+      "id": "contradiction_visible",
+      "status": "PASS"
+    },
+    {
+      "id": "decision_passport_created",
+      "status": "PASS"
+    },
+    {
+      "id": "missing_first_check_needs_fix",
+      "status": "PASS"
+    },
+    {
+      "id": "verifier_no_fake_pass",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search_finds_demo",
+      "status": "PASS"
+    },
+    {
+      "id": "manual_web_chat_required_state",
+      "status": "PASS"
+    },
+    {
+      "id": "no_ai_api",
+      "status": "PASS"
+    },
+    {
+      "id": "no_external_web_chat_call",
+      "status": "PASS"
+    },
+    {
+      "id": "no_billing",
+      "status": "PASS"
+    },
+    {
+      "id": "events_sanitized",
+      "status": "PASS"
+    }
+  ],
+  "dom": {
+    "hasPanel": true,
+    "hasDecision": true,
+    "hasNoFakePass": true,
+    "hasSourceCardsText": true,
+    "hasBrainText": true,
+    "hasVerifierText": true,
+    "documentWidth": 762,
+    "viewportWidth": 762
+  },
+  "summary": {
+    "status": "PASS_WITH_RISKS",
+    "source_count": 2,
+    "brain_answer_count": 3,
+    "manual_required_count": 2,
+    "contradiction_count": 1,
+    "memory_queries_found": true,
+    "no_ai_api": true,
+    "no_external_web_chat_call": true,
+    "no_billing": true,
+    "no_fake_pass": true
+  }
+}

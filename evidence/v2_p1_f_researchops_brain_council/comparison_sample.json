@@ -1,0 +1,52 @@
+{
+  "id": "v2_brain_comparison_task_researchops_brain_council_demo",
+  "type": "brain_comparison",
+  "contract_name": "V2BrainComparisonContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T01:18:06.738Z",
+  "updated_at": "2026-05-31T01:18:06.738Z",
+  "status": "needs_review",
+  "refs": {
+    "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+    "answer_ids": [
+      "v2_brain_answer_strategist_demo",
+      "v2_brain_answer_analyst_demo",
+      "v2_brain_answer_critic_demo"
+    ]
+  },
+  "risk_level": "medium",
+  "project_id": "terminator",
+  "task_id": "task_researchops_brain_council_demo",
+  "title": "Brain Council Comparison",
+  "answer_ids": [
+    "v2_brain_answer_strategist_demo",
+    "v2_brain_answer_analyst_demo",
+    "v2_brain_answer_critic_demo"
+  ],
+  "research_pack_id": "v2_research_pack_task_researchops_brain_council_demo",
+  "agreements": [
+    "UI+API checks сильнее для критичной формы, чем один UI smoke."
+  ],
+  "disagreements": [
+    "UI-only smoke можно оставить как быстрый первый gate, но не как финальную проверку."
+  ],
+  "contradictions": [
+    "Подход UI-only быстрее, но UI+API даёт более сильную проверку формы."
+  ],
+  "missing_answers": [],
+  "unresolved_questions": [
+    "strategist: account manual_required",
+    "critic: account manual_required"
+  ],
+  "confidence_summary": "PASS_WITH_RISKS: есть owner-assisted/manual-required элементы.",
+  "source_support": "2 Source Cards",
+  "owner_assisted_required": true,
+  "not_checked": [
+    "strategist: account manual_required",
+    "critic: account manual_required"
+  ],
+  "evidence_refs": [
+    "evd_research_ui_smoke_demo",
+    "evd_research_ui_api_demo"
+  ]
+}

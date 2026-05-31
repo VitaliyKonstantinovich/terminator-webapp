@@ -1,0 +1,137 @@
+[
+  {
+    "id": "v2_brain_answer_strategist_demo",
+    "type": "brain_answer",
+    "contract_name": "V2BrainAnswerContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T01:18:06.737Z",
+    "updated_at": "2026-05-31T01:18:06.737Z",
+    "status": "manual_required",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "task_researchops_brain_council_demo",
+      "brain_id": "demo_strategist",
+      "source_refs": [
+        "v2_source_ui_smoke_form",
+        "v2_source_ui_api_form"
+      ]
+    },
+    "risk_level": "medium",
+    "project_id": "terminator",
+    "task_id": "task_researchops_brain_council_demo",
+    "title": "BrainAnswer: strategist",
+    "brain_id": "demo_strategist",
+    "role": "strategist",
+    "account_status": "manual_required",
+    "account_ready": false,
+    "manual_web_chat_required": true,
+    "answer_text": "Позиция роли: оставить UI-only smoke как быстрый gate. Лучшее решение: добавить UI+API checks для критичного пути формы. Риски: без backend contract нельзя ставить полный PASS. Что проверить первым: validation формы и API contract. Нельзя: выдавать UI-only smoke за финальную приёмку. Уверенность: medium. Итоговый verdict роли: PASS_WITH_RISKS.",
+    "claims": [
+      "UI+API checks нужны для принятия качества.",
+      "UI smoke остаётся быстрым первым gate."
+    ],
+    "risks": [
+      "account manual_required",
+      "backend contract not checked"
+    ],
+    "confidence": "medium",
+    "evidence_refs": [],
+    "source_refs": [
+      "v2_source_ui_smoke_form",
+      "v2_source_ui_api_form"
+    ],
+    "owner_assisted_required": true,
+    "not_checked": [
+      "external web-chat account not verified in this session"
+    ]
+  },
+  {
+    "id": "v2_brain_answer_analyst_demo",
+    "type": "brain_answer",
+    "contract_name": "V2BrainAnswerContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T01:18:06.737Z",
+    "updated_at": "2026-05-31T01:18:06.737Z",
+    "status": "ready",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "task_researchops_brain_council_demo",
+      "brain_id": "demo_analyst",
+      "source_refs": [
+        "v2_source_ui_smoke_form",
+        "v2_source_ui_api_form"
+      ]
+    },
+    "risk_level": "low",
+    "project_id": "terminator",
+    "task_id": "task_researchops_brain_council_demo",
+    "title": "BrainAnswer: analyst",
+    "brain_id": "demo_analyst",
+    "role": "analyst",
+    "account_status": "verified_today",
+    "account_ready": true,
+    "manual_web_chat_required": false,
+    "answer_text": "Позиция роли: UI-only smoke покрывает доступность формы и быстрые regressions. Лучшее решение: UI+API checks для финальной уверенности. Риски: API без contract нельзя проверять автоматически. Что проверить первым: positive submit, invalid email, API validation contract. Нельзя: запускать внешние сервисы без approval. Уверенность: medium-high. Итоговый verdict роли: принять UI+API как целевой подход.",
+    "claims": [
+      "UI-only smoke good for regressions.",
+      "API validation contract needed."
+    ],
+    "risks": [
+      "API contract pending"
+    ],
+    "confidence": "medium_high",
+    "evidence_refs": [],
+    "source_refs": [
+      "v2_source_ui_smoke_form",
+      "v2_source_ui_api_form"
+    ],
+    "owner_assisted_required": false,
+    "not_checked": []
+  },
+  {
+    "id": "v2_brain_answer_critic_demo",
+    "type": "brain_answer",
+    "contract_name": "V2BrainAnswerContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T01:18:06.737Z",
+    "updated_at": "2026-05-31T01:18:06.737Z",
+    "status": "manual_required",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "task_researchops_brain_council_demo",
+      "brain_id": "demo_critic",
+      "source_refs": [
+        "v2_source_ui_smoke_form",
+        "v2_source_ui_api_form"
+      ]
+    },
+    "risk_level": "medium",
+    "project_id": "terminator",
+    "task_id": "task_researchops_brain_council_demo",
+    "title": "BrainAnswer: critic",
+    "brain_id": "demo_critic",
+    "role": "critic",
+    "account_status": "manual_required",
+    "account_ready": false,
+    "manual_web_chat_required": true,
+    "answer_text": "Позиция роли: один UI-only smoke может создать ложную уверенность. Лучшее решение: требовать evidence и Verifier, а UI+API checks запускать только в безопасном контуре. Риски: backend unavailable, owner-assisted account state, fake PASS. Что проверить первым: что Verifier не ставит PASS без source/evidence. Нельзя: подключать AI API или платные сервисы. Уверенность: medium. Итоговый verdict роли: needs_review до contract evidence.",
+    "claims": [
+      "Fake PASS is the main risk.",
+      "Verifier must catch missing evidence."
+    ],
+    "risks": [
+      "fake PASS",
+      "missing evidence"
+    ],
+    "confidence": "medium",
+    "evidence_refs": [],
+    "source_refs": [
+      "v2_source_ui_smoke_form",
+      "v2_source_ui_api_form"
+    ],
+    "owner_assisted_required": true,
+    "not_checked": [
+      "external web-chat account not verified in this session"
+    ]
+  }
+]

@@ -345,7 +345,9 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2QAAutotestFactoryPreviewEnabled: false,
   v2ComfortTrustGuidePreviewEnabled: false,
   v2SafeUndoCenterPreviewEnabled: false,
-  v2ConfidenceLayerPreviewEnabled: false
+  v2ConfidenceLayerPreviewEnabled: false,
+  v2ResearchOpsQualityPreviewEnabled: false,
+  v2BrainCouncilQualityPreviewEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -362,7 +364,15 @@ const V2_CONTRACT_TYPES = Object.freeze([
   'qa_test_case',
   'qa_test_artifact',
   'qa_evidence_checklist',
-  'qa_verifier_result'
+  'qa_verifier_result',
+  'research_question',
+  'source_card',
+  'research_pack',
+  'brain_answer',
+  'brain_comparison',
+  'contradiction_map',
+  'decision_passport',
+  'research_verifier_result'
 ]);
 const V2_CONTRACT_NAMES = Object.freeze({
   task: 'V2TaskContract',
@@ -379,7 +389,15 @@ const V2_CONTRACT_NAMES = Object.freeze({
   qa_test_case: 'V2QATestCaseContract',
   qa_test_artifact: 'V2QATestArtifactContract',
   qa_evidence_checklist: 'V2QAEvidenceChecklistContract',
-  qa_verifier_result: 'V2QAVerifierResultContract'
+  qa_verifier_result: 'V2QAVerifierResultContract',
+  research_question: 'V2ResearchQuestionContract',
+  source_card: 'V2SourceCardContract',
+  research_pack: 'V2ResearchPackContract',
+  brain_answer: 'V2BrainAnswerContract',
+  brain_comparison: 'V2BrainComparisonContract',
+  contradiction_map: 'V2ContradictionMapContract',
+  decision_passport: 'V2DecisionPassportContract',
+  research_verifier_result: 'V2ResearchVerifierResultContract'
 });
 const V2_EVENT_TYPES = Object.freeze([
   'v2.task.created',
@@ -452,7 +470,16 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.comfort.trust_snapshot.created',
   'v2.safe_undo.snapshot_created',
   'v2.safe_undo.recovery_selected',
-  'v2.confidence.snapshot_created'
+  'v2.confidence.snapshot_created',
+  'v2.research.question.created',
+  'v2.research.source_card.created',
+  'v2.research.pack.created',
+  'v2.brain.answer.created',
+  'v2.brain.comparison.created',
+  'v2.brain.contradiction.detected',
+  'v2.decision.passport.created',
+  'v2.research.verifier.verdict',
+  'v2.research.memory_summary.created'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -7125,6 +7152,609 @@ test.describe('Terminator QA Factory safe demo', () => {
       checks,
       preview
     };
+  },
+
+  v2ContractList(value) {
+    if (Array.isArray(value)) return value.map((item) => String(item || '').trim()).filter(Boolean);
+    if (value === null || value === undefined || value === '') return [];
+    return String(value).split(/\r?\n|;/).map((item) => item.trim()).filter(Boolean);
+  },
+
+  recordV2ResearchOpsEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.research.question.created';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_research_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'researchops_brain_council',
+        resource: payload.resource || 'decision_workflow',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'researchops_brain_council',
+      resource: payload.resource || 'decision_workflow',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  createV2ResearchQuestion(input = {}) {
+    const projectId = input.project_id || 'terminator';
+    const taskId = input.task_id || 'task_researchops_brain_council_demo';
+    return this.createV2Contract('research_question', {
+      id: input.id || `v2_research_question_${taskId}`,
+      status: input.status || 'draft',
+      project_id: projectId,
+      task_id: taskId,
+      title: input.title || 'ResearchOps quality question',
+      question: input.question || 'Выбрать лучший подход для проверки формы на тестовом сайте: UI-only smoke или UI+API checks.',
+      scope: input.scope || 'Только безопасный demo-flow: manual Source Cards, ручные BrainAnswers, Verifier, Memory Search. Без внешних AI/API вызовов.',
+      expected_decision: input.expected_decision || 'Сформировать Decision Passport с рисками, источниками и первым шагом проверки.',
+      constraints: [
+        'no AI API',
+        'no external web-chat call',
+        'manual owner-assisted account verification',
+        'no credentials',
+        'no billing/payment',
+        ...(Array.isArray(input.constraints) ? input.constraints : [])
+      ],
+      confidence: input.confidence || 'draft',
+      risk_level: input.risk_level || 'low',
+      owner_assisted_required: Boolean(input.owner_assisted_required),
+      not_checked: input.not_checked || ['real external accounts are not checked by this preview'],
+      evidence_refs: input.evidence_refs || [],
+      refs: input.refs || { project_id: projectId, task_id: taskId }
+    });
+  },
+
+  createV2SourceCard(input = {}) {
+    const projectId = input.project_id || 'terminator';
+    const taskId = input.task_id || 'task_researchops_brain_council_demo';
+    const claims = this.v2ContractList(input.claims || input.claim || input.summary);
+    const limitations = this.v2ContractList(input.limitations || input.limitation);
+    const riskFlags = this.v2ContractList(input.risk_flags || input.risks);
+    return this.createV2Contract('source_card', {
+      id: input.id || `v2_source_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      status: input.status || 'ready',
+      project_id: projectId,
+      task_id: taskId,
+      title: input.title || 'Source Card',
+      source_type: input.source_type || 'manual_note',
+      source_ref: input.source_ref || 'manual://owner-note',
+      summary: input.summary || '',
+      claims,
+      limitations,
+      freshness: input.freshness || 'manual_current_context',
+      confidence: input.confidence || 'medium',
+      evidence_refs: input.evidence_refs || [],
+      risk_flags: riskFlags,
+      risk_level: input.risk_level || (riskFlags.length ? 'medium' : 'low'),
+      owner_assisted_required: Boolean(input.owner_assisted_required),
+      not_checked: input.not_checked || [],
+      refs: input.refs || { project_id: projectId, task_id: taskId, source_ref: input.source_ref || 'manual://owner-note' }
+    });
+  },
+
+  buildV2ResearchContradictions(sourceCards = []) {
+    const text = sourceCards.map((card) => `${card.summary} ${(card.claims || []).join(' ')} ${(card.risk_flags || []).join(' ')}`).join(' ').toLowerCase();
+    const contradictions = [];
+    if (/ui-only|только ui|только smoke/.test(text) && /ui\+api|api checks|api-провер/.test(text)) {
+      contradictions.push('Подход UI-only быстрее, но UI+API даёт более сильную проверку формы.');
+    }
+    sourceCards.forEach((card) => {
+      if (/(contradict|противореч|спорн|не совпад)/i.test(`${card.summary} ${(card.risk_flags || []).join(' ')}`)) {
+        contradictions.push(`${card.title}: источник содержит спорное ограничение.`);
+      }
+    });
+    return [...new Set(contradictions)];
+  },
+
+  createV2ResearchPack(researchQuestion = this.createV2ResearchQuestion(), sourceCards = []) {
+    const cards = Array.isArray(sourceCards) ? sourceCards : [];
+    const contradictions = this.buildV2ResearchContradictions(cards);
+    const gaps = [];
+    if (!cards.length) gaps.push('Нет Source Cards. Research Pack не может быть PASS.');
+    if (cards.length && !cards.some((card) => ['high', 'medium'].includes(card.confidence))) gaps.push('Нет источника хотя бы medium confidence.');
+    if (cards.some((card) => card.status !== 'ready')) gaps.push('Есть Source Card не в статусе ready.');
+    const status = !cards.length ? 'needs_sources' : gaps.length ? 'blocked' : 'ready_for_council';
+    return this.createV2Contract('research_pack', {
+      id: `v2_research_pack_${researchQuestion.task_id || 'demo'}`,
+      status,
+      project_id: researchQuestion.project_id || 'terminator',
+      task_id: researchQuestion.task_id || 'task_researchops_brain_council_demo',
+      title: 'Research Pack: UI-only smoke vs UI+API checks',
+      question: researchQuestion,
+      source_cards: cards,
+      source_card_ids: cards.map((card) => card.id),
+      source_count: cards.length,
+      gaps,
+      contradictions,
+      facts: cards.flatMap((card) => card.claims || []),
+      assumptions: [
+        'Форма тестового сайта безопасная и demo-oriented.',
+        'Backend/API contract пока owner-assisted, поэтому без контракта это не full PASS.'
+      ],
+      recommendations: cards.length
+        ? ['Использовать UI smoke как быстрый gate, добавить UI+API checks для критичных форм.', 'Первым проверить validation и contract поля API.']
+        : ['Добавить минимум две Source Cards перед Советом мозгов.'],
+      confidence: status === 'ready_for_council' ? 'medium_high' : 'low',
+      risk_level: status === 'ready_for_council' ? 'medium' : 'high',
+      owner_assisted_required: Boolean(researchQuestion.owner_assisted_required),
+      not_checked: status === 'ready_for_council' ? ['real backend/API endpoint'] : ['source evidence missing'],
+      evidence_refs: cards.flatMap((card) => card.evidence_refs || []),
+      refs: { question_id: researchQuestion.id, source_card_ids: cards.map((card) => card.id) }
+    });
+  },
+
+  createV2BrainAnswer(input = {}) {
+    const projectId = input.project_id || 'terminator';
+    const taskId = input.task_id || 'task_researchops_brain_council_demo';
+    const accountStatus = input.account_status || 'manual_required';
+    const answerText = input.answer_text || '';
+    const verified = accountStatus === 'verified_today';
+    const claims = this.v2ContractList(input.claims || answerText);
+    const risks = this.v2ContractList(input.risks || (answerText.match(/риск[^.]+/gi) || []));
+    const sourceRefs = this.v2ContractList(input.source_refs);
+    return this.createV2Contract('brain_answer', {
+      id: input.id || `v2_brain_answer_${input.role || 'role'}_${Date.now()}`,
+      status: !answerText.trim() ? 'needs_answer' : verified ? 'ready' : 'manual_required',
+      project_id: projectId,
+      task_id: taskId,
+      title: input.title || `BrainAnswer: ${input.role || 'role'}`,
+      brain_id: input.brain_id || '',
+      role: input.role || 'analyst',
+      account_status: accountStatus,
+      account_ready: verified,
+      manual_web_chat_required: !verified,
+      answer_text: answerText,
+      claims,
+      risks,
+      confidence: input.confidence || (verified ? 'medium' : 'manual_required'),
+      evidence_refs: input.evidence_refs || [],
+      source_refs: sourceRefs,
+      risk_level: input.risk_level || (verified ? 'low' : 'medium'),
+      owner_assisted_required: !verified || Boolean(input.owner_assisted_required),
+      not_checked: verified ? [] : ['external web-chat account not verified in this session'],
+      refs: { project_id: projectId, task_id: taskId, brain_id: input.brain_id || '', source_refs: sourceRefs }
+    });
+  },
+
+  compareV2BrainAnswers(answers = [], researchPack = this.createV2ResearchPack()) {
+    const list = Array.isArray(answers) ? answers : [];
+    const requiredRoles = ['strategist', 'analyst', 'critic'];
+    const answeredRoles = new Set(list.map((answer) => String(answer.role || '').toLowerCase()));
+    const missingAnswers = requiredRoles.filter((role) => !answeredRoles.has(role));
+    const text = list.map((answer) => answer.answer_text || '').join(' ').toLowerCase();
+    const agreements = [];
+    const disagreements = [];
+    if (/ui\+api|api checks/.test(text)) agreements.push('UI+API checks сильнее для критичной формы, чем один UI smoke.');
+    if (/ui-only|только ui/.test(text)) disagreements.push('UI-only smoke можно оставить как быстрый первый gate, но не как финальную проверку.');
+    const answerContradictions = [];
+    if (/ui-only[^.]+достат/i.test(text) && /ui\+api[^.]+нуж/i.test(text)) answerContradictions.push('Часть ответов считает UI-only достаточным, другая требует UI+API.');
+    const unresolvedQuestions = [
+      ...(researchPack.gaps || []),
+      ...missingAnswers.map((role) => `Нет BrainAnswer роли: ${role}`),
+      ...list.filter((answer) => answer.account_status !== 'verified_today').map((answer) => `${answer.role}: account ${answer.account_status}`)
+    ];
+    const status = missingAnswers.length || unresolvedQuestions.length ? 'needs_review' : 'ready';
+    return this.createV2Contract('brain_comparison', {
+      id: `v2_brain_comparison_${researchPack.task_id || 'demo'}`,
+      status,
+      project_id: researchPack.project_id || 'terminator',
+      task_id: researchPack.task_id || 'task_researchops_brain_council_demo',
+      title: 'Brain Council Comparison',
+      answer_ids: list.map((answer) => answer.id),
+      research_pack_id: researchPack.id,
+      agreements,
+      disagreements,
+      contradictions: [...(researchPack.contradictions || []), ...answerContradictions],
+      missing_answers: missingAnswers,
+      unresolved_questions: unresolvedQuestions,
+      confidence_summary: unresolvedQuestions.length ? 'PASS_WITH_RISKS: есть owner-assisted/manual-required элементы.' : 'PASS: роли и источники закрыты.',
+      source_support: `${researchPack.source_count || 0} Source Cards`,
+      risk_level: unresolvedQuestions.length ? 'medium' : 'low',
+      owner_assisted_required: unresolvedQuestions.some((item) => /account|owner|manual/i.test(item)),
+      not_checked: unresolvedQuestions,
+      evidence_refs: researchPack.evidence_refs || [],
+      refs: { research_pack_id: researchPack.id, answer_ids: list.map((answer) => answer.id) }
+    });
+  },
+
+  createV2ContradictionMap(comparison = {}, researchPack = {}) {
+    const contradictions = [...new Set([...(researchPack.contradictions || []), ...(comparison.contradictions || [])])];
+    const unresolved = [...(comparison.unresolved_questions || []), ...(researchPack.gaps || [])];
+    return this.createV2Contract('contradiction_map', {
+      id: `v2_contradiction_map_${comparison.task_id || researchPack.task_id || 'demo'}`,
+      status: contradictions.length || unresolved.length ? 'visible_needs_review' : 'clear',
+      project_id: comparison.project_id || researchPack.project_id || 'terminator',
+      task_id: comparison.task_id || researchPack.task_id || 'task_researchops_brain_council_demo',
+      title: 'Contradiction Map',
+      contradictions,
+      unresolved_questions: unresolved,
+      handled_by_decision: contradictions.length ? ['Decision Passport must choose UI+API for critical path and keep UI-only as smoke gate.'] : [],
+      what_to_check_first: ['Проверить validation формы и API contract на одном безопасном тестовом сценарии.'],
+      confidence: contradictions.length ? 'medium' : 'medium_high',
+      risk_level: contradictions.length || unresolved.length ? 'medium' : 'low',
+      owner_assisted_required: unresolved.some((item) => /account|owner|manual/i.test(item)),
+      not_checked: unresolved,
+      evidence_refs: researchPack.evidence_refs || [],
+      refs: { research_pack_id: researchPack.id || '', comparison_id: comparison.id || '' }
+    });
+  },
+
+  createV2DecisionPassport(input = {}) {
+    const comparison = input.comparison || {};
+    const contradictionMap = input.contradiction_map || {};
+    const researchPack = input.research_pack || {};
+    const whatToCheckFirst = this.v2ContractList(input.what_to_check_first || contradictionMap.what_to_check_first || ['Проверить validation формы и API contract на безопасном demo-case.']);
+    const risks = this.v2ContractList(input.risks || [
+      'Без backend/API contract решение остаётся PASS_WITH_RISKS.',
+      'External brain account status owner-assisted; не считать auto-ready.'
+    ]);
+    const unresolved = [...(comparison.unresolved_questions || []), ...(contradictionMap.unresolved_questions || [])];
+    return this.createV2Contract('decision_passport', {
+      id: input.id || `v2_decision_passport_${researchPack.task_id || 'demo'}`,
+      status: unresolved.length ? 'needs_review' : 'ready_for_verifier',
+      project_id: researchPack.project_id || comparison.project_id || 'terminator',
+      task_id: researchPack.task_id || comparison.task_id || 'task_researchops_brain_council_demo',
+      title: 'Decision Passport: проверка формы',
+      decision: input.decision || 'Использовать UI-only smoke как быстрый первый gate, а для принятия качества формы добавить UI+API checks.',
+      rationale: input.rationale || 'Source Cards и Совет мозгов сходятся, что один UI smoke не доказывает contract/API поведение формы.',
+      accepted_options: input.accepted_options || ['UI+API checks для критичного пути', 'UI-only smoke как быстрый smoke gate'],
+      rejected_options: input.rejected_options || ['Считать один UI-only smoke финальной проверкой'],
+      risks,
+      assumptions: input.assumptions || researchPack.assumptions || [],
+      what_to_check_first: whatToCheckFirst,
+      evidence_refs: input.evidence_refs || researchPack.evidence_refs || [],
+      source_refs: input.source_refs || researchPack.source_card_ids || [],
+      confidence: unresolved.length ? 'medium' : 'medium_high',
+      verifier_status: 'not_checked',
+      contradictions_handled: Boolean((contradictionMap.contradictions || []).length ? input.contradictions_handled !== false : true),
+      missing_answers_handled: Boolean((comparison.missing_answers || []).length ? input.missing_answers_handled === true : true),
+      risk_level: unresolved.length ? 'medium' : 'low',
+      owner_assisted_required: unresolved.some((item) => /account|owner|manual/i.test(item)),
+      not_checked: unresolved,
+      refs: { research_pack_id: researchPack.id || '', comparison_id: comparison.id || '', contradiction_map_id: contradictionMap.id || '' }
+    });
+  },
+
+  verifyV2ResearchDecision(decisionPassport = {}) {
+    const checks = [
+      { id: 'source_cards', label: 'Source Cards exist', status: (decisionPassport.source_refs || []).length ? 'PASS' : 'FAIL' },
+      { id: 'contradictions', label: 'Contradictions handled', status: decisionPassport.contradictions_handled ? 'PASS' : 'FAIL' },
+      { id: 'missing_answers', label: 'Missing BrainAnswers handled', status: decisionPassport.missing_answers_handled ? 'PASS' : 'FAIL' },
+      { id: 'risks', label: 'Risks present', status: (decisionPassport.risks || []).length ? 'PASS' : 'FAIL' },
+      { id: 'first_check', label: 'What to check first present', status: (decisionPassport.what_to_check_first || []).length ? 'PASS' : 'FAIL' },
+      { id: 'no_fake_pass', label: 'No fake PASS for owner-assisted items', status: decisionPassport.owner_assisted_required && decisionPassport.status === 'ready_for_verifier' ? 'FAIL' : 'PASS' }
+    ];
+    const hasFail = checks.some((check) => check.status === 'FAIL');
+    const hasPartial = Boolean(decisionPassport.owner_assisted_required || (decisionPassport.not_checked || []).length);
+    const verdict = hasFail ? 'NEEDS_FIX' : hasPartial ? 'PASS_WITH_RISKS' : 'PASS';
+    return this.createV2Contract('research_verifier_result', {
+      id: `v2_research_verifier_${decisionPassport.task_id || 'demo'}`,
+      status: hasFail ? 'FAIL' : hasPartial ? 'PARTIAL' : 'PASS',
+      project_id: decisionPassport.project_id || 'terminator',
+      task_id: decisionPassport.task_id || 'task_researchops_brain_council_demo',
+      title: 'Research Decision Verifier',
+      verdict,
+      checks,
+      no_fake_pass: !hasFail,
+      owner_assisted_required: Boolean(decisionPassport.owner_assisted_required),
+      not_checked: decisionPassport.not_checked || [],
+      evidence_refs: decisionPassport.evidence_refs || [],
+      refs: { decision_passport_id: decisionPassport.id || '' }
+    });
+  },
+
+  buildV2ResearchOpsMemorySummary(preview = {}) {
+    const passport = preview.decision_passport || {};
+    const memoryRecord = this.createV2Contract('memory_record', {
+      id: `v2_research_memory_${passport.task_id || 'demo'}`,
+      status: 'candidate',
+      record_type: 'researchops_brain_council_decision',
+      title: 'ResearchOps Совет мозгов Decision Passport UI+API checks форма',
+      summary: 'ResearchOps создал Source Cards, Research Pack, BrainAnswer artifacts, Comparison, Contradiction Map и Decision Passport: UI-only smoke оставить быстрым gate, UI+API checks использовать для принятия качества формы.',
+      project_id: passport.project_id || 'terminator',
+      task_id: passport.task_id || 'task_researchops_brain_council_demo',
+      source: { source_type: 'researchops_preview', source_id: passport.id || '' },
+      evidence_refs: passport.evidence_refs || [],
+      refs: { task_id: passport.task_id || 'task_researchops_brain_council_demo', decision_passport_id: passport.id || '', research_pack_id: preview.research_pack?.id || '' }
+    });
+    const memorySearchRecord = {
+      record_id: memoryRecord.id,
+      type: 'decision',
+      title: memoryRecord.title,
+      summary: memoryRecord.summary,
+      task_id: memoryRecord.task_id,
+      project_id: memoryRecord.project_id,
+      refs: memoryRecord.refs,
+      updated_at: memoryRecord.updated_at
+    };
+    const samples = {
+      researchops: this.evaluateV2MemorySearchQuery('ResearchOps', { records: [memorySearchRecord], persistEvents: false }),
+      brain_council: this.evaluateV2MemorySearchQuery('Совет мозгов', { records: [memorySearchRecord], persistEvents: false }),
+      decision_passport: this.evaluateV2MemorySearchQuery('Decision Passport', { records: [memorySearchRecord], persistEvents: false }),
+      ui_api: this.evaluateV2MemorySearchQuery('UI+API checks', { records: [memorySearchRecord], persistEvents: false }),
+      form: this.evaluateV2MemorySearchQuery('форма', { records: [memorySearchRecord], persistEvents: false })
+    };
+    return {
+      memory_record: memoryRecord,
+      samples,
+      all_queries_found: Object.values(samples).every((result) => ['exact', 'strong', 'weak'].includes(result.matchType))
+    };
+  },
+
+  buildV2ResearchOpsPreview(options = {}) {
+    const question = this.createV2ResearchQuestion(options.question || {});
+    const sourceCards = [
+      this.createV2SourceCard({
+        id: 'v2_source_ui_smoke_form',
+        project_id: question.project_id,
+        task_id: question.task_id,
+        title: 'Manual source: UI smoke быстро ловит видимые поломки формы',
+        source_type: 'manual_note',
+        source_ref: 'manual://qa-ui-smoke',
+        summary: 'UI-only smoke проверяет, что форма открывается, поля видимы и базовая валидация не ломает пользователя.',
+        claims: ['UI-only smoke полезен как быстрый первый gate.', 'UI smoke не доказывает backend/API contract.'],
+        limitations: ['Не проверяет server-side validation и API response.'],
+        confidence: 'medium',
+        risk_flags: ['Если считать UI-only smoke финальным PASS, это fake confidence.'],
+        evidence_refs: ['evd_research_ui_smoke_demo']
+      }),
+      this.createV2SourceCard({
+        id: 'v2_source_ui_api_form',
+        project_id: question.project_id,
+        task_id: question.task_id,
+        title: 'Manual source: UI+API checks сильнее для критичных форм',
+        source_type: 'manual_note',
+        source_ref: 'manual://qa-ui-api-contract',
+        summary: 'UI+API checks проверяют пользовательский поток и contract/API слой. Это дороже, но надёжнее для принятия качества формы.',
+        claims: ['UI+API checks дают более сильную приёмку формы.', 'API contract требует owner-assisted/backend input.'],
+        limitations: ['Без backend contract статус остаётся PASS_WITH_RISKS.'],
+        confidence: 'high',
+        risk_flags: ['Backend/API endpoint не проверяется без approval.'],
+        evidence_refs: ['evd_research_ui_api_demo']
+      })
+    ];
+    const researchPack = this.createV2ResearchPack(question, sourceCards);
+    const brainAnswers = [
+      this.createV2BrainAnswer({
+        id: 'v2_brain_answer_strategist_demo',
+        project_id: question.project_id,
+        task_id: question.task_id,
+        brain_id: 'demo_strategist',
+        role: 'strategist',
+        account_status: 'manual_required',
+        answer_text: 'Позиция роли: оставить UI-only smoke как быстрый gate. Лучшее решение: добавить UI+API checks для критичного пути формы. Риски: без backend contract нельзя ставить полный PASS. Что проверить первым: validation формы и API contract. Нельзя: выдавать UI-only smoke за финальную приёмку. Уверенность: medium. Итоговый verdict роли: PASS_WITH_RISKS.',
+        claims: ['UI+API checks нужны для принятия качества.', 'UI smoke остаётся быстрым первым gate.'],
+        risks: ['account manual_required', 'backend contract not checked'],
+        source_refs: researchPack.source_card_ids,
+        confidence: 'medium'
+      }),
+      this.createV2BrainAnswer({
+        id: 'v2_brain_answer_analyst_demo',
+        project_id: question.project_id,
+        task_id: question.task_id,
+        brain_id: 'demo_analyst',
+        role: 'analyst',
+        account_status: 'verified_today',
+        answer_text: 'Позиция роли: UI-only smoke покрывает доступность формы и быстрые regressions. Лучшее решение: UI+API checks для финальной уверенности. Риски: API без contract нельзя проверять автоматически. Что проверить первым: positive submit, invalid email, API validation contract. Нельзя: запускать внешние сервисы без approval. Уверенность: medium-high. Итоговый verdict роли: принять UI+API как целевой подход.',
+        claims: ['UI-only smoke good for regressions.', 'API validation contract needed.'],
+        risks: ['API contract pending'],
+        source_refs: researchPack.source_card_ids,
+        confidence: 'medium_high'
+      }),
+      this.createV2BrainAnswer({
+        id: 'v2_brain_answer_critic_demo',
+        project_id: question.project_id,
+        task_id: question.task_id,
+        brain_id: 'demo_critic',
+        role: 'critic',
+        account_status: 'manual_required',
+        answer_text: 'Позиция роли: один UI-only smoke может создать ложную уверенность. Лучшее решение: требовать evidence и Verifier, а UI+API checks запускать только в безопасном контуре. Риски: backend unavailable, owner-assisted account state, fake PASS. Что проверить первым: что Verifier не ставит PASS без source/evidence. Нельзя: подключать AI API или платные сервисы. Уверенность: medium. Итоговый verdict роли: needs_review до contract evidence.',
+        claims: ['Fake PASS is the main risk.', 'Verifier must catch missing evidence.'],
+        risks: ['fake PASS', 'missing evidence'],
+        source_refs: researchPack.source_card_ids,
+        confidence: 'medium'
+      })
+    ];
+    const comparison = this.compareV2BrainAnswers(brainAnswers, researchPack);
+    const contradictionMap = this.createV2ContradictionMap(comparison, researchPack);
+    const decisionPassport = this.createV2DecisionPassport({ research_pack: researchPack, comparison, contradiction_map: contradictionMap, contradictions_handled: true, missing_answers_handled: true });
+    const verifier = this.verifyV2ResearchDecision(decisionPassport);
+    decisionPassport.verifier_status = verifier.verdict;
+    const noSourcesPack = this.createV2ResearchPack(question, []);
+    const missingAnswerComparison = this.compareV2BrainAnswers(brainAnswers.slice(0, 2), researchPack);
+    const missingFirstCheckVerifier = this.verifyV2ResearchDecision(this.createV2DecisionPassport({
+      research_pack: researchPack,
+      comparison,
+      contradiction_map: contradictionMap,
+      what_to_check_first: [],
+      contradictions_handled: true,
+      missing_answers_handled: true
+    }));
+    const memory = this.buildV2ResearchOpsMemorySummary({ question, source_cards: sourceCards, research_pack: researchPack, brain_answers: brainAnswers, comparison, contradiction_map: contradictionMap, decision_passport: decisionPassport, verifier });
+    const events = [
+      this.recordV2ResearchOpsEvent('v2.research.question.created', { refs: { question_id: question.id, task_id: question.task_id }, message: 'Research question created.' }, { persist: options.persistEvents === true }),
+      ...sourceCards.map((card) => this.recordV2ResearchOpsEvent('v2.research.source_card.created', { refs: { source_card_id: card.id, task_id: card.task_id }, message: 'Source Card created.' }, { persist: options.persistEvents === true })),
+      this.recordV2ResearchOpsEvent('v2.research.pack.created', { refs: { research_pack_id: researchPack.id, task_id: researchPack.task_id }, message: 'Research Pack created.' }, { persist: options.persistEvents === true }),
+      ...brainAnswers.map((answer) => this.recordV2ResearchOpsEvent('v2.brain.answer.created', { refs: { brain_answer_id: answer.id, task_id: answer.task_id }, account_status: answer.account_status, message: 'BrainAnswer created.' }, { persist: options.persistEvents === true })),
+      this.recordV2ResearchOpsEvent('v2.brain.comparison.created', { refs: { comparison_id: comparison.id, task_id: comparison.task_id }, message: 'Brain comparison created.' }, { persist: options.persistEvents === true }),
+      this.recordV2ResearchOpsEvent('v2.brain.contradiction.detected', { refs: { contradiction_map_id: contradictionMap.id, task_id: contradictionMap.task_id }, count: (contradictionMap.contradictions || []).length, message: 'Contradiction map created.' }, { persist: options.persistEvents === true }),
+      this.recordV2ResearchOpsEvent('v2.decision.passport.created', { refs: { decision_passport_id: decisionPassport.id, task_id: decisionPassport.task_id }, message: 'Decision Passport created.' }, { persist: options.persistEvents === true }),
+      this.recordV2ResearchOpsEvent('v2.research.verifier.verdict', { refs: { verifier_id: verifier.id, task_id: verifier.task_id }, verdict: verifier.verdict, message: 'Research verifier verdict created.' }, { persist: options.persistEvents === true }),
+      this.recordV2ResearchOpsEvent('v2.research.memory_summary.created', { refs: { memory_record_id: memory.memory_record.id, task_id: memory.memory_record.task_id }, message: 'Research memory summary created.' }, { persist: options.persistEvents === true })
+    ];
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      feature_flags: this.getV2FeatureFlags({
+        v2ResearchOpsQualityPreviewEnabled: Boolean(options.previewEnabled),
+        v2BrainCouncilQualityPreviewEnabled: Boolean(options.previewEnabled)
+      }),
+      question,
+      source_cards: sourceCards,
+      research_pack: researchPack,
+      brain_answers: brainAnswers,
+      comparison,
+      contradiction_map: contradictionMap,
+      decision_passport: decisionPassport,
+      verifier,
+      memory,
+      negative_samples: {
+        no_sources_pack: noSourcesPack,
+        missing_brain_answer_comparison: missingAnswerComparison,
+        missing_first_check_verifier: missingFirstCheckVerifier
+      },
+      qualified_final_answer: {
+        result: 'ResearchOps + Совет мозгов сформировали проверяемое решение.',
+        decision: decisionPassport.decision,
+        evidence_source_count: researchPack.source_count,
+        confidence: decisionPassport.confidence,
+        contradictions: contradictionMap.contradictions,
+        risks: decisionPassport.risks,
+        what_to_check_first: decisionPassport.what_to_check_first,
+        next_step: 'Передать Decision Passport на владелец/Verifier и не считать backend/API закрытым без contract evidence.'
+      },
+      summary: {
+        status: verifier.verdict === 'NEEDS_FIX' ? 'FAIL' : 'PASS_WITH_RISKS',
+        source_count: sourceCards.length,
+        brain_answer_count: brainAnswers.length,
+        manual_required_count: brainAnswers.filter((answer) => answer.account_status !== 'verified_today').length,
+        contradiction_count: (contradictionMap.contradictions || []).length,
+        memory_queries_found: memory.all_queries_found,
+        no_ai_api: true,
+        no_external_web_chat_call: true,
+        no_billing: true,
+        no_fake_pass: verifier.verdict !== 'PASS' || !decisionPassport.owner_assisted_required
+      },
+      events
+    };
+  },
+
+  runV2ResearchOpsBrainCouncilSmoke(options = {}) {
+    const preview = options.preview || this.buildV2ResearchOpsPreview({ previewEnabled: true, persistEvents: false });
+    const checks = [
+      ['research_question_created', Boolean(preview.question?.id)],
+      ['two_plus_source_cards', (preview.source_cards || []).length >= 2],
+      ['research_pack_created', Boolean(preview.research_pack?.id)],
+      ['no_sources_needs_sources', preview.negative_samples?.no_sources_pack?.status === 'needs_sources'],
+      ['three_brain_answers', (preview.brain_answers || []).length >= 3],
+      ['missing_brain_answer_needs_review', preview.negative_samples?.missing_brain_answer_comparison?.status === 'needs_review'],
+      ['contradiction_visible', (preview.contradiction_map?.contradictions || []).length >= 1],
+      ['decision_passport_created', Boolean(preview.decision_passport?.id)],
+      ['missing_first_check_needs_fix', preview.negative_samples?.missing_first_check_verifier?.verdict === 'NEEDS_FIX'],
+      ['verifier_no_fake_pass', preview.verifier?.no_fake_pass === true && preview.summary.no_fake_pass === true],
+      ['memory_search_finds_demo', preview.memory?.all_queries_found === true],
+      ['manual_web_chat_required_state', (preview.brain_answers || []).some((answer) => answer.account_status === 'manual_required' && answer.status === 'manual_required')],
+      ['no_ai_api', preview.summary.no_ai_api === true],
+      ['no_external_web_chat_call', preview.summary.no_external_web_chat_call === true],
+      ['no_billing', preview.summary.no_billing === true],
+      ['events_sanitized', (preview.events || []).length >= 9]
+    ].map(([id, pass]) => ({ id, status: pass ? 'PASS' : 'FAIL' }));
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: checks.every((check) => check.status === 'PASS') ? 'PASS' : 'FAIL',
+      checks,
+      preview
+    };
+  },
+
+  renderV2ResearchOpsBrainCouncilPanel(preview = this.buildV2ResearchOpsPreview({ previewEnabled: true, persistEvents: false })) {
+    const smoke = this.runV2ResearchOpsBrainCouncilSmoke({ preview });
+    const tone = smoke.status === 'PASS' ? 'ready' : 'review';
+    const verifierLabel = preview.verifier?.verdict || 'not_checked';
+    return `
+      <section class="v2-research-council v2-research-council--${this.escapeHtml(tone)}" aria-label="ResearchOps и Совет мозгов">
+        <header class="v2-research-council-hero">
+          <div>
+            <span>P1 / ResearchOps + Совет мозгов</span>
+            <h3>Исследование превращается в решение</h3>
+            <p>Вопрос, источники, ответы мозгов, противоречия, паспорт решения, Verifier и Memory Search связаны в один проверяемый workflow.</p>
+          </div>
+          <div>
+            <span>Источник</span>
+            <strong>${this.escapeHtml(String(preview.summary.source_count))}</strong>
+            <p>Source Cards без автопоиска и без внешних API.</p>
+          </div>
+          <div>
+            <span>Verifier</span>
+            <strong>${this.escapeHtml(verifierLabel)}</strong>
+            <p>${preview.verifier?.owner_assisted_required ? 'Есть owner-assisted/manual-required пункты, поэтому не fake PASS.' : 'Проверки закрыты.'}</p>
+          </div>
+        </header>
+        <div class="v2-research-council-grid">
+          <article>
+            <span>Исследовательский пакет</span>
+            <strong>${this.escapeHtml(preview.research_pack.status)}</strong>
+            <p>${this.escapeHtml(preview.research_pack.recommendations?.[0] || 'Пакет готов к Совету.')}</p>
+          </article>
+          <article>
+            <span>Ответы мозгов</span>
+            <strong>${this.escapeHtml(String(preview.summary.brain_answer_count))}</strong>
+            <p>${this.escapeHtml(`${preview.summary.manual_required_count} требуют ручного подтверждения аккаунта.`)}</p>
+          </article>
+          <article>
+            <span>Сравнение</span>
+            <strong>${this.escapeHtml(preview.comparison.status)}</strong>
+            <p>${this.escapeHtml(preview.comparison.confidence_summary)}</p>
+          </article>
+          <article>
+            <span>Противоречия</span>
+            <strong>${this.escapeHtml(String(preview.summary.contradiction_count))}</strong>
+            <p>${this.escapeHtml(preview.contradiction_map.contradictions?.[0] || 'Критичных противоречий нет.')}</p>
+          </article>
+          <article>
+            <span>Решение</span>
+            <strong>${this.escapeHtml(preview.decision_passport.status)}</strong>
+            <p>${this.escapeHtml(preview.decision_passport.decision)}</p>
+          </article>
+          <article>
+            <span>Что проверить первым</span>
+            <strong>первый gate</strong>
+            <p>${this.escapeHtml(preview.decision_passport.what_to_check_first?.[0] || 'не задано')}</p>
+          </article>
+          <article>
+            <span>Что не проверено</span>
+            <strong>${this.escapeHtml(preview.decision_passport.not_checked?.length ? 'есть пункты' : 'нет')}</strong>
+            <p>${this.escapeHtml(this.listOrFallback(preview.decision_passport.not_checked, 'основной demo-flow закрыт'))}</p>
+          </article>
+          <article>
+            <span>Память</span>
+            <strong>${preview.memory.all_queries_found ? 'находит' : 'проверить'}</strong>
+            <p>ResearchOps, Совет мозгов, Decision Passport, UI+API checks и форма.</p>
+          </article>
+        </div>
+        <div class="v2-research-council-actions">
+          <button type="button" data-integration-action="open_head">Открыть Голову</button>
+          <button type="button" data-integration-action="open_work">Открыть Рабочее</button>
+          <button type="button" data-integration-action="open_memory">Найти в памяти</button>
+        </div>
+        <details class="v2-research-council-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            question_id: preview.question.id,
+            research_pack_id: preview.research_pack.id,
+            brain_answer_ids: preview.brain_answers.map((answer) => answer.id),
+            comparison_id: preview.comparison.id,
+            contradiction_map_id: preview.contradiction_map.id,
+            decision_passport_id: preview.decision_passport.id,
+            verifier: preview.verifier.verdict,
+            smoke: smoke.status,
+            feature_flags: preview.feature_flags
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
   },
 
   recordV2P0AcceptanceEvent(eventType, payload = {}, options = {}) {
@@ -14651,6 +15281,7 @@ test.describe('Terminator QA Factory safe demo', () => {
       ${this.renderV2SafeUndoCenterPanel()}
       ${this.renderV2ConfidenceLayerPanel()}
       ${this.renderV2QAAutotestFactoryPanel()}
+      ${this.renderV2ResearchOpsBrainCouncilPanel()}
       ${this.renderV2P0AcceptancePanel(p0Acceptance)}
       ${this.renderV2P0IntegrationGatePanel(p0Preview)}
       <section class="source-truth-panel source-truth-panel--${this.escapeHtml(truthTone)}" aria-label="Единый источник истины">
@@ -25370,6 +26001,8 @@ test.describe('Terminator QA Factory safe demo', () => {
     const synthesis = council.strategist_synthesis;
     const research = this.ensureResearchOpsState(task);
     host.innerHTML = `
+      ${this.renderV2ResearchOpsBrainCouncilPanel()}
+
       <section class="brainops-status-grid">
         <article>
           <span>Режим</span>

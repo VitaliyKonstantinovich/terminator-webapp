@@ -1,0 +1,61 @@
+{
+  "id": "v2_research_verifier_task_researchops_brain_council_demo",
+  "type": "research_verifier_result",
+  "contract_name": "V2ResearchVerifierResultContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T01:18:06.738Z",
+  "updated_at": "2026-05-31T01:18:06.738Z",
+  "status": "PARTIAL",
+  "refs": {
+    "decision_passport_id": "v2_decision_passport_task_researchops_brain_council_demo"
+  },
+  "risk_level": "low",
+  "project_id": "terminator",
+  "task_id": "task_researchops_brain_council_demo",
+  "title": "Research Decision Verifier",
+  "verdict": "PASS_WITH_RISKS",
+  "checks": [
+    {
+      "id": "source_cards",
+      "label": "Source Cards exist",
+      "status": "PASS"
+    },
+    {
+      "id": "contradictions",
+      "label": "Contradictions handled",
+      "status": "PASS"
+    },
+    {
+      "id": "missing_answers",
+      "label": "Missing BrainAnswers handled",
+      "status": "PASS"
+    },
+    {
+      "id": "risks",
+      "label": "Risks present",
+      "status": "PASS"
+    },
+    {
+      "id": "first_check",
+      "label": "What to check first present",
+      "status": "PASS"
+    },
+    {
+      "id": "no_fake_pass",
+      "label": "No fake PASS for owner-assisted items",
+      "status": "PASS"
+    }
+  ],
+  "no_fake_pass": true,
+  "owner_assisted_required": true,
+  "not_checked": [
+    "strategist: account manual_required",
+    "critic: account manual_required",
+    "strategist: account manual_required",
+    "critic: account manual_required"
+  ],
+  "evidence_refs": [
+    "evd_research_ui_smoke_demo",
+    "evd_research_ui_api_demo"
+  ]
+}
