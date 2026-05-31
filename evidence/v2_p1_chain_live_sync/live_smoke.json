@@ -1,0 +1,57 @@
+{
+  "checked_at": "2026-05-31T00:51:09.675Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "head_sha_expected": "128b695281c5261e19bd0b795f9c7d835a04d057",
+  "checks": {},
+  "routes": {
+    "system": {
+      "title": "TERMINATOR MINA UI",
+      "app_available": true,
+      "main_menu": true,
+      "qa_factory": true,
+      "comfort_trust": true,
+      "safe_undo": true,
+      "confidence_layer": true,
+      "recovery_command_center": true,
+      "memory_search": true,
+      "emergency_stop_typed_marker": false,
+      "controlled_apply_marker": true,
+      "no_mojibake": true,
+      "memory": {
+        "known_match": null,
+        "impossible_match": null,
+        "weak_match": null,
+        "has_empty_state": true,
+        "has_weak_warning": true
+      }
+    },
+    "scheme": {
+      "scheme_text": true,
+      "zone_count_by_text": 8,
+      "svg_or_dom_present": true,
+      "qa_factory_marker": true,
+      "no_mojibake": true
+    }
+  },
+  "mobile": {
+    "w390": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true,
+      "scheme_present": true,
+      "p1_markers_present": true
+    },
+    "w430": {
+      "innerWidth": 430,
+      "scrollWidth": 430,
+      "no_horizontal_overflow": true,
+      "scheme_present": true,
+      "p1_markers_present": true
+    }
+  },
+  "security": {
+    "no_ai_api_runtime_domains": true,
+    "no_visible_secret_patterns": true
+  },
+  "verdict": "PASS"
+}

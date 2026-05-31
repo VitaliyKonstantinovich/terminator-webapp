@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-05-31T00:52:26.4889065Z",
+  "pushed_commits": [
+    "a46ca62",
+    "b1455ad",
+    "128b695"
+  ],
+  "push_status": "PASS",
+  "github_pages": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/VitaliyKonstantinovich/terminator-webapp/actions/runs/26699241875",
+    "headSha": "128b695281c5261e19bd0b795f9c7d835a04d057",
+    "workflowName": "Deploy GitHub Pages"
+  },
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "qa_autotest_factory": "PASS",
+  "comfort_trust_guide": "PASS",
+  "safe_undo_center": "PASS",
+  "confidence_verification_layer": "PASS",
+  "p0_regression": "PASS_STATIC_AND_LIGHT_DOM",
+  "mobile_390_430": "PASS",
+  "owner_assisted": "real phone APK postponed until production V2 final",
+  "safety": {
+    "ai_api": "not used",
+    "secrets": "not exposed",
+    "billing": "not touched",
+    "cloudflare_github_settings": "not touched",
+    "local_agent_direct_bridge": "not touched",
+    "bluestacks_apk": "not run"
+  }
+}

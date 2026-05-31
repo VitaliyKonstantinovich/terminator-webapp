@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-05-31T00:52:25.5904144Z",
+  "branch": "main",
+  "head": "128b695281c5261e19bd0b795f9c7d835a04d057",
+  "origin_main": "128b695281c5261e19bd0b795f9c7d835a04d057",
+  "ahead_behind": "0\t0",
+  "memory_guard_summary": [
+    "Memory Guard: GREEN\r",
+    "System: total=19.88 GB free=12.65 GB pagefile=16.61 GB\r",
+    "Totals: codex_private=1.71 GB browser_private=1.72 GB bluestacks_private=0 GB\r"
+  ],
+  "commits": [
+    {
+      "sha": "a46ca62",
+      "title": "V2-P1-B Comfort Trust Guide",
+      "status": "PASS",
+      "risk": "LOW",
+      "summary": "Премиальный read-only слой доверия/комфорта; no red-zone; docs/evidence present.",
+      "files": [
+        "app.js",
+        "docs/TERMINATOR_V2_P1_B_COMFORT_TRUST_GUIDE_2026-05-30.md",
+        "evidence/v2_p1_b_comfort_trust_guide/V2_P1_B_COMFORT_TRUST_GUIDE_RESULT.md",
+        "evidence/v2_p1_b_comfort_trust_guide/chatgpt_after_v2_p1_b_response.txt",
+        "evidence/v2_p1_b_comfort_trust_guide/chatgpt_next_task_v2_p1_c_safe_undo_center.txt",
+        "evidence/v2_p1_b_comfort_trust_guide/chatgpt_product_advice_full.txt",
+        "evidence/v2_p1_b_comfort_trust_guide/comfort_trust_dom_smoke.json",
+        "evidence/v2_p1_b_comfort_trust_guide/comfort_trust_research_sources.json",
+        "styles.css"
+      ]
+    },
+    {
+      "sha": "b1455ad",
+      "title": "V2-P1-C Safe Undo Center",
+      "status": "PASS",
+      "risk": "LOW",
+      "summary": "Read-only центр безопасного восстановления; destructive actions не выполняет; docs/evidence present.",
+      "files": [
+        "app.js",
+        "docs/TERMINATOR_V2_P1_C_SAFE_UNDO_CENTER_2026-05-30.md",
+        "evidence/v2_p1_c_safe_undo_center/V2_P1_C_SAFE_UNDO_CENTER_RESULT.md",
+        "evidence/v2_p1_c_safe_undo_center/safe_undo_dom_smoke.json",
+        "evidence/v2_p1_c_safe_undo_center/safe_undo_recoverable_scenario.json",
+        "styles.css"
+      ]
+    },
+    {
+      "sha": "128b695",
+      "title": "V2-P1-D Confidence Verification Layer",
+      "status": "PASS",
+      "risk": "LOW",
+      "summary": "Слой уверенности без fake PASS; partial/unknown обозначаются честно; docs/evidence present.",
+      "files": [
+        "app.js",
+        "docs/TERMINATOR_V2_P1_D_CONFIDENCE_VERIFICATION_2026-05-30.md",
+        "evidence/v2_p1_c_safe_undo_center/chatgpt_after_v2_p1_c_response.txt",
+        "evidence/v2_p1_c_safe_undo_center/chatgpt_next_task_v2_p1_d_confidence_verification.txt",
+        "evidence/v2_p1_d_confidence_verification/V2_P1_D_CONFIDENCE_VERIFICATION_RESULT.md",
+        "evidence/v2_p1_d_confidence_verification/confidence_dom_smoke.json",
+        "styles.css"
+      ]
+    }
+  ],
+  "untracked_note": "Есть старые локальные untracked docs/evidence/screenshots/logs; в push не попадали, cleanup/delete не выполнялся."
+}

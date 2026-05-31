@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-05-31T00:52:26.4772958Z",
+  "node_check_app_js": "PASS",
+  "node_check_sw_js": "PASS",
+  "git_diff_check": "PASS",
+  "broad_policy_marker_scan": "PARTIAL_FALSE_POSITIVE_POLICY_TEXT_ONLY",
+  "real_secret_value_scan": "PASS",
+  "ai_api_runtime_scan": "PASS",
+  "red_zone_file_scan": "PASS",
+  "large_file_scan": "PASS",
+  "mina_scheme_markers": "PASS",
+  "p0_markers": "PASS",
+  "notes": [
+    "Broad scan matched policy words such as secrets/billing/.env in docs/UI copy, not actual secret values.",
+    "No .env, agent.config.json, Cloudflare/GitHub settings, Local Agent, Direct Bridge, Android, DNS/VPN/proxy files changed."
+  ]
+}
