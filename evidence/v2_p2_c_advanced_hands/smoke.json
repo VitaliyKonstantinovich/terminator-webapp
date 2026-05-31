@@ -1,0 +1,440 @@
+{
+  "status": "PASS",
+  "generated_at": "2026-05-31T04:57:15.554Z",
+  "checks": [
+    {
+      "id": "action_request_exists",
+      "status": "PASS"
+    },
+    {
+      "id": "action_plan_exists",
+      "status": "PASS"
+    },
+    {
+      "id": "dry_run_exists",
+      "status": "PASS"
+    },
+    {
+      "id": "read_metadata_allowed_preview",
+      "status": "PASS"
+    },
+    {
+      "id": "sandbox_write_with_rollback_allowed",
+      "status": "PASS"
+    },
+    {
+      "id": "no_rollback_blocked",
+      "status": "PASS"
+    },
+    {
+      "id": "active_project_mutation_approval",
+      "status": "PASS"
+    },
+    {
+      "id": "verifier_fail_blocked",
+      "status": "PASS"
+    },
+    {
+      "id": "deploy_typed_confirmation",
+      "status": "PASS"
+    },
+    {
+      "id": "push_main_typed_confirmation",
+      "status": "PASS"
+    },
+    {
+      "id": "secrets_red_zone",
+      "status": "PASS"
+    },
+    {
+      "id": "billing_owner_assisted",
+      "status": "PASS"
+    },
+    {
+      "id": "browser_click_disabled",
+      "status": "PASS"
+    },
+    {
+      "id": "openclaw_future_owner_assisted",
+      "status": "PASS"
+    },
+    {
+      "id": "evidence_records_exist",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_records_searchable",
+      "status": "PASS"
+    },
+    {
+      "id": "worker_profiles_exist",
+      "status": "PASS"
+    },
+    {
+      "id": "feature_flags_safe_preview",
+      "status": "PASS"
+    },
+    {
+      "id": "events_sanitized",
+      "status": "PASS"
+    }
+  ],
+  "local_plan": {
+    "schema_version": 1,
+    "plan_id": "HAND-MPTB5SQC-6BHH1S",
+    "task_id": "",
+    "project_id": "",
+    "title": "V2-P2-C evidence smoke",
+    "goal": "Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.",
+    "worker_id": "code_worker",
+    "worker_label": "Кодовый помощник",
+    "request_id": "HREQ-1780203433908-vw05",
+    "action_request": {
+      "id": "hands_request_1780203433908_jdxsti",
+      "type": "hands_action_request",
+      "contract_name": "V2HandsActionRequestContract",
+      "schema_version": 1,
+      "created_at": "2026-05-31T04:57:13.908Z",
+      "updated_at": "2026-05-31T04:57:13.908Z",
+      "status": "request_created",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "",
+        "source": "v2_p2_c_hands_dry_run"
+      },
+      "risk_level": "high",
+      "request_id": "HREQ-1780203433908-vw05",
+      "project_id": "terminator",
+      "task_id": "",
+      "actor": "code_worker",
+      "worker_id": "code_worker",
+      "action_type": "active_project_mutation",
+      "action": "write",
+      "resource": "active_project_files",
+      "target_resource": "active project files",
+      "target_path_optional": "",
+      "desired_outcome": "Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.",
+      "risk_hints": [],
+      "evidence_refs": [],
+      "owner_assisted_required": false,
+      "hasRollback": true,
+      "verifierStatus": "planned",
+      "required_approval": false,
+      "required_rollback": true,
+      "not_executed": true,
+      "privacy_status": "clean",
+      "privacy_summary": "clean"
+    },
+    "action_type": "active_project_mutation",
+    "action_summary": "Изменить active project: Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.",
+    "target_resource": "active project files",
+    "target_path_optional": "",
+    "affected_resources": [
+      "active project files"
+    ],
+    "required_capabilities": [
+      "diff review",
+      "rollback point",
+      "owner approval"
+    ],
+    "required_evidence": [
+      "diff summary",
+      "rollback point",
+      "approval"
+    ],
+    "required_verifier_status": "verifier note required before apply",
+    "required_approval": true,
+    "required_typed_phrase": "",
+    "owner_assisted_required": false,
+    "risk_level": "dangerous",
+    "status": "approval_required",
+    "safe_steps": [
+      "Проверить цель действия и затрагиваемые ресурсы.",
+      "Запустить dry-run без выполнения.",
+      "Показать блокировки, Approval и rollback условия.",
+      "Создать evidence record и memory summary.",
+      "Остановиться до отдельного решения владельца."
+    ],
+    "blocked_actions": [],
+    "approval_required": true,
+    "approval_id": "APPROVAL-MPTB5SQH-1K7W33",
+    "controlled_runtime_action": "readiness_snapshot",
+    "controlled_runtime_status": "not_started",
+    "controlled_runtime_run_ids": [],
+    "verifier_required": true,
+    "verifier_status": "planned",
+    "rollback_required": true,
+    "required_rollback": true,
+    "rollback_plan": "Перед будущим apply создать restore/rollback point affected refs; без rollback gate блокирует действие.",
+    "owner_assisted_flags": [],
+    "forbidden_actions": [
+      "real execution in V2-P2-C"
+    ],
+    "safety_notes": [
+      "Изменение проекта требует подтверждения владельца.",
+      "Действие не выполнялось."
+    ],
+    "not_executed_reason": "V2-P2-C — только планирование и dry-run. Реальное выполнение отключено.",
+    "not_executed": true,
+    "execution_allowed": false,
+    "execution_result": "not_executed",
+    "dry_run_result": {
+      "id": "hands_dry_run_1780203433909_nw8yr8",
+      "type": "hands_dry_run_result",
+      "contract_name": "V2HandsDryRunResultContract",
+      "schema_version": 1,
+      "created_at": "2026-05-31T04:57:13.909Z",
+      "updated_at": "2026-05-31T04:57:13.909Z",
+      "status": "approval_required",
+      "refs": {
+        "plan_id": "HAND-MPTB5SQD-3V4RU9",
+        "request_id": "HREQ-1780203433908-vw05",
+        "task_id": "",
+        "project_id": "terminator"
+      },
+      "risk_level": "high",
+      "dry_run_id": "HDRY-MPTB5SQD-WDJJCM",
+      "project_id": "terminator",
+      "task_id": "",
+      "actor": "codex_repair",
+      "action_type": "active_project_mutation",
+      "target_resource": "active project files",
+      "required_approval": true,
+      "required_typed_phrase": "",
+      "required_rollback": true,
+      "owner_assisted_required": false,
+      "not_executed": true,
+      "safety_verdict": "approval_required",
+      "capability_verdict": "approval_required",
+      "controlled_apply_verdict": "approval_required_before_apply",
+      "rollback_status": "available_for_future_apply",
+      "verifier_requirement": "Verifier note required before future apply",
+      "evidence_requirement": "evidence record required",
+      "user_message": "Дальше нельзя без подтверждения владельца, Verifier и rollback/evidence.",
+      "expert_details": {
+        "safety": {
+          "schema_version": 1,
+          "evaluated_at": "2026-05-31T04:57:13.909Z",
+          "actor": "codex_repair",
+          "action": "write",
+          "resource": "active_project_files",
+          "target": "active project files",
+          "verdict": "approval_required",
+          "riskLevel": "high",
+          "risk_level": "high",
+          "reason": "Active project mutation requires owner approval.",
+          "requiredApproval": true,
+          "requiredTypedPhrase": "",
+          "requiredRollback": true,
+          "evidenceRequired": true,
+          "userMessage": "Изменение проекта требует подтверждения владельца.",
+          "expertDetails": {
+            "actor": "codex_repair",
+            "action": "write",
+            "normalized_action": "write",
+            "resource": "active_project_files",
+            "target": "active project files",
+            "hasRollback": true,
+            "verifierStatus": "planned",
+            "ownerDecision": "not_requested",
+            "riskHints": [],
+            "baseCapability": {
+              "schema_version": 1,
+              "actor": "codex_repair",
+              "resource": "active_project_files",
+              "action": "write",
+              "verdict": "approval_required",
+              "risk_level": "high",
+              "reason": "Mutable/high-risk resource requires approval.",
+              "requires_approval": true,
+              "typed_confirmation_required": false,
+              "rollback_required": true,
+              "evidence_required": true
+            }
+          }
+        },
+        "policy": {
+          "actor": "codex_repair",
+          "worker_id": "code_worker",
+          "action": "write",
+          "resource": "active_project_files",
+          "risk_level": "approval_required",
+          "target_resource": "active project files",
+          "hasRollback": true,
+          "verifierStatus": "planned",
+          "required_capabilities": [
+            "diff review",
+            "rollback point",
+            "owner approval"
+          ],
+          "affected_resources": [
+            "active project files"
+          ],
+          "required_evidence": [
+            "diff summary",
+            "rollback point",
+            "approval"
+          ],
+          "expected_dry_run_status": "approval_required"
+        },
+        "request_id": "HREQ-1780203433908-vw05",
+        "plan_id": "HAND-MPTB5SQD-3V4RU9",
+        "forced_block_reason": "",
+        "future_disabled": false
+      }
+    },
+    "verifier_note": {
+      "id": "hands_verifier_note_1780203433909_h4x0be",
+      "type": "hands_verifier_note",
+      "contract_name": "V2HandsVerifierNoteContract",
+      "schema_version": 1,
+      "created_at": "2026-05-31T04:57:13.909Z",
+      "updated_at": "2026-05-31T04:57:13.909Z",
+      "status": "PASS_WITH_RISKS",
+      "refs": {
+        "plan_id": "HAND-MPTB5SQD-3V4RU9",
+        "request_id": "HREQ-1780203433908-vw05",
+        "task_id": "",
+        "project_id": "terminator",
+        "dry_run_id": "HDRY-MPTB5SQD-WDJJCM"
+      },
+      "risk_level": "high",
+      "verifier_note_id": "HVER-MPTB5SQD-3WKXZI",
+      "project_id": "terminator",
+      "task_id": "",
+      "actor": "verifier",
+      "action_type": "active_project_mutation",
+      "target_resource": "active project files",
+      "required_approval": true,
+      "required_rollback": true,
+      "owner_assisted_required": false,
+      "not_executed": true,
+      "checked": [
+        "action request",
+        "capability matrix",
+        "Safety Core verdict",
+        "rollback requirement",
+        "approval requirement",
+        "red-zone boundaries",
+        "not executed proof"
+      ],
+      "not_checked": [
+        "real apply",
+        "real browser/system worker execution",
+        "production rollback",
+        "external services"
+      ],
+      "risks": [
+        "Дальше нельзя без подтверждения владельца, Verifier и rollback/evidence.",
+        "Без rollback future apply блокируется."
+      ],
+      "check_first": "Не продолжать без устранения блокера / Approval / owner-assisted проверки."
+    },
+    "evidence_record": {
+      "id": "hands_evidence_1780203433909_77nata",
+      "type": "hands_evidence_record",
+      "contract_name": "V2HandsEvidenceRecordContract",
+      "schema_version": 1,
+      "created_at": "2026-05-31T04:57:13.909Z",
+      "updated_at": "2026-05-31T04:57:13.909Z",
+      "status": "recorded",
+      "refs": {
+        "request_id": "HREQ-1780203433908-vw05",
+        "plan_id": "HAND-MPTB5SQC-6BHH1S",
+        "dry_run_id": "HDRY-MPTB5SQD-WDJJCM",
+        "verifier_note_id": "HVER-MPTB5SQD-3WKXZI",
+        "task_id": "",
+        "project_id": "terminator"
+      },
+      "risk_level": "high",
+      "evidence_id": "HEVD-MPTB5SQD-7BH6CR",
+      "project_id": "terminator",
+      "task_id": "",
+      "actor": "hands",
+      "action_type": "active_project_mutation",
+      "target_resource": "active project files",
+      "required_approval": true,
+      "required_rollback": true,
+      "owner_assisted_required": false,
+      "not_executed": true,
+      "claim": "Доказательство фиксирует только план и dry-run. Реальное действие не выполнялось.",
+      "action_request_ref": "HREQ-1780203433908-vw05",
+      "action_plan_ref": "HAND-MPTB5SQC-6BHH1S",
+      "dry_run_ref": "HDRY-MPTB5SQD-WDJJCM",
+      "verifier_note_ref": "HVER-MPTB5SQD-3WKXZI",
+      "safety_verdict": "approval_required",
+      "dry_run_status": "approval_required",
+      "next_step": "Дальше нельзя без подтверждения владельца, Verifier и rollback/evidence."
+    },
+    "memory_record": {
+      "id": "hands_memory_1780203433909_zfdn96",
+      "type": "memory_record",
+      "contract_name": "V2MemoryRecordContract",
+      "schema_version": 1,
+      "created_at": "2026-05-31T04:57:13.909Z",
+      "updated_at": "2026-05-31T04:57:13.909Z",
+      "status": "candidate",
+      "refs": {
+        "plan_id": "HAND-MPTB5SQC-6BHH1S",
+        "request_id": "HREQ-1780203433908-vw05",
+        "dry_run_id": "HDRY-MPTB5SQD-WDJJCM",
+        "verifier_note_id": "HVER-MPTB5SQD-3WKXZI",
+        "task_id": "",
+        "project_id": "terminator"
+      },
+      "risk_level": "high",
+      "memory_id": "HMEM-MPTB5SQD-69G4NR",
+      "title": "Hands dry run: Изменить active project",
+      "summary": "План действия создан как dry-run. Статус: approval_required. not executed: yes. approval required. rollback required before apply. Не продолжать без устранения блокера / Approval / owner-assisted проверки.",
+      "project_id": "terminator",
+      "task_id": "",
+      "keywords": [
+        "Hands dry run",
+        "План действия",
+        "rollback required",
+        "not executed",
+        "approval required",
+        "active_project_mutation"
+      ]
+    },
+    "dry_run_status": "approval_required",
+    "safety_verdict": "approval_required",
+    "capability_verdict": "approval_required",
+    "controlled_apply_verdict": "approval_required_before_apply",
+    "artifact_id": "",
+    "privacy_status": "clean",
+    "privacy_summary": "clean",
+    "created_at": "2026-05-31T04:57:13.908Z",
+    "updated_at": "2026-05-31T04:57:13.913Z"
+  },
+  "static_checks": {
+    "syntax_app": "PASS (node --check app.js)",
+    "syntax_sw": "PASS (node --check sw.js)",
+    "local_dom": "PASS",
+    "mobile_390": "PASS",
+    "mobile_430": "PASS",
+    "real_actions_executed": "NO",
+    "ai_api": "not used",
+    "secrets": "not exposed",
+    "billing": "not touched"
+  },
+  "preview_summary": {
+    "sample_count": 15,
+    "safety_summary": {
+      "not_executed_all": true,
+      "red_zone_blocked": true,
+      "approval_required": true,
+      "blocked": true,
+      "owner_assisted": true
+    },
+    "qualified_answer": {
+      "result": "Руки подготовили dry-run foundation.",
+      "plan": "Action request -> action plan -> dry-run -> verifier note -> evidence -> memory summary.",
+      "status": "real actions disabled",
+      "affected": "только browser/localStorage metadata и demo evidence; active project не менялся",
+      "blocked": "deploy, push, delete, secrets, billing, network, browser profiles, browser click, OpenClaw execution",
+      "required": "future apply requires Verifier, rollback and Approval",
+      "next_step": "Проверить UI, smoke и Memory Search по Hands dry run."
+    }
+  }
+}

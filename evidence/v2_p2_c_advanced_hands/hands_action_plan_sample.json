@@ -1,0 +1,119 @@
+{
+  "id": "HAND-SAMPLE-create_sandbox_file_plan",
+  "type": "hands_action_plan",
+  "contract_name": "V2HandsActionPlanContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T04:57:13.904Z",
+  "updated_at": "2026-05-31T04:57:13.904Z",
+  "status": "plan_ready",
+  "refs": {
+    "request_id": "HREQ-1780203433904-2648",
+    "task_id": "TASK-V2-P2-C",
+    "project_id": "terminator"
+  },
+  "risk_level": "approval_required",
+  "plan_id": "HAND-SAMPLE-create_sandbox_file_plan",
+  "request_id": "HREQ-1780203433904-2648",
+  "action_request": {
+    "id": "hands_request_1780203433904_fdybz5",
+    "type": "hands_action_request",
+    "contract_name": "V2HandsActionRequestContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.904Z",
+    "updated_at": "2026-05-31T04:57:13.904Z",
+    "status": "request_created",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "TASK-V2-P2-C",
+      "source": "v2_p2_c_hands_dry_run"
+    },
+    "risk_level": "medium",
+    "request_id": "HREQ-1780203433904-2648",
+    "project_id": "terminator",
+    "task_id": "TASK-V2-P2-C",
+    "actor": "code_worker",
+    "worker_id": "code_worker",
+    "action_type": "create_sandbox_file_plan",
+    "action": "write",
+    "resource": "repair_workspace",
+    "target_resource": "sandbox file plan",
+    "target_path_optional": "",
+    "desired_outcome": "Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.",
+    "risk_hints": [],
+    "evidence_refs": [
+      "sample-evidence-ref"
+    ],
+    "owner_assisted_required": false,
+    "hasRollback": true,
+    "verifierStatus": "planned",
+    "required_approval": false,
+    "required_rollback": false,
+    "not_executed": true,
+    "privacy_status": "clean",
+    "privacy_summary": "clean"
+  },
+  "project_id": "terminator",
+  "task_id": "TASK-V2-P2-C",
+  "actor": "code_worker",
+  "worker_id": "code_worker",
+  "action_type": "create_sandbox_file_plan",
+  "action": "write",
+  "target_resource": "sandbox file plan",
+  "target_path_optional": "",
+  "action_summary": "План sandbox-файла: Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.",
+  "title": "План действия: План sandbox-файла",
+  "goal": "Подготовить план действия для исправления тестового файла, но ничего не применять без rollback, Verifier и Approval.",
+  "steps": [
+    "Зафиксировать цель и затрагиваемые ресурсы.",
+    "Проверить capability matrix и Safety Core.",
+    "Выполнить только dry-run: никаких файлов, deploy, push, delete, cookies, billing и сетевых настроек.",
+    "Rollback не нужен для read-only preview, но future apply всё равно проверяется.",
+    "Передать план в Verifier и показать владельцу следующий безопасный шаг."
+  ],
+  "safe_steps": [
+    "Проверить цель действия и затрагиваемые ресурсы.",
+    "Запустить dry-run без выполнения.",
+    "Показать блокировки, Approval и rollback условия.",
+    "Создать evidence record и memory summary.",
+    "Остановиться до отдельного решения владельца."
+  ],
+  "affected_resources": [
+    "sandbox/repair workspace"
+  ],
+  "required_capabilities": [
+    "prepare plan",
+    "diff preview"
+  ],
+  "required_evidence": [
+    "planned file ref",
+    "diff summary"
+  ],
+  "required_verifier_status": "verifier note required before apply",
+  "required_rollback": false,
+  "required_approval": false,
+  "required_typed_phrase": "",
+  "owner_assisted_required": false,
+  "forbidden_actions": [
+    "real execution in V2-P2-C"
+  ],
+  "blocked_actions": [
+    "real execution in V2-P2-C"
+  ],
+  "safety_notes": [
+    "Можно работать в ремонтной папке, active project не трогаем.",
+    "Действие не выполнялось."
+  ],
+  "owner_assisted_flags": [],
+  "not_executed_reason": "V2-P2-C — только планирование и dry-run. Реальное выполнение отключено.",
+  "not_executed": true,
+  "approval_required": false,
+  "verifier_required": true,
+  "verifier_status": "planned",
+  "rollback_required": false,
+  "rollback_plan": "Для этого preview rollback не требуется, потому что выполнение не запускается.",
+  "execution_allowed": false,
+  "execution_result": "not_executed",
+  "safety_verdict": "allow_with_warning",
+  "capability_verdict": "allow_with_warning",
+  "controlled_apply_verdict": "not_executed_preview"
+}

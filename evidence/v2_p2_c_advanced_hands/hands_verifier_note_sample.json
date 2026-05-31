@@ -1,0 +1,46 @@
+{
+  "id": "HVER-SAMPLE-create_sandbox_file_plan",
+  "type": "hands_verifier_note",
+  "contract_name": "V2HandsVerifierNoteContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T04:57:13.904Z",
+  "updated_at": "2026-05-31T04:57:13.904Z",
+  "status": "PASS_WITH_RISKS",
+  "refs": {
+    "plan_id": "HAND-SAMPLE-create_sandbox_file_plan",
+    "request_id": "HREQ-1780203433904-2648",
+    "task_id": "TASK-V2-P2-C",
+    "project_id": "terminator",
+    "dry_run_id": "HDRY-SAMPLE-create_sandbox_file_plan"
+  },
+  "risk_level": "medium",
+  "verifier_note_id": "HVER-SAMPLE-create_sandbox_file_plan",
+  "project_id": "terminator",
+  "task_id": "TASK-V2-P2-C",
+  "actor": "verifier",
+  "action_type": "create_sandbox_file_plan",
+  "target_resource": "sandbox file plan",
+  "required_approval": false,
+  "required_rollback": false,
+  "owner_assisted_required": false,
+  "not_executed": true,
+  "checked": [
+    "action request",
+    "capability matrix",
+    "Safety Core verdict",
+    "rollback requirement",
+    "approval requirement",
+    "red-zone boundaries",
+    "not executed proof"
+  ],
+  "not_checked": [
+    "real apply",
+    "real browser/system worker execution",
+    "production rollback",
+    "external services"
+  ],
+  "risks": [
+    "План безопасен только как preview."
+  ],
+  "check_first": "Проверить affected resources и evidence перед любым будущим apply."
+}

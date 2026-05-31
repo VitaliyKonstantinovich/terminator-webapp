@@ -1,11 +1,11 @@
-const MINA_CACHE = 'terminator-mina-pwa-20260530-mina-scheme-visual-v1';
+const MINA_CACHE = 'terminator-mina-pwa-20260530-v2-p2-c-advanced-hands-v1';
 const HTML_FALLBACK = './index.html';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './styles.css?v=20260530-mina-scheme-visual-v1',
-  './app.js?v=20260530-mina-scheme-visual-v1',
+  './styles.css?v=20260530-v2-p2-c-advanced-hands-v1',
+  './app.js?v=20260530-v2-p2-c-advanced-hands-v1',
   './manifest.webmanifest',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',

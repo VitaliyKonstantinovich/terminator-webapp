@@ -10387,7 +10387,7 @@ button:not(:disabled) {
 
 .hands-form-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) repeat(3, minmax(160px, 0.34fr));
+  grid-template-columns: minmax(220px, 1fr) repeat(4, minmax(150px, 0.34fr));
   gap: 12px;
 }
 
@@ -10403,12 +10403,18 @@ button:not(:disabled) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.hands-worker-grid article {
+.hands-worker-grid article,
+.hands-preview-gate,
+.hands-dry-run,
+.hands-verifier-panel {
   padding: 12px;
   border-radius: 8px;
 }
 
-.hands-worker-grid strong {
+.hands-worker-grid strong,
+.hands-preview-gate strong,
+.hands-dry-run strong,
+.hands-verifier-panel strong {
   display: block;
   margin: 5px 0;
   color: #5ff2ff;
@@ -10416,9 +10422,76 @@ button:not(:disabled) {
 }
 
 .hands-worker-grid p,
-.hands-plan p {
+.hands-plan p,
+.hands-preview-gate p,
+.hands-dry-run p,
+.hands-verifier-panel p {
   margin: 0;
   color: #c6ddff;
+  line-height: 1.36;
+}
+
+.hands-preview-gate,
+.hands-dry-run,
+.hands-verifier-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border: 1px solid rgba(95, 242, 255, 0.28);
+  background:
+    radial-gradient(circle at 10% 12%, rgba(95, 242, 255, 0.12), transparent 30%),
+    rgba(2, 19, 45, 0.82);
+}
+
+.hands-preview-gate {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  align-items: center;
+}
+
+.hands-preview-gate--pass,
+.hands-dry-run--allowed_preview,
+.hands-verifier-panel--PASS_WITH_RISKS,
+.hands-verifier-panel--PASS {
+  border-color: rgba(0, 246, 162, 0.42);
+}
+
+.hands-dry-run--approval_required,
+.hands-dry-run--owner_assisted_required {
+  border-color: rgba(255, 212, 92, 0.54);
+}
+
+.hands-dry-run--blocked,
+.hands-dry-run--red_zone_stop,
+.hands-verifier-panel--FAIL {
+  border-color: rgba(255, 76, 112, 0.6);
+}
+
+.hands-dry-run {
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.hands-dry-run b {
+  align-self: center;
+  justify-self: end;
+  color: #ffe49c;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.hands-verifier-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hands-worker-grid--advanced .hands-worker-card--future_disabled,
+.hands-worker-grid--advanced .hands-worker-card--restricted_owner_assisted {
+  border-color: rgba(255, 212, 92, 0.4);
+}
+
+.hands-worker-grid small {
+  display: block;
+  color: #9cc8eb;
   line-height: 1.36;
 }
 
@@ -10887,6 +10960,8 @@ button:not(:disabled) {
   .eyes-record,
   .eyes-form-grid,
   .hands-form-grid,
+  .hands-preview-gate,
+  .hands-verifier-panel,
   .hands-plan,
   .hands-worker-grid,
   .controlled-runtime-grid,

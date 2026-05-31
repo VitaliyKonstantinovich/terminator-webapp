@@ -1,0 +1,197 @@
+[
+  {
+    "id": "worker_profile_file_worker",
+    "type": "worker_capability_profile",
+    "contract_name": "V2WorkerCapabilityProfileContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.906Z",
+    "updated_at": "2026-05-31T04:57:13.906Z",
+    "status": "preview_ready",
+    "refs": {
+      "worker_id": "file_worker",
+      "component": "advanced_hands"
+    },
+    "risk_level": "medium",
+    "actor": "file_worker",
+    "action_type": "capability_profile",
+    "target_resource": "worker_capability_matrix",
+    "required_approval": false,
+    "required_rollback": false,
+    "owner_assisted_required": false,
+    "not_executed": true,
+    "worker_id": "file_worker",
+    "display_name": "File Worker Preview",
+    "allowed": [
+      "read metadata",
+      "create evidence summary",
+      "calculate hash placeholder/sample"
+    ],
+    "forbidden": [
+      "delete",
+      "overwrite",
+      "move",
+      "cleanup"
+    ]
+  },
+  {
+    "id": "worker_profile_code_worker",
+    "type": "worker_capability_profile",
+    "contract_name": "V2WorkerCapabilityProfileContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.906Z",
+    "updated_at": "2026-05-31T04:57:13.906Z",
+    "status": "preview_ready",
+    "refs": {
+      "worker_id": "code_worker",
+      "component": "advanced_hands"
+    },
+    "risk_level": "high",
+    "actor": "code_worker",
+    "action_type": "capability_profile",
+    "target_resource": "worker_capability_matrix",
+    "required_approval": false,
+    "required_rollback": false,
+    "owner_assisted_required": false,
+    "not_executed": true,
+    "worker_id": "code_worker",
+    "display_name": "Code Worker Preview",
+    "allowed": [
+      "syntax check plan",
+      "test plan",
+      "diff review plan"
+    ],
+    "forbidden": [
+      "mutate active project without approval/rollback",
+      "push",
+      "deploy"
+    ]
+  },
+  {
+    "id": "worker_profile_memory_worker",
+    "type": "worker_capability_profile",
+    "contract_name": "V2WorkerCapabilityProfileContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.906Z",
+    "updated_at": "2026-05-31T04:57:13.906Z",
+    "status": "preview_ready",
+    "refs": {
+      "worker_id": "memory_worker",
+      "component": "advanced_hands"
+    },
+    "risk_level": "medium",
+    "actor": "memory_worker",
+    "action_type": "capability_profile",
+    "target_resource": "worker_capability_matrix",
+    "required_approval": false,
+    "required_rollback": false,
+    "owner_assisted_required": false,
+    "not_executed": true,
+    "worker_id": "memory_worker",
+    "display_name": "Memory Worker Preview",
+    "allowed": [
+      "index health check plan",
+      "reindex proposal",
+      "search evidence"
+    ],
+    "forbidden": [
+      "index secrets",
+      "destructive cleanup"
+    ]
+  },
+  {
+    "id": "worker_profile_browser_worker",
+    "type": "worker_capability_profile",
+    "contract_name": "V2WorkerCapabilityProfileContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.906Z",
+    "updated_at": "2026-05-31T04:57:13.906Z",
+    "status": "future_disabled",
+    "refs": {
+      "worker_id": "browser_worker",
+      "component": "advanced_hands"
+    },
+    "risk_level": "high",
+    "actor": "browser_worker",
+    "action_type": "capability_profile",
+    "target_resource": "worker_capability_matrix",
+    "required_approval": true,
+    "required_rollback": false,
+    "owner_assisted_required": false,
+    "not_executed": true,
+    "worker_id": "browser_worker",
+    "display_name": "Browser Worker Preview",
+    "allowed": [
+      "future visual QA plan only"
+    ],
+    "forbidden": [
+      "autoclick",
+      "form submit",
+      "cookies",
+      "browser profiles"
+    ]
+  },
+  {
+    "id": "worker_profile_system_worker",
+    "type": "worker_capability_profile",
+    "contract_name": "V2WorkerCapabilityProfileContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.906Z",
+    "updated_at": "2026-05-31T04:57:13.906Z",
+    "status": "restricted_owner_assisted",
+    "refs": {
+      "worker_id": "system_worker",
+      "component": "advanced_hands"
+    },
+    "risk_level": "high",
+    "actor": "system_worker",
+    "action_type": "capability_profile",
+    "target_resource": "worker_capability_matrix",
+    "required_approval": true,
+    "required_rollback": false,
+    "owner_assisted_required": true,
+    "not_executed": true,
+    "worker_id": "system_worker",
+    "display_name": "System Worker Preview",
+    "allowed": [
+      "health/status plan",
+      "read-only diagnostics summary"
+    ],
+    "forbidden": [
+      "OS settings",
+      "network",
+      "process kill",
+      "Local Agent stop/restart unless explicitly scoped"
+    ]
+  },
+  {
+    "id": "worker_profile_external_adapter_candidate",
+    "type": "worker_capability_profile",
+    "contract_name": "V2WorkerCapabilityProfileContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T04:57:13.906Z",
+    "updated_at": "2026-05-31T04:57:13.906Z",
+    "status": "future_disabled",
+    "refs": {
+      "worker_id": "external_adapter_candidate",
+      "component": "advanced_hands"
+    },
+    "risk_level": "high",
+    "actor": "external_adapter_candidate",
+    "action_type": "capability_profile",
+    "target_resource": "worker_capability_matrix",
+    "required_approval": true,
+    "required_rollback": false,
+    "owner_assisted_required": false,
+    "not_executed": true,
+    "worker_id": "external_adapter_candidate",
+    "display_name": "External Adapter Preview / OpenClaw",
+    "allowed": [
+      "future sandbox candidate after audit"
+    ],
+    "forbidden": [
+      "real execution",
+      "external account actions",
+      "autonomous control"
+    ]
+  }
+]
