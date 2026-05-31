@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-05-31T02:40:15.568Z",
+  "routes": [
+    {
+      "id": "create_task",
+      "action": "use_case:create_task",
+      "expected_screen": "work",
+      "actual_screen": "work",
+      "selector": "#screen-work.active",
+      "selector_found": true,
+      "dangerous_action_executed": false,
+      "error": "",
+      "status": "PASS"
+    },
+    {
+      "id": "qa_autotest",
+      "action": "use_case:qa_autotest",
+      "expected_screen": "system",
+      "actual_screen": "system",
+      "selector": ".v2-qa-factory",
+      "selector_found": true,
+      "dangerous_action_executed": false,
+      "error": "",
+      "status": "PASS"
+    },
+    {
+      "id": "research_council",
+      "action": "use_case:research_council",
+      "expected_screen": "system",
+      "actual_screen": "system",
+      "selector": ".v2-research-council",
+      "selector_found": true,
+      "dangerous_action_executed": false,
+      "error": "",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_search",
+      "action": "use_case:memory_search",
+      "expected_screen": "system",
+      "actual_screen": "system",
+      "selector": "#system-memory-search-panel",
+      "selector_found": true,
+      "dangerous_action_executed": false,
+      "error": "",
+      "status": "PASS"
+    },
+    {
+      "id": "recovery",
+      "action": "use_case:recovery",
+      "expected_screen": "system",
+      "actual_screen": "system",
+      "selector": "#system-diagnostics",
+      "selector_found": true,
+      "dangerous_action_executed": false,
+      "error": "",
+      "status": "PASS"
+    },
+    {
+      "id": "unknown_route",
+      "action": "unknown_route_qatest",
+      "expected": "safe message / no crash",
+      "error": "",
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS"
+}

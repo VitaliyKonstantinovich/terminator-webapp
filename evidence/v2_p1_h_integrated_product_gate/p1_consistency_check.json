@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-05-31T02:40:15.568Z",
+  "checks": [
+    {
+      "id": "product_shell_no_overclaim",
+      "status": "PASS",
+      "note": "Product Shell does not claim total readiness."
+    },
+    {
+      "id": "qa_backend_api_partial",
+      "status": "PASS",
+      "note": "QA backend/API unknown remains PARTIAL."
+    },
+    {
+      "id": "brain_account_owner_assisted",
+      "status": "PASS",
+      "note": "External brain account readiness remains manual/owner-assisted."
+    },
+    {
+      "id": "confidence_honest",
+      "status": "PASS",
+      "note": "Confidence layer is read-only and does not fake PASS."
+    },
+    {
+      "id": "safe_undo_no_production_rollback_claim",
+      "status": "PASS",
+      "note": "Safe Undo does not claim direct production rollback."
+    },
+    {
+      "id": "owner_assisted_postponed_separate",
+      "status": "PASS",
+      "note": "Owner-assisted and postponed are separate."
+    },
+    {
+      "id": "real_phone_not_blocker",
+      "status": "PASS",
+      "note": "Real phone APK is owner-assisted/postponed, not current blocker."
+    }
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-05-31T02:40:08.419Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-h-integrated-gate-1780195195642",
+  "modules": {
+    "qa_autotest_factory": {
+      "status": "PASS",
+      "panel_exists": true,
+      "test_request": true,
+      "test_plan": true,
+      "test_cases": 8,
+      "skeleton": true,
+      "evidence_checklist": 7,
+      "verifier": "PARTIAL",
+      "memory_integration": true,
+      "backend_api_partial": true
+    },
+    "comfort_trust_guide": {
+      "status": "PASS",
+      "title": "Проводник Мины",
+      "ordinary_copy": true,
+      "no_technical_junk": true
+    },
+    "safe_undo_center": {
+      "status": "PASS",
+      "preview_exists": true,
+      "no_destructive_action": true,
+      "owner_assisted_or_blocked_separated": true,
+      "recoverable_count": 0
+    },
+    "confidence_verification_layer": {
+      "status": "PASS",
+      "confidence_visible": true,
+      "honest_unknown_partial": true,
+      "no_fake_pass": true
+    },
+    "researchops_brain_council": {
+      "status": "PASS",
+      "research_question": true,
+      "source_cards": 2,
+      "brain_answers": 3,
+      "comparison": true,
+      "contradiction_map": true,
+      "decision_passport": true,
+      "verifier": "PARTIAL",
+      "memory_summary": true,
+      "manual_required": true
+    },
+    "product_shell": {
+      "status": "PASS",
+      "use_cases": 5,
+      "quick_start": 5,
+      "help_cards": 8,
+      "demo_mode_safe": true,
+      "owner_assisted_separated": true,
+      "postponed_separated": true
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-05-31T02:40:15.568Z",
+  "scenario": "Пользователь хочет проверить тестовый сайт и выбрать стратегию автотеста.",
+  "steps": [
+    {
+      "id": "product_shell_opens",
+      "status": "PASS",
+      "evidence": "Product Shell smoke PASS"
+    },
+    {
+      "id": "select_qa_factory",
+      "status": "PASS",
+      "evidence": "Product Shell route to QA Autotest Factory"
+    },
+    {
+      "id": "qa_creates_plan_skeleton",
+      "status": "PASS",
+      "evidence": "QA preview generated plan, cases and skeleton"
+    },
+    {
+      "id": "select_research",
+      "status": "PASS",
+      "evidence": "Product Shell route to ResearchOps"
+    },
+    {
+      "id": "research_creates_decision_passport",
+      "status": "PASS",
+      "evidence": "ResearchOps preview generated decision artifacts"
+    },
+    {
+      "id": "confidence_honest",
+      "status": "PASS",
+      "evidence": "Confidence snapshot read-only and visible"
+    },
+    {
+      "id": "memory_finds_results",
+      "status": "PASS",
+      "evidence": "QA and Research memory samples available"
+    },
+    {
+      "id": "recovery_available",
+      "status": "PASS",
+      "evidence": "Recovery / Safe Undo snapshot available"
+    },
+    {
+      "id": "final_answer_qualified",
+      "status": "PASS",
+      "evidence": "Flow summary includes created, checked, not checked, risks, next step"
+    }
+  ],
+  "result": {
+    "created": [
+      "QA test request",
+      "QA test plan",
+      "Playwright-style skeleton",
+      "Research Source Cards",
+      "BrainAnswers",
+      "Decision Passport"
+    ],
+    "checked": [
+      "Verifier preview",
+      "Confidence snapshot",
+      "Memory Search samples",
+      "Recovery availability"
+    ],
+    "not_checked": [
+      "real external website execution",
+      "real web-chat accounts",
+      "real phone APK"
+    ],
+    "risks": [
+      "QA backend/API remains PARTIAL",
+      "Research accounts remain owner-assisted",
+      "Safe Undo is preview, not production rollback"
+    ],
+    "next_step": "If P1-H passes, move to P2 planning/implementation entry."
+  },
+  "status": "PASS"
+}

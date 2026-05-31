@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-05-31T02:40:20.291Z",
+  "started_at": "2026-05-31T02:39:55.647Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-h-integrated-gate-1780195195642",
+  "staticMarkers": {
+    "product_shell": true,
+    "qa_factory": true,
+    "comfort_trust": true,
+    "safe_undo": true,
+    "confidence": true,
+    "researchops": true,
+    "no_static_ai_api_runtime": true,
+    "pwa_sw_present": true
+  },
+  "module_status": {
+    "qa_autotest_factory": "PASS",
+    "comfort_trust_guide": "PASS",
+    "safe_undo_center": "PASS",
+    "confidence_verification_layer": "PASS",
+    "researchops_brain_council": "PASS",
+    "product_shell": "PASS"
+  },
+  "product_shell_routes": "PASS",
+  "integrated_flow": "PASS",
+  "consistency": "PASS",
+  "ux_review": {
+    "product_shell_clear_start": true,
+    "not_admin_panel": true,
+    "use_cases_understandable": true,
+    "help_cards_useful": true,
+    "demo_safe_clear": true,
+    "qa_not_raw_admin": true,
+    "research_not_overloaded": true,
+    "confidence_wording": true,
+    "safe_undo_no_overclaim": true,
+    "mina_scheme_not_checked_visually_here": "not_run_no_heavy_screenshot"
+  },
+  "performance": [
+    {
+      "name": "product_shell_render",
+      "duration_ms": 629
+    },
+    {
+      "name": "qa_preview_render",
+      "duration_ms": 264
+    },
+    {
+      "name": "research_preview_render",
+      "duration_ms": 146
+    },
+    {
+      "name": "memory_search_sample",
+      "duration_ms": 97
+    }
+  ],
+  "mobile": [
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "no_horizontal_overflow": true,
+      "product_shell_visible": true,
+      "qa_visible": true,
+      "research_visible": true
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "no_horizontal_overflow": true,
+      "product_shell_visible": true,
+      "qa_visible": true,
+      "research_visible": true
+    }
+  ],
+  "security": {
+    "no_ai_api": true,
+    "no_billing": true,
+    "no_external_web_chat_call": true,
+    "no_credentials": true,
+    "no_cloudflare_github_settings": true,
+    "no_local_agent_direct_bridge_changes": true,
+    "no_destructive_actions": true
+  },
+  "verdict": "PASS"
+}

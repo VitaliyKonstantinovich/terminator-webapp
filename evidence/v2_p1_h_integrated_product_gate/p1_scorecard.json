@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-05-31T02:40:20.291Z",
+  "areas": [
+    {
+      "area": "QA Autotest Factory",
+      "status": "PASS",
+      "evidence": "p1_module_presence.json / qaSmoke",
+      "risk": "MEDIUM: backend/API unknown remains PARTIAL",
+      "verdict": "PASS_WITH_RISKS"
+    },
+    {
+      "area": "Comfort Trust Guide",
+      "status": "PASS",
+      "evidence": "p1_module_presence.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "Safe Undo Center",
+      "status": "PASS",
+      "evidence": "p1_consistency_check.json",
+      "risk": "MEDIUM: preview is not production rollback",
+      "verdict": "PASS_WITH_RISKS"
+    },
+    {
+      "area": "Confidence Verification Layer",
+      "status": "PASS",
+      "evidence": "p1_consistency_check.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "ResearchOps / Brain Council",
+      "status": "PASS",
+      "evidence": "p1_module_presence.json / researchSmoke",
+      "risk": "MEDIUM: external accounts are owner-assisted/manual",
+      "verdict": "PASS_WITH_RISKS"
+    },
+    {
+      "area": "Product Shell",
+      "status": "PASS",
+      "evidence": "product_shell_routes.json / smoke.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "P1 integrated user flow",
+      "status": "PASS",
+      "evidence": "p1_integrated_flow.json",
+      "risk": "MEDIUM: demo-flow only, no external site execution",
+      "verdict": "PASS"
+    },
+    {
+      "area": "P1 route gate",
+      "status": "PASS",
+      "evidence": "product_shell_routes.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "P1 UX/Mina UI",
+      "status": "PASS",
+      "evidence": "smoke.json",
+      "risk": "LOW",
+      "verdict": "PASS_WITH_NOTE"
+    },
+    {
+      "area": "P1 safety",
+      "status": "PASS",
+      "evidence": "p1_consistency_check.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "P1 memory/evidence integration",
+      "status": "PASS",
+      "evidence": "p1_module_presence.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "P1 mobile 390/430",
+      "status": "PASS",
+      "evidence": "smoke.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "Owner-assisted/postponed boundaries",
+      "status": "PASS",
+      "evidence": "p1_consistency_check.json",
+      "risk": "LOW",
+      "verdict": "PASS"
+    },
+    {
+      "area": "P2 readiness",
+      "status": "PASS",
+      "evidence": "p1_scorecard.json",
+      "risk": "MEDIUM: next P2 must stay bounded",
+      "verdict": "READY_FOR_P2_ENTRY"
+    }
+  ],
+  "status": "PASS"
+}
