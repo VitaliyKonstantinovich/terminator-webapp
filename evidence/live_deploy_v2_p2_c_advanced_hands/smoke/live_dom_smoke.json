@@ -1,0 +1,133 @@
+{
+  "status": "PASS",
+  "generated_at": "2026-05-31T05:11:49.321Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "marker": "20260530-v2-p2-c-advanced-hands-v1",
+  "http": {
+    "index_status": 200,
+    "index_marker": true,
+    "sw_status": 200,
+    "sw_marker": true,
+    "manifest_status": 200
+  },
+  "system": {
+    "screen": "system",
+    "title": "TERMINATOR MINA UI",
+    "ready": "interactive",
+    "markerInHtml": true,
+    "actionTypeSelect": true,
+    "dryRunButton": true,
+    "capabilityProfiles": 6,
+    "verifierPanel": true,
+    "advancedHandsCopy": true,
+    "noAiApiCopy": true
+  },
+  "hands": {
+    "planCreated": true,
+    "activeProjectMutated": false,
+    "latest": {
+      "action_type": "active_project_mutation",
+      "dry_run_status": "approval_required",
+      "approval_required": true,
+      "required_rollback": true,
+      "not_executed": true,
+      "verifier": "PASS_WITH_RISKS",
+      "evidence": "recorded",
+      "memory": "Hands dry run: Изменить active project"
+    },
+    "memoryStrong": {
+      "count": 2,
+      "top": "Руки: Live smoke: active project mutation dry-run",
+      "quality": "strong_or_weak_match",
+      "warning": "captured count/top before impossible query; relevant result found"
+    },
+    "memoryWeak": {
+      "count": 1,
+      "top": "Руки: Live smoke: active project mutation dry-run",
+      "quality": "weak_or_strong_match",
+      "warning": "captured count/top before impossible query; relevant result found"
+    },
+    "memoryImpossible": {
+      "count": 0,
+      "quality": "empty",
+      "warning": "Ничего релевантного не найдено."
+    }
+  },
+  "scheme": {
+    "screen": "scheme",
+    "zones": 16,
+    "svgZones": 8,
+    "cards": 8,
+    "hologramPngAsset": true,
+    "inlineSvg": true,
+    "handsPanelText": true,
+    "clickResults": {
+      "head": {
+        "exists": true,
+        "panel": "Голова / Мозги",
+        "active": true
+      },
+      "eyes": {
+        "exists": true,
+        "panel": "Глаза",
+        "active": true
+      },
+      "voice": {
+        "exists": true,
+        "panel": "Голос",
+        "active": true
+      },
+      "memory": {
+        "exists": true,
+        "panel": "Память",
+        "active": true
+      },
+      "body": {
+        "exists": true,
+        "panel": "Тело",
+        "active": true
+      },
+      "hands": {
+        "exists": true,
+        "panel": "Руки",
+        "active": true
+      },
+      "legs": {
+        "exists": true,
+        "panel": "Ноги",
+        "active": true
+      },
+      "diagnost": {
+        "exists": true,
+        "panel": "Диагност",
+        "active": true
+      }
+    },
+    "voiceZoneAria": "Открыть настройку Голос. Статус: готово.",
+    "eyesZoneAria": "Открыть настройку Глаза. Статус: не настроено."
+  },
+  "mobile": {
+    "mobile390": {
+      "width": 390,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflow": false,
+      "schemeVisible": true,
+      "zoneCards": 8
+    },
+    "mobile430": {
+      "width": 430,
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "overflow": false,
+      "schemeVisible": true,
+      "zoneCards": 8
+    }
+  },
+  "caveats": [
+    "Smoke used isolated headless Chrome fallback because in-app browser webview attach timed out.",
+    "No real action executed; smoke mutated only isolated browser localStorage/state.",
+    "document.readyState remained interactive because the page includes an external Telegram script; App and DOM were ready."
+  ],
+  "failures": []
+}
