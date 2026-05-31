@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-05-31T00:09:46.842Z",
+  "url": "http://127.0.0.1:8897/index.html?screen=system&force=v2-confidence-final-smoke",
+  "desktop": {
+    "width": 1262,
+    "scrollWidth": 1262,
+    "noOverflow": true,
+    "exists": true,
+    "title": "Проверка и уверенность",
+    "hasConfidence": true,
+    "hasVerified": true,
+    "hasAttention": true,
+    "hasSource": true,
+    "hasHumanCategory": true,
+    "noPercentInNormalUi": true,
+    "noTechnicalNormal": true,
+    "hasExpertDetails": true,
+    "buttons": [
+      {
+        "text": "Открыть проверки",
+        "action": "open_diagnostics"
+      },
+      {
+        "text": "Открыть защиту",
+        "action": "open_guardian"
+      }
+    ]
+  },
+  "mobile390": {
+    "width": 390,
+    "scrollWidth": 390,
+    "noOverflow": true,
+    "exists": true,
+    "title": "Проверка и уверенность",
+    "hasConfidence": true,
+    "hasVerified": true,
+    "hasAttention": true,
+    "hasSource": true,
+    "hasHumanCategory": true,
+    "noPercentInNormalUi": true,
+    "noTechnicalNormal": true,
+    "hasExpertDetails": true,
+    "buttons": [
+      {
+        "text": "Открыть проверки",
+        "action": "open_diagnostics"
+      },
+      {
+        "text": "Открыть защиту",
+        "action": "open_guardian"
+      }
+    ]
+  },
+  "mobile430": {
+    "width": 430,
+    "scrollWidth": 430,
+    "noOverflow": true,
+    "exists": true,
+    "title": "Проверка и уверенность",
+    "hasConfidence": true,
+    "hasVerified": true,
+    "hasAttention": true,
+    "hasSource": true,
+    "hasHumanCategory": true,
+    "noPercentInNormalUi": true,
+    "noTechnicalNormal": true,
+    "hasExpertDetails": true,
+    "buttons": [
+      {
+        "text": "Открыть проверки",
+        "action": "open_diagnostics"
+      },
+      {
+        "text": "Открыть защиту",
+        "action": "open_guardian"
+      }
+    ]
+  },
+  "verdict": "PASS"
+}
