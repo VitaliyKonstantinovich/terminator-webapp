@@ -1,0 +1,461 @@
+{
+  "startedAt": "2026-05-31T01:32:40.499Z",
+  "liveBase": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "routes": [
+    {
+      "screen": "system",
+      "width": 1440,
+      "mobile": false,
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-f-live-smoke-system-1440-final",
+      "current": "system",
+      "sectionPresent": true,
+      "hasResearchText": true,
+      "hasBrainText": true,
+      "hasVerifierText": true,
+      "hasContradictionText": true,
+      "hasDecisionText": true,
+      "smokeStatus": "PASS",
+      "smokeChecks": [
+        {
+          "id": "research_question_created",
+          "status": "PASS"
+        },
+        {
+          "id": "two_plus_source_cards",
+          "status": "PASS"
+        },
+        {
+          "id": "research_pack_created",
+          "status": "PASS"
+        },
+        {
+          "id": "no_sources_needs_sources",
+          "status": "PASS"
+        },
+        {
+          "id": "three_brain_answers",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_brain_answer_needs_review",
+          "status": "PASS"
+        },
+        {
+          "id": "contradiction_visible",
+          "status": "PASS"
+        },
+        {
+          "id": "decision_passport_created",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_first_check_needs_fix",
+          "status": "PASS"
+        },
+        {
+          "id": "verifier_no_fake_pass",
+          "status": "PASS"
+        },
+        {
+          "id": "memory_search_finds_demo",
+          "status": "PASS"
+        },
+        {
+          "id": "manual_web_chat_required_state",
+          "status": "PASS"
+        },
+        {
+          "id": "no_ai_api",
+          "status": "PASS"
+        },
+        {
+          "id": "no_external_web_chat_call",
+          "status": "PASS"
+        },
+        {
+          "id": "no_billing",
+          "status": "PASS"
+        },
+        {
+          "id": "events_sanitized",
+          "status": "PASS"
+        }
+      ],
+      "memoryAllQueriesFound": true,
+      "verifierVerdict": "PASS_WITH_RISKS",
+      "decisionStatus": "needs_review",
+      "manualRequired": 2,
+      "noHorizontalOverflow": true,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasMojibake": false
+    },
+    {
+      "screen": "work",
+      "width": 1440,
+      "mobile": false,
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=work&force=v2-p1-f-live-smoke-work-1440-final",
+      "current": "work",
+      "sectionPresent": true,
+      "hasResearchText": true,
+      "hasBrainText": true,
+      "hasVerifierText": true,
+      "hasContradictionText": true,
+      "hasDecisionText": true,
+      "smokeStatus": "PASS",
+      "smokeChecks": [
+        {
+          "id": "research_question_created",
+          "status": "PASS"
+        },
+        {
+          "id": "two_plus_source_cards",
+          "status": "PASS"
+        },
+        {
+          "id": "research_pack_created",
+          "status": "PASS"
+        },
+        {
+          "id": "no_sources_needs_sources",
+          "status": "PASS"
+        },
+        {
+          "id": "three_brain_answers",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_brain_answer_needs_review",
+          "status": "PASS"
+        },
+        {
+          "id": "contradiction_visible",
+          "status": "PASS"
+        },
+        {
+          "id": "decision_passport_created",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_first_check_needs_fix",
+          "status": "PASS"
+        },
+        {
+          "id": "verifier_no_fake_pass",
+          "status": "PASS"
+        },
+        {
+          "id": "memory_search_finds_demo",
+          "status": "PASS"
+        },
+        {
+          "id": "manual_web_chat_required_state",
+          "status": "PASS"
+        },
+        {
+          "id": "no_ai_api",
+          "status": "PASS"
+        },
+        {
+          "id": "no_external_web_chat_call",
+          "status": "PASS"
+        },
+        {
+          "id": "no_billing",
+          "status": "PASS"
+        },
+        {
+          "id": "events_sanitized",
+          "status": "PASS"
+        }
+      ],
+      "memoryAllQueriesFound": true,
+      "verifierVerdict": "PASS_WITH_RISKS",
+      "decisionStatus": "needs_review",
+      "manualRequired": 2,
+      "noHorizontalOverflow": true,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasMojibake": false
+    },
+    {
+      "screen": "scheme",
+      "width": 1440,
+      "mobile": false,
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p1-f-live-smoke-scheme-1440-final",
+      "current": "scheme",
+      "sectionPresent": true,
+      "hasResearchText": true,
+      "hasBrainText": true,
+      "hasVerifierText": true,
+      "hasContradictionText": true,
+      "hasDecisionText": true,
+      "smokeStatus": "PASS",
+      "smokeChecks": [
+        {
+          "id": "research_question_created",
+          "status": "PASS"
+        },
+        {
+          "id": "two_plus_source_cards",
+          "status": "PASS"
+        },
+        {
+          "id": "research_pack_created",
+          "status": "PASS"
+        },
+        {
+          "id": "no_sources_needs_sources",
+          "status": "PASS"
+        },
+        {
+          "id": "three_brain_answers",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_brain_answer_needs_review",
+          "status": "PASS"
+        },
+        {
+          "id": "contradiction_visible",
+          "status": "PASS"
+        },
+        {
+          "id": "decision_passport_created",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_first_check_needs_fix",
+          "status": "PASS"
+        },
+        {
+          "id": "verifier_no_fake_pass",
+          "status": "PASS"
+        },
+        {
+          "id": "memory_search_finds_demo",
+          "status": "PASS"
+        },
+        {
+          "id": "manual_web_chat_required_state",
+          "status": "PASS"
+        },
+        {
+          "id": "no_ai_api",
+          "status": "PASS"
+        },
+        {
+          "id": "no_external_web_chat_call",
+          "status": "PASS"
+        },
+        {
+          "id": "no_billing",
+          "status": "PASS"
+        },
+        {
+          "id": "events_sanitized",
+          "status": "PASS"
+        }
+      ],
+      "memoryAllQueriesFound": true,
+      "verifierVerdict": "PASS_WITH_RISKS",
+      "decisionStatus": "needs_review",
+      "manualRequired": 2,
+      "noHorizontalOverflow": true,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "hasMojibake": false
+    }
+  ],
+  "mobile": [
+    {
+      "screen": "system",
+      "width": 390,
+      "mobile": true,
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-f-live-smoke-system-390-final",
+      "current": "system",
+      "sectionPresent": true,
+      "hasResearchText": true,
+      "hasBrainText": true,
+      "hasVerifierText": true,
+      "hasContradictionText": true,
+      "hasDecisionText": true,
+      "smokeStatus": "PASS",
+      "smokeChecks": [
+        {
+          "id": "research_question_created",
+          "status": "PASS"
+        },
+        {
+          "id": "two_plus_source_cards",
+          "status": "PASS"
+        },
+        {
+          "id": "research_pack_created",
+          "status": "PASS"
+        },
+        {
+          "id": "no_sources_needs_sources",
+          "status": "PASS"
+        },
+        {
+          "id": "three_brain_answers",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_brain_answer_needs_review",
+          "status": "PASS"
+        },
+        {
+          "id": "contradiction_visible",
+          "status": "PASS"
+        },
+        {
+          "id": "decision_passport_created",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_first_check_needs_fix",
+          "status": "PASS"
+        },
+        {
+          "id": "verifier_no_fake_pass",
+          "status": "PASS"
+        },
+        {
+          "id": "memory_search_finds_demo",
+          "status": "PASS"
+        },
+        {
+          "id": "manual_web_chat_required_state",
+          "status": "PASS"
+        },
+        {
+          "id": "no_ai_api",
+          "status": "PASS"
+        },
+        {
+          "id": "no_external_web_chat_call",
+          "status": "PASS"
+        },
+        {
+          "id": "no_billing",
+          "status": "PASS"
+        },
+        {
+          "id": "events_sanitized",
+          "status": "PASS"
+        }
+      ],
+      "memoryAllQueriesFound": true,
+      "verifierVerdict": "PASS_WITH_RISKS",
+      "decisionStatus": "needs_review",
+      "manualRequired": 2,
+      "noHorizontalOverflow": true,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "hasMojibake": false
+    },
+    {
+      "screen": "scheme",
+      "width": 430,
+      "mobile": true,
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p1-f-live-smoke-scheme-430-final",
+      "current": "scheme",
+      "sectionPresent": true,
+      "hasResearchText": true,
+      "hasBrainText": true,
+      "hasVerifierText": true,
+      "hasContradictionText": true,
+      "hasDecisionText": true,
+      "smokeStatus": "PASS",
+      "smokeChecks": [
+        {
+          "id": "research_question_created",
+          "status": "PASS"
+        },
+        {
+          "id": "two_plus_source_cards",
+          "status": "PASS"
+        },
+        {
+          "id": "research_pack_created",
+          "status": "PASS"
+        },
+        {
+          "id": "no_sources_needs_sources",
+          "status": "PASS"
+        },
+        {
+          "id": "three_brain_answers",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_brain_answer_needs_review",
+          "status": "PASS"
+        },
+        {
+          "id": "contradiction_visible",
+          "status": "PASS"
+        },
+        {
+          "id": "decision_passport_created",
+          "status": "PASS"
+        },
+        {
+          "id": "missing_first_check_needs_fix",
+          "status": "PASS"
+        },
+        {
+          "id": "verifier_no_fake_pass",
+          "status": "PASS"
+        },
+        {
+          "id": "memory_search_finds_demo",
+          "status": "PASS"
+        },
+        {
+          "id": "manual_web_chat_required_state",
+          "status": "PASS"
+        },
+        {
+          "id": "no_ai_api",
+          "status": "PASS"
+        },
+        {
+          "id": "no_external_web_chat_call",
+          "status": "PASS"
+        },
+        {
+          "id": "no_billing",
+          "status": "PASS"
+        },
+        {
+          "id": "events_sanitized",
+          "status": "PASS"
+        }
+      ],
+      "memoryAllQueriesFound": true,
+      "verifierVerdict": "PASS_WITH_RISKS",
+      "decisionStatus": "needs_review",
+      "manualRequired": 2,
+      "noHorizontalOverflow": true,
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "hasMojibake": false
+    }
+  ],
+  "static": {
+    "hasResearchFlag": true,
+    "hasBrainFlag": true,
+    "hasPanelRenderer": true,
+    "hasResearchCopy": true,
+    "swFetched": true,
+    "noRuntimeAiApiCall": true,
+    "noSecretLiteral": true
+  },
+  "verdict": "PASS",
+  "notes": [],
+  "errors": [],
+  "finishedAt": "2026-05-31T01:33:07.289Z"
+}
