@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-05-31T03:25:42.002Z",
+  "status": "ready",
+  "scope": "#system-eyes-panel",
+  "node_count": 74,
+  "interactive_count": 11,
+  "landmark_count": 4,
+  "form_control_count": 4,
+  "status_text_count": 0,
+  "missing_labels_count": 0,
+  "suspicious_overflow": false,
+  "hidden_technical_terms_count": 0
+}

@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-05-31T03:25:42.002Z",
+  "status": "PASS",
+  "product_shell": true,
+  "diagnost": true,
+  "mina_scheme": true,
+  "mobile_no_overflow": true,
+  "local_dom_smoke": {
+    "generated_at": "2026-05-31T03:24:04.881Z",
+    "chrome": "Chrome/148.0.7778.216",
+    "local_url": "http://127.0.0.1:8813/?screen=system&force=v2-p2-a-local-smoke",
+    "status": "PASS",
+    "desktop": {
+      "url": "http://127.0.0.1:8813/?screen=system&force=v2-p2-a-local-smoke",
+      "title": "TERMINATOR MINA UI",
+      "eyes_panel_visible": true,
+      "eyes_capability_cards": 6,
+      "eyes_snapshot_button": true,
+      "product_shell_eyes_card": true,
+      "diagnost_visual_evidence_button": true,
+      "normal_eyes_technical_terms": [],
+      "horizontal_overflow": false,
+      "viewport": "1422x904"
+    },
+    "scheme": {
+      "url": "http://127.0.0.1:8813/?screen=scheme&force=v2-p2-a-local-smoke",
+      "zone_count": 16,
+      "eyes_zone_clickable": true,
+      "create_visual_check_action": true,
+      "panel_mentions_eyes": true,
+      "panel_mentions_layout": true,
+      "panel_mentions_accessibility": true,
+      "horizontal_overflow": false,
+      "viewport": "1422x904"
+    },
+    "mobile": [
+      {
+        "viewport": "390x900",
+        "eyes_panel_visible": true,
+        "horizontal_overflow": false,
+        "scroll_width": 390,
+        "inner_width": 390
+      },
+      {
+        "viewport": "430x900",
+        "eyes_panel_visible": true,
+        "horizontal_overflow": false,
+        "scroll_width": 430,
+        "inner_width": 430
+      }
+    ]
+  }
+}

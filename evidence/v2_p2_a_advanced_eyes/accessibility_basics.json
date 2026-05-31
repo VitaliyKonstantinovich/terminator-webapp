@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-05-31T03:25:42.002Z",
+  "scope": "#system-eyes-panel",
+  "focusable_controls_count": 11,
+  "controls_without_label_count": 0,
+  "buttons_without_name_count": 0,
+  "color_only_status_count": 0,
+  "keyboard_path_status": "partial",
+  "status": "ready"
+}
