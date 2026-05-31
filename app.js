@@ -347,7 +347,10 @@ const V2_FEATURE_FLAGS = Object.freeze({
   v2SafeUndoCenterPreviewEnabled: false,
   v2ConfidenceLayerPreviewEnabled: false,
   v2ResearchOpsQualityPreviewEnabled: false,
-  v2BrainCouncilQualityPreviewEnabled: false
+  v2BrainCouncilQualityPreviewEnabled: false,
+  v2ProductShellPreviewEnabled: false,
+  v2DemoModePreviewEnabled: false,
+  v2HelpCardsEnabled: false
 });
 const V2_CONTRACT_TYPES = Object.freeze([
   'task',
@@ -372,7 +375,9 @@ const V2_CONTRACT_TYPES = Object.freeze([
   'brain_comparison',
   'contradiction_map',
   'decision_passport',
-  'research_verifier_result'
+  'research_verifier_result',
+  'product_shell_state',
+  'product_shell_demo_preview'
 ]);
 const V2_CONTRACT_NAMES = Object.freeze({
   task: 'V2TaskContract',
@@ -397,7 +402,9 @@ const V2_CONTRACT_NAMES = Object.freeze({
   brain_comparison: 'V2BrainComparisonContract',
   contradiction_map: 'V2ContradictionMapContract',
   decision_passport: 'V2DecisionPassportContract',
-  research_verifier_result: 'V2ResearchVerifierResultContract'
+  research_verifier_result: 'V2ResearchVerifierResultContract',
+  product_shell_state: 'V2ProductShellStateContract',
+  product_shell_demo_preview: 'V2ProductShellDemoPreviewContract'
 });
 const V2_EVENT_TYPES = Object.freeze([
   'v2.task.created',
@@ -479,7 +486,14 @@ const V2_EVENT_TYPES = Object.freeze([
   'v2.brain.contradiction.detected',
   'v2.decision.passport.created',
   'v2.research.verifier.verdict',
-  'v2.research.memory_summary.created'
+  'v2.research.memory_summary.created',
+  'v2.product_shell.opened',
+  'v2.product_shell.use_case_selected',
+  'v2.product_shell.quick_start_opened',
+  'v2.product_shell.help_card_opened',
+  'v2.product_shell.demo_preview_created',
+  'v2.product_shell.owner_assisted_shown',
+  'v2.product_shell.postponed_shown'
 ]);
 const V2_CAPABILITY_ACTORS = Object.freeze([
   'owner',
@@ -2701,6 +2715,7 @@ const App = {
   v2FirstRunRecoveryState: null,
   v2FoundationEvents: [],
   v2RecoveryCommandCenterLastOpenedEventAt: 0,
+  v2ProductShellLastOpenedEventAt: 0,
   workspaceTimer: null,
   runtimeSavePromise: null,
   toastTimer: null,
@@ -3016,6 +3031,12 @@ const App = {
       const v2P0AcceptanceButton = event.target.closest('[data-v2-p0-acceptance-action]');
       if (v2P0AcceptanceButton) {
         this.handleV2P0AcceptanceAction(v2P0AcceptanceButton.dataset.v2P0AcceptanceAction, v2P0AcceptanceButton);
+        return;
+      }
+
+      const v2ProductShellButton = event.target.closest('[data-v2-product-shell-action]');
+      if (v2ProductShellButton) {
+        this.handleV2ProductShellAction(v2ProductShellButton.dataset.v2ProductShellAction, v2ProductShellButton);
         return;
       }
 
@@ -8610,6 +8631,694 @@ test.describe('Terminator QA Factory safe demo', () => {
         </details>
       </section>
     `;
+  },
+
+  recordV2ProductShellEvent(eventType, payload = {}, options = {}) {
+    const safeType = V2_EVENT_TYPES.includes(eventType) ? eventType : 'v2.product_shell.opened';
+    const safePayload = this.sanitizeV2EventPayload(payload);
+    if (options.persist === false) {
+      return this.createV2Contract('event', {
+        id: `v2_product_shell_${safeType.replaceAll('.', '_')}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        status: 'preview',
+        event_type: safeType,
+        actor: payload.actor || 'product_shell',
+        resource: payload.resource || 'product_entry',
+        risk_level: payload.risk_level || 'low',
+        refs: payload.refs || {},
+        message: payload.message || safeType,
+        payload: safePayload
+      });
+    }
+    return this.recordV2Event(safeType, {
+      actor: payload.actor || 'product_shell',
+      resource: payload.resource || 'product_entry',
+      risk_level: payload.risk_level || 'low',
+      refs: payload.refs || {},
+      message: payload.message || safeType,
+      payload: safePayload
+    });
+  },
+
+  buildV2GoldenUseCases(snapshots = {}) {
+    const qa = snapshots.qa || {};
+    const research = snapshots.research || {};
+    const memory = snapshots.memory || {};
+    const recovery = snapshots.recovery || {};
+    const firstRun = snapshots.first_run || {};
+    const safety = snapshots.safety || {};
+    return [
+      {
+        id: 'create_task',
+        title: 'Создать рабочую задачу',
+        description: 'Открывает Рабочее: цель, файлы, контекст, отчёт исполнителя, Verifier и память.',
+        readiness: firstRun.minimum_ready ? 'готово' : 'проверить контур',
+        route: 'Рабочее',
+        action: 'open_work',
+        owner_assisted_required: false,
+        what_user_gets: 'task_id, следующий шаг, артефакты и понятный статус задачи.',
+        not_checked: []
+      },
+      {
+        id: 'qa_autotest',
+        title: 'Собрать автотест',
+        description: 'Фабрика автотестов создаёт test request, план, cases, evidence checklist и Verifier gate.',
+        readiness: qa.summary?.test_case_count ? 'готово' : 'preview',
+        route: 'QA Autotest Factory',
+        action: 'open_qa_factory',
+        owner_assisted_required: false,
+        what_user_gets: 'структурированный QA-план без запуска внешних сайтов и без скрытых действий.',
+        not_checked: qa.verifier?.backend_api_partial ? ['backend/API contract требует отдельной проверки'] : []
+      },
+      {
+        id: 'research_council',
+        title: 'Провести исследование через Совет мозгов',
+        description: 'ResearchOps собирает вопрос, источники, ответы мозгов, сравнение, противоречия и Decision Passport.',
+        readiness: research.summary?.source_count >= 2 ? 'готово с ручными входами' : 'требует источники',
+        route: 'ResearchOps / Brain Council',
+        action: 'open_research_ops',
+        owner_assisted_required: true,
+        what_user_gets: 'проверяемое решение с рисками, источниками и первым шагом проверки.',
+        not_checked: ['ответы внешних web-chat вставляются владельцем вручную']
+      },
+      {
+        id: 'memory_search',
+        title: 'Найти прошлое решение в памяти',
+        description: 'Память ищет по задачам, артефактам, evidence, решениям и безопасным memory records.',
+        readiness: memory.status === 'ready' || memory.records > 0 ? 'готово' : 'индекс требует наполнения',
+        route: 'Memory Search',
+        action: 'open_memory',
+        owner_assisted_required: false,
+        what_user_gets: 'релевантные ссылки и честный empty state вместо мусора.',
+        not_checked: memory.stale ? ['индекс помечен как устаревший'] : []
+      },
+      {
+        id: 'recovery',
+        title: 'Починить проблему / открыть Recovery',
+        description: 'Диагност, Guardian, Recovery и Safe Undo показывают безопасный путь восстановления.',
+        readiness: recovery.status === 'ready' || safety.summary?.blocked >= 1 ? 'готово' : 'проверить',
+        route: 'Recovery Command Center',
+        action: 'open_recovery',
+        owner_assisted_required: false,
+        what_user_gets: 'симптом, риск, следующий безопасный шаг, rollback-политика и запрет опасных действий без Approval.',
+        not_checked: []
+      }
+    ];
+  },
+
+  buildV2QuickStartGuide() {
+    return [
+      {
+        id: 'check_readiness',
+        step: 1,
+        title: 'Проверить готовность',
+        text: 'Откройте Пульт Терминатора или Схему Мины и посмотрите главный следующий шаг.',
+        action: 'open_scheme'
+      },
+      {
+        id: 'create_first_task',
+        step: 2,
+        title: 'Создать первую задачу',
+        text: 'В Рабочем опишите цель обычным языком. Терминатор создаст task_id и рабочий контур.',
+        action: 'open_work'
+      },
+      {
+        id: 'save_to_memory',
+        step: 3,
+        title: 'Сохранить результат в память',
+        text: 'После проверки результата Memory Preview предлагает сохранить только важное.',
+        action: 'open_memory'
+      },
+      {
+        id: 'recover_if_error',
+        step: 4,
+        title: 'Если ошибка — открыть Recovery',
+        text: 'Диагност объяснит, что случилось, насколько это опасно и что можно сделать безопасно.',
+        action: 'open_recovery'
+      },
+      {
+        id: 'use_brain_council',
+        step: 5,
+        title: 'Если задача сложная — подключить Совет мозгов',
+        text: 'Сложные решения проходят через источники, Совет мозгов, Decision Passport и Verifier.',
+        action: 'open_research_ops'
+      }
+    ];
+  },
+
+  buildV2HelpCards() {
+    return [
+      {
+        id: 'head',
+        title: 'Голова / Совет мозгов',
+        body: 'Помогает думать: выбирает стратегию, сравнивает ответы мозгов и готовит проверяемое решение.',
+        expert_ref: 'system-head-panel / ResearchOps / Brain Council'
+      },
+      {
+        id: 'memory',
+        title: 'Память',
+        body: 'Помнит важные решения, задачи, evidence и артефакты. Невозможный запрос не выдаётся как уверенный результат.',
+        expert_ref: 'system-memory-search-panel'
+      },
+      {
+        id: 'hands',
+        title: 'Руки',
+        body: 'Готовят безопасные планы действий. Опасные изменения идут только через Guardian, Verifier, rollback и Approval.',
+        expert_ref: 'system-hands-panel'
+      },
+      {
+        id: 'recovery',
+        title: 'Диагност / Recovery',
+        body: 'Объясняет проблему простыми словами и ведёт к безопасному восстановлению без ручного хаоса.',
+        expert_ref: 'system-diagnostics / Recovery Command Center'
+      },
+      {
+        id: 'guardian',
+        title: 'Guardian / Approval',
+        body: 'Защитник блокирует deploy, push, delete, .env, billing, network и другие опасные действия без подтверждения.',
+        expert_ref: 'system-guardian-panel / approval center'
+      },
+      {
+        id: 'qa',
+        title: 'QA Autotest Factory',
+        body: 'Собирает план проверки, тест-кейсы, evidence checklist и Verifier gate без запуска внешних сайтов.',
+        expert_ref: 'v2-qa-factory'
+      },
+      {
+        id: 'owner_assisted',
+        title: 'Что требует владельца',
+        body: 'Реальный телефон, внешние аккаунты, billing кабинеты и production rollback не маскируются как готовые.',
+        expert_ref: 'owner-assisted list'
+      },
+      {
+        id: 'postponed',
+        title: 'Что отложено до production V2 final',
+        body: 'APK на реальный телефон, production signing, installer/tray и реальные внешние интеграции идут отдельными задачами.',
+        expert_ref: 'postponed items'
+      }
+    ];
+  },
+
+  buildV2DemoModePreview(options = {}) {
+    const scenarios = [
+      ['demo_create_task', 'Создать задачу', 'Показывает, как появится task_id, цель и следующий шаг.'],
+      ['demo_qa_plan', 'Собрать QA план', 'Показывает test request, cases и evidence checklist без запуска внешних сайтов.'],
+      ['demo_research', 'Провести исследование', 'Показывает Source Cards, BrainAnswer, Comparison и Decision Passport на безопасном примере.'],
+      ['demo_memory', 'Найти в памяти', 'Показывает сильное совпадение, слабое совпадение и честный empty state.'],
+      ['demo_recovery', 'Открыть Recovery', 'Показывает, как Диагност объясняет проблему и выбирает безопасный следующий шаг.']
+    ].map(([id, title, preview]) => ({
+      id,
+      title,
+      preview,
+      status: 'safe_preview',
+      dangerous_actions: 'не выполняются',
+      external_calls: false,
+      ai_api: false,
+      billing_risk: false,
+      owner_assisted_required: false
+    }));
+    const event = this.recordV2ProductShellEvent('v2.product_shell.demo_preview_created', {
+      refs: { component: 'product_shell_demo_mode' },
+      message: 'Product Shell safe demo preview created.',
+      scenarios: scenarios.map((item) => item.id)
+    }, { persist: options.persistEvents === true });
+    return this.createV2Contract('product_shell_demo_preview', {
+      id: 'v2_product_shell_demo_preview',
+      status: 'safe_preview',
+      scenario_count: scenarios.length,
+      scenarios,
+      constraints: [
+        'no external requests',
+        'no AI API',
+        'no credentials',
+        'no billing',
+        'no deploy',
+        'no push',
+        'no delete',
+        'no Local Agent or Direct Bridge changes'
+      ],
+      event_id: event.id,
+      refs: { component: 'product_shell', mode: 'demo' }
+    });
+  },
+
+  buildV2ProductShellMemorySample(state = {}) {
+    const memoryRecord = this.createV2Contract('memory_record', {
+      id: 'v2_memory_product_shell_foundation',
+      status: 'candidate',
+      title: 'Product Shell Foundation: быстрый старт Терминатора',
+      summary: 'Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.',
+      project_id: 'terminator',
+      task_id: 'TASK-V2-P1-G',
+      risk_level: 'low',
+      refs: {
+        project_id: 'terminator',
+        task_id: 'TASK-V2-P1-G',
+        component: 'product_shell'
+      },
+      keywords: ['product shell', 'быстрый старт', 'фабрика автотестов', 'совет мозгов', 'recovery']
+    });
+    const searchRecord = {
+      schema_version: MEMORY_SEARCH_SCHEMA_VERSION,
+      record_id: memoryRecord.id,
+      type: 'memory',
+      label: MEMORY_SEARCH_TYPE_LABELS.memory,
+      title: memoryRecord.title,
+      summary: memoryRecord.summary,
+      project_id: 'terminator',
+      project_name: 'Терминатор',
+      task_id: 'TASK-V2-P1-G',
+      task_title: 'Product Shell Foundation',
+      source_id: memoryRecord.id,
+      source_type: 'memory_record',
+      refs: memoryRecord.refs,
+      keywords: memoryRecord.keywords,
+      confidence: 'verified_preview',
+      privacy_status: 'ok',
+      created_at: memoryRecord.created_at,
+      updated_at: memoryRecord.updated_at,
+      search_text: `${memoryRecord.title} ${memoryRecord.summary} ${(memoryRecord.keywords || []).join(' ')}`
+    };
+    const records = [searchRecord];
+    const queries = ['product shell', 'быстрый старт', 'фабрика автотестов', 'совет мозгов', 'recovery'];
+    const query_results = Object.fromEntries(queries.map((query) => [query, this.evaluateV2MemorySearchQuery(query, { records, persistEvents: false })]));
+    return {
+      memory_record: memoryRecord,
+      records,
+      query_results,
+      all_queries_found: Object.values(query_results).every((result) => ['exact', 'strong', 'weak'].includes(result.matchType))
+    };
+  },
+
+  buildV2ProductShellState(options = {}) {
+    const safeCall = (fallback, fn) => {
+      try { return fn(); } catch (error) { return { ...fallback, error: String(error?.message || error) }; }
+    };
+    const firstRun = safeCall({ status: 'unknown', readiness_percent: 0 }, () => this.getV2FirstRunReadinessSnapshot());
+    const p0 = safeCall({ overall_status: 'unknown' }, () => this.getV2P0AcceptanceSnapshot({ persistEvents: false }));
+    const ownerCommand = safeCall({ score: firstRun.readiness_percent || 0, next: { name: 'Проверить готовность', action: 'open_scheme', note: 'Открыть Схему Мины.' } }, () => this.buildV2OwnerCommandCenterSnapshot(null, { recordOpened: false, persistEvents: false }));
+    const recoveryCommand = safeCall({ status: 'unknown' }, () => this.buildV2RecoveryCommandCenterSnapshot(null, { recordOpened: false, persistEvents: false }));
+    const qa = safeCall({ summary: {}, verifier: {} }, () => this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false }));
+    const research = safeCall({ summary: {}, verifier: {} }, () => this.buildV2ResearchOpsPreview({ previewEnabled: true, persistEvents: false }));
+    const memory = safeCall({ status: 'unknown', records: 0 }, () => this.getV2MemoryRuntimeSnapshot());
+    const safety = safeCall({ summary: {}, status: 'unknown' }, () => this.getV2SafetyPreview({ previewEnabled: true, persistEvents: false }));
+    const goldenUseCases = this.buildV2GoldenUseCases({ first_run: firstRun, p0, owner: ownerCommand, recovery: recoveryCommand, qa, research, memory, safety });
+    const quickStart = this.buildV2QuickStartGuide();
+    const helpCards = this.buildV2HelpCards();
+    const demoMode = this.buildV2DemoModePreview({ persistEvents: options.persistEvents === true });
+    const memorySample = this.buildV2ProductShellMemorySample();
+    const ownerAssistedItems = [
+      ...(ownerCommand.ownerAssisted || []),
+      {
+        id: 'real_phone_apk',
+        name: 'Реальный телефон / APK',
+        note: 'Owner-assisted после production V2 final. BlueStacks не равен финальной проверке телефона.',
+        status: 'owner'
+      },
+      {
+        id: 'external_accounts',
+        name: 'Внешние аккаунты мозгов',
+        note: 'Входы в ChatGPT/Gemini/etc. выполняет владелец вручную. Пароли и cookies не сохраняются.',
+        status: 'owner'
+      }
+    ];
+    const postponedItems = [
+      ...(ownerCommand.postponed || []),
+      {
+        id: 'windows_installer_tray',
+        name: 'Windows installer / tray',
+        note: 'Это отдельный блок production V2 final, не часть web Product Shell.',
+        status: 'postponed'
+      },
+      {
+        id: 'production_signing',
+        name: 'Production signing',
+        note: 'APK/desktop signing только после отдельной owner-assisted задачи.',
+        status: 'postponed'
+      }
+    ];
+    const primaryNextAction = firstRun.minimum_ready
+      ? { name: 'Создать рабочую задачу', action: 'open_work', note: 'Контур готов к первому безопасному рабочему сценарию.' }
+      : {
+          name: ownerCommand.next?.name || 'Проверить готовность',
+          action: ownerCommand.next?.action || 'open_scheme',
+          note: ownerCommand.next?.note || 'Откройте Схему Мины и проверьте минимум запуска.'
+        };
+    const routes = Object.fromEntries(goldenUseCases.map((item) => [item.id, {
+      route: item.route,
+      action: item.action,
+      owner_assisted_required: item.owner_assisted_required
+    }]));
+    const warnings = [
+      ...(safety.summary?.red_zone_stop ? ['Красная зона остаётся заблокированной Guardian.'] : []),
+      ...(memory.degraded ? ['Память работает в режиме проверки или требует наполнения индекса.'] : []),
+      'Demo Mode показывает preview и не выполняет внешние действия.'
+    ];
+    const openedEvent = this.recordV2ProductShellEvent('v2.product_shell.opened', {
+      refs: { component: 'product_shell', task_id: 'TASK-V2-P1-G' },
+      message: 'Product Shell snapshot opened.',
+      score: ownerCommand.score,
+      next_action: primaryNextAction.action
+    }, { persist: options.persistEvents === true });
+    const sampleEvents = [
+      openedEvent,
+      this.recordV2ProductShellEvent('v2.product_shell.use_case_selected', {
+        refs: { use_case_id: goldenUseCases[0]?.id || 'create_task', component: 'product_shell' },
+        message: 'Product Shell use case preview selected.',
+        route: goldenUseCases[0]?.route || 'Рабочее'
+      }, { persist: false }),
+      this.recordV2ProductShellEvent('v2.product_shell.quick_start_opened', {
+        refs: { quick_start_id: quickStart[0]?.id || 'check_readiness', component: 'product_shell' },
+        message: 'Product Shell quick start preview opened.'
+      }, { persist: false }),
+      this.recordV2ProductShellEvent('v2.product_shell.help_card_opened', {
+        refs: { help_id: helpCards[0]?.id || 'head', component: 'product_shell' },
+        message: 'Product Shell help card preview opened.'
+      }, { persist: false }),
+      this.recordV2ProductShellEvent('v2.product_shell.owner_assisted_shown', {
+        refs: { component: 'product_shell' },
+        message: 'Product Shell owner-assisted preview shown.'
+      }, { persist: false }),
+      this.recordV2ProductShellEvent('v2.product_shell.postponed_shown', {
+        refs: { component: 'product_shell' },
+        message: 'Product Shell postponed preview shown.'
+      }, { persist: false })
+    ];
+    return this.createV2Contract('product_shell_state', {
+      id: 'v2_product_shell_foundation',
+      status: 'preview_ready',
+      current_status: ownerCommand.label || 'V2 готовность собрана',
+      readiness_summary: {
+        score: ownerCommand.score || firstRun.readiness_percent || 0,
+        label: ownerCommand.label || 'проверить',
+        summary: ownerCommand.summary || firstRun.summary || 'Снимок собран из существующих контуров.',
+        p0_status: p0.overall_status || 'unknown'
+      },
+      primary_next_action: primaryNextAction,
+      golden_use_cases: goldenUseCases,
+      quick_start: quickStart,
+      help_cards: helpCards,
+      demo_mode: demoMode,
+      owner_assisted_items: ownerAssistedItems,
+      postponed_items: postponedItems,
+      routes,
+      warnings,
+      memory: memorySample,
+      events: sampleEvents,
+      feature_flags: this.getV2FeatureFlags({
+        v2ProductShellPreviewEnabled: Boolean(options.previewEnabled),
+        v2DemoModePreviewEnabled: Boolean(options.previewEnabled),
+        v2HelpCardsEnabled: Boolean(options.previewEnabled)
+      }),
+      source_snapshots: {
+        first_run: this.sanitizeV2EventPayload(firstRun),
+        p0: this.sanitizeV2EventPayload(p0),
+        owner_command: this.sanitizeV2EventPayload(ownerCommand),
+        recovery_command: this.sanitizeV2EventPayload(recoveryCommand),
+        qa: this.sanitizeV2EventPayload(qa.summary || {}),
+        research: this.sanitizeV2EventPayload(research.summary || {}),
+        memory: this.sanitizeV2EventPayload(memory),
+        safety: this.sanitizeV2EventPayload(safety.summary || {})
+      },
+      expert_summary: {
+        source_of_truth: 'Product Shell is an aggregator over existing V2 snapshots, not a separate truth store.',
+        red_zone: ['no AI API', 'no billing', 'no external services', 'no Local Agent/Direct Bridge changes'],
+        opened_event_id: openedEvent.id
+      },
+      refs: { component: 'product_shell', task_id: 'TASK-V2-P1-G' }
+    });
+  },
+
+  runV2ProductShellSmoke(options = {}) {
+    const state = options.state || this.buildV2ProductShellState({ previewEnabled: true, persistEvents: false });
+    const normalText = [
+      state.current_status,
+      state.primary_next_action?.name,
+      ...(state.golden_use_cases || []).map((item) => `${item.title} ${item.description}`),
+      ...(state.help_cards || []).map((item) => `${item.title} ${item.body}`)
+    ].join(' ');
+    const forbiddenNormalTerms = ['CommandQueue', 'Durable Object', 'backend runtime', 'raw state', 'stack trace', 'agent_id', 'IndexedDB'];
+    const checks = [
+      ['state_created', state.type === 'product_shell_state' || state.id === 'v2_product_shell_foundation'],
+      ['five_golden_use_cases', (state.golden_use_cases || []).length === 5],
+      ['quick_start_five_steps', (state.quick_start || []).length === 5],
+      ['help_cards_eight', (state.help_cards || []).length >= 8],
+      ['demo_safe_preview', state.demo_mode?.status === 'safe_preview' && state.demo_mode?.scenarios?.every((item) => item.ai_api === false && item.external_calls === false)],
+      ['owner_assisted_separated', (state.owner_assisted_items || []).some((item) => item.id === 'real_phone_apk')],
+      ['postponed_real_phone_rule', (state.postponed_items || []).some((item) => item.id === 'production_signing')],
+      ['primary_next_action_exists', Boolean(state.primary_next_action?.action)],
+      ['routes_exist', ['create_task', 'qa_autotest', 'research_council', 'memory_search', 'recovery'].every((id) => Boolean(state.routes?.[id]?.action))],
+      ['normal_mode_no_technical_junk', forbiddenNormalTerms.every((term) => !normalText.includes(term))],
+      ['memory_queries_found', state.memory?.all_queries_found === true],
+      ['events_sanitized', (state.events || []).length >= 6],
+      ['feature_flags_safe_preview', state.feature_flags?.v2ProductShellPreviewEnabled === true],
+      ['no_ai_api', state.demo_mode?.constraints?.includes('no AI API')],
+      ['no_billing', state.demo_mode?.constraints?.includes('no billing')]
+    ].map(([id, pass]) => ({ id, status: pass ? 'PASS' : 'FAIL' }));
+    return {
+      schema_version: V2_FOUNDATION_SCHEMA_VERSION,
+      generated_at: new Date().toISOString(),
+      status: checks.every((check) => check.status === 'PASS') ? 'PASS' : 'FAIL',
+      checks,
+      state
+    };
+  },
+
+  renderV2ProductShellHosts() {
+    const hosts = {
+      start: document.getElementById('start-v2-product-shell'),
+      menu: document.getElementById('menu-v2-product-shell'),
+      system: document.getElementById('system-v2-product-shell')
+    };
+    if (!hosts.start && !hosts.menu && !hosts.system) return;
+    const nowMs = Date.now();
+    const recordOpened = !this.v2ProductShellLastOpenedEventAt || nowMs - this.v2ProductShellLastOpenedEventAt > 30000;
+    const state = this.buildV2ProductShellState({ previewEnabled: true, persistEvents: recordOpened });
+    if (recordOpened) this.v2ProductShellLastOpenedEventAt = nowMs;
+    if (hosts.start) hosts.start.innerHTML = this.renderV2ProductShellCompact(state, 'start');
+    if (hosts.menu) hosts.menu.innerHTML = this.renderV2ProductShellCompact(state, 'menu');
+    if (hosts.system) hosts.system.innerHTML = this.renderV2ProductShellPanel(state);
+  },
+
+  renderV2ProductShellCompact(state, variant = 'menu') {
+    return `
+      <article class="v2-product-shell-compact v2-product-shell-compact--${this.escapeHtml(variant)}">
+        <div>
+          <span>Пульт Терминатора</span>
+          <strong>${this.escapeHtml(state.primary_next_action?.name || 'Выбрать первый шаг')}</strong>
+          <p>${this.escapeHtml(state.primary_next_action?.note || 'Откройте понятный маршрут к главным возможностям.')}</p>
+        </div>
+        <button type="button" data-v2-product-shell-action="${this.escapeHtml(state.primary_next_action?.action || 'open_product_shell')}">Начать</button>
+      </article>
+    `;
+  },
+
+  renderV2ProductShellPanel(state = this.buildV2ProductShellState({ previewEnabled: true, persistEvents: false })) {
+    const smoke = this.runV2ProductShellSmoke({ state });
+    const tone = smoke.status === 'PASS' ? 'ready' : 'review';
+    return `
+      <section class="v2-product-shell v2-product-shell--${this.escapeHtml(tone)}" aria-label="Пульт Терминатора">
+        <header class="v2-product-shell-hero">
+          <div>
+            <span>V2 P1 · Product Shell</span>
+            <h3>Пульт Терминатора</h3>
+            <p>Быстрый старт, пять главных сценариев, помощь и безопасное демо собраны в один понятный вход.</p>
+          </div>
+          <div class="v2-product-shell-score">
+            <strong>${this.escapeHtml(String(state.readiness_summary?.score ?? 0))}%</strong>
+            <span>${this.escapeHtml(state.readiness_summary?.label || 'готовность')}</span>
+          </div>
+          <div class="v2-product-shell-next">
+            <span>Главный следующий шаг</span>
+            <strong>${this.escapeHtml(state.primary_next_action?.name || 'Проверить готовность')}</strong>
+            <p>${this.escapeHtml(state.primary_next_action?.note || 'Открыть Схему Мины и продолжить настройку.')}</p>
+            <button type="button" data-v2-product-shell-action="${this.escapeHtml(state.primary_next_action?.action || 'open_scheme')}">Перейти</button>
+          </div>
+        </header>
+
+        <div class="v2-product-shell-grid" aria-label="Главные сценарии">
+          ${(state.golden_use_cases || []).map((item) => `
+            <article class="v2-product-card">
+              <span>${this.escapeHtml(item.readiness)}</span>
+              <strong>${this.escapeHtml(item.title)}</strong>
+              <p>${this.escapeHtml(item.description)}</p>
+              <small>${this.escapeHtml(item.what_user_gets)}</small>
+              ${item.owner_assisted_required ? '<b>требует ручного ответа владельца</b>' : '<b>можно открыть безопасно</b>'}
+              <button type="button" data-v2-product-shell-action="use_case:${this.escapeHtml(item.id)}">Открыть</button>
+            </article>
+          `).join('')}
+        </div>
+
+        <section class="v2-product-quickstart" aria-label="Быстрый старт">
+          <div>
+            <span>Быстрый старт</span>
+            <strong>5 шагов без технической каши</strong>
+            <p>Сначала готовность, потом задача, память, восстановление и Совет мозгов для сложных решений.</p>
+          </div>
+          ${(state.quick_start || []).map((step) => `
+            <button type="button" data-v2-product-shell-action="${this.escapeHtml(step.action)}">
+              <b>${this.escapeHtml(String(step.step))}</b>
+              <strong>${this.escapeHtml(step.title)}</strong>
+              <small>${this.escapeHtml(step.text)}</small>
+            </button>
+          `).join('')}
+        </section>
+
+        <section class="v2-product-help" aria-label="Помощь по Терминатору">
+          ${(state.help_cards || []).map((card) => `
+            <article>
+              <span>Помощь</span>
+              <strong>${this.escapeHtml(card.title)}</strong>
+              <p>${this.escapeHtml(card.body)}</p>
+              <button type="button" data-v2-product-shell-action="help:${this.escapeHtml(card.id)}">Понял</button>
+            </article>
+          `).join('')}
+        </section>
+
+        <section class="v2-product-demo" aria-label="Безопасное демо">
+          <div>
+            <span>Demo Mode</span>
+            <strong>безопасный preview</strong>
+            <p>Демо ничего не удаляет, не пушит, не делает deploy, не ходит во внешние сервисы и не использует AI API.</p>
+          </div>
+          <div>
+            ${(state.demo_mode?.scenarios || []).map((item) => `
+              <button type="button" data-v2-product-shell-action="demo:${this.escapeHtml(item.id)}">
+                <strong>${this.escapeHtml(item.title)}</strong>
+                <small>${this.escapeHtml(item.preview)}</small>
+              </button>
+            `).join('')}
+          </div>
+        </section>
+
+        <section class="v2-product-boundaries" aria-label="Ручные и отложенные проверки">
+          <div>
+            <strong>Требует владельца</strong>
+            ${(state.owner_assisted_items || []).slice(0, 5).map((item) => `
+              <article>
+                <span>${this.escapeHtml(item.name)}</span>
+                <p>${this.escapeHtml(item.note)}</p>
+              </article>
+            `).join('')}
+            <button type="button" data-v2-product-shell-action="owner_assisted">Показать как ручной хвост</button>
+          </div>
+          <div>
+            <strong>Отложено до production V2 final</strong>
+            ${(state.postponed_items || []).slice(0, 5).map((item) => `
+              <article>
+                <span>${this.escapeHtml(item.name)}</span>
+                <p>${this.escapeHtml(item.note)}</p>
+              </article>
+            `).join('')}
+            <button type="button" data-v2-product-shell-action="postponed">Показать postponed</button>
+          </div>
+        </section>
+
+        <details class="v2-product-expert">
+          <summary>Экспертный режим</summary>
+          <pre>${this.escapeHtml(JSON.stringify({
+            schema_version: state.schema_version,
+            smoke: smoke.status,
+            routes: state.routes,
+            feature_flags: state.feature_flags,
+            memory_queries: Object.fromEntries(Object.entries(state.memory?.query_results || {}).map(([query, result]) => [query, result.matchType])),
+            source_of_truth: state.expert_summary?.source_of_truth,
+            warnings: state.warnings
+          }, null, 2))}</pre>
+        </details>
+      </section>
+    `;
+  },
+
+  handleV2ProductShellAction(action = '') {
+    const state = this.buildV2ProductShellState({ previewEnabled: true, persistEvents: false });
+    const scrollTo = (id) => {
+      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    };
+    const scrollToSelector = (selector) => {
+      window.setTimeout(() => document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    };
+    if (action.startsWith('use_case:')) {
+      const useCaseId = action.slice('use_case:'.length);
+      const useCase = (state.golden_use_cases || []).find((item) => item.id === useCaseId);
+      this.recordV2ProductShellEvent('v2.product_shell.use_case_selected', {
+        refs: { use_case_id: useCaseId, component: 'product_shell' },
+        message: `Product Shell use case selected: ${useCase?.title || useCaseId}`,
+        route: useCase?.route || '',
+        owner_assisted_required: Boolean(useCase?.owner_assisted_required)
+      });
+      this.handleV2ProductShellAction(useCase?.action || 'open_product_shell');
+      return;
+    }
+    if (action.startsWith('help:')) {
+      const helpId = action.slice('help:'.length);
+      this.recordV2ProductShellEvent('v2.product_shell.help_card_opened', {
+        refs: { help_id: helpId, component: 'product_shell' },
+        message: `Product Shell help card opened: ${helpId}`
+      });
+      this.toast('Подсказка отмечена. Технические детали остаются в экспертном режиме.');
+      return;
+    }
+    if (action.startsWith('demo:')) {
+      const demoId = action.slice('demo:'.length);
+      this.recordV2ProductShellEvent('v2.product_shell.demo_preview_created', {
+        refs: { demo_id: demoId, component: 'product_shell' },
+        message: `Safe demo preview selected: ${demoId}`
+      });
+      this.toast('Demo Mode показал безопасный preview: внешние сервисы и опасные действия не запускаются.');
+      return;
+    }
+    if (action === 'open_product_shell') {
+      this.go('system');
+      scrollTo('system-v2-product-shell');
+      return;
+    }
+    if (action === 'open_work' || action === 'create_task') {
+      this.go('work');
+      window.setTimeout(() => document.getElementById('work-task-input')?.focus(), 120);
+      return;
+    }
+    if (action === 'open_qa_factory') {
+      this.go('system');
+      scrollToSelector('.v2-qa-factory');
+      return;
+    }
+    if (action === 'open_research_ops') {
+      this.go('system');
+      scrollToSelector('.v2-research-council');
+      return;
+    }
+    if (action === 'open_memory') {
+      this.go('system');
+      scrollTo('system-memory-search-panel');
+      return;
+    }
+    if (action === 'open_recovery') {
+      this.go('system');
+      scrollTo('system-diagnostics');
+      return;
+    }
+    if (action === 'open_scheme') {
+      this.go('scheme');
+      return;
+    }
+    if (action === 'owner_assisted') {
+      this.recordV2ProductShellEvent('v2.product_shell.owner_assisted_shown', {
+        refs: { component: 'product_shell' },
+        message: 'Product Shell owner-assisted list shown.'
+      });
+      this.toast('Owner-assisted пункты показаны отдельно и не считаются готовыми автоматически.');
+      return;
+    }
+    if (action === 'postponed') {
+      this.recordV2ProductShellEvent('v2.product_shell.postponed_shown', {
+        refs: { component: 'product_shell' },
+        message: 'Product Shell postponed list shown.'
+      });
+      this.toast('Postponed пункты отложены до production V2 final.');
+      return;
+    }
+    this.go('system');
+    scrollTo('system-v2-product-shell');
   },
 
   renderV2QAAutotestFactoryPanel(preview = this.buildV2QAAutotestFactoryPreview({ previewEnabled: true, persistEvents: false })) {
@@ -14743,6 +15452,7 @@ test.describe('Terminator QA Factory safe demo', () => {
     if (hosts.menu) hosts.menu.innerHTML = this.renderV2MenuCommandCenter(snapshot);
     if (hosts.mission) hosts.mission.innerHTML = this.renderV2FullCommandCenter(snapshot, 'mission');
     if (hosts.system) hosts.system.innerHTML = this.renderV2FullCommandCenter(snapshot, 'system');
+    this.renderV2ProductShellHosts();
   },
 
   renderV2StartStatus(snapshot) {
