@@ -1,0 +1,151 @@
+[
+  {
+    "id": "v2_product_shell_v2_product_shell_opened_1780193197743_wu2ko",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.743Z",
+    "updated_at": "2026-05-31T02:06:37.743Z",
+    "status": "preview",
+    "refs": {
+      "component": "product_shell",
+      "task_id": "TASK-V2-P1-G"
+    },
+    "risk_level": "low",
+    "event_type": "v2.product_shell.opened",
+    "actor": "product_shell",
+    "resource": "product_entry",
+    "message": "Product Shell snapshot opened.",
+    "payload": {
+      "refs": {
+        "component": "product_shell",
+        "task_id": "TASK-V2-P1-G"
+      },
+      "message": "Product Shell snapshot opened.",
+      "score": 49,
+      "next_action": "open_work"
+    }
+  },
+  {
+    "id": "v2_product_shell_v2_product_shell_use_case_selected_1780193197743_2s043",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.743Z",
+    "updated_at": "2026-05-31T02:06:37.743Z",
+    "status": "preview",
+    "refs": {
+      "use_case_id": "create_task",
+      "component": "product_shell"
+    },
+    "risk_level": "low",
+    "event_type": "v2.product_shell.use_case_selected",
+    "actor": "product_shell",
+    "resource": "product_entry",
+    "message": "Product Shell use case preview selected.",
+    "payload": {
+      "refs": {
+        "use_case_id": "create_task",
+        "component": "product_shell"
+      },
+      "message": "Product Shell use case preview selected.",
+      "route": "Рабочее"
+    }
+  },
+  {
+    "id": "v2_product_shell_v2_product_shell_quick_start_opened_1780193197743_7omax",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.743Z",
+    "updated_at": "2026-05-31T02:06:37.743Z",
+    "status": "preview",
+    "refs": {
+      "quick_start_id": "check_readiness",
+      "component": "product_shell"
+    },
+    "risk_level": "low",
+    "event_type": "v2.product_shell.quick_start_opened",
+    "actor": "product_shell",
+    "resource": "product_entry",
+    "message": "Product Shell quick start preview opened.",
+    "payload": {
+      "refs": {
+        "quick_start_id": "check_readiness",
+        "component": "product_shell"
+      },
+      "message": "Product Shell quick start preview opened."
+    }
+  },
+  {
+    "id": "v2_product_shell_v2_product_shell_help_card_opened_1780193197743_2b4si",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.743Z",
+    "updated_at": "2026-05-31T02:06:37.743Z",
+    "status": "preview",
+    "refs": {
+      "help_id": "head",
+      "component": "product_shell"
+    },
+    "risk_level": "low",
+    "event_type": "v2.product_shell.help_card_opened",
+    "actor": "product_shell",
+    "resource": "product_entry",
+    "message": "Product Shell help card preview opened.",
+    "payload": {
+      "refs": {
+        "help_id": "head",
+        "component": "product_shell"
+      },
+      "message": "Product Shell help card preview opened."
+    }
+  },
+  {
+    "id": "v2_product_shell_v2_product_shell_owner_assisted_shown_1780193197743_u5btn",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.743Z",
+    "updated_at": "2026-05-31T02:06:37.743Z",
+    "status": "preview",
+    "refs": {
+      "component": "product_shell"
+    },
+    "risk_level": "low",
+    "event_type": "v2.product_shell.owner_assisted_shown",
+    "actor": "product_shell",
+    "resource": "product_entry",
+    "message": "Product Shell owner-assisted preview shown.",
+    "payload": {
+      "refs": {
+        "component": "product_shell"
+      },
+      "message": "Product Shell owner-assisted preview shown."
+    }
+  },
+  {
+    "id": "v2_product_shell_v2_product_shell_postponed_shown_1780193197743_iro4t",
+    "type": "event",
+    "contract_name": "V2EventContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.743Z",
+    "updated_at": "2026-05-31T02:06:37.743Z",
+    "status": "preview",
+    "refs": {
+      "component": "product_shell"
+    },
+    "risk_level": "low",
+    "event_type": "v2.product_shell.postponed_shown",
+    "actor": "product_shell",
+    "resource": "product_entry",
+    "message": "Product Shell postponed preview shown.",
+    "payload": {
+      "refs": {
+        "component": "product_shell"
+      },
+      "message": "Product Shell postponed preview shown."
+    }
+  }
+]

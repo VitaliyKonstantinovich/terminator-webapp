@@ -6667,6 +6667,258 @@ button:not(:disabled) {
   white-space: pre-wrap;
 }
 
+.v2-product-shell-host {
+  width: 100%;
+}
+
+.v2-product-shell-compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(79, 220, 255, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(2, 33, 58, 0.9), rgba(2, 12, 30, 0.94)),
+    radial-gradient(circle at 18% 20%, rgba(0, 246, 162, 0.12), transparent 38%);
+  box-shadow: inset 0 0 22px rgba(76, 224, 255, 0.07);
+}
+
+.v2-product-shell-compact--start {
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+.v2-product-shell-compact span,
+.v2-product-shell span,
+.v2-product-card span,
+.v2-product-help span,
+.v2-product-demo span {
+  display: block;
+  color: #86ecff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.v2-product-shell-compact strong,
+.v2-product-shell strong,
+.v2-product-card strong,
+.v2-product-help strong,
+.v2-product-demo strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.v2-product-shell-compact p,
+.v2-product-shell p,
+.v2-product-card p,
+.v2-product-card small,
+.v2-product-help p,
+.v2-product-demo p,
+.v2-product-demo small,
+.v2-product-boundaries p {
+  margin: 6px 0 0;
+  color: #d9f7ff;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.v2-product-shell-compact button,
+.v2-product-shell button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(112, 228, 255, 0.4);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(10, 94, 137, 0.9), rgba(4, 55, 94, 0.86));
+  color: #f3fdff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.v2-product-shell-compact button:hover,
+.v2-product-shell-compact button:focus-visible,
+.v2-product-shell button:hover,
+.v2-product-shell button:focus-visible {
+  border-color: rgba(120, 245, 255, 0.75);
+  box-shadow: 0 0 0 3px rgba(73, 215, 255, 0.16), 0 0 22px rgba(73, 215, 255, 0.14);
+  outline: none;
+}
+
+.v2-product-shell {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(76, 224, 255, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(2, 30, 54, 0.96), rgba(2, 11, 25, 0.98)),
+    radial-gradient(circle at 12% 6%, rgba(0, 246, 162, 0.12), transparent 32%),
+    radial-gradient(circle at 84% 10%, rgba(76, 224, 255, 0.14), transparent 34%);
+  box-shadow: inset 0 0 28px rgba(76, 224, 255, 0.08);
+}
+
+.v2-product-shell--ready {
+  border-color: rgba(93, 255, 203, 0.42);
+}
+
+.v2-product-shell--review {
+  border-color: rgba(255, 213, 93, 0.42);
+}
+
+.v2-product-shell-hero,
+.v2-product-shell-grid,
+.v2-product-quickstart,
+.v2-product-help,
+.v2-product-demo,
+.v2-product-boundaries {
+  display: grid;
+  gap: 12px;
+}
+
+.v2-product-shell-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 0.18fr) minmax(220px, 0.32fr);
+}
+
+.v2-product-shell-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.v2-product-quickstart {
+  grid-template-columns: minmax(220px, 0.8fr) repeat(5, minmax(120px, 1fr));
+}
+
+.v2-product-help {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.v2-product-demo,
+.v2-product-boundaries {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.v2-product-shell-hero > div,
+.v2-product-card,
+.v2-product-quickstart > div,
+.v2-product-quickstart button,
+.v2-product-help article,
+.v2-product-demo > div,
+.v2-product-boundaries > div,
+.v2-product-expert {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(125, 220, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(2, 23, 42, 0.78);
+  box-shadow: inset 0 0 18px rgba(76, 224, 255, 0.06);
+}
+
+.v2-product-shell h3 {
+  margin: 5px 0 0;
+  color: #ffffff;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.06;
+}
+
+.v2-product-shell-score strong {
+  font-size: 34px;
+  color: #65f6ff;
+}
+
+.v2-product-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.v2-product-card small {
+  display: block;
+}
+
+.v2-product-card b {
+  display: block;
+  margin-top: auto;
+  color: #a9ffd7;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.v2-product-quickstart button,
+.v2-product-demo button {
+  height: auto;
+  text-align: left;
+}
+
+.v2-product-quickstart button b {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(116, 242, 255, 0.38);
+  border-radius: 50%;
+  color: #74f2ff;
+}
+
+.v2-product-demo > div:last-child {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.v2-product-boundaries article {
+  margin-top: 8px;
+  padding: 9px;
+  border: 1px solid rgba(255, 212, 92, 0.24);
+  border-radius: 8px;
+  background: rgba(33, 26, 8, 0.36);
+}
+
+.v2-product-expert summary {
+  cursor: pointer;
+  color: #78e8ff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.v2-product-expert pre {
+  max-height: 240px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 8, 20, 0.72);
+  color: #d8f8ff;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 920px) {
+  .v2-product-shell-hero,
+  .v2-product-shell-grid,
+  .v2-product-quickstart,
+  .v2-product-help,
+  .v2-product-demo,
+  .v2-product-boundaries,
+  .v2-product-demo > div:last-child {
+    grid-template-columns: 1fr;
+  }
+
+  .v2-product-shell-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .v2-product-shell-compact button,
+  .v2-product-shell button {
+    width: 100%;
+  }
+}
+
 .work-safe-output[hidden] {
   display: none;
 }

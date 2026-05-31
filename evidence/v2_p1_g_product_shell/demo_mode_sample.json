@@ -1,0 +1,83 @@
+{
+  "id": "v2_product_shell_demo_preview",
+  "type": "product_shell_demo_preview",
+  "contract_name": "V2ProductShellDemoPreviewContract",
+  "schema_version": 1,
+  "created_at": "2026-05-31T02:06:37.741Z",
+  "updated_at": "2026-05-31T02:06:37.741Z",
+  "status": "safe_preview",
+  "refs": {
+    "component": "product_shell",
+    "mode": "demo"
+  },
+  "risk_level": "low",
+  "scenario_count": 5,
+  "scenarios": [
+    {
+      "id": "demo_create_task",
+      "title": "Создать задачу",
+      "preview": "Показывает, как появится task_id, цель и следующий шаг.",
+      "status": "safe_preview",
+      "dangerous_actions": "не выполняются",
+      "external_calls": false,
+      "ai_api": false,
+      "billing_risk": false,
+      "owner_assisted_required": false
+    },
+    {
+      "id": "demo_qa_plan",
+      "title": "Собрать QA план",
+      "preview": "Показывает test request, cases и evidence checklist без запуска внешних сайтов.",
+      "status": "safe_preview",
+      "dangerous_actions": "не выполняются",
+      "external_calls": false,
+      "ai_api": false,
+      "billing_risk": false,
+      "owner_assisted_required": false
+    },
+    {
+      "id": "demo_research",
+      "title": "Провести исследование",
+      "preview": "Показывает Source Cards, BrainAnswer, Comparison и Decision Passport на безопасном примере.",
+      "status": "safe_preview",
+      "dangerous_actions": "не выполняются",
+      "external_calls": false,
+      "ai_api": false,
+      "billing_risk": false,
+      "owner_assisted_required": false
+    },
+    {
+      "id": "demo_memory",
+      "title": "Найти в памяти",
+      "preview": "Показывает сильное совпадение, слабое совпадение и честный empty state.",
+      "status": "safe_preview",
+      "dangerous_actions": "не выполняются",
+      "external_calls": false,
+      "ai_api": false,
+      "billing_risk": false,
+      "owner_assisted_required": false
+    },
+    {
+      "id": "demo_recovery",
+      "title": "Открыть Recovery",
+      "preview": "Показывает, как Диагност объясняет проблему и выбирает безопасный следующий шаг.",
+      "status": "safe_preview",
+      "dangerous_actions": "не выполняются",
+      "external_calls": false,
+      "ai_api": false,
+      "billing_risk": false,
+      "owner_assisted_required": false
+    }
+  ],
+  "constraints": [
+    "no external requests",
+    "no AI API",
+    "no credentials",
+    "no billing",
+    "no deploy",
+    "no push",
+    "no delete",
+    "no Local Agent or Direct Bridge changes"
+  ],
+  "event_id": "v2_product_shell_v2_product_shell_demo_preview_created_1780193197741_pxw8t"
+}

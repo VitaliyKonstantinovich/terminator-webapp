@@ -1,0 +1,169 @@
+{
+  "generated_at": "2026-05-31T02:06:47.775Z",
+  "local_url": "http://127.0.0.1:8814/?screen=system&force=v2-p1-g-product-shell-local-smoke",
+  "syntax": {
+    "app_js": "PASS",
+    "sw_js": "PASS"
+  },
+  "state_summary": {
+    "status": "preview_ready",
+    "score": 49,
+    "use_cases": 5,
+    "help_cards": 8,
+    "quick_start_steps": 5,
+    "demo_scenarios": 5,
+    "memory_queries_found": true,
+    "feature_flags": {
+      "v2FoundationEnabled": false,
+      "v2EventLogEnabled": false,
+      "v2CapabilityMatrixEnabled": false,
+      "v2SourceSnapshotsEnabled": false,
+      "v2SafetyPolicyPreviewEnabled": false,
+      "v2ControlledApplyPreviewEnabled": false,
+      "v2MemoryContractPreviewEnabled": false,
+      "v2RecoveryStatePreviewEnabled": false,
+      "v2RecoveryCommandCenterPreviewEnabled": false,
+      "v2FirstRunReadinessPreviewEnabled": false,
+      "v2SetupRoutePreviewEnabled": false,
+      "v2OwnerCommandCenterPreviewEnabled": false,
+      "v2P0IntegrationPreviewEnabled": false,
+      "v2P0AcceptanceSuiteEnabled": false,
+      "v2QAAutotestFactoryPreviewEnabled": false,
+      "v2ComfortTrustGuidePreviewEnabled": false,
+      "v2SafeUndoCenterPreviewEnabled": false,
+      "v2ConfidenceLayerPreviewEnabled": false,
+      "v2ResearchOpsQualityPreviewEnabled": false,
+      "v2BrainCouncilQualityPreviewEnabled": false,
+      "v2ProductShellPreviewEnabled": true,
+      "v2DemoModePreviewEnabled": true,
+      "v2HelpCardsEnabled": true
+    }
+  },
+  "smoke_status": "PASS",
+  "smoke_checks": [
+    {
+      "id": "state_created",
+      "status": "PASS"
+    },
+    {
+      "id": "five_golden_use_cases",
+      "status": "PASS"
+    },
+    {
+      "id": "quick_start_five_steps",
+      "status": "PASS"
+    },
+    {
+      "id": "help_cards_eight",
+      "status": "PASS"
+    },
+    {
+      "id": "demo_safe_preview",
+      "status": "PASS"
+    },
+    {
+      "id": "owner_assisted_separated",
+      "status": "PASS"
+    },
+    {
+      "id": "postponed_real_phone_rule",
+      "status": "PASS"
+    },
+    {
+      "id": "primary_next_action_exists",
+      "status": "PASS"
+    },
+    {
+      "id": "routes_exist",
+      "status": "PASS"
+    },
+    {
+      "id": "normal_mode_no_technical_junk",
+      "status": "PASS"
+    },
+    {
+      "id": "memory_queries_found",
+      "status": "PASS"
+    },
+    {
+      "id": "events_sanitized",
+      "status": "PASS"
+    },
+    {
+      "id": "feature_flags_safe_preview",
+      "status": "PASS"
+    },
+    {
+      "id": "no_ai_api",
+      "status": "PASS"
+    },
+    {
+      "id": "no_billing",
+      "status": "PASS"
+    }
+  ],
+  "ui": {
+    "systemPanelVisible": true,
+    "startCompactPresent": true,
+    "menuCompactPresent": true,
+    "useCaseButtonCount": 5,
+    "helpCards": 8,
+    "quickSteps": 5,
+    "demoButtons": 5,
+    "routeAfterFirstUseCase": "work",
+    "memoryRoute": "system",
+    "memoryPanelPresent": true,
+    "noTechnicalJunkInNormalText": true,
+    "textHasPrimaryNextAction": false,
+    "textHasDemoSafe": false
+  },
+  "mobile": [
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "noHorizontalOverflow": true,
+      "productShellVisible": true,
+      "useCaseCards": 5
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "noHorizontalOverflow": true,
+      "productShellVisible": true,
+      "useCaseCards": 5
+    }
+  ],
+  "verdict": "PASS",
+  "route_checks": [
+    {
+      "id": "create_task",
+      "status": "PASS",
+      "current": "work",
+      "selector_found": true
+    },
+    {
+      "id": "qa_autotest",
+      "status": "PASS",
+      "current": "system",
+      "selector_found": true
+    },
+    {
+      "id": "research_council",
+      "status": "PASS",
+      "current": "system",
+      "selector_found": true
+    },
+    {
+      "id": "memory_search",
+      "status": "PASS",
+      "current": "system",
+      "selector_found": true
+    },
+    {
+      "id": "recovery",
+      "status": "PASS",
+      "current": "system",
+      "selector_found": true
+    }
+  ]
+}

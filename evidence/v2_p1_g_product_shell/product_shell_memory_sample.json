@@ -1,0 +1,769 @@
+{
+  "memory_record": {
+    "id": "v2_memory_product_shell_foundation",
+    "type": "memory_record",
+    "contract_name": "V2MemoryRecordContract",
+    "schema_version": 1,
+    "created_at": "2026-05-31T02:06:37.741Z",
+    "updated_at": "2026-05-31T02:06:37.741Z",
+    "status": "candidate",
+    "refs": {
+      "project_id": "terminator",
+      "task_id": "TASK-V2-P1-G",
+      "component": "product_shell"
+    },
+    "risk_level": "low",
+    "title": "Product Shell Foundation: быстрый старт Терминатора",
+    "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+    "project_id": "terminator",
+    "task_id": "TASK-V2-P1-G",
+    "keywords": [
+      "product shell",
+      "быстрый старт",
+      "фабрика автотестов",
+      "совет мозгов",
+      "recovery"
+    ]
+  },
+  "records": [
+    {
+      "schema_version": 1,
+      "record_id": "v2_memory_product_shell_foundation",
+      "type": "memory",
+      "label": "Память",
+      "title": "Product Shell Foundation: быстрый старт Терминатора",
+      "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+      "project_id": "terminator",
+      "project_name": "Терминатор",
+      "task_id": "TASK-V2-P1-G",
+      "task_title": "Product Shell Foundation",
+      "source_id": "v2_memory_product_shell_foundation",
+      "source_type": "memory_record",
+      "refs": {
+        "project_id": "terminator",
+        "task_id": "TASK-V2-P1-G",
+        "component": "product_shell"
+      },
+      "keywords": [
+        "product shell",
+        "быстрый старт",
+        "фабрика автотестов",
+        "совет мозгов",
+        "recovery"
+      ],
+      "confidence": "verified_preview",
+      "privacy_status": "ok",
+      "created_at": "2026-05-31T02:06:37.741Z",
+      "updated_at": "2026-05-31T02:06:37.741Z",
+      "search_text": "Product Shell Foundation: быстрый старт Терминатора Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта. product shell быстрый старт фабрика автотестов совет мозгов recovery"
+    }
+  ],
+  "query_results": {
+    "product shell": {
+      "schema_version": 1,
+      "normalizedQuery": "product shell",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "v2_memory_product_shell_foundation",
+          "type": "memory",
+          "label": "Память",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P1-G",
+          "task_title": "Product Shell Foundation",
+          "source_id": "v2_memory_product_shell_foundation",
+          "source_type": "memory_record",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell"
+          },
+          "keywords": [
+            "product shell",
+            "быстрый старт",
+            "фабрика автотестов",
+            "совет мозгов",
+            "recovery"
+          ],
+          "confidence": "verified_preview",
+          "privacy_status": "ok",
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "search_text": "Product Shell Foundation: быстрый старт Терминатора Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта. product shell быстрый старт фабрика автотестов совет мозгов recovery",
+          "score": 63,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_memory_product_shell_foundation",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "indexed",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "source": {
+            "source_id": "v2_memory_product_shell_foundation",
+            "source_type": "memory_record",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P1-G",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "verified_preview",
+          "relevance_score": 63,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780193197741_kclr",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "product shell",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780193197741_3zam",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "product shell",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "быстрый старт": {
+      "schema_version": 1,
+      "normalizedQuery": "быстрый старт",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "v2_memory_product_shell_foundation",
+          "type": "memory",
+          "label": "Память",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P1-G",
+          "task_title": "Product Shell Foundation",
+          "source_id": "v2_memory_product_shell_foundation",
+          "source_type": "memory_record",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell"
+          },
+          "keywords": [
+            "product shell",
+            "быстрый старт",
+            "фабрика автотестов",
+            "совет мозгов",
+            "recovery"
+          ],
+          "confidence": "verified_preview",
+          "privacy_status": "ok",
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "search_text": "Product Shell Foundation: быстрый старт Терминатора Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта. product shell быстрый старт фабрика автотестов совет мозгов recovery",
+          "score": 63,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_memory_product_shell_foundation",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "indexed",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "source": {
+            "source_id": "v2_memory_product_shell_foundation",
+            "source_type": "memory_record",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P1-G",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "verified_preview",
+          "relevance_score": 63,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780193197742_ws8q",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "быстрый старт",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780193197742_dmy5",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "быстрый старт",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "фабрика автотестов": {
+      "schema_version": 1,
+      "normalizedQuery": "фабрика автотестов",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "v2_memory_product_shell_foundation",
+          "type": "memory",
+          "label": "Память",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P1-G",
+          "task_title": "Product Shell Foundation",
+          "source_id": "v2_memory_product_shell_foundation",
+          "source_type": "memory_record",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell"
+          },
+          "keywords": [
+            "product shell",
+            "быстрый старт",
+            "фабрика автотестов",
+            "совет мозгов",
+            "recovery"
+          ],
+          "confidence": "verified_preview",
+          "privacy_status": "ok",
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "search_text": "Product Shell Foundation: быстрый старт Терминатора Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта. product shell быстрый старт фабрика автотестов совет мозгов recovery",
+          "score": 41,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_memory_product_shell_foundation",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "indexed",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "source": {
+            "source_id": "v2_memory_product_shell_foundation",
+            "source_type": "memory_record",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P1-G",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "verified_preview",
+          "relevance_score": 41,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780193197742_ne3o",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "фабрика автотестов",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780193197742_bou0",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "фабрика автотестов",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "совет мозгов": {
+      "schema_version": 1,
+      "normalizedQuery": "совет мозгов",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "v2_memory_product_shell_foundation",
+          "type": "memory",
+          "label": "Память",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P1-G",
+          "task_title": "Product Shell Foundation",
+          "source_id": "v2_memory_product_shell_foundation",
+          "source_type": "memory_record",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell"
+          },
+          "keywords": [
+            "product shell",
+            "быстрый старт",
+            "фабрика автотестов",
+            "совет мозгов",
+            "recovery"
+          ],
+          "confidence": "verified_preview",
+          "privacy_status": "ok",
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "search_text": "Product Shell Foundation: быстрый старт Терминатора Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта. product shell быстрый старт фабрика автотестов совет мозгов recovery",
+          "score": 45,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_memory_product_shell_foundation",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "indexed",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "source": {
+            "source_id": "v2_memory_product_shell_foundation",
+            "source_type": "memory_record",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P1-G",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "verified_preview",
+          "relevance_score": 45,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780193197742_ihir",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "совет мозгов",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780193197742_k5nk",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "совет мозгов",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    },
+    "recovery": {
+      "schema_version": 1,
+      "normalizedQuery": "recovery",
+      "scope": {
+        "project_id": "",
+        "task_id": "",
+        "includeArtifacts": true,
+        "includeEvidence": true,
+        "includeFiles": true
+      },
+      "results": [
+        {
+          "schema_version": 1,
+          "record_id": "v2_memory_product_shell_foundation",
+          "type": "memory",
+          "label": "Память",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "project_id": "terminator",
+          "project_name": "Терминатор",
+          "task_id": "TASK-V2-P1-G",
+          "task_title": "Product Shell Foundation",
+          "source_id": "v2_memory_product_shell_foundation",
+          "source_type": "memory_record",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell"
+          },
+          "keywords": [
+            "product shell",
+            "быстрый старт",
+            "фабрика автотестов",
+            "совет мозгов",
+            "recovery"
+          ],
+          "confidence": "verified_preview",
+          "privacy_status": "ok",
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "search_text": "Product Shell Foundation: быстрый старт Терминатора Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта. product shell быстрый старт фабрика автотестов совет мозгов recovery",
+          "score": 33,
+          "relevance": "strong",
+          "match_type": "exact",
+          "weak_match": false
+        }
+      ],
+      "records": [
+        {
+          "id": "v2_memory_product_shell_foundation",
+          "type": "memory_record",
+          "contract_name": "V2MemoryRecordContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.741Z",
+          "updated_at": "2026-05-31T02:06:37.741Z",
+          "status": "indexed",
+          "refs": {
+            "project_id": "terminator",
+            "task_id": "TASK-V2-P1-G",
+            "component": "product_shell",
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "file_refs": []
+          },
+          "risk_level": "low",
+          "record_type": "memory",
+          "title": "Product Shell Foundation: быстрый старт Терминатора",
+          "summary": "Product Shell объединяет быстрый старт, фабрику автотестов, Совет мозгов, Memory Search, Recovery, owner-assisted и postponed правила в понятный вход продукта.",
+          "source": {
+            "source_id": "v2_memory_product_shell_foundation",
+            "source_type": "memory_record",
+            "source_ref": ""
+          },
+          "task_id": "TASK-V2-P1-G",
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "file_refs": [],
+          "confidence": "verified_preview",
+          "relevance_score": 33,
+          "match_type": "exact",
+          "privacy_level": "normal"
+        }
+      ],
+      "matchType": "exact",
+      "relevanceSummary": "сильные совпадения",
+      "emptyState": "",
+      "weakWarning": "",
+      "privacyWarnings": [],
+      "privacyBlocked": false,
+      "durationMs": 0,
+      "events": [
+        {
+          "id": "preview_v2_memory_search_requested_1780193197742_0rrt",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.requested",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search query received.",
+          "payload": {
+            "query": "recovery",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        },
+        {
+          "id": "preview_v2_memory_search_completed_1780193197742_xn29",
+          "type": "event",
+          "contract_name": "V2EventContract",
+          "schema_version": 1,
+          "created_at": "2026-05-31T02:06:37.742Z",
+          "updated_at": "2026-05-31T02:06:37.742Z",
+          "status": "preview",
+          "refs": {},
+          "risk_level": "low",
+          "event_type": "v2.memory.search.completed",
+          "actor": "memory_search",
+          "resource": "memory_index",
+          "message": "Memory Search completed with relevant records.",
+          "payload": {
+            "query": "recovery",
+            "result_count": 1,
+            "match_type": "exact",
+            "duration_ms": 0,
+            "privacy_warnings_count": 0,
+            "empty_state": "",
+            "weak_warning": ""
+          }
+        }
+      ]
+    }
+  },
+  "all_queries_found": true
+}

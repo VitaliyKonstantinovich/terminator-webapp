@@ -1,0 +1,61 @@
+[
+  {
+    "id": "create_task",
+    "title": "Создать рабочую задачу",
+    "description": "Открывает Рабочее: цель, файлы, контекст, отчёт исполнителя, Verifier и память.",
+    "readiness": "готово",
+    "route": "Рабочее",
+    "action": "open_work",
+    "owner_assisted_required": false,
+    "what_user_gets": "task_id, следующий шаг, артефакты и понятный статус задачи.",
+    "not_checked": []
+  },
+  {
+    "id": "qa_autotest",
+    "title": "Собрать автотест",
+    "description": "Фабрика автотестов создаёт test request, план, cases, evidence checklist и Verifier gate.",
+    "readiness": "готово",
+    "route": "QA Autotest Factory",
+    "action": "open_qa_factory",
+    "owner_assisted_required": false,
+    "what_user_gets": "структурированный QA-план без запуска внешних сайтов и без скрытых действий.",
+    "not_checked": [
+      "backend/API contract требует отдельной проверки"
+    ]
+  },
+  {
+    "id": "research_council",
+    "title": "Провести исследование через Совет мозгов",
+    "description": "ResearchOps собирает вопрос, источники, ответы мозгов, сравнение, противоречия и Decision Passport.",
+    "readiness": "готово с ручными входами",
+    "route": "ResearchOps / Brain Council",
+    "action": "open_research_ops",
+    "owner_assisted_required": true,
+    "what_user_gets": "проверяемое решение с рисками, источниками и первым шагом проверки.",
+    "not_checked": [
+      "ответы внешних web-chat вставляются владельцем вручную"
+    ]
+  },
+  {
+    "id": "memory_search",
+    "title": "Найти прошлое решение в памяти",
+    "description": "Память ищет по задачам, артефактам, evidence, решениям и безопасным memory records.",
+    "readiness": "индекс требует наполнения",
+    "route": "Memory Search",
+    "action": "open_memory",
+    "owner_assisted_required": false,
+    "what_user_gets": "релевантные ссылки и честный empty state вместо мусора.",
+    "not_checked": []
+  },
+  {
+    "id": "recovery",
+    "title": "Починить проблему / открыть Recovery",
+    "description": "Диагност, Guardian, Recovery и Safe Undo показывают безопасный путь восстановления.",
+    "readiness": "готово",
+    "route": "Recovery Command Center",
+    "action": "open_recovery",
+    "owner_assisted_required": false,
+    "what_user_gets": "симптом, риск, следующий безопасный шаг, rollback-политика и запрет опасных действий без Approval.",
+    "not_checked": []
+  }
+]

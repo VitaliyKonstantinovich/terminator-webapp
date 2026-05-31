@@ -1,0 +1,37 @@
+[
+  {
+    "id": "check_readiness",
+    "step": 1,
+    "title": "Проверить готовность",
+    "text": "Откройте Пульт Терминатора или Схему Мины и посмотрите главный следующий шаг.",
+    "action": "open_scheme"
+  },
+  {
+    "id": "create_first_task",
+    "step": 2,
+    "title": "Создать первую задачу",
+    "text": "В Рабочем опишите цель обычным языком. Терминатор создаст task_id и рабочий контур.",
+    "action": "open_work"
+  },
+  {
+    "id": "save_to_memory",
+    "step": 3,
+    "title": "Сохранить результат в память",
+    "text": "После проверки результата Memory Preview предлагает сохранить только важное.",
+    "action": "open_memory"
+  },
+  {
+    "id": "recover_if_error",
+    "step": 4,
+    "title": "Если ошибка — открыть Recovery",
+    "text": "Диагност объяснит, что случилось, насколько это опасно и что можно сделать безопасно.",
+    "action": "open_recovery"
+  },
+  {
+    "id": "use_brain_council",
+    "step": 5,
+    "title": "Если задача сложная — подключить Совет мозгов",
+    "text": "Сложные решения проходят через источники, Совет мозгов, Decision Passport и Verifier.",
+    "action": "open_research_ops"
+  }
+]

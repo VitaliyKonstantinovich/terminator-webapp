@@ -1,0 +1,50 @@
+[
+  {
+    "id": "head",
+    "title": "Голова / Совет мозгов",
+    "body": "Помогает думать: выбирает стратегию, сравнивает ответы мозгов и готовит проверяемое решение.",
+    "expert_ref": "system-head-panel / ResearchOps / Brain Council"
+  },
+  {
+    "id": "memory",
+    "title": "Память",
+    "body": "Помнит важные решения, задачи, evidence и артефакты. Невозможный запрос не выдаётся как уверенный результат.",
+    "expert_ref": "system-memory-search-panel"
+  },
+  {
+    "id": "hands",
+    "title": "Руки",
+    "body": "Готовят безопасные планы действий. Опасные изменения идут только через Guardian, Verifier, rollback и Approval.",
+    "expert_ref": "system-hands-panel"
+  },
+  {
+    "id": "recovery",
+    "title": "Диагност / Recovery",
+    "body": "Объясняет проблему простыми словами и ведёт к безопасному восстановлению без ручного хаоса.",
+    "expert_ref": "system-diagnostics / Recovery Command Center"
+  },
+  {
+    "id": "guardian",
+    "title": "Guardian / Approval",
+    "body": "Защитник блокирует deploy, push, delete, .env, billing, network и другие опасные действия без подтверждения.",
+    "expert_ref": "system-guardian-panel / approval center"
+  },
+  {
+    "id": "qa",
+    "title": "QA Autotest Factory",
+    "body": "Собирает план проверки, тест-кейсы, evidence checklist и Verifier gate без запуска внешних сайтов.",
+    "expert_ref": "v2-qa-factory"
+  },
+  {
+    "id": "owner_assisted",
+    "title": "Что требует владельца",
+    "body": "Реальный телефон, внешние аккаунты, billing кабинеты и production rollback не маскируются как готовые.",
+    "expert_ref": "owner-assisted list"
+  },
+  {
+    "id": "postponed",
+    "title": "Что отложено до production V2 final",
+    "body": "APK на реальный телефон, production signing, installer/tray и реальные внешние интеграции идут отдельными задачами.",
+    "expert_ref": "postponed items"
+  }
+]
