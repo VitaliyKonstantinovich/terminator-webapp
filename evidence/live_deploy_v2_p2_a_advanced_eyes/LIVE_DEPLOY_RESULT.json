@@ -1,0 +1,146 @@
+{
+  "test_id": "LIVE-V2-P2-A-EYES-002",
+  "created_at": "2026-05-31T03:37:09.351Z",
+  "started_at": "2026-05-31T03:36:50.462Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "commits": {
+    "feature": "aab8628d3b6c2f969b5b2b59b85472a129eecfd6",
+    "workflow_marker_fix": "bbcf4157bea1ac848fa8e98864bb5a368381783d",
+    "normal_ui_copy_fix": "26286457f937350650f92377be61a84d152387e3"
+  },
+  "static_checks": {
+    "html_ok": true,
+    "html_status": 200,
+    "html_marker": true,
+    "manifest_ok": true,
+    "manifest_valid": true,
+    "service_worker_ok": true,
+    "service_worker_marker": true,
+    "no_ai_api_direct_call": true,
+    "no_secret_pattern": true
+  },
+  "dom_checks": {
+    "eyesSystem": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p2-a-live-eyes-1780198612268",
+      "title": "TERMINATOR MINA UI",
+      "marker": true,
+      "eyesPanel": true,
+      "eyesCapabilityCards": 6,
+      "snapshotButton": true,
+      "productShellEyesText": true,
+      "noMojibake": true,
+      "forbiddenTerms": [],
+      "width": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    "schemeDesktop": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p2-a-live-scheme-1780198616410",
+      "marker": true,
+      "uniqueZones": [
+        "head",
+        "eyes",
+        "voice",
+        "hands",
+        "memory",
+        "body",
+        "legs",
+        "diagnost"
+      ],
+      "clickResults": [
+        {
+          "id": "head",
+          "exists": true,
+          "aria": "Открыть настройку Голова / Мозги. Статус: не настроено.",
+          "panel": "Голова / Мозги",
+          "active": true
+        },
+        {
+          "id": "eyes",
+          "exists": true,
+          "aria": "Открыть настройку Глаза. Статус: не настроено.",
+          "panel": "Глаза",
+          "active": true
+        },
+        {
+          "id": "voice",
+          "exists": true,
+          "aria": "Открыть настройку Голос. Статус: готово.",
+          "panel": "Голос",
+          "active": true
+        },
+        {
+          "id": "memory",
+          "exists": true,
+          "aria": "Открыть настройку Память. Статус: готово.",
+          "panel": "Память",
+          "active": true
+        },
+        {
+          "id": "body",
+          "exists": true,
+          "aria": "Открыть настройку Тело. Статус: частично.",
+          "panel": "Тело",
+          "active": true
+        },
+        {
+          "id": "hands",
+          "exists": true,
+          "aria": "Открыть настройку Руки. Статус: не настроено.",
+          "panel": "Руки",
+          "active": true
+        },
+        {
+          "id": "legs",
+          "exists": true,
+          "aria": "Открыть настройку Ноги. Статус: частично.",
+          "panel": "Ноги",
+          "active": true
+        },
+        {
+          "id": "diagnost",
+          "exists": true,
+          "aria": "Открыть настройку Диагност. Статус: частично.",
+          "panel": "Диагност",
+          "active": true
+        }
+      ],
+      "readinessText": true,
+      "eyesText": true,
+      "voiceText": true,
+      "noMojibake": true,
+      "width": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    "mobile390": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p2-a-live-mobile390-1780198624108",
+      "width": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": false,
+      "noMojibake": true,
+      "hasScheme": true
+    },
+    "mobile430": {
+      "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p2-a-live-mobile430-1780198626827",
+      "width": 430,
+      "scrollWidth": 430,
+      "horizontalOverflow": false,
+      "noMojibake": true,
+      "hasScheme": true
+    }
+  },
+  "verdicts": {
+    "workflow_deploy": "PASS",
+    "live_marker": "PASS",
+    "eyes_ui": "PASS",
+    "scheme_ui": "PASS",
+    "mobile": "PASS",
+    "security": "PASS"
+  },
+  "notes": [
+    "Live smoke was lightweight: no screenshots, no BlueStacks, no APK, no external account actions.",
+    "Service worker cache marker remains the approved Mina scheme cache marker; HTML marker validates the P2-A app script version."
+  ],
+  "status": "PASS"
+}
