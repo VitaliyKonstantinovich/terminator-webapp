@@ -1,0 +1,42 @@
+{
+  "gate_id": "eyes_quality_local_smoke",
+  "created_at": "2026-05-31T04:12:34.3551422Z",
+  "evidence_id": "system_runtime_preview",
+  "verdict": "PASS",
+  "score": 100,
+  "checks": [
+    {
+      "id": "console_status_visible",
+      "status": "PASS"
+    },
+    {
+      "id": "quality_gate_visible",
+      "status": "PASS"
+    },
+    {
+      "id": "verifier_visible",
+      "status": "PASS"
+    },
+    {
+      "id": "normal_ui_no_forbidden_terms",
+      "status": "PASS"
+    },
+    {
+      "id": "mobile_390_no_overflow",
+      "status": "PASS"
+    },
+    {
+      "id": "mobile_430_no_overflow",
+      "status": "PASS"
+    }
+  ],
+  "negative_samples": {
+    "empty_evidence": "FAIL",
+    "secret_like_text": "FAIL",
+    "mojibake": "FAIL",
+    "overflow": "PARTIAL"
+  },
+  "risks": [],
+  "missing": [],
+  "next_action": "Use visual evidence gate output in Verifier and Confidence summaries."
+}

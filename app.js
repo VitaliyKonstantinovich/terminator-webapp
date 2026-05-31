@@ -669,6 +669,21 @@ const EYES_VISUAL_ADVANCED_TYPES = {
   combined: 'комбинированное evidence'
 };
 const EYES_VISUAL_TECHNICAL_TERMS = ['CDP', 'Playwright', 'DevTools Protocol', 'raw DOM', 'JSON dump', 'stack trace'];
+const EYES_CONSOLE_BUFFER_MAX = 40;
+const EYES_CONSOLE_PREVIEW_MAX = 180;
+const EYES_CONSOLE_SECRET_PATTERN = /(?:FAKE_SECRET_DO_NOT_USE|sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,}|Authorization\s*:\s*Bearer|Bearer\s+[A-Za-z0-9._~+/=-]{12,}|BEGIN\s+(?:RSA\s+|OPENSSH\s+|EC\s+)?PRIVATE\s+KEY|(?:api[_ -]?key|token|secret|password|passwd|pwd|cookie|session|jwt)\s*[:=]\s*\S{4,})/i;
+const EYES_QUALITY_CORE_CHECKS = [
+  'has_scope',
+  'has_source',
+  'has_created_at',
+  'has_dom_summary',
+  'has_layout_evidence',
+  'has_accessibility_basics',
+  'has_console_snapshot',
+  'no_mojibake',
+  'no_secret_like_text',
+  'evidence_not_empty'
+];
 
 const HANDS_SAFE_ACTION_SCHEMA_VERSION = 1;
 const HANDS_SAFE_ACTION_STORAGE_KEY = 'mina_hands_safe_actions_v1';
@@ -2639,6 +2654,79 @@ function openTaskRuntimeDatabase() {
 
 const INITIAL_TASK_STORE_SYNC_STATE = loadTaskStoreSyncState();
 
+function sanitizeEyesConsoleRuntimeText(value) {
+  const normalize = (part) => {
+    if (part instanceof Error) return part.message || part.name || 'error';
+    if (typeof part === 'string') return part;
+    if (part === null || part === undefined) return '';
+    try {
+      return typeof part === 'object' ? JSON.stringify(part) : String(part);
+    } catch {
+      return String(part);
+    }
+  };
+  const raw = Array.isArray(value) ? value.map(normalize).join(' ') : normalize(value);
+  const singleLine = raw.replace(/\s+/g, ' ').trim();
+  const sensitive = EYES_CONSOLE_SECRET_PATTERN.test(singleLine);
+  const redacted = sensitive
+    ? singleLine.replace(EYES_CONSOLE_SECRET_PATTERN, '[REDACTED]')
+    : singleLine;
+  return {
+    preview: redacted.slice(0, EYES_CONSOLE_PREVIEW_MAX),
+    sensitive
+  };
+}
+
+function setupEyesConsoleRuntimeCollector() {
+  if (typeof window === 'undefined') return;
+  if (window.__terminatorEyesConsoleCollectorInstalled) return;
+  window.__terminatorEyesConsoleCollectorInstalled = true;
+  window.__terminatorEyesConsoleBuffer = Array.isArray(window.__terminatorEyesConsoleBuffer)
+    ? window.__terminatorEyesConsoleBuffer.slice(-EYES_CONSOLE_BUFFER_MAX)
+    : [];
+  const push = (level, messageParts, source = 'runtime') => {
+    try {
+      const sanitized = sanitizeEyesConsoleRuntimeText(messageParts);
+      const record = {
+        level: ['error', 'warning', 'info'].includes(level) ? level : 'info',
+        message_preview: sanitized.sensitive ? '[REDACTED sensitive console message]' : sanitized.preview,
+        source,
+        timestamp: new Date().toISOString(),
+        sensitive_blocked: sanitized.sensitive
+      };
+      window.__terminatorEyesConsoleBuffer.push(record);
+      window.__terminatorEyesConsoleBuffer = window.__terminatorEyesConsoleBuffer.slice(-EYES_CONSOLE_BUFFER_MAX);
+    } catch {
+      // Console evidence must never break app runtime.
+    }
+  };
+  const original = {
+    info: window.console?.info?.bind(window.console),
+    warn: window.console?.warn?.bind(window.console),
+    error: window.console?.error?.bind(window.console)
+  };
+  if (window.console) {
+    window.console.info = (...args) => {
+      push('info', args, 'console.info');
+      original.info?.(...args);
+    };
+    window.console.warn = (...args) => {
+      push('warning', args, 'console.warn');
+      original.warn?.(...args);
+    };
+    window.console.error = (...args) => {
+      push('error', args, 'console.error');
+      original.error?.(...args);
+    };
+  }
+  window.addEventListener('error', (event) => {
+    push('error', [event?.message || event?.error?.message || 'runtime error'], 'window.error');
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    push('error', [event?.reason?.message || event?.reason || 'unhandled rejection'], 'unhandledrejection');
+  });
+}
+
 const App = {
   current: 'start',
   selectedModel: 'chatgpt',
@@ -2743,6 +2831,7 @@ const App = {
 
   async init() {
     window.MinaApp = this;
+    setupEyesConsoleRuntimeCollector();
     this.tg = window.Telegram?.WebApp || null;
     this.initTelegram();
     this.bindEvents();
@@ -8491,6 +8580,8 @@ test.describe('Terminator QA Factory safe demo', () => {
     const safety = this.getV2SafetyPolicySnapshot?.() || this.getV2GuardianSnapshot?.() || {};
     const guardian = this.guardianSnapshot?.() || {};
     const recovery = this.buildRecoverySnapshot?.({ previewEnabled: true, persistEvents: false, limit: 5 }) || {};
+    const eyes = this.eyesVisualSnapshot?.() || {};
+    const eyesAdvanced = eyes.advanced || {};
     const results = Array.isArray(p0.results) ? p0.results : [];
     const unresolved = results.filter((item) => ['FAIL', 'BLOCKED'].includes(item.status));
     const ownerAssisted = results.filter((item) => item.status === 'OWNER_ASSISTED');
@@ -8533,6 +8624,16 @@ test.describe('Terminator QA Factory safe demo', () => {
       qa.summary?.status ? 'Проверены тестовые сценарии интерфейса' : '',
       recovery.safety?.no_direct_restore ? 'Восстановление не выполняется молча' : ''
     ].filter(Boolean);
+    if (['PASS', 'PASS_WITH_RISKS'].includes(eyesAdvanced.visual_evidence_quality)) {
+      verifiedItems.push(`Visual evidence: ${this.eyesQualityVerdictName(eyesAdvanced.visual_evidence_quality)} (${eyesAdvanced.quality_gate_score || 0}%)`);
+    }
+    if (['PARTIAL', 'FAIL'].includes(eyesAdvanced.visual_evidence_quality)) {
+      attentionItems.push({
+        id: 'visual_evidence_quality',
+        label: 'Качество visual evidence требует проверки',
+        detail: `${this.eyesQualityVerdictName(eyesAdvanced.visual_evidence_quality)} · score ${eyesAdvanced.quality_gate_score || 0}%.`
+      });
+    }
     const confidenceLevel = noData
       ? 'Недостаточно данных'
       : attentionItems.length
@@ -8573,7 +8674,9 @@ test.describe('Terminator QA Factory safe demo', () => {
         approval_pending: pendingApprovals.length,
         safe_mode_active: safeModeActive,
         emergency_stop_active: emergencyActive,
-        recovery: recovery.status || 'unknown'
+        recovery: recovery.status || 'unknown',
+        visual_evidence_quality: eyesAdvanced.visual_evidence_quality || 'PARTIAL',
+        visual_evidence_confidence_impact: eyesAdvanced.confidence_impact || 0
       },
       safety: {
         read_only: true,
@@ -9042,6 +9145,11 @@ test.describe('Terminator QA Factory safe demo', () => {
         visual_smoke_status: eyes.advanced?.visual_smoke_status || 'partial',
         layout_status: eyes.advanced?.layout_evidence_status || 'partial',
         accessibility_status: eyes.advanced?.accessibility_status || 'partial',
+        console_status: eyes.advanced?.console_snapshot_status || 'unavailable',
+        visual_evidence_quality: eyes.advanced?.visual_evidence_quality || 'PARTIAL',
+        quality_gate_score: eyes.advanced?.quality_gate_score || 0,
+        verifier_verdict: eyes.advanced?.verifier_verdict || 'PARTIAL',
+        confidence_impact: eyes.advanced?.confidence_impact || 0,
         recent_count: eyes.count || 0
       },
       events: sampleEvents,
@@ -9211,7 +9319,12 @@ test.describe('Terminator QA Factory safe demo', () => {
           <article>
             <span>Состояние</span>
             <strong>${this.escapeHtml(state.eyes_evidence?.visual_smoke_status === 'ready' ? 'экран пригоден' : 'проверить')}</strong>
-            <p>Layout: ${this.escapeHtml(state.eyes_evidence?.layout_status || 'partial')} · доступность: ${this.escapeHtml(state.eyes_evidence?.accessibility_status || 'partial')}</p>
+            <p>Layout: ${this.escapeHtml(state.eyes_evidence?.layout_status || 'partial')} · журнал: ${this.escapeHtml(this.eyesConsoleStatusName(state.eyes_evidence?.console_status))}</p>
+          </article>
+          <article>
+            <span>Качество</span>
+            <strong>${this.escapeHtml(this.eyesQualityVerdictName(state.eyes_evidence?.visual_evidence_quality))}</strong>
+            <p>Score: ${this.escapeHtml(String(state.eyes_evidence?.quality_gate_score || 0))}% · проверка: ${this.escapeHtml(this.eyesQualityVerdictName(state.eyes_evidence?.verifier_verdict))}</p>
           </article>
           <button type="button" data-v2-product-shell-action="open_eyes">Открыть Глаза</button>
         </section>
@@ -10631,9 +10744,16 @@ test.describe('Terminator QA Factory safe demo', () => {
         visual_smoke_status: 'partial',
         dom_snapshot_status: 'partial',
         layout_evidence_status: 'partial',
-        console_snapshot_status: 'placeholder',
+        console_snapshot_status: 'unavailable',
         accessibility_status: 'partial',
         evidence_binding_status: 'partial',
+        visual_evidence_quality: 'PARTIAL',
+        quality_gate_score: 0,
+        verifier_verdict: 'PARTIAL',
+        confidence_impact: 0,
+        console_snapshot: null,
+        quality_gate: null,
+        verifier_result: null,
         issues: ['создайте первый visual evidence record'],
         recent_evidence: []
       },
@@ -10673,6 +10793,7 @@ test.describe('Terminator QA Factory safe demo', () => {
       type: EYES_VISUAL_ADVANCED_TYPES[source.type] ? source.type : (source.type || 'screenshot'),
       title: String(source.title || source.target || 'Visual evidence'),
       summary: String(source.summary || source.notes || ''),
+      next_action: String(source.next_action || ''),
       mode,
       target: String(source.target || ''),
       screenshot_ref: String(source.screenshot_ref || ''),
@@ -10692,6 +10813,9 @@ test.describe('Terminator QA Factory safe demo', () => {
       layout_evidence: source.layout_evidence && typeof source.layout_evidence === 'object' ? source.layout_evidence : null,
       console_snapshot: source.console_snapshot && typeof source.console_snapshot === 'object' ? source.console_snapshot : null,
       accessibility_basics: source.accessibility_basics && typeof source.accessibility_basics === 'object' ? source.accessibility_basics : null,
+      quality_gate: source.quality_gate && typeof source.quality_gate === 'object' ? source.quality_gate : null,
+      verifier_result: source.verifier_result && typeof source.verifier_result === 'object' ? source.verifier_result : null,
+      confidence_impact: source.confidence_impact && typeof source.confidence_impact === 'object' ? source.confidence_impact : null,
       created_at: source.created_at || now,
       updated_at: source.updated_at || source.created_at || now
     };
@@ -10797,15 +10921,256 @@ test.describe('Terminator QA Factory safe demo', () => {
     };
   },
 
-  buildEyesConsoleSnapshot() {
-    return {
-      error_count: 0,
-      warning_count: 0,
-      blocked_resource_count: 0,
-      security_warning_count: 0,
-      status: 'placeholder',
-      note: 'Браузерный журнал не читается из WebApp напрямую. Runtime evidence может приложить console summary отдельной read-only проверкой.'
+  sanitizeConsoleMessage(message) {
+    return sanitizeEyesConsoleRuntimeText(message);
+  },
+
+  classifyConsoleSnapshot(snapshot = {}) {
+    if (snapshot.status === 'unavailable') return 'unavailable';
+    const counts = snapshot.level_counts || {};
+    if (Number(counts.error || snapshot.error_count || 0) > 0) return 'error';
+    if (Number(counts.warning || snapshot.warning_count || 0) > 0 || (snapshot.blocked_sensitive_messages || []).length) return 'warning';
+    return 'clean';
+  },
+
+  buildEyesConsoleSnapshot(sourceScreen = this.current || 'system') {
+    const createdAt = new Date().toISOString();
+    if (typeof window === 'undefined') {
+      return {
+        snapshot_id: `eyes_console_${Date.now()}`,
+        created_at: createdAt,
+        source_screen: sourceScreen,
+        level_counts: { error: 0, warning: 0, info: 0 },
+        latest_messages: [],
+        blocked_sensitive_messages: [],
+        total_count: 0,
+        error_count: 0,
+        warning_count: 0,
+        info_count: 0,
+        status: 'unavailable',
+        is_mock: false,
+        collection_method: 'browser_unavailable',
+        notes: 'Журнал недоступен в текущем окружении; это не считается чистым PASS без пометки.'
+      };
+    }
+    setupEyesConsoleRuntimeCollector();
+    const raw = Array.isArray(window.__terminatorEyesConsoleBuffer) ? window.__terminatorEyesConsoleBuffer : [];
+    const safeMessages = raw.slice(-10).map((item) => ({
+      level: ['error', 'warning', 'info'].includes(item.level) ? item.level : 'info',
+      message_preview: String(item.message_preview || '').slice(0, EYES_CONSOLE_PREVIEW_MAX),
+      source: String(item.source || 'runtime').slice(0, 60),
+      timestamp: item.timestamp || createdAt
+    }));
+    const blocked = raw
+      .filter((item) => item.sensitive_blocked)
+      .slice(-8)
+      .map((item) => ({
+        level: ['error', 'warning', 'info'].includes(item.level) ? item.level : 'info',
+        message_preview: '[REDACTED sensitive console message]',
+        source: String(item.source || 'runtime').slice(0, 60),
+        timestamp: item.timestamp || createdAt
+      }));
+    const levelCounts = raw.reduce((acc, item) => {
+      const level = item.level === 'warning' ? 'warning' : item.level === 'error' ? 'error' : 'info';
+      acc[level] += 1;
+      return acc;
+    }, { error: 0, warning: 0, info: 0 });
+    const snapshot = {
+      snapshot_id: `eyes_console_${Date.now()}`,
+      created_at: createdAt,
+      source_screen: sourceScreen,
+      level_counts: levelCounts,
+      latest_messages: safeMessages,
+      blocked_sensitive_messages: blocked,
+      total_count: raw.length,
+      error_count: levelCounts.error,
+      warning_count: levelCounts.warning,
+      info_count: levelCounts.info,
+      status: 'clean',
+      is_mock: false,
+      collection_method: 'in_app_runtime',
+      notes: raw.length
+        ? 'Журнал собран безопасным runtime-кольцом; длинные трассировки и секреты не сохраняются.'
+        : 'Журнал подключён; новых ошибок в текущем runtime-кольце нет.'
     };
+    snapshot.status = this.classifyConsoleSnapshot(snapshot);
+    return snapshot;
+  },
+
+  eyesConsoleStatusName(status) {
+    return {
+      clean: 'чисто',
+      warning: 'есть предупреждения',
+      error: 'есть ошибки',
+      unavailable: 'недоступен'
+    }[status] || 'проверить';
+  },
+
+  eyesQualityVerdictName(verdict) {
+    return {
+      PASS: 'PASS',
+      PASS_WITH_RISKS: 'PASS с рисками',
+      PARTIAL: 'частично',
+      FAIL: 'FAIL'
+    }[verdict] || 'частично';
+  },
+
+  buildVisualEvidenceQualityGate(evidenceRecord = {}, context = {}) {
+    const now = new Date().toISOString();
+    const dom = evidenceRecord.dom_snapshot || context.dom_snapshot || null;
+    const layout = evidenceRecord.layout_evidence || context.layout_evidence || null;
+    const accessibility = evidenceRecord.accessibility_basics || context.accessibility_basics || null;
+    const consoleSnapshot = evidenceRecord.console_snapshot || context.console_snapshot || null;
+    const normalText = [
+      evidenceRecord.title,
+      evidenceRecord.summary,
+      evidenceRecord.notes,
+      evidenceRecord.target,
+      evidenceRecord.screenshot_ref,
+      context.normal_ui_text,
+      ...(consoleSnapshot?.latest_messages || []).map((item) => item.message_preview)
+    ].filter(Boolean).join('\n');
+    const privacy = this.scanPrivacyText(normalText);
+    const secretLike = EYES_CONSOLE_SECRET_PATTERN.test(normalText) || privacy.blocked;
+    const mojibake = /(?:Ð|Ñ|�){2,}/.test(normalText);
+    const forbiddenNormalTerms = EYES_VISUAL_TECHNICAL_TERMS.filter((term) => String(normalText || '').includes(term));
+    const checks = [];
+    const add = (id, label, pass, note, severity = 'medium') => {
+      checks.push({
+        id,
+        label,
+        status: pass ? 'PASS' : 'FAIL',
+        severity,
+        note: note || (pass ? 'OK' : 'требует проверки')
+      });
+    };
+    add('has_scope', 'Есть область проверки', Boolean(evidenceRecord.mode || context.scope || evidenceRecord.task_id || evidenceRecord.linked_task_id), evidenceRecord.mode || context.scope || 'scope не указан');
+    add('has_source', 'Есть источник', Boolean(evidenceRecord.source || context.source), evidenceRecord.source || context.source || 'source не указан');
+    add('has_created_at', 'Есть дата создания', Boolean(evidenceRecord.created_at || context.created_at), evidenceRecord.created_at || context.created_at || 'created_at не указан');
+    add('has_dom_summary', 'Есть DOM-снимок', Boolean(dom && Number(dom.node_count || dom.interactive_count || 0) >= 0), dom ? `${dom.interactive_count || 0} интерактивных элементов` : 'DOM-снимок отсутствует');
+    add('has_layout_evidence', 'Есть проверка layout', Boolean(layout && Number(layout.viewport_width || 0) >= 0), layout ? `${layout.viewport_width || 0}x${layout.viewport_height || 0}` : 'layout evidence отсутствует');
+    add('has_accessibility_basics', 'Есть базовая доступность', Boolean(accessibility && Number(accessibility.focusable_controls_count || 0) >= 0), accessibility ? `${accessibility.focusable_controls_count || 0} focusable` : 'accessibility отсутствует');
+    add('has_console_snapshot', 'Есть журнал ошибок', Boolean(consoleSnapshot && consoleSnapshot.status), consoleSnapshot ? this.eyesConsoleStatusName(consoleSnapshot.status) : 'журнал отсутствует');
+    add('no_horizontal_overflow', 'Нет горизонтального разъезда', !layout?.horizontal_overflow, layout?.horizontal_overflow ? 'найден горизонтальный разъезд' : 'разъезда не видно', layout?.horizontal_overflow ? 'high' : 'low');
+    add('no_mojibake', 'Нет кракозябр', !mojibake, mojibake ? 'найдены признаки mojibake' : 'UTF-8 выглядит нормально', mojibake ? 'critical' : 'low');
+    add('no_forbidden_normal_ui_terms', 'Нет технической каши в обычном UI', !forbiddenNormalTerms.length && !(dom?.hidden_technical_terms_count), forbiddenNormalTerms.length ? forbiddenNormalTerms.join(', ') : dom?.hidden_technical_terms_count ? 'технические термины найдены в UI' : 'обычный текст чистый');
+    add('no_secret_like_text', 'Нет секретов', !secretLike, secretLike ? 'Privacy Guard требует блокировки' : 'секретные значения не найдены', secretLike ? 'critical' : 'low');
+    add('has_next_action', 'Есть следующий шаг', Boolean(evidenceRecord.next_action || context.next_action), evidenceRecord.next_action || context.next_action || 'next action отсутствует');
+    add('linked_to_task_or_system', 'Связано с задачей или системой', Boolean(evidenceRecord.task_id || evidenceRecord.linked_task_id || context.system_scope), evidenceRecord.task_id || evidenceRecord.linked_task_id || (context.system_scope ? 'system' : 'нет связи'));
+    add('evidence_not_empty', 'Evidence не пустое', Boolean(normalText.trim() || dom || layout || accessibility || consoleSnapshot), 'есть содержимое evidence');
+    const failed = checks.filter((item) => item.status === 'FAIL');
+    const criticalFail = failed.some((item) => item.severity === 'critical');
+    const coreFailed = failed.some((item) => EYES_QUALITY_CORE_CHECKS.includes(item.id));
+    const score = Math.max(0, Math.round((checks.length - failed.length) / Math.max(1, checks.length) * 100));
+    const risks = [
+      ...(layout?.horizontal_overflow ? ['Найден горизонтальный разъезд.'] : []),
+      ...(consoleSnapshot?.status === 'error' ? ['В журнале есть ошибки.'] : []),
+      ...(consoleSnapshot?.status === 'warning' ? ['В журнале есть предупреждения или скрытые чувствительные сообщения.'] : []),
+      ...(consoleSnapshot?.status === 'unavailable' ? ['Журнал ошибок недоступен; нельзя завышать уверенность.'] : []),
+      ...(accessibility?.status === 'review' ? ['Базовая доступность требует проверки.'] : []),
+      ...failed.filter((item) => !['no_mojibake', 'no_secret_like_text'].includes(item.id)).slice(0, 5).map((item) => item.note)
+    ];
+    const overflowFail = Boolean(layout?.horizontal_overflow);
+    let verdict = criticalFail || coreFailed
+      ? 'FAIL'
+      : score >= 90 && !risks.length
+        ? 'PASS'
+        : score >= 78
+          ? 'PASS_WITH_RISKS'
+          : score >= 55
+            ? 'PARTIAL'
+            : 'FAIL';
+    if (overflowFail && ['PASS', 'PASS_WITH_RISKS'].includes(verdict)) verdict = 'PARTIAL';
+    return {
+      gate_id: `eyes_quality_${Date.now()}`,
+      created_at: now,
+      evidence_id: evidenceRecord.evidence_id || evidenceRecord.check_id || context.evidence_id || '',
+      verdict,
+      score,
+      checks,
+      risks: [...new Set(risks)].slice(0, 10),
+      missing: failed.map((item) => item.label),
+      next_action: verdict === 'PASS'
+        ? 'Можно использовать как evidence для проверки результата.'
+        : verdict === 'PASS_WITH_RISKS'
+          ? 'Использовать с пометкой рисков и проверить вручную спорные пункты.'
+          : 'Дособрать доказательство: исправить missing/FAIL пункты и повторить проверку.',
+      status: verdict
+    };
+  },
+
+  createVisualEvidenceVerifierResult(qualityGate = {}) {
+    const verdict = qualityGate.verdict || 'PARTIAL';
+    return {
+      verifier_id: `eyes_verifier_${Date.now()}`,
+      evidence_id: qualityGate.evidence_id || '',
+      verdict,
+      score: Number(qualityGate.score || 0),
+      risks: Array.isArray(qualityGate.risks) ? qualityGate.risks.slice(0, 10) : [],
+      missing: Array.isArray(qualityGate.missing) ? qualityGate.missing.slice(0, 12) : [],
+      next_action: qualityGate.next_action || 'Проверить visual evidence вручную.',
+      created_at: new Date().toISOString()
+    };
+  },
+
+  applyVisualEvidenceConfidenceImpact(verifierResult = {}) {
+    const verdict = verifierResult.verdict || 'PARTIAL';
+    const impact = verdict === 'PASS' ? 5 : verdict === 'PASS_WITH_RISKS' ? 2 : verdict === 'FAIL' ? -10 : 0;
+    return {
+      visual_evidence_quality: verdict === 'PASS_WITH_RISKS' ? 'PASS_WITH_RISKS' : verdict === 'PASS' ? 'PASS' : verdict === 'FAIL' ? 'FAIL' : 'PARTIAL',
+      confidence_impact: impact,
+      reason: impact > 0
+        ? 'Visual evidence повышает уверенность, но не заменяет решение владельца.'
+        : impact < 0
+          ? 'Visual evidence снижает уверенность: есть блокирующие проблемы.'
+          : 'Visual evidence частичное и не меняет итоговую уверенность.',
+      created_at: new Date().toISOString()
+    };
+  },
+
+  renderEyesConsoleSnapshot(snapshot = {}) {
+    return {
+      html: `
+        <div class="eyes-metric-strip eyes-metric-strip--${this.escapeHtml(snapshot.status || 'unavailable')}" aria-label="Журнал ошибок">
+          <span>Журнал: ${this.escapeHtml(this.eyesConsoleStatusName(snapshot.status))}</span>
+          <span>Ошибки: ${this.escapeHtml(String(snapshot.level_counts?.error ?? snapshot.error_count ?? 0))}</span>
+          <span>Предупреждения: ${this.escapeHtml(String(snapshot.level_counts?.warning ?? snapshot.warning_count ?? 0))}</span>
+          <span>Инфо: ${this.escapeHtml(String(snapshot.level_counts?.info ?? snapshot.info_count ?? 0))}</span>
+        </div>
+      `
+    }.html;
+  },
+
+  renderVisualEvidenceQualityGate(gate = {}) {
+    return `
+      <section class="eyes-quality-panel eyes-quality-panel--${this.escapeHtml(String(gate.verdict || 'PARTIAL').toLowerCase())}" aria-label="Качество доказательства">
+        <div>
+          <span>Качество доказательства</span>
+          <strong>${this.escapeHtml(this.eyesQualityVerdictName(gate.verdict))} · ${this.escapeHtml(String(gate.score || 0))}%</strong>
+          <p>${this.escapeHtml(gate.next_action || 'Проверьте evidence перед использованием.')}</p>
+        </div>
+        <div class="eyes-quality-grid">
+          ${(gate.checks || []).slice(0, 6).map((check) => `
+            <article class="${check.status === 'PASS' ? 'pass' : 'review'}">
+              <span>${this.escapeHtml(check.status === 'PASS' ? 'готово' : 'проверить')}</span>
+              <strong>${this.escapeHtml(check.label)}</strong>
+              <p>${this.escapeHtml(check.note)}</p>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  },
+
+  renderVisualEvidenceVerifier(verifier = {}, confidence = {}) {
+    return `
+      <div class="eyes-metric-strip eyes-metric-strip--verifier" aria-label="Проверка visual evidence">
+        <span>Проверка: ${this.escapeHtml(this.eyesQualityVerdictName(verifier.verdict))}</span>
+        <span>Score: ${this.escapeHtml(String(verifier.score || 0))}%</span>
+        <span>Влияние: ${this.escapeHtml(String(confidence.confidence_impact || 0))}</span>
+        <span>${this.escapeHtml(confidence.reason || 'Уверенность не завышается.')}</span>
+      </div>
+    `;
   },
 
   buildEyesAccessibilityBasics(domSummary = this.buildEyesDomSnapshotSummary()) {
@@ -10832,28 +11197,85 @@ test.describe('Terminator QA Factory safe demo', () => {
         visual_smoke_status: 'partial',
         dom_snapshot_status: 'partial',
         layout_evidence_status: 'partial',
-        console_snapshot_status: 'placeholder',
+        console_snapshot_status: 'unavailable',
         accessibility_status: 'partial',
         evidence_binding_status: 'partial',
+        visual_evidence_quality: 'PARTIAL',
+        quality_gate_score: 0,
+        verifier_verdict: 'PARTIAL',
+        confidence_impact: 0,
         issues: ['DOM runtime недоступен в этом окружении'],
         recent_evidence: [],
-        is_mock: true
+        is_mock: true,
+        console_snapshot: {
+          status: 'unavailable',
+          collection_method: 'browser_unavailable',
+          level_counts: { error: 0, warning: 0, info: 0 },
+          latest_messages: [],
+          blocked_sensitive_messages: [],
+          total_count: 0
+        },
+        quality_gate: {
+          verdict: 'PARTIAL',
+          score: 0,
+          missing: ['DOM runtime недоступен'],
+          risks: ['Журнал и evidence нельзя проверить в этом окружении.'],
+          next_action: 'Открыть WebApp в браузере и повторить проверку Глаз.'
+        },
+        verifier_result: {
+          verdict: 'PARTIAL',
+          score: 0,
+          risks: ['DOM runtime недоступен'],
+          missing: ['runtime evidence']
+        }
       };
     }
     const state = this.normalizeEyesVisualState(this.eyesVisualState || this.defaultEyesVisualState());
     const eyesRoot = document.querySelector('#system-eyes-panel') || document.querySelector('#workspace-eyes-panel') || document;
     const dom = this.buildEyesDomSnapshotSummary(eyesRoot);
     const layout = this.buildEyesLayoutEvidence();
-    const consoleSnapshot = this.buildEyesConsoleSnapshot();
+    const consoleSnapshot = this.buildEyesConsoleSnapshot(options.source || this.current || 'system');
     const accessibility = this.buildEyesAccessibilityBasics(dom);
     const checks = state.checks || [];
+    const noMojibake = !/(?:Ð|Ñ|�){2,}/.test(document.body?.innerText || '');
+    const evidenceCandidate = {
+      evidence_id: options.evidence_id || `eyes_preview_${Date.now()}`,
+      source: options.source || 'runtime',
+      mode: options.mode || (this.current === 'scheme' ? 'scheme' : this.current === 'work' ? 'workspace' : 'desktop'),
+      title: 'Снимок визуального состояния',
+      summary: 'Runtime-снимок Глаз для quality gate.',
+      notes: 'Read-only наблюдение: действия не выполнялись.',
+      task_id: options.task_id || this.getActiveWorkTask()?.task_id || '',
+      linked_task_id: options.task_id || this.getActiveWorkTask()?.task_id || '',
+      created_at: new Date().toISOString(),
+      dom_snapshot: dom,
+      layout_evidence: layout,
+      accessibility_basics: accessibility,
+      console_snapshot: consoleSnapshot,
+      next_action: 'Проверить доказательства и использовать только с verdict.'
+    };
+    const qualityGate = this.buildVisualEvidenceQualityGate(evidenceCandidate, {
+      source: options.source || 'runtime',
+      scope: evidenceCandidate.mode,
+      system_scope: !evidenceCandidate.task_id,
+      dom_snapshot: dom,
+      layout_evidence: layout,
+      accessibility_basics: accessibility,
+      console_snapshot: consoleSnapshot,
+      next_action: evidenceCandidate.next_action
+    });
+    const verifierResult = this.createVisualEvidenceVerifierResult(qualityGate);
+    const confidenceImpact = this.applyVisualEvidenceConfidenceImpact(verifierResult);
     const issues = [
       ...(layout.horizontal_overflow ? ['найдены признаки горизонтального переполнения'] : []),
       ...(dom.hidden_technical_terms_count ? ['в обычном тексте замечены технические термины'] : []),
       ...(accessibility.controls_without_label_count ? ['есть элементы без понятного названия'] : []),
+      ...(consoleSnapshot.status === 'error' ? ['журнал ошибок содержит ошибки'] : []),
+      ...(consoleSnapshot.status === 'warning' ? ['журнал ошибок содержит предупреждения'] : []),
+      ...(qualityGate.verdict === 'FAIL' ? ['quality gate evidence не прошёл'] : []),
       ...(checks.length ? [] : ['нет сохранённых visual evidence records'])
     ];
-    const visualReady = !layout.horizontal_overflow && !dom.hidden_technical_terms_count;
+    const visualReady = !layout.horizontal_overflow && !dom.hidden_technical_terms_count && noMojibake;
     const score = Math.max(48, Math.min(94,
       52
       + (visualReady ? 14 : 0)
@@ -10861,7 +11283,8 @@ test.describe('Terminator QA Factory safe demo', () => {
       + (layout.status === 'ready' ? 8 : 0)
       + (accessibility.status === 'ready' ? 8 : 0)
       + (checks.length ? 8 : 0)
-      + (consoleSnapshot.status === 'placeholder' ? 2 : 4)
+      + (consoleSnapshot.status === 'clean' ? 4 : consoleSnapshot.status === 'warning' ? 2 : 0)
+      + (qualityGate.verdict === 'PASS' ? 6 : qualityGate.verdict === 'PASS_WITH_RISKS' ? 3 : 0)
     ));
     const status = issues.some((issue) => /переполнения|технические|названия/.test(issue))
       ? 'partial'
@@ -10879,6 +11302,10 @@ test.describe('Terminator QA Factory safe demo', () => {
       console_snapshot_status: consoleSnapshot.status,
       accessibility_status: accessibility.status,
       evidence_binding_status: checks.length ? 'ready' : 'partial',
+      visual_evidence_quality: qualityGate.verdict,
+      quality_gate_score: qualityGate.score,
+      verifier_verdict: verifierResult.verdict,
+      confidence_impact: confidenceImpact.confidence_impact,
       issues,
       recent_evidence: checks.slice(0, 5).map((check) => ({
         evidence_id: check.evidence_id || check.check_id,
@@ -10891,12 +11318,15 @@ test.describe('Terminator QA Factory safe demo', () => {
         viewport: `${layout.viewport_width}x${layout.viewport_height}`,
         usable: visualReady,
         main_action_visible: Boolean(document.querySelector('button')),
-        no_mojibake: !/(?:Ð|Ñ|�){2,}/.test(document.body?.innerText || '')
+        no_mojibake: noMojibake
       },
       dom_snapshot: dom,
       layout_evidence: layout,
       console_snapshot: consoleSnapshot,
       accessibility_basics: accessibility,
+      quality_gate: qualityGate,
+      verifier_result: verifierResult,
+      confidence_impact: confidenceImpact,
       is_mock: false,
       snapshot_source: options.source || 'WebApp read-only DOM summary'
     };
@@ -10935,6 +11365,9 @@ test.describe('Terminator QA Factory safe demo', () => {
         ['Visual smoke', advanced.visual_smoke_status === 'ready' ? 'экран пригоден' : 'нужна проверка'],
         ['DOM-снимок', `${advanced.dom_snapshot?.interactive_count || 0} интерактивных элементов`],
         ['Layout evidence', advanced.layout_evidence?.horizontal_overflow ? 'есть разъезд' : 'без горизонтального разъезда'],
+        ['Журнал ошибок', this.eyesConsoleStatusName(advanced.console_snapshot_status)],
+        ['Качество evidence', `${this.eyesQualityVerdictName(advanced.visual_evidence_quality)} · ${advanced.quality_gate_score || 0}%`],
+        ['Verifier evidence', this.eyesQualityVerdictName(advanced.verifier_verdict)],
         ['Доступность', advanced.accessibility_basics?.controls_without_label_count ? 'есть элементы без названия' : 'базово готово'],
         ['Evidence binding', totalChecks ? `${totalChecks} записей` : 'нет записей'],
         ['Скриншоты', latest?.screenshot_ref ? 'есть ссылка/путь' : 'ручная ссылка ожидается'],
@@ -17914,7 +18347,9 @@ test.describe('Terminator QA Factory safe demo', () => {
       ['Быстрая проверка экрана', advanced.visual_smoke_status === 'ready' ? 'готово' : 'проверить', advanced.visual_smoke?.usable ? 'Экран выглядит пригодным для работы.' : 'Нужно проверить читаемость и разъезд.'],
       ['DOM-снимок', advanced.dom_snapshot_status === 'ready' ? 'готово' : 'проверить', `${advanced.dom_snapshot?.interactive_count || 0} интерактивных элементов, ${advanced.dom_snapshot?.missing_labels_count || 0} без понятного названия.`],
       ['Layout evidence', advanced.layout_evidence_status === 'ready' ? 'готово' : 'проверить', advanced.layout_evidence?.horizontal_overflow ? 'Найдены признаки горизонтального переполнения.' : 'Горизонтального переполнения не видно.'],
-      ['Журнал ошибок', advanced.console_snapshot_status === 'placeholder' ? 'частично' : 'готово', advanced.console_snapshot?.note || 'Сводка ошибок доступна как evidence summary.'],
+      ['Журнал ошибок', this.eyesConsoleStatusName(advanced.console_snapshot_status), advanced.console_snapshot?.notes || 'Сводка ошибок доступна как evidence summary.'],
+      ['Качество evidence', this.eyesQualityVerdictName(advanced.visual_evidence_quality), `${advanced.quality_gate_score || 0}% · ${advanced.quality_gate?.next_action || 'Проверить доказательства.'}`],
+      ['Проверка evidence', this.eyesQualityVerdictName(advanced.verifier_verdict), `Влияние на уверенность: ${advanced.confidence_impact || 0}.`],
       ['Доступность', advanced.accessibility_status === 'ready' ? 'готово' : 'проверить', `${advanced.accessibility_basics?.focusable_controls_count || 0} элементов можно пройти клавиатурой.`],
       ['Привязка evidence', advanced.evidence_binding_status === 'ready' ? 'готово' : 'частично', activeTask ? `Можно привязать к задаче ${activeTask.task_id}.` : 'Выберите задачу или создайте системное evidence.']
     ];
@@ -17929,7 +18364,7 @@ test.describe('Terminator QA Factory safe demo', () => {
           <div><dt>Готовность</dt><dd>${this.escapeHtml(String(snapshot.readiness))}%</dd></div>
           <div><dt>Записей</dt><dd>${this.escapeHtml(String(snapshot.count))}</dd></div>
           <div><dt>Экран</dt><dd>${this.escapeHtml(advanced.active_viewport || 'не проверен')}</dd></div>
-          <div><dt>Задача</dt><dd>${this.escapeHtml(activeTask?.task_id || 'не выбрана')}</dd></div>
+          <div><dt>Качество</dt><dd>${this.escapeHtml(String(advanced.quality_gate_score || 0))}%</dd></div>
         </dl>
       </section>
 
@@ -17942,6 +18377,10 @@ test.describe('Terminator QA Factory safe demo', () => {
           </article>
         `).join('')}
       </section>
+
+      ${this.renderEyesConsoleSnapshot(advanced.console_snapshot)}
+      ${this.renderVisualEvidenceQualityGate(advanced.quality_gate)}
+      ${this.renderVisualEvidenceVerifier(advanced.verifier_result, advanced.confidence_impact)}
 
       <section class="eyes-console" aria-label="Создание visual evidence">
         <label class="work-field">
@@ -17966,6 +18405,7 @@ test.describe('Terminator QA Factory safe demo', () => {
         </label>
         <div class="system-action-strip">
           <button type="button" data-eyes-action="create_snapshot_evidence" data-eyes-source="manual" data-eyes-scope="system">Создать снимок состояния</button>
+          <button type="button" data-eyes-action="verify_visual_evidence" data-eyes-source="quality_gate" data-eyes-scope="system">Проверить доказательства</button>
           <button type="button" data-eyes-action="create_check" data-eyes-scope="system">Создать visual evidence</button>
           <button type="button" data-eyes-action="create_desktop_check" data-eyes-scope="system">Desktop smoke</button>
           <button type="button" data-eyes-action="create_mobile_check" data-eyes-scope="system">Mobile smoke</button>
@@ -18011,8 +18451,12 @@ test.describe('Terminator QA Factory safe demo', () => {
         <div class="eyes-task-summary">
           <span>Экран: ${this.escapeHtml(advanced.active_viewport)}</span>
           <span>Разъезд: ${advanced.layout_evidence.horizontal_overflow ? 'есть признаки' : 'не видно'}</span>
+          <span>Журнал: ${this.escapeHtml(this.eyesConsoleStatusName(advanced.console_snapshot_status))}</span>
+          <span>Качество: ${this.escapeHtml(this.eyesQualityVerdictName(advanced.visual_evidence_quality))} · ${this.escapeHtml(String(advanced.quality_gate_score || 0))}%</span>
+          <span>Проверка: ${this.escapeHtml(this.eyesQualityVerdictName(advanced.verifier_verdict))}</span>
           <span>Доступность: ${this.escapeHtml(advanced.accessibility_status === 'ready' ? 'базово готово' : 'проверить')}</span>
         </div>
+        ${this.renderVisualEvidenceQualityGate(advanced.quality_gate)}
         <label class="work-field">
           <span>Что проверяем</span>
           <input id="workspace-eyes-target" type="text" value="${this.escapeHtml(task.title || task.goal || 'Рабочее окно')}" placeholder="Например: рабочее окно задачи">
@@ -18035,6 +18479,7 @@ test.describe('Terminator QA Factory safe demo', () => {
         </label>
         <div class="workspace-file-actions">
           <button type="button" data-eyes-action="create_snapshot_evidence" data-eyes-source="task" data-eyes-scope="workspace">Снимок состояния</button>
+          <button type="button" data-eyes-action="verify_visual_evidence" data-eyes-source="quality_gate" data-eyes-scope="workspace">Проверить доказательства</button>
           <button type="button" data-eyes-action="create_check" data-eyes-scope="workspace">Создать evidence</button>
           <button type="button" data-eyes-action="create_desktop_check" data-eyes-scope="workspace">Desktop smoke</button>
           <button type="button" data-eyes-action="create_mobile_check" data-eyes-scope="workspace">Mobile smoke</button>
@@ -18247,6 +18692,8 @@ test.describe('Terminator QA Factory safe demo', () => {
           <strong>${this.escapeHtml(normalized.title || normalized.target || 'Цель не задана')}</strong>
           <p>${this.escapeHtml(normalized.summary || normalized.notes || 'Наблюдение не заполнено.')}</p>
           <small>${this.escapeHtml(checklistSummary || 'checklist ожидает данных')}</small>
+          <small>Качество: ${this.escapeHtml(this.eyesQualityVerdictName(normalized.quality_gate?.verdict))} · ${this.escapeHtml(String(normalized.quality_gate?.score ?? 0))}%</small>
+          <small>Проверка: ${this.escapeHtml(this.eyesQualityVerdictName(normalized.verifier_result?.verdict))} · влияние ${this.escapeHtml(String(normalized.confidence_impact?.confidence_impact ?? 0))}</small>
           ${normalized.linked_task_id ? `<small>Задача: ${this.escapeHtml(normalized.linked_task_id)}</small>` : ''}
           ${normalized.linked_incident_id ? `<small>Инцидент: ${this.escapeHtml(normalized.linked_incident_id)}</small>` : ''}
           ${normalized.screenshot_ref ? `<small>Скрин: ${this.escapeHtml(normalized.screenshot_ref)}</small>` : ''}
@@ -18284,12 +18731,14 @@ test.describe('Terminator QA Factory safe demo', () => {
       return;
     }
 
-    if (action === 'create_snapshot_evidence') {
+    if (action === 'create_snapshot_evidence' || action === 'verify_visual_evidence') {
       const check = this.createEyesAdvancedEvidenceRecord(scope, button?.dataset?.eyesSource || 'manual');
       this.renderSystemStatus();
       if (this.getActiveWorkTask()) this.renderWorkTaskCard();
       this.renderMinaSystemScheme();
-      this.toast(check.status === 'ready' ? 'Снимок Глаз сохранён как evidence' : 'Снимок Глаз требует проверки');
+      this.toast(action === 'verify_visual_evidence'
+        ? `Проверка evidence: ${this.eyesQualityVerdictName(check.verifier_result?.verdict)}`
+        : check.status === 'ready' ? 'Снимок Глаз сохранён как evidence' : 'Снимок Глаз требует проверки');
       return;
     }
 
@@ -18520,14 +18969,42 @@ test.describe('Terminator QA Factory safe demo', () => {
     const safeNotes = privacy.findings.length ? this.redactPrivacyText(notes) : notes;
     const status = privacy.blocked ? 'blocked' : privacy.findings.length ? 'needs_review' : 'ready';
     const now = new Date().toISOString();
+    const checkId = this.generateWorkspaceId('EYES');
+    const advanced = this.buildEyesAdvancedSnapshot({ source: `${scope}_manual_visual_evidence`, mode });
+    const qualityGate = this.buildVisualEvidenceQualityGate({
+      evidence_id: checkId,
+      source: 'manual_form',
+      mode,
+      title: safeTarget,
+      summary: safeNotes,
+      notes: safeNotes,
+      screenshot_ref: safeScreenshotRef,
+      task_id: task?.task_id || '',
+      linked_task_id: task?.task_id || '',
+      created_at: now,
+      dom_snapshot: advanced.dom_snapshot,
+      layout_evidence: advanced.layout_evidence,
+      accessibility_basics: advanced.accessibility_basics,
+      console_snapshot: advanced.console_snapshot,
+      next_action: 'Передать evidence в Проверку результата.'
+    }, {
+      scope,
+      source: 'manual_form',
+      system_scope: !task,
+      next_action: 'Передать evidence в Проверку результата.'
+    });
+    const visualVerifier = this.createVisualEvidenceVerifierResult(qualityGate);
+    const confidenceImpact = this.applyVisualEvidenceConfidenceImpact(visualVerifier);
     const check = this.normalizeEyesVisualCheck({
-      check_id: this.generateWorkspaceId('EYES'),
+      check_id: checkId,
+      evidence_id: checkId,
       task_id: task?.task_id || '',
       project_id: task?.project_id || '',
       mode,
       target: safeTarget,
       screenshot_ref: safeScreenshotRef,
       notes: safeNotes,
+      next_action: qualityGate.next_action,
       status,
       privacy_status: privacy.status,
       privacy_summary: this.privacyScanSummary(privacy),
@@ -18548,6 +19025,13 @@ test.describe('Terminator QA Factory safe demo', () => {
         raw_file_saved: false,
         persistence: 'metadata_only_browser'
       } : null,
+      dom_snapshot: advanced.dom_snapshot,
+      layout_evidence: advanced.layout_evidence,
+      console_snapshot: advanced.console_snapshot,
+      accessibility_basics: advanced.accessibility_basics,
+      quality_gate: qualityGate,
+      verifier_result: visualVerifier,
+      confidence_impact: confidenceImpact,
       created_at: now,
       updated_at: now
     });
@@ -18585,6 +19069,13 @@ test.describe('Terminator QA Factory safe demo', () => {
     const now = new Date().toISOString();
     const issueText = advanced.issues.length ? advanced.issues.join('; ') : 'критичных визуальных замечаний нет';
     const checkId = this.generateWorkspaceId('EYES');
+    const qualityGate = {
+      ...(advanced.quality_gate || {}),
+      evidence_id: checkId
+    };
+    const visualVerifier = this.createVisualEvidenceVerifierResult(qualityGate);
+    const confidenceImpact = this.applyVisualEvidenceConfidenceImpact(visualVerifier);
+    const evidenceReady = ['PASS', 'PASS_WITH_RISKS'].includes(visualVerifier.verdict);
     const check = this.normalizeEyesVisualCheck({
       check_id: checkId,
       evidence_id: checkId,
@@ -18599,8 +19090,9 @@ test.describe('Terminator QA Factory safe demo', () => {
       target: advanced.visual_smoke?.current_route ? `Экран: ${advanced.visual_smoke.current_route}` : 'Mina UI',
       screenshot_ref: '',
       notes: `Глаза зафиксировали состояние интерфейса: ${issueText}. Это доказательство, не автоматическое исправление.`,
-      status: advanced.status === 'ready' ? 'ready' : 'needs_review',
-      risk: advanced.issues.length ? 'review' : 'low',
+      next_action: qualityGate.next_action || 'Передать evidence в Проверку результата.',
+      status: advanced.status === 'ready' && evidenceReady ? 'ready' : 'needs_review',
+      risk: advanced.issues.length || !evidenceReady ? 'review' : 'low',
       privacy_status: 'clean',
       privacy_summary: 'clean',
       viewport: {
@@ -18612,7 +19104,9 @@ test.describe('Terminator QA Factory safe demo', () => {
         { id: 'visual_smoke', label: 'Быстрая проверка экрана', status: advanced.visual_smoke_status === 'ready' ? 'pass' : 'review' },
         { id: 'dom_snapshot', label: 'DOM-снимок', status: advanced.dom_snapshot_status === 'ready' ? 'pass' : 'review' },
         { id: 'layout_evidence', label: 'Layout evidence', status: advanced.layout_evidence_status === 'ready' ? 'pass' : 'review' },
-        { id: 'console_snapshot', label: 'Журнал ошибок', status: advanced.console_snapshot_status === 'placeholder' ? 'review' : 'pass' },
+        { id: 'console_snapshot', label: 'Журнал ошибок', status: advanced.console_snapshot_status === 'clean' ? 'pass' : 'review' },
+        { id: 'quality_gate', label: 'Качество evidence', status: evidenceReady ? 'pass' : 'review' },
+        { id: 'visual_verifier', label: 'Проверка evidence', status: evidenceReady ? 'pass' : 'review' },
         { id: 'accessibility_basics', label: 'Базовая доступность', status: advanced.accessibility_status === 'ready' ? 'pass' : 'review' },
         { id: 'evidence_binding', label: 'Привязка evidence', status: task ? 'pass' : 'review' }
       ],
@@ -18631,6 +19125,9 @@ test.describe('Terminator QA Factory safe demo', () => {
       layout_evidence: advanced.layout_evidence,
       console_snapshot: advanced.console_snapshot,
       accessibility_basics: advanced.accessibility_basics,
+      quality_gate: qualityGate,
+      verifier_result: visualVerifier,
+      confidence_impact: confidenceImpact,
       storage_ref: task ? {
         root: TERMINATOR_STORAGE_ROOT,
         task_path: this.taskStoragePath(task.task_id),
@@ -18651,6 +19148,12 @@ test.describe('Terminator QA Factory safe demo', () => {
     if (!this.eyesVisualState) this.eyesVisualState = this.defaultEyesVisualState();
     this.eyesVisualState.advanced = {
       ...advanced,
+      quality_gate: qualityGate,
+      verifier_result: visualVerifier,
+      confidence_impact: confidenceImpact,
+      visual_evidence_quality: qualityGate.verdict,
+      quality_gate_score: qualityGate.score,
+      verifier_verdict: visualVerifier.verdict,
       recent_evidence: [
         { evidence_id: check.evidence_id, title: check.title, status: check.status, created_at: check.created_at },
         ...(advanced.recent_evidence || [])
@@ -18706,6 +19209,18 @@ test.describe('Terminator QA Factory safe demo', () => {
       '',
       '## Checklist',
       ...normalized.checks.map((item) => `- ${item.label}: ${item.status}`),
+      '',
+      '## Quality Gate',
+      `- verdict: ${normalized.quality_gate?.verdict || 'PARTIAL'}`,
+      `- score: ${normalized.quality_gate?.score ?? 0}`,
+      `- missing: ${(normalized.quality_gate?.missing || []).join('; ') || 'нет'}`,
+      `- risks: ${(normalized.quality_gate?.risks || []).join('; ') || 'нет'}`,
+      '',
+      '## Проверка evidence',
+      `- verdict: ${normalized.verifier_result?.verdict || 'PARTIAL'}`,
+      `- score: ${normalized.verifier_result?.score ?? 0}`,
+      `- confidence impact: ${normalized.confidence_impact?.confidence_impact ?? 0}`,
+      `- next_action: ${normalized.next_action || normalized.verifier_result?.next_action || 'Проверить evidence вручную.'}`,
       '',
       '## Краткий вывод',
       normalized.summary || 'сводка не задана',
@@ -23256,6 +23771,9 @@ test.describe('Terminator QA Factory safe demo', () => {
             <span>Экран: ${this.escapeHtml(advanced.visual_smoke_status === 'ready' ? 'пригоден' : 'проверить')}</span>
             <span>DOM: ${this.escapeHtml(String(advanced.dom_snapshot?.interactive_count || 0))} элементов</span>
             <span>Layout: ${this.escapeHtml(advanced.layout_evidence?.horizontal_overflow ? 'есть разъезд' : 'без разъезда')}</span>
+            <span>Журнал: ${this.escapeHtml(this.eyesConsoleStatusName(advanced.console_snapshot_status))}</span>
+            <span>Качество: ${this.escapeHtml(this.eyesQualityVerdictName(advanced.visual_evidence_quality))} · ${this.escapeHtml(String(advanced.quality_gate_score || 0))}%</span>
+            <span>Проверка: ${this.escapeHtml(this.eyesQualityVerdictName(advanced.verifier_verdict))}</span>
             <span>Доступность: ${this.escapeHtml(advanced.accessibility_status === 'ready' ? 'базово готово' : 'проверить')}</span>
             <span>Только доказательства</span>
           </div>

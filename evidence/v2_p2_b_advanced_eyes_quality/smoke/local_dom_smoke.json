@@ -1,0 +1,634 @@
+{
+  "generated_at": "2026-05-31T04:11:56.453Z",
+  "base": "http://127.0.0.1:8814",
+  "checks": [
+    {
+      "id": "system_eyes_panel_visible",
+      "status": "PASS",
+      "details": {
+        "hasEyesPanel": true,
+        "hasConsoleText": true,
+        "hasQualityText": true,
+        "hasVerifierText": true,
+        "consoleStatus": "clean",
+        "quality": "PASS",
+        "qualityScore": 100,
+        "verifier": "PASS",
+        "normalForbidden": []
+      }
+    },
+    {
+      "id": "console_status_visible",
+      "status": "PASS",
+      "details": {
+        "hasEyesPanel": true,
+        "hasConsoleText": true,
+        "hasQualityText": true,
+        "hasVerifierText": true,
+        "consoleStatus": "clean",
+        "quality": "PASS",
+        "qualityScore": 100,
+        "verifier": "PASS",
+        "normalForbidden": []
+      }
+    },
+    {
+      "id": "quality_gate_visible",
+      "status": "PASS",
+      "details": {
+        "hasEyesPanel": true,
+        "hasConsoleText": true,
+        "hasQualityText": true,
+        "hasVerifierText": true,
+        "consoleStatus": "clean",
+        "quality": "PASS",
+        "qualityScore": 100,
+        "verifier": "PASS",
+        "normalForbidden": []
+      }
+    },
+    {
+      "id": "verifier_visible",
+      "status": "PASS",
+      "details": {
+        "hasEyesPanel": true,
+        "hasConsoleText": true,
+        "hasQualityText": true,
+        "hasVerifierText": true,
+        "consoleStatus": "clean",
+        "quality": "PASS",
+        "qualityScore": 100,
+        "verifier": "PASS",
+        "normalForbidden": []
+      }
+    },
+    {
+      "id": "normal_ui_no_forbidden_terms",
+      "status": "PASS",
+      "details": {
+        "forbidden": []
+      }
+    },
+    {
+      "id": "secret_console_redacted",
+      "status": "PASS",
+      "details": {
+        "snapshot_id": "eyes_console_1780200721155",
+        "created_at": "2026-05-31T04:12:01.155Z",
+        "source_screen": "negative_probe",
+        "level_counts": {
+          "error": 1,
+          "warning": 1,
+          "info": 0
+        },
+        "latest_messages": [
+          {
+            "level": "warning",
+            "message_preview": "V2 P2-B warning probe",
+            "source": "console.warn",
+            "timestamp": "2026-05-31T04:12:01.151Z"
+          },
+          {
+            "level": "error",
+            "message_preview": "[REDACTED sensitive console message]",
+            "source": "console.error",
+            "timestamp": "2026-05-31T04:12:01.155Z"
+          }
+        ],
+        "blocked_sensitive_messages": [
+          {
+            "level": "error",
+            "message_preview": "[REDACTED sensitive console message]",
+            "source": "console.error",
+            "timestamp": "2026-05-31T04:12:01.155Z"
+          }
+        ],
+        "total_count": 2,
+        "error_count": 1,
+        "warning_count": 1,
+        "info_count": 0,
+        "status": "error",
+        "is_mock": false,
+        "collection_method": "in_app_runtime",
+        "notes": "Журнал собран безопасным runtime-кольцом; длинные трассировки и секреты не сохраняются."
+      }
+    },
+    {
+      "id": "empty_evidence_fails",
+      "status": "PASS",
+      "details": {
+        "gate_id": "eyes_quality_1780200721156",
+        "created_at": "2026-05-31T04:12:01.155Z",
+        "evidence_id": "",
+        "verdict": "FAIL",
+        "score": 29,
+        "checks": [
+          {
+            "id": "has_scope",
+            "label": "Есть область проверки",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "scope не указан"
+          },
+          {
+            "id": "has_source",
+            "label": "Есть источник",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "source не указан"
+          },
+          {
+            "id": "has_created_at",
+            "label": "Есть дата создания",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "created_at не указан"
+          },
+          {
+            "id": "has_dom_summary",
+            "label": "Есть DOM-снимок",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "DOM-снимок отсутствует"
+          },
+          {
+            "id": "has_layout_evidence",
+            "label": "Есть проверка layout",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "layout evidence отсутствует"
+          },
+          {
+            "id": "has_accessibility_basics",
+            "label": "Есть базовая доступность",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "accessibility отсутствует"
+          },
+          {
+            "id": "has_console_snapshot",
+            "label": "Есть журнал ошибок",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "журнал отсутствует"
+          },
+          {
+            "id": "no_horizontal_overflow",
+            "label": "Нет горизонтального разъезда",
+            "status": "PASS",
+            "severity": "low",
+            "note": "разъезда не видно"
+          },
+          {
+            "id": "no_mojibake",
+            "label": "Нет кракозябр",
+            "status": "PASS",
+            "severity": "low",
+            "note": "UTF-8 выглядит нормально"
+          },
+          {
+            "id": "no_forbidden_normal_ui_terms",
+            "label": "Нет технической каши в обычном UI",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "обычный текст чистый"
+          },
+          {
+            "id": "no_secret_like_text",
+            "label": "Нет секретов",
+            "status": "PASS",
+            "severity": "low",
+            "note": "секретные значения не найдены"
+          },
+          {
+            "id": "has_next_action",
+            "label": "Есть следующий шаг",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "next action отсутствует"
+          },
+          {
+            "id": "linked_to_task_or_system",
+            "label": "Связано с задачей или системой",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "нет связи"
+          },
+          {
+            "id": "evidence_not_empty",
+            "label": "Evidence не пустое",
+            "status": "FAIL",
+            "severity": "medium",
+            "note": "есть содержимое evidence"
+          }
+        ],
+        "risks": [
+          "scope не указан",
+          "source не указан",
+          "created_at не указан",
+          "DOM-снимок отсутствует",
+          "layout evidence отсутствует"
+        ],
+        "missing": [
+          "Есть область проверки",
+          "Есть источник",
+          "Есть дата создания",
+          "Есть DOM-снимок",
+          "Есть проверка layout",
+          "Есть базовая доступность",
+          "Есть журнал ошибок",
+          "Есть следующий шаг",
+          "Связано с задачей или системой",
+          "Evidence не пустое"
+        ],
+        "next_action": "Дособрать доказательство: исправить missing/FAIL пункты и повторить проверку.",
+        "status": "FAIL"
+      }
+    },
+    {
+      "id": "secret_gate_fails",
+      "status": "PASS",
+      "details": {
+        "gate_id": "eyes_quality_1780200721156",
+        "created_at": "2026-05-31T04:12:01.156Z",
+        "evidence_id": "neg_base",
+        "verdict": "FAIL",
+        "score": 93,
+        "checks": [
+          {
+            "id": "has_scope",
+            "label": "Есть область проверки",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "manual"
+          },
+          {
+            "id": "has_source",
+            "label": "Есть источник",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "test"
+          },
+          {
+            "id": "has_created_at",
+            "label": "Есть дата создания",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "2026-05-31T04:12:01.155Z"
+          },
+          {
+            "id": "has_dom_summary",
+            "label": "Есть DOM-снимок",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "1 интерактивных элементов"
+          },
+          {
+            "id": "has_layout_evidence",
+            "label": "Есть проверка layout",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "390x800"
+          },
+          {
+            "id": "has_accessibility_basics",
+            "label": "Есть базовая доступность",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "1 focusable"
+          },
+          {
+            "id": "has_console_snapshot",
+            "label": "Есть журнал ошибок",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "чисто"
+          },
+          {
+            "id": "no_horizontal_overflow",
+            "label": "Нет горизонтального разъезда",
+            "status": "PASS",
+            "severity": "low",
+            "note": "разъезда не видно"
+          },
+          {
+            "id": "no_mojibake",
+            "label": "Нет кракозябр",
+            "status": "PASS",
+            "severity": "low",
+            "note": "UTF-8 выглядит нормально"
+          },
+          {
+            "id": "no_forbidden_normal_ui_terms",
+            "label": "Нет технической каши в обычном UI",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "обычный текст чистый"
+          },
+          {
+            "id": "no_secret_like_text",
+            "label": "Нет секретов",
+            "status": "FAIL",
+            "severity": "critical",
+            "note": "Privacy Guard требует блокировки"
+          },
+          {
+            "id": "has_next_action",
+            "label": "Есть следующий шаг",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "Использовать evidence."
+          },
+          {
+            "id": "linked_to_task_or_system",
+            "label": "Связано с задачей или системой",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "system"
+          },
+          {
+            "id": "evidence_not_empty",
+            "label": "Evidence не пустое",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "есть содержимое evidence"
+          }
+        ],
+        "risks": [],
+        "missing": [
+          "Нет секретов"
+        ],
+        "next_action": "Дособрать доказательство: исправить missing/FAIL пункты и повторить проверку.",
+        "status": "FAIL"
+      }
+    },
+    {
+      "id": "mojibake_gate_fails",
+      "status": "PASS",
+      "details": {
+        "gate_id": "eyes_quality_1780200721156",
+        "created_at": "2026-05-31T04:12:01.156Z",
+        "evidence_id": "neg_base",
+        "verdict": "FAIL",
+        "score": 93,
+        "checks": [
+          {
+            "id": "has_scope",
+            "label": "Есть область проверки",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "manual"
+          },
+          {
+            "id": "has_source",
+            "label": "Есть источник",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "test"
+          },
+          {
+            "id": "has_created_at",
+            "label": "Есть дата создания",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "2026-05-31T04:12:01.155Z"
+          },
+          {
+            "id": "has_dom_summary",
+            "label": "Есть DOM-снимок",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "1 интерактивных элементов"
+          },
+          {
+            "id": "has_layout_evidence",
+            "label": "Есть проверка layout",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "390x800"
+          },
+          {
+            "id": "has_accessibility_basics",
+            "label": "Есть базовая доступность",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "1 focusable"
+          },
+          {
+            "id": "has_console_snapshot",
+            "label": "Есть журнал ошибок",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "чисто"
+          },
+          {
+            "id": "no_horizontal_overflow",
+            "label": "Нет горизонтального разъезда",
+            "status": "PASS",
+            "severity": "low",
+            "note": "разъезда не видно"
+          },
+          {
+            "id": "no_mojibake",
+            "label": "Нет кракозябр",
+            "status": "FAIL",
+            "severity": "critical",
+            "note": "найдены признаки mojibake"
+          },
+          {
+            "id": "no_forbidden_normal_ui_terms",
+            "label": "Нет технической каши в обычном UI",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "обычный текст чистый"
+          },
+          {
+            "id": "no_secret_like_text",
+            "label": "Нет секретов",
+            "status": "PASS",
+            "severity": "low",
+            "note": "секретные значения не найдены"
+          },
+          {
+            "id": "has_next_action",
+            "label": "Есть следующий шаг",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "Использовать evidence."
+          },
+          {
+            "id": "linked_to_task_or_system",
+            "label": "Связано с задачей или системой",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "system"
+          },
+          {
+            "id": "evidence_not_empty",
+            "label": "Evidence не пустое",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "есть содержимое evidence"
+          }
+        ],
+        "risks": [],
+        "missing": [
+          "Нет кракозябр"
+        ],
+        "next_action": "Дособрать доказательство: исправить missing/FAIL пункты и повторить проверку.",
+        "status": "FAIL"
+      }
+    },
+    {
+      "id": "overflow_not_pass",
+      "status": "PASS",
+      "details": {
+        "gate_id": "eyes_quality_1780200721156",
+        "created_at": "2026-05-31T04:12:01.156Z",
+        "evidence_id": "neg_base",
+        "verdict": "PARTIAL",
+        "score": 93,
+        "checks": [
+          {
+            "id": "has_scope",
+            "label": "Есть область проверки",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "manual"
+          },
+          {
+            "id": "has_source",
+            "label": "Есть источник",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "test"
+          },
+          {
+            "id": "has_created_at",
+            "label": "Есть дата создания",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "2026-05-31T04:12:01.155Z"
+          },
+          {
+            "id": "has_dom_summary",
+            "label": "Есть DOM-снимок",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "1 интерактивных элементов"
+          },
+          {
+            "id": "has_layout_evidence",
+            "label": "Есть проверка layout",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "390x800"
+          },
+          {
+            "id": "has_accessibility_basics",
+            "label": "Есть базовая доступность",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "1 focusable"
+          },
+          {
+            "id": "has_console_snapshot",
+            "label": "Есть журнал ошибок",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "чисто"
+          },
+          {
+            "id": "no_horizontal_overflow",
+            "label": "Нет горизонтального разъезда",
+            "status": "FAIL",
+            "severity": "high",
+            "note": "найден горизонтальный разъезд"
+          },
+          {
+            "id": "no_mojibake",
+            "label": "Нет кракозябр",
+            "status": "PASS",
+            "severity": "low",
+            "note": "UTF-8 выглядит нормально"
+          },
+          {
+            "id": "no_forbidden_normal_ui_terms",
+            "label": "Нет технической каши в обычном UI",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "обычный текст чистый"
+          },
+          {
+            "id": "no_secret_like_text",
+            "label": "Нет секретов",
+            "status": "PASS",
+            "severity": "low",
+            "note": "секретные значения не найдены"
+          },
+          {
+            "id": "has_next_action",
+            "label": "Есть следующий шаг",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "Использовать evidence."
+          },
+          {
+            "id": "linked_to_task_or_system",
+            "label": "Связано с задачей или системой",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "system"
+          },
+          {
+            "id": "evidence_not_empty",
+            "label": "Evidence не пустое",
+            "status": "PASS",
+            "severity": "medium",
+            "note": "есть содержимое evidence"
+          }
+        ],
+        "risks": [
+          "Найден горизонтальный разъезд.",
+          "найден горизонтальный разъезд"
+        ],
+        "missing": [
+          "Нет горизонтального разъезда"
+        ],
+        "next_action": "Дособрать доказательство: исправить missing/FAIL пункты и повторить проверку.",
+        "status": "PARTIAL"
+      }
+    },
+    {
+      "id": "scheme_eyes_quality_visible",
+      "status": "PASS",
+      "details": {
+        "hasConsole": true,
+        "hasQuality": true,
+        "hasVerifier": true,
+        "hasEyesZone": true
+      }
+    },
+    {
+      "id": "mobile_390_no_overflow",
+      "status": "PASS",
+      "details": {
+        "width": 390,
+        "viewport": 390,
+        "overflow": false,
+        "hasQuality": true
+      }
+    },
+    {
+      "id": "mobile_430_no_overflow",
+      "status": "PASS",
+      "details": {
+        "width": 430,
+        "viewport": 430,
+        "overflow": false,
+        "hasQuality": true
+      }
+    }
+  ],
+  "status": "PASS"
+}

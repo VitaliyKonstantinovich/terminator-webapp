@@ -1,0 +1,57 @@
+{
+  "snapshot_id": "eyes_console_local_smoke_clean",
+  "created_at": "2026-05-31T04:12:34.3551422Z",
+  "source_screen": "system",
+  "level_counts": {
+    "error": 0,
+    "warning": 0,
+    "info": 0
+  },
+  "latest_messages": [],
+  "blocked_sensitive_messages": [],
+  "total_count": 0,
+  "status": "clean",
+  "is_mock": false,
+  "collection_method": "in_app_runtime",
+  "notes": "Local smoke confirmed safe runtime console collector is active; sensitive-message redaction verified separately.",
+  "redaction_sample": {
+    "snapshot_id": "eyes_console_1780200721155",
+    "created_at": "2026-05-31T04:12:01.155Z",
+    "source_screen": "negative_probe",
+    "level_counts": {
+      "error": 1,
+      "warning": 1,
+      "info": 0
+    },
+    "latest_messages": [
+      {
+        "level": "warning",
+        "message_preview": "V2 P2-B warning probe",
+        "source": "console.warn",
+        "timestamp": "2026-05-31T04:12:01.151Z"
+      },
+      {
+        "level": "error",
+        "message_preview": "[REDACTED sensitive console message]",
+        "source": "console.error",
+        "timestamp": "2026-05-31T04:12:01.155Z"
+      }
+    ],
+    "blocked_sensitive_messages": [
+      {
+        "level": "error",
+        "message_preview": "[REDACTED sensitive console message]",
+        "source": "console.error",
+        "timestamp": "2026-05-31T04:12:01.155Z"
+      }
+    ],
+    "total_count": 2,
+    "error_count": 1,
+    "warning_count": 1,
+    "info_count": 0,
+    "status": "error",
+    "is_mock": false,
+    "collection_method": "in_app_runtime",
+    "notes": "Журнал собран безопасным runtime-кольцом; длинные трассировки и секреты не сохраняются."
+  }
+}
