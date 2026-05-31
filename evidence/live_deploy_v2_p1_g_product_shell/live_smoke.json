@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-05-31T02:12:51.908Z",
+  "live_url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-g-product-shell-live-smoke",
+  "desktop": {
+    "title": "TERMINATOR MINA UI",
+    "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p1-g-product-shell-live-smoke",
+    "productShellVisible": true,
+    "useCaseButtonCount": 5,
+    "quickSteps": 5,
+    "helpCards": 8,
+    "demoButtons": 5,
+    "smokeStatus": "PASS",
+    "routeChecks": [
+      {
+        "id": "create_task",
+        "status": "PASS",
+        "current": "work",
+        "selector_found": true
+      },
+      {
+        "id": "qa_autotest",
+        "status": "PASS",
+        "current": "system",
+        "selector_found": true
+      },
+      {
+        "id": "research_council",
+        "status": "PASS",
+        "current": "system",
+        "selector_found": true
+      },
+      {
+        "id": "memory_search",
+        "status": "PASS",
+        "current": "system",
+        "selector_found": true
+      },
+      {
+        "id": "recovery",
+        "status": "PASS",
+        "current": "system",
+        "selector_found": true
+      }
+    ],
+    "memoryQueriesFound": true,
+    "noAiApi": true,
+    "noBilling": true
+  },
+  "mobile": [
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "noHorizontalOverflow": true,
+      "productShellVisible": true,
+      "useCaseCards": 5
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "noHorizontalOverflow": true,
+      "productShellVisible": true,
+      "useCaseCards": 5
+    }
+  ],
+  "verdict": "PASS"
+}
