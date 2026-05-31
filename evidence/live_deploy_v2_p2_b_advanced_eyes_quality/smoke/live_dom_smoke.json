@@ -1,0 +1,119 @@
+{
+  "generated_at": "2026-05-31T04:19:38.495Z",
+  "base": "https://vitaliykonstantinovich.github.io/terminator-webapp/",
+  "marker": "20260530-v2-p2-b-eyes-quality-v1",
+  "checks": [
+    {
+      "id": "live_marker_fetch",
+      "status": "PASS",
+      "details": {
+        "markerFound": true,
+        "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?force=v2-p2-b-live-fetch-1780201179370"
+      }
+    },
+    {
+      "id": "service_worker_fetch_fresh",
+      "status": "PASS",
+      "details": {
+        "length": 3426,
+        "hasExpectedCacheCode": true
+      }
+    },
+    {
+      "id": "no_direct_ai_api_or_secret_patterns_in_live_static",
+      "status": "PASS",
+      "details": {
+        "matches": []
+      }
+    },
+    {
+      "id": "system_eyes_live_quality_console_verifier",
+      "status": "PASS",
+      "details": {
+        "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=system&force=v2-p2-b-live-smoke-1780201179857",
+        "title": "TERMINATOR MINA UI",
+        "width": 1365,
+        "scrollWidth": 1365,
+        "overflow": false,
+        "markerInHtml": true,
+        "textHasMojibake": false,
+        "hasScheme": true,
+        "hasSystem": true,
+        "hasEyes": true,
+        "hasQuality": true,
+        "hasVerifier": true,
+        "hasConsole": true,
+        "hasProofButton": true,
+        "normalForbidden": [],
+        "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n85%\nV2-контур готов к работе\nПроверить мозги\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНачать\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управления\n›\nSYS\nСистема\n›\nV2 ЗАПУСК\nV2-контур готов к работе\n\nСтратег и Совет мозгов должны быть подтверждены владельцем.\n\n85%\nминимум готов · комфорт готов · максимум позже\nПродолжить\nСхема Мины\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНача"
+      }
+    },
+    {
+      "id": "scheme_eyes_live_quality_console_verifier",
+      "status": "PASS",
+      "details": {
+        "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p2-b-live-smoke-1780201184713",
+        "title": "TERMINATOR MINA UI",
+        "width": 1365,
+        "scrollWidth": 1365,
+        "overflow": false,
+        "markerInHtml": true,
+        "textHasMojibake": false,
+        "hasScheme": true,
+        "hasSystem": true,
+        "hasEyes": true,
+        "hasQuality": true,
+        "hasVerifier": true,
+        "hasConsole": true,
+        "hasProofButton": true,
+        "normalForbidden": [],
+        "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n85%\nV2-контур готов к работе\nПроверить мозги\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНачать\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управления\n›\nSYS\nСистема\n›\nV2 ЗАПУСК\nV2-контур готов к работе\n\nСтратег и Совет мозгов должны быть подтверждены владельцем.\n\n85%\nминимум готов · комфорт готов · максимум позже\nПродолжить\nСхема Мины\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНача"
+      }
+    },
+    {
+      "id": "mobile_390_no_overflow_live",
+      "status": "PASS",
+      "details": {
+        "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p2-b-live-mobile-390-1780201189624",
+        "title": "TERMINATOR MINA UI",
+        "width": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "markerInHtml": true,
+        "textHasMojibake": false,
+        "hasScheme": true,
+        "hasSystem": true,
+        "hasEyes": true,
+        "hasQuality": true,
+        "hasVerifier": true,
+        "hasConsole": true,
+        "hasProofButton": true,
+        "normalForbidden": [],
+        "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n85%\nV2-контур готов к работе\nПроверить мозги\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНачать\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управления\n›\nSYS\nСистема\n›\nV2 ЗАПУСК\nV2-контур готов к работе\n\nСтратег и Совет мозгов должны быть подтверждены владельцем.\n\n85%\nминимум готов · комфорт готов · максимум позже\nПродолжить\nСхема Мины\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНача"
+      }
+    },
+    {
+      "id": "mobile_430_no_overflow_live",
+      "status": "PASS",
+      "details": {
+        "url": "https://vitaliykonstantinovich.github.io/terminator-webapp/?screen=scheme&force=v2-p2-b-live-mobile-430-1780201195094",
+        "title": "TERMINATOR MINA UI",
+        "width": 430,
+        "scrollWidth": 430,
+        "overflow": false,
+        "markerInHtml": true,
+        "textHasMojibake": false,
+        "hasScheme": true,
+        "hasSystem": true,
+        "hasEyes": true,
+        "hasQuality": true,
+        "hasVerifier": true,
+        "hasConsole": true,
+        "hasProofButton": true,
+        "normalForbidden": [],
+        "textSample": "MINA\nUI\n\nMINA UI\n\nTERMINATOR\n\nТвой ИИ-ассистент для любых задач\n\n▶\nСтарт\n85%\nV2-контур готов к работе\nПроверить мозги\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНачать\n←\nMINA UI\n×\nПривет, Терминатор на связи!\n\nВыбери раздел:\n\n💼\nРабочее\n›\nMC\nЦентр управления\n›\nSYS\nСистема\n›\nV2 ЗАПУСК\nV2-контур готов к работе\n\nСтратег и Совет мозгов должны быть подтверждены владельцем.\n\n85%\nминимум готов · комфорт готов · максимум позже\nПродолжить\nСхема Мины\nПУЛЬТ ТЕРМИНАТОРА\nСоздать рабочую задачу\n\nКонтур готов к первому безопасному рабочему сценарию.\n\nНача"
+      }
+    }
+  ],
+  "status": "PASS"
+}
